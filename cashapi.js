@@ -1,6 +1,7 @@
 var fs = require("fs");
 var _ = require('underscore');
 var alfred = require('alfred');
+var Step = require("step");
 var adb = null;
 var cash_accounts = null;
 var cash_transactions = null;
@@ -26,23 +27,28 @@ var stats = {};
 function getAllAccounts(cb) {
 	var accounts = []
 	cash_accounts.scan(function (err, key, acc) {
-		if (key!=null) accounts.push(acc);
-			else cb(accounts);
+		if (err) cb(err);
+		if (key) accounts.push(acc);
+			else cb(null, accounts);
 		}, true);
 }
 
-function getAccountByPath(path) {
+function getAccountByPath(path,cb) {
 	var newAccId = null;
 	_.forEach(stats, function (accStat,key) {
 		if (accStat.path == path)
 			newAccId = key;
 	});
-	return newAccId;
+	if (newAccId==null)
+		process.nextTick(function () { cb(new Error("No such account")); });
+	else 
+		process.nextTick(function () { cb(null, newAccId); });
 }
 
-function getAccountInfo(accId, details) {
+function getAccountInfo(accId, details, cb) {
 	var res = {};
 	var accStats = stats[accId];
+	res.id = accId;
 	_.forEach(details, function (val) {
 			if (val == "value")
 				res.value = accStats.value;
@@ -50,31 +56,34 @@ function getAccountInfo(accId, details) {
 				res.count = accStats.count;
 			else if (val == "path") 
 				res.path = accStats.path;
-
 	});
-	return res;
+	process.nextTick(function () {cb(null, res);});
 }
 
-function getAccountRegister(accId, offset, limit ) {
+function getAccountRegister(accId, offset, limit, cb ) {
 	var accStats = stats[accId];
 	if (limit==null) {
 		if (offset==0 || offset == null)
-			return accStats.trDateIndex;
+			process.nextTick(function () { cb(null, accStats.trDateIndex); });
 		else
-			return accStats.trDateIndex.slice(offset, offset + limit);
+			process.nextTick(function () { cb(null, accStats.trDateIndex.slice(offset, offset + limit)); });
 	} else
-		return accStats.trDateIndex.slice(offset, offset + limit);
+		process.nextTick(function () { cb(null, accStats.trDateIndex.slice(offset, offset + limit)); });
 }
 
 function getTransaction(trId, cb) {
 	cash_transactions.get(trId, function (err, tr) {
-		cb(tr);
-	})
+		if (err) console.log({id:trId,err:err});
+		cb (err, tr);
+	});
 }
 
-function saveTransaction (tr) {
-	if (tr.id!=null) {
-		getTransaction(tr.id, function (trUpd) {
+function saveTransaction (tr,cb) {
+	Step (
+		function getExTransaction () {
+			getTransaction(tr.id,this);
+		},
+		function updateIt (err, trUpd) {
 			// update branch
 			if (tr.splits !=null) {
 				// ammount is changed
@@ -101,13 +110,13 @@ function saveTransaction (tr) {
 			} else if (tr.dateEntered != null) {
 				trUpd.dateEntered = tr.dateEntered;
 			}
-			cash_transactions.put(trUpd.id, trUpd, function (err) {
-				calcStats();
-			});
-		});
-	} else {
-		// add new branch
-	}
+			cash_transactions.put(trUpd.id, trUpd, this);
+		},
+		function postUpdate(err) {
+			process.nextTick(calcStats);
+			cb(null);
+		}
+	)
 }
 
 function calcStats() {
@@ -131,7 +140,8 @@ function calcStats() {
 	// calc accounts stats
 	cash_accounts.scan(function(err, k, acc) {
 		if (k!=null) {
-			stats[acc.id]={count:0,value:0,trDateIndex:[]};
+			if (stats[acc.id]==null)
+				stats[acc.id]={count:0,value:0,trDateIndex:[]};
 			getAccPath(acc, function (path) { stats[acc.id].path = path; });
 		} else {
 			console.time("Test");

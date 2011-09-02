@@ -9,5 +9,8 @@
     , "alfred" : ""
     , "stache" : ""
     , "dateformatjs" : ""
+    , "step" : ">=0.0.3"
+    , "carrier" : ">= 0.1.0"
+    , "crc" : ">= 0.1.0"
   }
 }
