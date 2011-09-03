@@ -5,6 +5,7 @@
   , "dependencies": {
       "express": ""
     , "underscore": ""
+    , "async": ""
     , "sprintf" : ""
     , "alfred" : ""
     , "stache" : ""

@@ -205,6 +205,7 @@ app.get('/account/table/:id?', function(req, res, next) {
 			})
 		},
 		function render(err, transactions, accInfo) {
+			if (err) console.log(err.stack);
 			var t={}; _.forEach(accInfo, function (e) { t[e.id]=e; }); accInfo = t;
 			var i;
 			console.log({tr:_.size(transactions),trs:_.size(register)});
