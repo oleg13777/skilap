@@ -1,0 +1,5 @@
+{
+    "name" : "skilap-core",
+    "version" : "0.0.1",  
+    "main" : "./lib/core.js"
+}
