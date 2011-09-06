@@ -9,7 +9,14 @@ var sprintf = require('sprintf').sprintf;
 
 var express = require('express');
 var _ = require('underscore');
-var cashapi = require('./cashapi');
+var skilap = require('./skilap-core');
+
+var sapp = skilap.createApp();
+sapp.startApp(function () {
+	sapp.getModule("cashapi", function (err, result) { 
+		cashapi = result; 
+	});
+})
 
 var app = module.exports = express.createServer();
 

@@ -10,49 +10,36 @@ var cash_transactions = null;
 var sema = new events.EventEmitter();
 var dataReady = false;
 var dataLoaded = false;
-var unloadTimer = null;
 var stats = {};
 
-function touchUnloadTimer () {
-	if (unloadTimer!=null) clearTimeout(unloadTimer);
-	unloadTimer = setTimeout(unloadData,10000);
-}
+function cashapi (ctx) {
+	var self = this;
+	this.ctx = ctx;
 
 function waitForData (cb) {
 	if (dataReady) cb(null);
 		else sema.once("dataReady",cb);
-	if (!dataLoaded) {
-		loadData();
-		dataLoaded = true;
-	} else 
-		touchUnloadTimer();
 }
 
-function loadData () {
-	console.time("DB load");
-	Step (
-		function opeDB() {
-			alfred.open('/home/pushok/work/joker/data', this);
-		},
-		function openAccounts(err,db) {
-			adb = db;
-			adb.ensure("cash_accounts",{type:'cached_key_map',buffered:false},this);
-		},
-		function openTransactions(err,_cash_accounts) {
-			cash_accounts = _cash_accounts;
-			adb.ensure("cash_transactions",{type:'cached_key_map',buffered:false},this);
-		},
-		function done(err,_cash_transactions) {
-			cash_transactions = _cash_transactions;
-			console.timeEnd("DB load");
-			touchUnloadTimer();
-			calcStats();
+function loadData (cb) {
+	var adb;
+	async.series([
+			async.apply(self.ctx.getDB)
+		], function (err, results) {
+			if (err) return cb(err);
+			var adb = results[0];
+			async.parallel([
+				async.apply(adb.ensure, "cash_accounts",{type:'cached_key_map',buffered:false}),
+				async.apply(adb.ensure, "cash_transactions",{type:'cached_key_map',buffered:false})
+			], function (err, results) {
+				if (err) return cb(err)
+				cash_accounts = results[0];
+				cash_transactions = results[1];
+				calcStats(cb);
+			})
 		}
-	);
+	)
 }; 
-
-loadData();
-dataLoaded = true;
 
 function unloadData() {
 	Step (
@@ -218,44 +205,52 @@ function getAccPath(acc, cb) {
 	}
 }
 
-function calcStats() {
+function calcStats(cb) {
 	console.time("Stats");
 	dataReady = false;
-	Step (
-		function getAccountsStats() {
+	function getAccStats(accId) {
+		if (stats[accId]==null)
+			stats[accId] = {id:accId,value:0, count:0, trDateIndex:[]};
+		return stats[accId];
+	}
+	async.auto({
+		account_paths: function (cb1) {
 			var next = this;
+			var c=1;
 			cash_accounts.scan(function(err, k, acc) {
-				if (k==null) next();
-				else {
-					stats[acc.id]={id:acc.id,count:0,value:0,trDateIndex:[]};
-					getAccPath(acc, function (path) { stats[acc.id].path = path; });
-				}
+				if (err) return cb1(err);
+				if (k!=null) {
+					c++;
+					getAccPath(acc, function (path) { 
+						getAccStats(acc.id).path = path;
+						if (--c==0) cb1();
+					});
+				} else if (--c==0) cb1();
 			}, true)
 		},
-		function getTransactionStats() {
+		transaction_stats: function (cb1) {
 			console.time("Test");
 			var next = this;
 			cash_transactions.scan(function (err, k, tr) {
-				if (k==null) next();
-				else {
-					tr.splits.forEach(function(split) {
-						var accStats = stats[split.accountId];
-						accStats.value+=split.value;
-						accStats.count++;
-						accStats.trDateIndex.push({id:tr.id,date:tr.dateEntered});
-					});
-				}
+				if (err) return cb1(err);
+				if (k==null) return cb1();
+				tr.splits.forEach(function(split) {
+					var accStats = getAccStats(split.accountId);
+					accStats.value+=split.value;
+					accStats.count++;
+					accStats.trDateIndex.push({id:tr.id,date:tr.dateEntered});
+				});
 			},true)
 		},
-		function buildRegister() {
+		build_register:['transaction_stats', function (cb1) {
 			console.timeEnd("Test");
 			var next = this;
-			async.forEach (_.keys(stats), function (accId, cb1) {
+			async.forEach (_.keys(stats), function (accId, cb2) {
 				accStats = stats[accId];
 				// sort by date
 				accStats.trDateIndex = _.sortBy(accStats.trDateIndex,function (e) { return e.date; });
 				var ballance = 0;
-				async.forEachSeries(accStats.trDateIndex, function (trs,cb2) {
+				async.forEachSeries(accStats.trDateIndex, function (trs,cb3) {
 					cash_transactions.get(trs.id, function (err, tr) {
 						var recv = [];
 						var send = null;
@@ -268,25 +263,36 @@ function calcStats() {
 						trs.recv = recv; trs.send = send;
 						ballance += send.value;
 						trs.ballance = ballance;
-						process.nextTick(cb2);
+						process.nextTick(cb3);
 					});
-				},cb1
+				},cb2
 				);
-			},next)
-		},
+			},cb1)
+		}]},
 		function done (err) {
 			if (err) console.log(err);
-			fs.writeFileSync("./stats.json",JSON.stringify(stats));
 			dataReady=true;
 			sema.emit("dataReady");
 			console.timeEnd("Stats");
+			cb();
 		}
 	);
 }
 
-module.exports.getAllAccounts = getAllAccounts;
-module.exports.getAccountInfo = getAccountInfo;
-module.exports.getAccountRegister = getAccountRegister;
-module.exports.getTransaction = getTransaction;
-module.exports.saveTransaction = saveTransaction;
-module.exports.getAccountByPath = getAccountByPath;
+this.getAllAccounts = getAllAccounts;
+this.getAccountInfo = getAccountInfo;
+this.getAccountRegister = getAccountRegister;
+this.getTransaction = getTransaction;
+this.saveTransaction = saveTransaction;
+this.getAccountByPath = getAccountByPath;
+this.loadData = loadData;
+
+}
+
+module.exports.init = function (ctx,cb) {
+	var api = new cashapi(ctx);
+	api.loadData(function (err) {
+		if (err) return cb(err);
+		cb(null, api);
+	})
+}
