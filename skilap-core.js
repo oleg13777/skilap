@@ -10,7 +10,7 @@ var express = require('express');
 
 function Skilap() {
 	var _adb = null;
-	var tmodules = [{name:"cashapi",require:"skilap-cashapi"},{name:"cash",require:"skilap-cashweb"}];
+	var tmodules = [{name:"cash",require:"skilap-cash"}];
 	var self = this;
 	var modules = {};
 	var webapp = null;
