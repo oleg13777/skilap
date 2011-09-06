@@ -42,7 +42,7 @@ $(document).ready(function(){
 			"bFilter":false,
 			"bServerSide": true,
 			"sScrollY": "480px",
-			"sAjaxSource": "/account/table/{{accountId}}",
+			"sAjaxSource": "{{prefix}}/account/{{accountId}}/getgrid",
 			"sDom": "frtiS",
 //			"oScroller": {
 //				"rowHeight": 24
@@ -51,13 +51,13 @@ $(document).ready(function(){
 				this.oScroller.fnScrollToRow( {{firstVisible}},false );
 				}
 			}).makeEditable({
-				"sUpdateURL":"/account/{{accountId}}/updatecell",
+				"sUpdateURL":"{{prefix}}/account/{{accountId}}/updatecell",
 				"sHttpMethod":"GET",
 				"aoColumns": [
 				null,
 				{ "type":"datepicker" },
-				{ "placeholder":"","type":"autocomplete","autocomplete":{"source":"/account/{{accountId}}/getdesc"}},
-				{ "type":"autocomplete","autocomplete":{"source":"/account/{{accountId}}/getaccounts"}},
+				{ "placeholder":"","type":"autocomplete","autocomplete":{"source":"{{prefix}}/account/{{accountId}}/getdesc"}},
+				{ "type":"autocomplete","autocomplete":{"source":"{{prefix}}/account/{{accountId}}/getaccounts"}},
 				{ "sClass": "value","placeholder":"" },
 				{ "sClass": "value","placeholder":"" },
 				null
