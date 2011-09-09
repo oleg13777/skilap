@@ -11,7 +11,13 @@ var SkilapError = require("./SkilapError");
 function Skilap() {
 	var sessions = {};
 	var _adb = null;
-	var tmodules = [{name:"core",require:"./coreapi"},{name:"cash",require:"skilap-cash"}];
+	var tmodules = [{
+		name:"core",require:"./coreapi",
+		description:"Primary system module. Provides system with common functionality and allows to administer it."
+		},{
+		name:"cash",require:"skilap-cash",
+		description:"Cash. Personal and familty finances. Inspired by gnucash."
+		}];
 	var self = this;
 	var modules = {};
 	var webapp = null;
@@ -81,7 +87,9 @@ function Skilap() {
 				);
 
 				app.post("/login", function (req,res,next) {
-					modules['core'].api.loginByPass(req.session.apiToken, req.body.name, req.body.password, function (err, user) {
+					async.series([
+						async.apply(modules['core'].api.loginByPass,req.session.apiToken, req.body.name, req.body.password)
+					], function (err, user) {
 						if (err)
 							res.redirect(req.body.success);
 						else
@@ -104,7 +112,9 @@ function Skilap() {
 			function end(err) {
 				console.timeEnd("startApp");
 				if (err) cb(err);
-				require("../pages/users")(self,webapp,modules['core'].api,"");
+				require("../pages/users")(self,webapp,modules['core'].api,"/core");
+				require("../pages/index")(self,webapp,modules['core'].api,"/core");
+
 				webapp.listen(1337);
 				console.log("Express server listening on port %d in %s mode", webapp.address().port, webapp.settings.env);
 				self.emit("WebStarted");
@@ -119,6 +129,14 @@ function Skilap() {
 
 	this.getModule = function (name, cb) {
 		cb(null, modules[name]);
+	}
+
+	this.getModulesInfo = function (cb) {
+		var ret = [];
+		_.forEach(tmodules, function (minfo) {
+			ret.push({name:minfo.name, description:minfo.description, url:"/"+minfo.name+"/"});
+		});
+		cb(null, ret);
 	}
 
 	this.getWebApp = function (cb) {

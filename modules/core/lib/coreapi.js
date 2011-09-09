@@ -144,7 +144,7 @@ function CoreApi(ctx) {
 	}
 
 	this.loginByPass = function (token, login, password, cb ) {
-		console.log(arguments);
+		var won = false;
 		core_users.scan(function (err, key, user) {
 			if (err) cb1(err);
 			if (key) {
@@ -154,16 +154,17 @@ function CoreApi(ctx) {
 					s.user = user;
 					core_clients.put(s.clientId,{uid:s.user.id,date:new Date(),appId:s.appId}, function () {});
 					cb(null, user);
+					won = true;
 				}
 			} else {
 				// special case, hardcoded admin user
 				if (login == "admin" && password == "skilap") {
 					sessions[token].user = {type:"admin",screenName:"Server Owner"};
-					cb(null, user);
-				} else
+					cb(null, sessions[token].user);
+				} else if (!won)
 					cb(new SkilapError("Log-in failed","InvalidData"));
 			}
-		});
+		},true);
 	}
 }
 

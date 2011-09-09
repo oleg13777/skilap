@@ -2,7 +2,11 @@ var async = require("async");
 
 module.exports = function account(ctx, app, api, prefix) {
 
-	app.get("/users", function(req, res, next) {
+	app.get(prefix, function (req, res, next) {
+		res.redirect(prefix+"/users");
+	})
+
+	app.get(prefix+"/users", function(req, res, next) {
 		var t = [];
 		async.waterfall([
 			async.apply(api.getAllUsers,req.session.apiToken),
@@ -13,12 +17,12 @@ module.exports = function account(ctx, app, api, prefix) {
 		);
 	});
 
-	app.post("/users/new", function (req, res, next) {
+	app.post(prefix+"/users/new", function (req, res, next) {
 		var user = {screenName:req.body.name,login:req.body.login,password:req.body.password};
 		async.series([
 			async.apply(api.saveUser,req.session.apiToken,user),
 		], function (err) {
-			res.redirect("/users");
+			res.redirect(prefix+"/users");
 		})
 	});
 }
