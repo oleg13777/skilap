@@ -1,0 +1,18 @@
+<h2>System users</h2>
+<table id="users">
+<thead><th>#</th><th>Name</th><thead>
+<tbody>
+{{#users}}
+	<TR><TD>{{id}}</TD><TD>{{screenName}}</TD></TR>
+{{/users}}
+<tbody>
+</table>
+<br>
+<h2>Create new</h2>
+<form id='newuser' method='post' action='/users/new'>
+<input type='hidden' name='success' value='/users/new'/>
+name:<input type='text' name='name'/><br>
+login:<input type='text' name='login'/><br>
+password:<input type='password' name='password'/><br>
+<input type='submit' value='login'>
+</form>

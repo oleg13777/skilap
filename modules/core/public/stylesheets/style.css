@@ -1,0 +1,17 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+table { border-collapse:collapse }
+td { white-space: nowrap; border: 1px solid black }
+tr { height: 24px;}
+.value { text-align: right; width:70px }
+.description { text-align: left; width:300px }
+.account { text-align: left; width:200px }
+.number { text-align: left; width:50px }
+

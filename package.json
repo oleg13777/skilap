@@ -4,6 +4,7 @@
   , "private": true
   , "dependencies": {
       "express": ""
+    , "cookies": ""
     , "underscore": ""
     , "async": ""
     , "sprintf" : ""

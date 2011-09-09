@@ -15,6 +15,10 @@ function cashapi (ctx) {
 	var dataActive = false;
 	var unloadTimeout = null;
 	var stats = {};
+	var coreapi;
+	ctx.getModule("core",function (err, module) {
+			coreapi = module.api;
+	})
 
 	function touchTimer() {
 		if (unloadTimeout!=null)
@@ -58,19 +62,25 @@ function unloadData() {
 	dataActive = dataReady = false;
 }
 
-function getAllAccounts(cb) {
-	Step (
-		function start() {
-			waitForData (this);
-		},
-		function get() {
-			var accounts = []
+function getAllAccounts(token, cb) {
+	async.series ([
+		function start(cb1) {
+			async.parallel([
+				async.apply(coreapi.checkPerm,token,["cash.view"]),
+				async.apply(waitForData)
+			],cb1);
+		}, 
+		function get(cb1) {
+			var accounts = [];
 			cash_accounts.scan(function (err, key, acc) {
-				if (err) cb(err);
+				if (err) cb1(err);
 				if (key) accounts.push(acc);
-					else cb(null, accounts);
+					else cb1(null, accounts);
 				},
 			true);
+		}], function end(err, results) {
+			if (err) return cb(err);
+			cb(null, results[1]);
 		}
 	)
 }

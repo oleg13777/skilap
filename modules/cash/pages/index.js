@@ -1,5 +1,4 @@
-var Step = require("step");
-var _ = require('underscore');
+var async = require("async");
 
 module.exports = function account(webapp) {
 	var app = webapp.web;
@@ -7,27 +6,23 @@ module.exports = function account(webapp) {
 	var prefix = webapp.prefix
 
 	app.get(prefix, function(req, res, next) {
-		Step( 
-			function getAccounts () {
-				cashapi.getAllAccounts(this);
+		var t = [];
+		async.waterfall([
+			async.apply(cashapi.getAllAccounts,req.session.apiToken),
+			function getAccountDetails (accounts,cb1) {
+				async.forEachSeries(accounts,function(e, cb2) {
+					cashapi.getAccountInfo(e.id,["value"], function (err, d) {
+						if (err) return cb2(err);
+						value = Math.round(d.value * 100)/100;
+						if (e.type != "EXPENSE" && e.type!= "INCOME" && value!=0)
+							t.push({name:e.name,value:value,ahref:prefix+"/account?id="+e.id});
+						cb2();
+					})
+				},cb1);
 			},
-			function getAccountDetails (err, accounts) {
-				this.parallel()(null, accounts);
-				var group = this.group();
-				_.forEach(accounts,(function (e) {
-					cashapi.getAccountInfo(e.id,["value"], group());
-				}));
-			},
-			function render (err, accounts, details) {
-				var t = [];
-				for (var i=0; i<_.size(accounts); i++) {
-					var e = accounts[i]; var d = details[i];
-					value = Math.round(d.value * 100)/100;
-					if (e.type != "EXPENSE" && e.type!= "INCOME" && value!=0)
-						t.push({name:e.name,value:value,ahref:prefix+"/account?id="+e.id}); 
-				}
+			function render () {
 				res.render(__dirname+"/../views/index", {prefix:prefix, accounts: t });
-			},
+			}],
 			next
 		);
 	});
