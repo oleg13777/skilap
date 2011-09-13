@@ -8,6 +8,12 @@ function CoreApi(ctx) {
 	var core_users = null;
 	var core_clients = null;
 
+	this.getLanguageSync = function(token) {
+		var s = sessions[token];
+		if (s!=null)
+			return "ru_RU";
+	}
+
 	this.loadData = function (cb) {
 		async.waterfall([
 			function (cb1) {
@@ -82,7 +88,7 @@ function CoreApi(ctx) {
 				cb(new SkilapError('Admin user can do only administrative tasks','AccessDenied'));
 		}
 		else if (session.user.type=="guest")
-			cb(new SkilapError('Access denied','AccessDenied'));
+			cb(new SkilapError(ctx.i18n(token, "core", "Access denied"),'AccessDenied'));
 		else 
 			cb();
 	}
@@ -142,7 +148,7 @@ function CoreApi(ctx) {
 			], cb)
 		}
 	}
-
+	
 	this.loginByPass = function (token, login, password, cb ) {
 		var won = false;
 		core_users.scan(function (err, key, user) {
@@ -162,7 +168,7 @@ function CoreApi(ctx) {
 					sessions[token].user = {type:"admin",screenName:"Server Owner"};
 					cb(null, sessions[token].user);
 				} else if (!won)
-					cb(new SkilapError("Log-in failed","InvalidData"));
+					cb(new SkilapError(ctx.i18n(token,"core","Log-in failed"),"InvalidData"));
 			}
 		},true);
 	}
@@ -172,7 +178,7 @@ module.exports.init = function (ctx, cb) {
 	var api = new CoreApi(ctx);
 	api.loadData(function (err) {
 		if (err) return cb(err);
-		cb(null, {api:api});
+		cb(null, {api:api,localePath:__dirname+"/../locale"});
 	})
 }
 

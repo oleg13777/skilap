@@ -7,9 +7,12 @@ var events = require("events");
 var util = require("util");
 var express = require('express');
 var SkilapError = require("./SkilapError");
+var Gettext = require("./Gettext");
 
 function Skilap() {
+	var self = this;
 	var sessions = {};
+	var i18l = {};
 	var _adb = null;
 	var tmodules = [{
 		name:"core",require:"./coreapi",
@@ -24,6 +27,7 @@ function Skilap() {
 	var core_users = null;
 	var core_clients = null;
 	var storepath;
+	var dummyGT = new Gettext();
 	this.webapp;
 
 	this.startApp = function (storepath_, cb) {
@@ -57,11 +61,20 @@ function Skilap() {
 					app.use(function (err,req,res,next) {
 						if (err.skilap) {
 							if (err.skilap.subject = "AccessDenied") {
+								console.log(err);
 								res.render(__dirname+"/../views/accessDenied", {prefix:"",success:req.url});
 							} else next(err);
 						} else
 							next(err);
 					});
+					app.dynamicHelpers({
+						i18n: function(req, res){
+							var domain, re = req.url.match(/\/(\w+)\/.*/i);
+							domain = re?re[1]:"core";
+							return function () { return function (text, render) {
+								return self.i18n(req.session.apiToken, domain, text);
+							}};
+						}});
 				});
 
 				app.configure('development', function(){
@@ -104,6 +117,27 @@ function Skilap() {
 					module.init(self,function (err, moduleObj) {
 						if (err) return cb2(err);
 						modules[minfo.name]=moduleObj;
+						if (moduleObj.localePath) {
+							_.forEach(fs.readdirSync(moduleObj.localePath), function (file) {
+								var re = file.match(/.*\.(.*)\.po/i);
+								if (re) {
+									var lc = re[1];
+									if (i18l[lc]==null)
+										i18l[lc] = new Gettext();
+									var gt = i18l[lc];
+									var parsed = gt.parse_po(""+fs.readFileSync(moduleObj.localePath+"/"+file));
+									var rv = {}; var domain = minfo.name;
+									// munge domain into/outof header
+									if (parsed) {
+										if (! parsed[""]) parsed[""] = {};
+										if (! parsed[""]["domain"]) parsed[""]["domain"] = domain;
+										domain = parsed[""]["domain"];
+										rv[domain] = parsed;
+										gt.parse_locale_data(rv);
+									}
+								}
+							})
+						}
 						console.timeEnd(minfo.name);
 						cb2();
 					});
@@ -171,6 +205,24 @@ function Skilap() {
 			for(i=26; i>0 && bits>0; i-=6, bits-=6) ret+=chars[0x3F & rand >>> i]
 		}
 		return cb(null,ret);
+	}
+
+	this.i18n = function (langtoken,domain,text1,text2,n)  {
+		// 1st guess langtoken is langtoken exactly as it is
+		var gt = i18l[langtoken];
+		// 2nd guess, langtoken is api token and it can have a language
+		if (gt==null) {
+			var lc = modules['core'].api.getLanguageSync(langtoken);
+			if (lc)
+				gt = i18l[lc];
+		}
+		// 3nd guess, system default
+		if (gt==null)
+			gt = i18l['ru_RU']; // TODO: we need to have system default language
+		// final guess, fallback to empty one (dummy)
+		if (gt==null)
+			gt = dummyGT;
+		return gt.dgettext(domain, text1);
 	}
 
 }
