@@ -1,9 +1,9 @@
-var Step = require("step");
 var DateFormat = require('dateformatjs').DateFormat;
 var df = new DateFormat("yyyy.MM.dd");
 var sprintf = require('sprintf').sprintf;
 var _ = require('underscore');
 var async = require('async');
+var safe = async.safe;
 
 module.exports = function account(webapp) {
 	var app = webapp.web;
@@ -13,11 +13,12 @@ module.exports = function account(webapp) {
 	app.get(webapp.prefix+'/account', function(req, res, next) {
 		var idx=0,c=0;
 		var pageSize = 20;
-		Step(
-			function getData() {
-				cashapi.getAccountInfo(req.query.id,["count"], this);
+		async.waterfall([
+			function (cb1) {
+				cashapi.getAccountInfo(req.session.apiToken,req.query.id,["count"], cb1);
 			},
-			function render(err, data) {
+			safe(function (data,cb1) {
+				var pageSize = 25;
 				var count = data.count;
 				var firstVisible = Math.max(0, count-pageSize);
 				var scrollGap = pageSize*5;
@@ -31,20 +32,31 @@ module.exports = function account(webapp) {
 					pageSize:pageSize,
 					scrollGap:scrollGap
 				});
-			},
-			next
-		);
+			})
+		], function (err) {
+			if (err) return next(err);
+		});
 	});
 
-	app.post(webapp.prefix+'/account/:id/updatecell', function(req, res) {
+	app.post(webapp.prefix+'/account/:id/updatecell', function(req, res, next) {
 		var newTr = null;
-		Step(
-			function getInfo () {
-				cashapi.getTransaction(req.body.id, this.parallel());
-				if (req.body.columnId==4)
-					cashapi.getAccountByPath(req.body.value, this.parallel());
+		async.waterfall([
+			function (cb1) {
+				async.parallel([
+					function (cb2) {
+						cashapi.getTransaction(req.session.apiToken, req.body.id, cb2);
+					},
+					function (cb2) {
+						if (req.body.columnId==4)
+							cashapi.getAccountByPath(req.body.value, cb2)
+						else 
+							cb2(null,null);
+					}
+				], function (err, results) {
+					cb1(err, results[0], results[1]);
+				})
 			},
-			function update (err, tr, newAccId) {
+			safe(function (tr, newAccId,cb1) {
 				if (req.body.columnId == 5 || req.body.columnId == 6) {
 					var newVal = eval(req.body.value);
 					if (req.body.columnId == 6)
@@ -70,97 +82,114 @@ module.exports = function account(webapp) {
 					var newDate = new Date(req.body.value);
 					newTr = {id:tr.id,dateEntered:newDate,datePosted:newDate};
 				}
-				cashapi.saveTransaction(newTr, this);
+				cashapi.saveTransaction(req.session.apiToken, newTr, cb1);
 				res.send(req.body.value);
-			},
-			function end(err) {
-				if (err) console.log(err);
-			}
-		);
+			})
+		], function (err) {
+			if (err) return next(err);
+		});
 	});
 
-	app.get(webapp.prefix+'/account/:id/getaccounts', function(req, res) {
+	app.get(webapp.prefix+'/account/:id/getaccounts', function(req, res, next) {
 		var tmp = [];
-		Step (
-			function getAccounts() {
-				cashapi.getAllAccounts(this);
+		async.waterfall([
+			async.apply(cashapi.getAllAccounts, req.session.apiToken),
+			function (accounts,cb1) {
+				var tmp = [];
+				async.forEach(accounts, function (acc, cb2) {
+					cashapi.getAccountInfo(req.session.apiToken, acc.id, ["path"], safe(function (info) {
+						if (info.path.search(req.query.term)!=-1)
+							tmp.push(info.path);
+						cb2();
+					},cb2,true));
+				}, function (err) {
+					cb1(err, tmp);
+				})
 			},
-			function getInfo(err, accounts) {
-				var group = this.group();
-				_.forEach(accounts, function (acc) {
-					cashapi.getAccountInfo(acc.id, ["path"], group());
-				});
-			},
-			function render(err, infos) {
-				_.forEach(infos, function (info) {
-					if (info.path.search(req.query.term)!=-1)
-						tmp.push(info.path);
-				});
-				res.send(_.uniq(tmp));
-			}, 
-			function error (err) {
-				if (err) res.send(["Error"]);
-			}
-		);
+			function (hints, cb1) {
+				res.send(_.uniq(hints));
+				cb1();
+			} 
+		], function (err) {
+			if (err) return next(err);
+		});
 	});
 
 	app.get(webapp.prefix+'/account/:id/getdesc', function(req, res) {
 		var tmp = [];
-		Step(
-			function getRegister() {
-				cashapi.getAccountRegister(req.params.id,0,null, this);
+		async.waterfall([
+			function (cb1) {
+				cashapi.getAccountRegister(req.session.apiToken, req.params.id,0,null, cb1);
 			},
-			function getTransactions (err, register) {
-				var group = this.group();
-				_.forEach(register, function (trs) {
-					cashapi.getTransaction(trs.id, group());
+			function (register,cb1) {
+				var tmp = [];
+				async.forEach(register, function (trs,cb2) {
+					cashapi.getTransaction(req.session.apiToken,trs.id, safe(function(tr) {
+						if (tr.description.search(req.query.term)!=-1)
+							tmp.push(tr.description);
+						cb2();
+					},cb2,true));
+				}, function (err) {
+					cb1(err,tmp);
 				});
 			},
-			function render (err, transactions) {
-				_.forEach(transactions, function (tr) {
-					if (tr.description.search(req.query.term)!=-1)
-						tmp.push(tr.description);
-				});
-				res.send(_.uniq(tmp));
+			function (hints,cb1) {
+				res.send(_.uniq(hints));
+				cb1();
 			}, 
-			function error (err) {
-				if (err) res.send(["Error"]);
-			}
-		);
+		], function (err) {
+			if (err) return next(err);
+		});
 	});
 
 	app.get(webapp.prefix+'/account/:id/getgrid', function(req, res, next) {
-		console.time("getAccountData");
 		var data = {sEcho:req.query.sEcho,iTotalRecords:0,iTotalDisplayRecords:0,aaData:[]};
 		var idx=Math.max(req.query.iDisplayStart,0);
 		var count,register;
-		Step(
-			function getTransactionCount() {
-				cashapi.getAccountInfo(req.params.id,["count"], this);
+		async.waterfall([
+			function (cb1) {
+				cashapi.getAccountInfo(req.session.apiToken, req.params.id,["count"], cb1);
 			},
-			function getAccountRegister(err, data) {
+			function (data,cb1) {
 				count = data.count;
 				var limit = Math.min(count-idx,req.query.iDisplayLength);
-				cashapi.getAccountRegister(req.params.id,idx,limit, this);
+				cashapi.getAccountRegister(req.session.apiToken, req.params.id,idx,limit, cb1);
 			},
-			function getTransactions (err, register_) {
-				register = register_;
-				var group1 = this.group();
-				var group2 = this.group();
-				var aids = {};
+			function (register,cb1) {
+				var aids = {}; 
 				_.forEach(register, function (trs) {
-					cashapi.getTransaction(trs.id,group1());
 					aids[trs.recv[0].accountId]=trs.recv[0].accountId;
-				});
-				_.forEach(aids, function (aid) {
-					cashapi.getAccountInfo(aid,["path"],group2());
+				})
+				async.parallel([
+					function (cb2) {
+						var transactions = [];
+						async.forEach(register, function (trs, cb3) {
+							cashapi.getTransaction(req.session.apiToken,trs.id,safe(function (tr) {
+								transactions.push(tr);
+								cb3();
+							},cb3,true));
+						}, function (err) {
+							cb2(err, transactions);
+						});
+					},
+					function (cb2) {
+						var accInfo = [];
+						async.forEach(_.keys(aids), function (aid, cb3) {
+							cashapi.getAccountInfo(req.session.apiToken, aid,["path"],safe(function(info) {
+								accInfo.push(info);
+								cb3();
+							},cb3,true));
+						}, function (err) {
+							cb2(err, accInfo);
+						});
+					}
+				], function (err, results) {
+					cb1(err, register, results[0], results[1])
 				})
 			},
-			function render(err, transactions, accInfo) {
-				if (err) console.log(err.stack);
+			safe(function (register, transactions, accInfo, cb1) {
 				var t={}; _.forEach(accInfo, function (e) { t[e.id]=e; }); accInfo = t;
 				var i;
-				console.log({tr:_.size(transactions),trs:_.size(register)});
 				for (i=0; i<_.size(register); i++) {
 					var tr = transactions[i]; 
 					var trs = register[i];
@@ -173,17 +202,16 @@ module.exports = function account(webapp) {
 						send.value<=0?sprintf("%.2f",send.value*-1):null,
 						sprintf("%.2f",trs.ballance)]);
 				}
-				console.log({idx:idx,total:count});
 				if ((idx+i)==count) {
 					data.aaData.push(["new",idx+1,df.format(new Date()),"",null,null,null,sprintf("%.2f",trs.ballance)]);
 				}
 				data.iTotalRecords = count+1;
 				data.iTotalDisplayRecords = count+1;
-				console.timeEnd("getAccountData");
 				res.send(data);
-			},
-			next
-		);
+			})
+		], function (err) {
+			if (err) return next(err);
+		});
 	});
 
 }

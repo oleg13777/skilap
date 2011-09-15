@@ -31,7 +31,7 @@ function CashWeb (ctx) {
 module.exports.init = function (ctx,cb) {
 	async.parallel ([
 		function createApi(cb1) {
-			var api = require("./api.js");
+			var api = require("./cashapi.js");
 			api.init(ctx, cb1);
 		},
 		function createWeb(cb1) {
