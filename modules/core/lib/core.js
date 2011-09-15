@@ -109,6 +109,44 @@ function Skilap() {
 							res.redirect(req.body.success);
 					});
 				});
+				function handleJsonRpc(jsonrpctext, req, res, next) {
+					var id = null; var out = false;
+					try {
+						var jsonrpc = JSON.parse(jsonrpctext);
+						id = jsonrpc.id;
+						var func = jsonrpc.method.match(/^(.*)\.(.*)$/);
+						var module = func[1];
+						func = func[2];
+						var api = modules[module].api;
+						var fn = api[func];
+						var params = jsonrpc.params;
+						params.push(function () {
+							var jsonres = {};
+							if (arguments[0]) {
+								jsonres.error = arguments[0];
+								jsonres.result = null;
+							} else {
+								jsonres.error = null;
+								jsonres.result = Array.prototype.slice.call(arguments,1);
+							}
+							jsonres.id = jsonrpc.id;
+							res.send(jsonres);
+						})
+						fn.apply(this, params);
+						out = true;
+					} catch (err) {
+						if (!out) 
+							res.send({error:err, result:null, id:id});
+					}
+				};
+
+				app.get("/jsonrpc", function (req, res, next) {
+					handleJsonRpc(req.query.jsonrpc, req, res, next);
+				})
+				app.post("/jsonrpc", function (req,res,next) {
+					handleJsonRpc(req.body.json,req, res, next);
+				})
+
 			},
 			function initModules(cb1) {
 				async.forEachSeries(tmodules, function (minfo, cb2) {

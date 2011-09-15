@@ -79,7 +79,7 @@ function CoreApi(ctx) {
 	this.checkPerm = function (token, opts, cb) {
 		var perm = opts[0];
 		var session = sessions[token];
-		if (!session) cb(new SkilapError('Wrong access token','InvalidToken'));
+		if (!session) return cb(new SkilapError('Wrong access token','InvalidToken'));
 		if (session.user.type=="admin") {
 			// admin is valid only for core
 			if (perm.indexOf("core")==0) 
