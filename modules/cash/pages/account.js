@@ -3,7 +3,7 @@ var df = new DateFormat("yyyy.MM.dd");
 var sprintf = require('sprintf').sprintf;
 var _ = require('underscore');
 var async = require('async');
-var safe = async.safe;
+var safe = require('safe');
 
 module.exports = function account(webapp) {
 	var app = webapp.web;
@@ -17,7 +17,7 @@ module.exports = function account(webapp) {
 			function (cb1) {
 				cashapi.getAccountInfo(req.session.apiToken,req.query.id,["count"], cb1);
 			},
-			safe(function (data,cb1) {
+			safe.trap(function (data,cb1) {
 				var pageSize = 25;
 				var count = data.count;
 				var firstVisible = Math.max(0, count-pageSize);
@@ -164,10 +164,9 @@ module.exports = function account(webapp) {
 					function (cb2) {
 						var transactions = [];
 						async.forEach(register, function (trs, cb3) {
-							cashapi.getTransaction(req.session.apiToken,trs.id,safe(function (tr) {
+							cashapi.getTransaction(req.session.apiToken,trs.id,safe.trap_sure_result(cb3,function (tr) {
 								transactions.push(tr);
-								cb3();
-							},cb3,true));
+							}));
 						}, function (err) {
 							cb2(err, transactions);
 						});
@@ -175,10 +174,9 @@ module.exports = function account(webapp) {
 					function (cb2) {
 						var accInfo = [];
 						async.forEach(_.keys(aids), function (aid, cb3) {
-							cashapi.getAccountInfo(req.session.apiToken, aid,["path"],safe(function(info) {
+							cashapi.getAccountInfo(req.session.apiToken, aid,["path"],safe.trap_sure_result(cb3,function(info) {
 								accInfo.push(info);
-								cb3();
-							},cb3,true));
+							}));
 						}, function (err) {
 							cb2(err, accInfo);
 						});
@@ -187,7 +185,7 @@ module.exports = function account(webapp) {
 					cb1(err, register, results[0], results[1])
 				})
 			},
-			safe(function (register, transactions, accInfo, cb1) {
+			safe.trap(function (register, transactions, accInfo, cb1) {
 				var t={}; _.forEach(accInfo, function (e) { t[e.id]=e; }); accInfo = t;
 				var i;
 				for (i=0; i<_.size(register); i++) {
