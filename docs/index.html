@@ -1,0 +1,1133 @@
+<html>
+	<head>
+		<title>Skilap</title>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+		<style>body {
+    margin: 0;
+    padding: 0;
+    font: 14px/1.5 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+    color: #252519;
+}
+a {
+    color: #252519;
+}
+a:hover {
+    text-decoration: underline;
+    color: #19469D;
+}
+p {
+    margin: 12px 0;
+}
+h1, h2, h3 {
+    margin: 0;
+    padding: 0;
+}
+table#source {
+    width: 100%;
+    border-collapse: collapse;
+}
+table#source td:first-child {
+    padding: 30px 40px 30px 40px;
+    vertical-align: top;
+}
+table#source td:first-child,
+table#source td:first-child pre {
+    width: 450px;
+}
+table#source td:last-child {
+    padding: 30px 0 30px 40px;
+    border-left: 1px solid #E5E5EE;
+    background: #F5F5FF;
+}
+table#source tr {
+    border-bottom: 1px solid #E5E5EE;
+}
+table#source tr.filename {
+    padding-top: 40px;
+    border-top: 1px solid #E5E5EE;
+}
+table#source tr.filename td:first-child {
+    text-transform: capitalize;
+}
+table#source tr.filename td:last-child {
+    font-size: 12px;
+}
+table#source tr.filename h2 {
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+}
+table#source tr.code h1,
+table#source tr.code h2,
+table#source tr.code h3 {
+    margin-top: 30px;
+    font-family: "Lucida Grande", "Helvetica Nueue", Arial, sans-serif;
+    font-size: 18px;
+}
+table#source tr.code h2 {
+    font-size: 16px;
+}
+table#source tr.code h3 {
+    font-size: 14px;
+}
+table#source tr.code ul {
+    margin: 15px 0 15px 35px;
+    padding: 0;
+}
+table#source tr.code ul li {
+    margin: 0;
+    padding: 1px 0;
+}
+table#source tr.code ul li p {
+    margin: 0;
+    padding: 0;
+}
+table#source tr.code td:first-child pre {
+    padding: 20px;
+}
+#ribbon {
+    position: fixed;
+    top: 0;
+    right: 0;
+}
+code .string { color: #219161; }
+code .regexp { color: #219161; }
+code .keyword { color: #954121; }
+code .number { color: #19469D; }
+code .comment { color: #bbb; }
+code .this { color: #19469D; }</style>
+		<script>
+			$(function(){
+				$('tr.code').hide();
+				$('tr.filename').toggle(function(){
+					$(this).nextUntil('.filename').fadeIn();
+				}, function(){
+					$(this).nextUntil('.filename').fadeOut();
+				});
+			});
+		</script>
+	</head>
+	<body>
+<table id="source"><tbody><tr><td><h1>Skilap</h1></td><td></td></tr><tr class="filename"><td><h2 id="../modules/cash/./lib/cashapi.js"><a href="#">cashapi</a></h2></td><td>../modules/cash/./lib/cashapi.js</td></tr><tr class="code">
+<td class="docs">
+<p>Core API
+ </p>
+</td>
+<td class="code">
+<pre><code><span class="keyword">var</span> <span class="variable">fs</span> = <span class="variable">require</span>(&<span class="variable">quot</span>;<span class="variable">fs</span>&<span class="variable">quot</span>;);
+<span class="keyword">var</span> <span class="variable">_</span> = <span class="variable">require</span>(<span class="string">'underscore'</span>);
+<span class="keyword">var</span> <span class="variable">alfred</span> = <span class="variable">require</span>(<span class="string">'alfred'</span>);
+<span class="keyword">var</span> <span class="variable">async</span> = <span class="variable">require</span>(<span class="string">'async'</span>);
+<span class="keyword">var</span> <span class="class">Step</span> = <span class="variable">require</span>(&<span class="variable">quot</span>;<span class="variable">step</span>&<span class="variable">quot</span>;);
+<span class="keyword">var</span> <span class="variable">events</span> = <span class="variable">require</span>(&<span class="variable">quot</span>;<span class="variable">events</span>&<span class="variable">quot</span>;);
+
+<span class="keyword">function</span> <span class="class">CashApi</span> (<span class="variable">ctx</span>) {
+	<span class="keyword">var</span> <span class="variable">self</span> = <span class="this">this</span>;
+	<span class="this">this</span>.<span class="variable">ctx</span> = <span class="variable">ctx</span>;
+	<span class="keyword">var</span> <span class="variable">cash_accounts</span> = <span class="keyword">null</span>;
+	<span class="keyword">var</span> <span class="variable">cash_transactions</span> = <span class="keyword">null</span>;
+	<span class="keyword">var</span> <span class="variable">sema</span> = <span class="keyword">new</span> <span class="variable">events</span>.<span class="class">EventEmitter</span>();
+	<span class="keyword">var</span> <span class="variable">dataReady</span> = <span class="variable">false</span>;
+	<span class="keyword">var</span> <span class="variable">dataActive</span> = <span class="variable">false</span>;
+	<span class="keyword">var</span> <span class="variable">unloadTimeout</span> = <span class="keyword">null</span>;
+	<span class="keyword">var</span> <span class="variable">stats</span> = {};
+	<span class="keyword">var</span> <span class="variable">coreapi</span>;
+
+	<span class="keyword">function</span> <span class="variable">touchTimer</span>() {
+		<span class="keyword">if</span> (<span class="variable">unloadTimeout</span>!=<span class="keyword">null</span>)
+			<span class="variable">clearTimeout</span>(<span class="variable">unloadTimeout</span>);
+		<span class="variable">unloadTimeout</span> = <span class="variable">setTimeout</span>(<span class="variable">unloadData</span>, <span class="number integer">20000</span>);
+	}
+
+	<span class="keyword">function</span> <span class="variable">waitForData</span> (<span class="variable">cb</span>) {
+		<span class="keyword">if</span> (<span class="variable">dataReady</span>) <span class="variable">cb</span>(<span class="keyword">null</span>);
+			<span class="keyword">else</span> <span class="variable">sema</span>.<span class="variable">once</span>(&<span class="variable">quot</span>;<span class="variable">dataReady</span>&<span class="variable">quot</span>;,<span class="variable">cb</span>);
+		<span class="keyword">if</span> (!<span class="variable">dataActive</span>) {
+			<span class="variable">calcStats</span>(<span class="keyword">function</span> () {});
+			<span class="variable">dataActive</span> = <span class="variable">true</span>;
+		}
+		<span class="variable">touchTimer</span>();
+	}
+
+	<span class="keyword">function</span> <span class="variable">loadData</span> (<span class="variable">cb</span>) {
+		<span class="keyword">var</span> <span class="variable">adb</span>;
+		<span class="variable">async</span>.<span class="variable">series</span>([
+				<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">self</span>.<span class="variable">ctx</span>.<span class="variable">getDB</span>)
+			], <span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">results</span>) {
+				<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb</span>(<span class="variable">err</span>);
+				<span class="keyword">var</span> <span class="variable">adb</span> = <span class="variable">results</span>[<span class="number integer">0</span>];
+				<span class="variable">async</span>.<span class="variable">parallel</span>([
+					<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">adb</span>.<span class="variable">ensure</span>, &<span class="variable">quot</span>;<span class="variable">cash_accounts</span>&<span class="variable">quot</span>;,{<span class="variable">type</span>:<span class="string">'cached_key_map'</span>,<span class="variable">buffered</span>:<span class="variable">false</span>}),
+					<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">adb</span>.<span class="variable">ensure</span>, &<span class="variable">quot</span>;<span class="variable">cash_transactions</span>&<span class="variable">quot</span>;,{<span class="variable">type</span>:<span class="string">'cached_key_map'</span>,<span class="variable">buffered</span>:<span class="variable">false</span>})
+				], <span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">results</span>) {
+					<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb</span>(<span class="variable">err</span>)
+					<span class="variable">cash_accounts</span> = <span class="variable">results</span>[<span class="number integer">0</span>];
+					<span class="variable">cash_transactions</span> = <span class="variable">results</span>[<span class="number integer">1</span>];
+					<span class="variable">cb</span>();
+				})
+			}
+		)
+	}; 
+
+	<span class="keyword">function</span> <span class="variable">unloadData</span>() {
+		<span class="variable">stats</span> = {};
+		<span class="variable">console</span>.<span class="variable">log</span>(&<span class="variable">quot</span>;<span class="variable">dataCleared</span>&<span class="variable">quot</span>;);
+		<span class="variable">dataActive</span> = <span class="variable">dataReady</span> = <span class="variable">false</span>;
+	}
+
+	<span class="this">this</span>.<span class="variable">init</span> = <span class="keyword">function</span> (<span class="variable">cb</span>) {
+		<span class="variable">async</span>.<span class="variable">parallel</span>([
+			<span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="variable">ctx</span>.<span class="variable">getModule</span>(&<span class="variable">quot</span>;<span class="variable">core</span>&<span class="variable">quot</span>;,<span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">module</span>) {
+					<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb1</span>(<span class="variable">err</span>);
+					<span class="variable">coreapi</span> = <span class="variable">module</span>.<span class="variable">api</span>;
+					<span class="variable">cb1</span>();
+				})
+			},
+			<span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="variable">loadData</span>(<span class="variable">cb1</span>)
+			}], 
+		<span class="variable">cb</span>);
+	}
+
+
+	<span class="keyword">function</span> <span class="variable">getAllAccounts</span>(<span class="variable">token</span>, <span class="variable">cb</span>) {
+		<span class="variable">async</span>.<span class="variable">series</span> ([
+			<span class="keyword">function</span> <span class="variable">start</span>(<span class="variable">cb1</span>) {
+				<span class="variable">async</span>.<span class="variable">parallel</span>([
+					<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">coreapi</span>.<span class="variable">checkPerm</span>,<span class="variable">token</span>,[&<span class="variable">quot</span>;<span class="variable">cash</span>.<span class="variable">view</span>&<span class="variable">quot</span>;]),
+					<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">waitForData</span>)
+				],<span class="variable">cb1</span>);
+			}, 
+			<span class="keyword">function</span> <span class="variable">get</span>(<span class="variable">cb1</span>) {
+				<span class="keyword">var</span> <span class="variable">accounts</span> = [];
+				<span class="variable">cash_accounts</span>.<span class="variable">scan</span>(<span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">key</span>, <span class="variable">acc</span>) {
+					<span class="keyword">if</span> (<span class="variable">err</span>) <span class="variable">cb1</span>(<span class="variable">err</span>);
+					<span class="keyword">if</span> (<span class="variable">key</span>) <span class="variable">accounts</span>.<span class="variable">push</span>(<span class="variable">acc</span>);
+						<span class="keyword">else</span> <span class="variable">cb1</span>(<span class="keyword">null</span>, <span class="variable">accounts</span>);
+					},
+				<span class="variable">true</span>);
+			}], <span class="keyword">function</span> <span class="variable">end</span>(<span class="variable">err</span>, <span class="variable">results</span>) {
+				<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb</span>(<span class="variable">err</span>);
+				<span class="variable">cb</span>(<span class="keyword">null</span>, <span class="variable">results</span>[<span class="number integer">1</span>]);
+			}
+		)
+	}
+
+<span class="keyword">function</span> <span class="variable">getAccountByPath</span>(<span class="variable">path</span>,<span class="variable">cb</span>) {
+	<span class="class">Step</span> (
+		<span class="keyword">function</span> <span class="variable">start</span>() {
+			<span class="variable">waitForData</span> (<span class="this">this</span>);
+		},
+		<span class="keyword">function</span> <span class="variable">get</span>() {
+			<span class="keyword">var</span> <span class="variable">newAccId</span> = <span class="keyword">null</span>;
+			<span class="variable">_</span>.<span class="variable">forEach</span>(<span class="variable">stats</span>, <span class="keyword">function</span> (<span class="variable">accStat</span>,<span class="variable">key</span>) {
+				<span class="keyword">if</span> (<span class="variable">accStat</span>.<span class="variable">path</span> == <span class="variable">path</span>)
+					<span class="variable">newAccId</span> = <span class="variable">key</span>;
+			});
+			<span class="keyword">if</span> (<span class="variable">newAccId</span>==<span class="keyword">null</span>)
+				<span class="variable">process</span>.<span class="variable">nextTick</span>(<span class="keyword">function</span> () { <span class="variable">cb</span>(<span class="keyword">new</span> <span class="class">Error</span>(&<span class="variable">quot</span>;<span class="class">No</span> <span class="variable">such</span> <span class="variable">account</span>&<span class="variable">quot</span>;)); });
+			<span class="keyword">else</span> 
+				<span class="variable">process</span>.<span class="variable">nextTick</span>(<span class="keyword">function</span> () { <span class="variable">cb</span>(<span class="keyword">null</span>, <span class="variable">newAccId</span>); });
+		}
+	)
+}
+
+	<span class="keyword">function</span> <span class="variable">getAccountInfo</span>(<span class="variable">token</span>, <span class="variable">accId</span>, <span class="variable">details</span>, <span class="variable">cb</span>) {
+		<span class="variable">async</span>.<span class="variable">series</span> ([
+			<span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="variable">async</span>.<span class="variable">parallel</span>([
+					<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">coreapi</span>.<span class="variable">checkPerm</span>,<span class="variable">token</span>,[&<span class="variable">quot</span>;<span class="variable">cash</span>.<span class="variable">view</span>&<span class="variable">quot</span>;]),
+					<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">waitForData</span>)
+				],<span class="variable">cb1</span>);
+			}, 
+			<span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="keyword">var</span> <span class="variable">res</span> = {};
+				<span class="keyword">var</span> <span class="variable">accStats</span> = <span class="variable">stats</span>[<span class="variable">accId</span>];
+				<span class="variable">res</span>.<span class="variable">id</span> = <span class="variable">accId</span>;
+				<span class="variable">_</span>.<span class="variable">forEach</span>(<span class="variable">details</span>, <span class="keyword">function</span> (<span class="variable">val</span>) {
+						<span class="keyword">if</span> (<span class="variable">val</span> == &<span class="variable">quot</span>;<span class="variable">value</span>&<span class="variable">quot</span>;)
+							<span class="variable">res</span>.<span class="variable">value</span> = <span class="variable">accStats</span>.<span class="variable">value</span>;
+						<span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">val</span> == &<span class="variable">quot</span>;<span class="variable">count</span>&<span class="variable">quot</span>;) 
+							<span class="variable">res</span>.<span class="variable">count</span> = <span class="variable">accStats</span>.<span class="variable">count</span>;
+						<span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">val</span> == &<span class="variable">quot</span>;<span class="variable">path</span>&<span class="variable">quot</span>;) 
+							<span class="variable">res</span>.<span class="variable">path</span> = <span class="variable">accStats</span>.<span class="variable">path</span>;
+				});
+				<span class="variable">process</span>.<span class="variable">nextTick</span>(<span class="keyword">function</span> () {<span class="variable">cb1</span>(<span class="keyword">null</span>, <span class="variable">res</span>);});
+			}], <span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">results</span>) {
+				<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb</span>(<span class="variable">err</span>);
+				<span class="variable">cb</span>(<span class="keyword">null</span>,<span class="variable">results</span>[<span class="number integer">1</span>]);
+			}
+		)
+	}
+
+	<span class="keyword">function</span> <span class="variable">getAccountRegister</span>(<span class="variable">token</span>,<span class="variable">accId</span>, <span class="variable">offset</span>, <span class="variable">limit</span>, <span class="variable">cb</span> ) {
+		<span class="variable">async</span>.<span class="variable">series</span> ([
+			<span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="variable">async</span>.<span class="variable">parallel</span>([
+					<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">coreapi</span>.<span class="variable">checkPerm</span>,<span class="variable">token</span>,[&<span class="variable">quot</span>;<span class="variable">cash</span>.<span class="variable">view</span>&<span class="variable">quot</span>;]),
+					<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">waitForData</span>)
+				],<span class="variable">cb1</span>);
+			}, 
+			<span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="keyword">var</span> <span class="variable">accStats</span> = <span class="variable">stats</span>[<span class="variable">accId</span>];
+				<span class="keyword">if</span> (<span class="variable">limit</span>==<span class="keyword">null</span>) {
+					<span class="keyword">if</span> (<span class="variable">offset</span>==<span class="number integer">0</span> || <span class="variable">offset</span> == <span class="keyword">null</span>)
+						<span class="variable">process</span>.<span class="variable">nextTick</span>(<span class="keyword">function</span> () { <span class="variable">cb1</span>(<span class="keyword">null</span>, <span class="variable">accStats</span>.<span class="variable">trDateIndex</span>); });
+					<span class="keyword">else</span>
+						<span class="variable">process</span>.<span class="variable">nextTick</span>(<span class="keyword">function</span> () { <span class="variable">cb1</span>(<span class="keyword">null</span>, <span class="variable">accStats</span>.<span class="variable">trDateIndex</span>.<span class="variable">slice</span>(<span class="variable">offset</span>, <span class="variable">offset</span> + <span class="variable">limit</span>)); });
+				} <span class="keyword">else</span>
+					<span class="variable">process</span>.<span class="variable">nextTick</span>(<span class="keyword">function</span> () { <span class="variable">cb1</span>(<span class="keyword">null</span>, <span class="variable">accStats</span>.<span class="variable">trDateIndex</span>.<span class="variable">slice</span>(<span class="variable">offset</span>, <span class="variable">offset</span> + <span class="variable">limit</span>)); });
+			}], <span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">results</span>) {
+				<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb</span>(<span class="variable">err</span>);
+				<span class="variable">cb</span>(<span class="keyword">null</span>,<span class="variable">results</span>[<span class="number integer">1</span>]);
+			}
+		)
+	}
+
+	<span class="keyword">function</span> <span class="variable">getTransaction</span>(<span class="variable">token</span>, <span class="variable">trId</span>, <span class="variable">cb</span>) {
+		<span class="variable">async</span>.<span class="variable">series</span> ([
+			<span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="variable">async</span>.<span class="variable">parallel</span>([
+					<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">coreapi</span>.<span class="variable">checkPerm</span>,<span class="variable">token</span>,[&<span class="variable">quot</span>;<span class="variable">cash</span>.<span class="variable">view</span>&<span class="variable">quot</span>;]),
+					<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">waitForData</span>)
+				],<span class="variable">cb1</span>);
+			}, 
+			<span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="variable">cash_transactions</span>.<span class="variable">get</span>(<span class="variable">trId</span>, <span class="variable">cb1</span>);
+			}
+		], <span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">results</span>) {
+			<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb</span>(<span class="variable">err</span>);
+			<span class="variable">cb</span>(<span class="keyword">null</span>,<span class="variable">results</span>[<span class="number integer">1</span>]);
+		})
+	}
+
+	<span class="keyword">function</span> <span class="variable">saveTransaction</span> (<span class="variable">token</span>,<span class="variable">tr</span>,<span class="variable">cb</span>) {
+		<span class="keyword">var</span> <span class="variable">trUpd</span>;
+		<span class="variable">async</span>.<span class="variable">series</span> ([
+			<span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="variable">async</span>.<span class="variable">parallel</span>([
+					<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">coreapi</span>.<span class="variable">checkPerm</span>,<span class="variable">token</span>,[&<span class="variable">quot</span>;<span class="variable">cash</span>.<span class="variable">edit</span>&<span class="variable">quot</span>;]),
+					<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">waitForData</span>)
+				],<span class="variable">cb1</span>);
+			}, 
+			<span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="variable">cash_transactions</span>.<span class="variable">get</span>(<span class="variable">tr</span>.<span class="variable">id</span>,<span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">tr_</span>) {
+					<span class="variable">trUpd</span> = <span class="variable">tr_</span>;
+					<span class="variable">cb1</span>(<span class="variable">err</span>);
+				});
+			}, 
+			<span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="comment">// update branch</span>
+				<span class="keyword">if</span> (<span class="variable">tr</span>.<span class="variable">splits</span> !=<span class="keyword">null</span>) {
+					<span class="comment">// ammount is changed</span>
+					<span class="variable">_</span>.<span class="variable">forEach</span>(<span class="variable">tr</span>.<span class="variable">splits</span>, <span class="keyword">function</span> (<span class="variable">newSplit</span>) {
+							<span class="keyword">if</span> (<span class="variable">newSplit</span>.<span class="variable">id</span> !=<span class="keyword">null</span>) {
+								<span class="comment">// modify existing split</span>
+								<span class="variable">_</span>.<span class="variable">forEach</span>(<span class="variable">trUpd</span>.<span class="variable">splits</span>, <span class="keyword">function</span> (<span class="variable">updSplit</span>) {
+									<span class="keyword">if</span> (<span class="variable">updSplit</span>.<span class="variable">id</span> == <span class="variable">newSplit</span>.<span class="variable">id</span>) {
+										<span class="keyword">if</span> (<span class="variable">newSplit</span>.<span class="variable">value</span> != <span class="keyword">null</span>) {
+											<span class="variable">updSplit</span>.<span class="variable">value</span> = <span class="variable">newSplit</span>.<span class="variable">value</span>;
+										} <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">newSplit</span>.<span class="variable">accountId</span>!=<span class="keyword">null</span>) {
+											<span class="variable">updSplit</span>.<span class="variable">accountId</span> = <span class="variable">newSplit</span>.<span class="variable">accountId</span>;
+										}
+									}
+								});
+							} <span class="keyword">else</span> {
+								<span class="comment">// add new split</span>
+							}
+					});
+				} <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">tr</span>.<span class="variable">description</span> != <span class="keyword">null</span>) {
+					<span class="variable">trUpd</span>.<span class="variable">description</span> = <span class="variable">tr</span>.<span class="variable">description</span>;
+				} <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">tr</span>.<span class="variable">datePosted</span> != <span class="keyword">null</span>) {
+					<span class="variable">trUpd</span>.<span class="variable">datePosted</span> = <span class="variable">tr</span>.<span class="variable">datePosted</span>;
+				} <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">tr</span>.<span class="variable">dateEntered</span> != <span class="keyword">null</span>) {
+					<span class="variable">trUpd</span>.<span class="variable">dateEntered</span> = <span class="variable">tr</span>.<span class="variable">dateEntered</span>;
+				}
+				<span class="variable">cash_transactions</span>.<span class="variable">put</span>(<span class="variable">trUpd</span>.<span class="variable">id</span>, <span class="variable">trUpd</span>, <span class="variable">cb1</span>);
+			}
+		], <span class="keyword">function</span> (<span class="variable">err</span>) {
+			<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb</span>(<span class="variable">err</span>);
+			<span class="variable">process</span>.<span class="variable">nextTick</span>(<span class="keyword">function</span> () { <span class="variable">calcStats</span>(<span class="keyword">function</span> () {})});
+			<span class="variable">cb</span>(<span class="keyword">null</span>);
+		})
+	}
+
+	<span class="keyword">function</span> <span class="variable">getAccPath</span>(<span class="variable">acc</span>, <span class="variable">cb</span>) {
+		<span class="keyword">if</span> (<span class="variable">acc</span>.<span class="variable">id</span>!=<span class="variable">acc</span>.<span class="variable">parent</span> &<span class="variable">amp</span>;&<span class="variable">amp</span>; <span class="variable">acc</span>.<span class="variable">parent</span>!=<span class="number integer">1</span>) {
+			<span class="variable">cash_accounts</span>.<span class="variable">get</span>(<span class="variable">acc</span>.<span class="variable">parent</span>, <span class="keyword">function</span>(<span class="variable">err</span>, <span class="variable">parentAcc</span>) {
+				<span class="keyword">if</span> (<span class="variable">parentAcc</span>==<span class="keyword">null</span>) {
+					<span class="variable">cb</span>(&<span class="variable">quot</span>;&<span class="variable">quot</span>;);
+				} <span class="keyword">else</span> {
+					<span class="variable">getAccPath</span>(<span class="variable">parentAcc</span>, <span class="keyword">function</span> (<span class="variable">path</span>) {
+						<span class="variable">cb</span>(<span class="variable">path</span> + &<span class="variable">quot</span>;::&<span class="variable">quot</span>;+<span class="variable">acc</span>.<span class="variable">name</span>);
+					});
+				}
+			});
+		}
+		<span class="keyword">else</span> {
+			<span class="variable">cb</span>(<span class="variable">acc</span>.<span class="variable">name</span>);
+		}
+	}
+
+	<span class="keyword">function</span> <span class="variable">calcStats</span>(<span class="variable">cb</span>) {
+		<span class="variable">console</span>.<span class="variable">time</span>(&<span class="variable">quot</span>;<span class="class">Stats</span>&<span class="variable">quot</span>;);
+		<span class="variable">dataReady</span> = <span class="variable">false</span>;
+		<span class="variable">stats</span> = {};
+		<span class="keyword">function</span> <span class="variable">getAccStats</span>(<span class="variable">accId</span>) {
+			<span class="keyword">if</span> (<span class="variable">stats</span>[<span class="variable">accId</span>]==<span class="keyword">null</span>)
+				<span class="variable">stats</span>[<span class="variable">accId</span>] = {<span class="variable">id</span>:<span class="variable">accId</span>,<span class="variable">value</span>:<span class="number integer">0</span>, <span class="variable">count</span>:<span class="number integer">0</span>, <span class="variable">trDateIndex</span>:[]};
+			<span class="keyword">return</span> <span class="variable">stats</span>[<span class="variable">accId</span>];
+		}
+		<span class="variable">async</span>.<span class="variable">auto</span>({
+			<span class="variable">account_paths</span>: <span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="keyword">var</span> <span class="variable">next</span> = <span class="this">this</span>;
+				<span class="keyword">var</span> <span class="variable">c</span>=<span class="number integer">1</span>;
+				<span class="variable">cash_accounts</span>.<span class="variable">scan</span>(<span class="keyword">function</span>(<span class="variable">err</span>, <span class="variable">k</span>, <span class="variable">acc</span>) {
+					<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb1</span>(<span class="variable">err</span>);
+					<span class="keyword">if</span> (<span class="variable">k</span>!=<span class="keyword">null</span>) {
+						<span class="variable">c</span>++;
+						<span class="variable">getAccPath</span>(<span class="variable">acc</span>, <span class="keyword">function</span> (<span class="variable">path</span>) { 
+							<span class="variable">getAccStats</span>(<span class="variable">acc</span>.<span class="variable">id</span>).<span class="variable">path</span> = <span class="variable">path</span>;
+							<span class="keyword">if</span> (--<span class="variable">c</span>==<span class="number integer">0</span>) <span class="variable">cb1</span>();
+						});
+					} <span class="keyword">else</span> <span class="keyword">if</span> (--<span class="variable">c</span>==<span class="number integer">0</span>) <span class="variable">cb1</span>();
+				}, <span class="variable">true</span>)
+			},
+			<span class="variable">transaction_stats</span>: <span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="variable">console</span>.<span class="variable">time</span>(&<span class="variable">quot</span>;<span class="class">Test</span>&<span class="variable">quot</span>;);
+				<span class="keyword">var</span> <span class="variable">next</span> = <span class="this">this</span>;
+				<span class="variable">cash_transactions</span>.<span class="variable">scan</span>(<span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">k</span>, <span class="variable">tr</span>) {
+					<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb1</span>(<span class="variable">err</span>);
+					<span class="keyword">if</span> (<span class="variable">k</span>==<span class="keyword">null</span>) <span class="keyword">return</span> <span class="variable">cb1</span>();
+					<span class="variable">tr</span>.<span class="variable">splits</span>.<span class="variable">forEach</span>(<span class="keyword">function</span>(<span class="variable">split</span>) {
+						<span class="keyword">var</span> <span class="variable">accStats</span> = <span class="variable">getAccStats</span>(<span class="variable">split</span>.<span class="variable">accountId</span>);
+						<span class="variable">accStats</span>.<span class="variable">value</span>+=<span class="variable">split</span>.<span class="variable">value</span>;
+						<span class="variable">accStats</span>.<span class="variable">count</span>++;
+						<span class="variable">accStats</span>.<span class="variable">trDateIndex</span>.<span class="variable">push</span>({<span class="variable">id</span>:<span class="variable">tr</span>.<span class="variable">id</span>,<span class="variable">date</span>:<span class="variable">tr</span>.<span class="variable">dateEntered</span>});
+					});
+				},<span class="variable">true</span>)
+			},
+			<span class="variable">build_register</span>:[<span class="string">'transaction_stats'</span>, <span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="variable">console</span>.<span class="variable">timeEnd</span>(&<span class="variable">quot</span>;<span class="class">Test</span>&<span class="variable">quot</span>;);
+				<span class="keyword">var</span> <span class="variable">next</span> = <span class="this">this</span>;
+				<span class="variable">async</span>.<span class="variable">forEach</span> (<span class="variable">_</span>.<span class="variable">keys</span>(<span class="variable">stats</span>), <span class="keyword">function</span> (<span class="variable">accId</span>, <span class="variable">cb2</span>) {
+					<span class="variable">accStats</span> = <span class="variable">stats</span>[<span class="variable">accId</span>];
+					<span class="comment">// sort by date</span>
+					<span class="variable">accStats</span>.<span class="variable">trDateIndex</span> = <span class="variable">_</span>.<span class="variable">sortBy</span>(<span class="variable">accStats</span>.<span class="variable">trDateIndex</span>,<span class="keyword">function</span> (<span class="variable">e</span>) { <span class="keyword">return</span> <span class="variable">e</span>.<span class="variable">date</span>; });
+					<span class="keyword">var</span> <span class="variable">ballance</span> = <span class="number integer">0</span>;
+					<span class="variable">async</span>.<span class="variable">forEachSeries</span>(<span class="variable">accStats</span>.<span class="variable">trDateIndex</span>, <span class="keyword">function</span> (<span class="variable">trs</span>,<span class="variable">cb3</span>) {
+						<span class="variable">cash_transactions</span>.<span class="variable">get</span>(<span class="variable">trs</span>.<span class="variable">id</span>, <span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">tr</span>) {
+							<span class="keyword">var</span> <span class="variable">recv</span> = [];
+							<span class="keyword">var</span> <span class="variable">send</span> = <span class="keyword">null</span>;
+							<span class="variable">tr</span>.<span class="variable">splits</span>.<span class="variable">forEach</span>(<span class="keyword">function</span>(<span class="variable">split</span>) {
+								<span class="keyword">if</span> (<span class="variable">split</span>.<span class="variable">accountId</span> == <span class="variable">accId</span>)
+									<span class="variable">send</span> = <span class="variable">split</span>;
+								<span class="keyword">else</span>
+									<span class="variable">recv</span>.<span class="variable">push</span>(<span class="variable">split</span>);
+							})
+							<span class="variable">trs</span>.<span class="variable">recv</span> = <span class="variable">recv</span>; <span class="variable">trs</span>.<span class="variable">send</span> = <span class="variable">send</span>;
+							<span class="variable">ballance</span> += <span class="variable">send</span>.<span class="variable">value</span>;
+							<span class="variable">trs</span>.<span class="variable">ballance</span> = <span class="variable">ballance</span>;
+							<span class="variable">process</span>.<span class="variable">nextTick</span>(<span class="variable">cb3</span>);
+						});
+					},<span class="variable">cb2</span>
+					);
+				},<span class="variable">cb1</span>)
+			}]},
+			<span class="keyword">function</span> <span class="variable">done</span> (<span class="variable">err</span>) {
+				<span class="variable">console</span>.<span class="variable">timeEnd</span>(&<span class="variable">quot</span>;<span class="class">Stats</span>&<span class="variable">quot</span>;);
+				<span class="keyword">if</span> (<span class="variable">err</span>) <span class="variable">console</span>.<span class="variable">log</span>(<span class="variable">err</span>);
+				<span class="variable">dataReady</span>=<span class="variable">true</span>;
+				<span class="variable">sema</span>.<span class="variable">emit</span>(&<span class="variable">quot</span>;<span class="variable">dataReady</span>&<span class="variable">quot</span>;);
+				<span class="variable">cb</span>();
+			}
+		);
+	}
+
+<span class="this">this</span>.<span class="variable">getAllAccounts</span> = <span class="variable">getAllAccounts</span>;
+<span class="this">this</span>.<span class="variable">getAccountInfo</span> = <span class="variable">getAccountInfo</span>;
+<span class="this">this</span>.<span class="variable">getAccountRegister</span> = <span class="variable">getAccountRegister</span>;
+<span class="this">this</span>.<span class="variable">getTransaction</span> = <span class="variable">getTransaction</span>;
+<span class="this">this</span>.<span class="variable">saveTransaction</span> = <span class="variable">saveTransaction</span>;
+<span class="this">this</span>.<span class="variable">getAccountByPath</span> = <span class="variable">getAccountByPath</span>;
+}
+
+<span class="variable">module</span>.<span class="variable">exports</span>.<span class="variable">init</span> = <span class="keyword">function</span> (<span class="variable">ctx</span>,<span class="variable">cb</span>) {
+	<span class="keyword">var</span> <span class="variable">api</span> = <span class="keyword">new</span> <span class="class">CashApi</span>(<span class="variable">ctx</span>);
+	<span class="variable">api</span>.<span class="variable">init</span>(<span class="keyword">function</span> (<span class="variable">err</span>) {
+		<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb</span>(<span class="variable">err</span>);
+		<span class="variable">cb</span>(<span class="keyword">null</span>, <span class="variable">api</span>);
+	})
+}
+</code></pre>
+</td>
+</tr><tr class="filename"><td><h2 id="../modules/core/./lib/core.js"><a href="#">core</a></h2></td><td>../modules/core/./lib/core.js</td></tr><tr class="code">
+<td class="docs">
+<p>Core
+ </p>
+</td>
+<td class="code">
+<pre><code><span class="keyword">var</span> <span class="variable">fs</span> = <span class="variable">require</span>(&<span class="variable">quot</span>;<span class="variable">fs</span>&<span class="variable">quot</span>;);
+<span class="keyword">var</span> <span class="variable">_</span> = <span class="variable">require</span>(<span class="string">'underscore'</span>);
+
+<span class="keyword">var</span> <span class="variable">alfred</span> = <span class="variable">require</span>(<span class="string">'alfred'</span>);
+<span class="keyword">var</span> <span class="variable">async</span> = <span class="variable">require</span>(<span class="string">'async'</span>);
+<span class="keyword">var</span> <span class="class">Step</span> = <span class="variable">require</span>(&<span class="variable">quot</span>;<span class="variable">step</span>&<span class="variable">quot</span>;);
+<span class="keyword">var</span> <span class="variable">events</span> = <span class="variable">require</span>(&<span class="variable">quot</span>;<span class="variable">events</span>&<span class="variable">quot</span>;);
+<span class="keyword">var</span> <span class="variable">util</span> = <span class="variable">require</span>(&<span class="variable">quot</span>;<span class="variable">util</span>&<span class="variable">quot</span>;);
+<span class="keyword">var</span> <span class="variable">express</span> = <span class="variable">require</span>(<span class="string">'express'</span>);
+<span class="keyword">var</span> <span class="class">SkilapError</span> = <span class="variable">require</span>(&<span class="variable">quot</span>;./<span class="class">SkilapError</span>&<span class="variable">quot</span>;);
+<span class="keyword">var</span> <span class="class">Gettext</span> = <span class="variable">require</span>(&<span class="variable">quot</span>;./<span class="class">Gettext</span>&<span class="variable">quot</span>;);
+
+<span class="keyword">function</span> <span class="class">Skilap</span>() {
+	<span class="keyword">var</span> <span class="variable">self</span> = <span class="this">this</span>;
+	<span class="keyword">var</span> <span class="variable">sessions</span> = {};
+	<span class="keyword">var</span> <span class="variable">i18l</span> = {};
+	<span class="keyword">var</span> <span class="variable">_adb</span> = <span class="keyword">null</span>;
+	<span class="keyword">var</span> <span class="variable">tmodules</span> = [{
+		<span class="variable">name</span>:&<span class="variable">quot</span>;<span class="variable">core</span>&<span class="variable">quot</span>;,<span class="variable">require</span>:&<span class="variable">quot</span>;./<span class="variable">coreapi</span>&<span class="variable">quot</span>;,
+		<span class="variable">description</span>:&<span class="variable">quot</span>;<span class="class">Primary</span> <span class="variable">system</span> <span class="variable">module</span>. <span class="class">Provides</span> <span class="variable">system</span> <span class="keyword">with</span> <span class="variable">common</span> <span class="variable">functionality</span> <span class="variable">and</span> <span class="variable">allows</span> <span class="variable">to</span> <span class="variable">administer</span> <span class="variable">it</span>.&<span class="variable">quot</span>;
+		},{
+		<span class="variable">name</span>:&<span class="variable">quot</span>;<span class="variable">cash</span>&<span class="variable">quot</span>;,<span class="variable">require</span>:&<span class="variable">quot</span>;<span class="variable">skilap</span>-<span class="variable">cash</span>&<span class="variable">quot</span>;,
+		<span class="variable">description</span>:&<span class="variable">quot</span>;<span class="class">Cash</span>. <span class="class">Personal</span> <span class="variable">and</span> <span class="variable">familty</span> <span class="variable">finances</span>. <span class="class">Inspired</span> <span class="variable">by</span> <span class="variable">gnucash</span>.&<span class="variable">quot</span>;
+		}];
+	<span class="keyword">var</span> <span class="variable">self</span> = <span class="this">this</span>;
+	<span class="keyword">var</span> <span class="variable">modules</span> = {};
+	<span class="keyword">var</span> <span class="variable">webapp</span> = <span class="keyword">null</span>;
+	<span class="keyword">var</span> <span class="variable">core_users</span> = <span class="keyword">null</span>;
+	<span class="keyword">var</span> <span class="variable">core_clients</span> = <span class="keyword">null</span>;
+	<span class="keyword">var</span> <span class="variable">storepath</span>;
+	<span class="keyword">var</span> <span class="variable">dummyGT</span> = <span class="keyword">new</span> <span class="class">Gettext</span>();
+	<span class="this">this</span>.<span class="variable">webapp</span>;
+
+	<span class="this">this</span>.<span class="variable">startApp</span> = <span class="keyword">function</span> (<span class="variable">storepath_</span>, <span class="variable">cb</span>) {
+		<span class="variable">console</span>.<span class="variable">time</span>(&<span class="variable">quot</span>;<span class="variable">startApp</span>&<span class="variable">quot</span>;);
+		<span class="variable">storepath</span> = <span class="variable">storepath_</span>;
+		<span class="variable">async</span>.<span class="variable">series</span>([
+			<span class="keyword">function</span> <span class="variable">initBasics</span>(<span class="variable">cb1</span>) {
+				<span class="keyword">var</span> <span class="variable">app</span> = <span class="variable">module</span>.<span class="variable">exports</span> = <span class="variable">express</span>.<span class="variable">createServer</span>();
+
+				<span class="comment">// Configuration</span>
+				<span class="variable">app</span>.<span class="variable">configure</span>(<span class="keyword">function</span>(){
+					<span class="variable">app</span>.<span class="variable">set</span>(<span class="string">'view engine'</span>, <span class="string">'mustache'</span>);
+					<span class="variable">app</span>.<span class="variable">register</span>(&<span class="variable">quot</span>;.<span class="variable">mustache</span>&<span class="variable">quot</span>;, <span class="variable">require</span>(<span class="string">'stache'</span>));
+					<span class="variable">app</span>.<span class="variable">use</span>(<span class="variable">express</span>.<span class="variable">bodyParser</span>());
+					<span class="variable">app</span>.<span class="variable">use</span>(<span class="variable">express</span>.<span class="variable">methodOverride</span>());
+					<span class="variable">app</span>.<span class="variable">use</span>(<span class="variable">express</span>.<span class="variable">cookieParser</span>());
+					<span class="variable">app</span>.<span class="variable">use</span>(<span class="variable">express</span>.<span class="variable">session</span>({ <span class="variable">secret</span>: &<span class="variable">quot</span>;<span class="class">PushOk</span>&<span class="variable">quot</span>; }));
+					<span class="variable">app</span>.<span class="variable">use</span>(<span class="keyword">function</span> (<span class="variable">req</span>, <span class="variable">res</span>, <span class="variable">next</span>) {
+						<span class="keyword">if</span> (<span class="variable">req</span>.<span class="variable">cookies</span>[&<span class="variable">quot</span>;<span class="variable">skilapid</span>&<span class="variable">quot</span>;]==<span class="keyword">null</span>) {
+							<span class="keyword">var</span> <span class="variable">clientId</span>; <span class="variable">self</span>.<span class="variable">getRandomString</span>(<span class="number integer">128</span>, <span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">rnd</span>) { <span class="variable">clientId</span> = <span class="variable">rnd</span>; });
+							<span class="variable">res</span>.<span class="variable">cookie</span>(&<span class="variable">quot</span>;<span class="variable">skilapid</span>&<span class="variable">quot</span>;,<span class="variable">clientId</span>, { <span class="variable">maxAge</span>: <span class="number integer">3600000</span>, <span class="variable">path</span>: <span class="string">'/'</span> });
+						}
+						<span class="keyword">if</span> (<span class="variable">req</span>.<span class="variable">session</span>.<span class="variable">apiToken</span>==<span class="keyword">null</span>) {
+							<span class="variable">modules</span>[<span class="string">'core'</span>].<span class="variable">api</span>.<span class="variable">getApiToken</span>(&<span class="variable">quot</span>;<span class="keyword">default</span>&<span class="variable">quot</span>;,<span class="variable">req</span>.<span class="variable">cookies</span>[&<span class="variable">quot</span>;<span class="variable">skilapid</span>&<span class="variable">quot</span>;],&<span class="variable">quot</span>;<span class="variable">fake</span>&<span class="variable">quot</span>;,<span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">apiToken</span>) {
+								<span class="variable">req</span>.<span class="variable">session</span>.<span class="variable">apiToken</span> = <span class="variable">apiToken</span>;
+								<span class="variable">next</span>();
+							});
+						} <span class="keyword">else</span> <span class="variable">next</span>();
+					});
+					<span class="variable">app</span>.<span class="variable">use</span>(<span class="variable">app</span>.<span class="variable">router</span>);
+					<span class="variable">app</span>.<span class="variable">use</span>(<span class="keyword">function</span> (<span class="variable">err</span>,<span class="variable">req</span>,<span class="variable">res</span>,<span class="variable">next</span>) {
+						<span class="keyword">if</span> (<span class="variable">err</span>.<span class="variable">skilap</span>) {
+							<span class="keyword">if</span> (<span class="variable">err</span>.<span class="variable">skilap</span>.<span class="variable">subject</span> = &<span class="variable">quot</span>;<span class="class">AccessDenied</span>&<span class="variable">quot</span>;) {
+								<span class="variable">console</span>.<span class="variable">log</span>(<span class="variable">err</span>);
+								<span class="variable">res</span>.<span class="variable">render</span>(<span class="variable">__dirname</span>+&<span class="variable">quot</span>;<span class="regexp">/../views</span>/<span class="variable">accessDenied</span>&<span class="variable">quot</span>;, {<span class="variable">prefix</span>:&<span class="variable">quot</span>;&<span class="variable">quot</span>;,<span class="variable">success</span>:<span class="variable">req</span>.<span class="variable">url</span>});
+							} <span class="keyword">else</span> <span class="variable">next</span>(<span class="variable">err</span>);
+						} <span class="keyword">else</span>
+							<span class="variable">next</span>(<span class="variable">err</span>);
+					});
+					<span class="variable">app</span>.<span class="variable">dynamicHelpers</span>({
+						<span class="variable">i18n</span>: <span class="keyword">function</span>(<span class="variable">req</span>, <span class="variable">res</span>){
+							<span class="keyword">var</span> <span class="variable">domain</span>, <span class="variable">re</span> = <span class="variable">req</span>.<span class="variable">url</span>.<span class="variable">match</span>(<span class="regexp">/\/</span>(\<span class="variable">w</span>+)\<span class="regexp">/.*/i</span>);
+							<span class="variable">domain</span> = <span class="variable">re</span>?<span class="variable">re</span>[<span class="number integer">1</span>]:&<span class="variable">quot</span>;<span class="variable">core</span>&<span class="variable">quot</span>;;
+							<span class="keyword">return</span> <span class="keyword">function</span> () { <span class="keyword">return</span> <span class="keyword">function</span> (<span class="variable">text</span>, <span class="variable">render</span>) {
+								<span class="keyword">return</span> <span class="variable">self</span>.<span class="variable">i18n</span>(<span class="variable">req</span>.<span class="variable">session</span>.<span class="variable">apiToken</span>, <span class="variable">domain</span>, <span class="variable">text</span>);
+							}};
+						}});
+				});
+
+				<span class="variable">app</span>.<span class="variable">configure</span>(<span class="string">'development'</span>, <span class="keyword">function</span>(){
+				  <span class="variable">app</span>.<span class="variable">use</span>(<span class="variable">express</span>.<span class="variable">errorHandler</span>({ <span class="variable">dumpExceptions</span>: <span class="variable">true</span>, <span class="variable">showStack</span>: <span class="variable">true</span> }));
+				});
+
+				<span class="variable">app</span>.<span class="variable">configure</span>(<span class="string">'production'</span>, <span class="keyword">function</span>(){
+				  <span class="variable">app</span>.<span class="variable">use</span>(<span class="variable">express</span>.<span class="variable">errorHandler</span>());
+				});
+
+				<span class="variable">self</span>.<span class="variable">webapp</span> = <span class="variable">webapp</span> = <span class="variable">app</span>;
+
+				<span class="variable">console</span>.<span class="variable">time</span>(&<span class="variable">quot</span>;<span class="class">OpenDB</span>&<span class="variable">quot</span>;);
+				<span class="variable">async</span>.<span class="variable">series</span> ([
+					<span class="keyword">function</span> (<span class="variable">cb1</span>) {
+						<span class="variable">alfred</span>.<span class="variable">open</span>(<span class="variable">storepath</span>+<span class="string">'db'</span>,{}, <span class="variable">cb1</span>);
+					}], <span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">results</span>) {
+						<span class="variable">console</span>.<span class="variable">timeEnd</span>(&<span class="variable">quot</span>;<span class="class">OpenDB</span>&<span class="variable">quot</span>;);
+						<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb1</span>(<span class="variable">err</span>);
+						<span class="variable">_adb</span> = <span class="variable">results</span>[<span class="number integer">0</span>];
+						<span class="variable">cb1</span>();
+					}
+				);
+
+				<span class="variable">app</span>.<span class="variable">post</span>(&<span class="variable">quot</span>;/<span class="variable">login</span>&<span class="variable">quot</span>;, <span class="keyword">function</span> (<span class="variable">req</span>,<span class="variable">res</span>,<span class="variable">next</span>) {
+					<span class="variable">async</span>.<span class="variable">series</span>([
+						<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">modules</span>[<span class="string">'core'</span>].<span class="variable">api</span>.<span class="variable">loginByPass</span>,<span class="variable">req</span>.<span class="variable">session</span>.<span class="variable">apiToken</span>, <span class="variable">req</span>.<span class="variable">body</span>.<span class="variable">name</span>, <span class="variable">req</span>.<span class="variable">body</span>.<span class="variable">password</span>)
+					], <span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">user</span>) {
+						<span class="keyword">if</span> (<span class="variable">err</span>)
+							<span class="variable">res</span>.<span class="variable">redirect</span>(<span class="variable">req</span>.<span class="variable">body</span>.<span class="variable">success</span>);
+						<span class="keyword">else</span>
+							<span class="variable">res</span>.<span class="variable">redirect</span>(<span class="variable">req</span>.<span class="variable">body</span>.<span class="variable">success</span>);
+					});
+				});
+				<span class="keyword">function</span> <span class="variable">handleJsonRpc</span>(<span class="variable">jsonrpctext</span>, <span class="variable">req</span>, <span class="variable">res</span>, <span class="variable">next</span>) {
+					<span class="keyword">var</span> <span class="variable">id</span> = <span class="keyword">null</span>; <span class="keyword">var</span> <span class="variable">out</span> = <span class="variable">false</span>;
+					<span class="keyword">try</span> {
+						<span class="keyword">var</span> <span class="variable">jsonrpc</span> = <span class="class">JSON</span>.<span class="variable">parse</span>(<span class="variable">jsonrpctext</span>);
+						<span class="variable">id</span> = <span class="variable">jsonrpc</span>.<span class="variable">id</span>;
+						<span class="keyword">var</span> <span class="variable">func</span> = <span class="variable">jsonrpc</span>.<span class="variable">method</span>.<span class="variable">match</span>(<span class="regexp">/^(.*)\.(.*)$/</span>);
+						<span class="keyword">var</span> <span class="variable">module</span> = <span class="variable">func</span>[<span class="number integer">1</span>];
+						<span class="variable">func</span> = <span class="variable">func</span>[<span class="number integer">2</span>];
+						<span class="keyword">var</span> <span class="variable">api</span> = <span class="variable">modules</span>[<span class="variable">module</span>].<span class="variable">api</span>;
+						<span class="keyword">var</span> <span class="variable">fn</span> = <span class="variable">api</span>[<span class="variable">func</span>];
+						<span class="keyword">var</span> <span class="variable">params</span> = <span class="variable">jsonrpc</span>.<span class="variable">params</span>;
+						<span class="variable">params</span>.<span class="variable">push</span>(<span class="keyword">function</span> () {
+							<span class="keyword">var</span> <span class="variable">jsonres</span> = {};
+							<span class="keyword">if</span> (<span class="variable">arguments</span>[<span class="number integer">0</span>]) {
+								<span class="variable">jsonres</span>.<span class="variable">error</span> = <span class="variable">arguments</span>[<span class="number integer">0</span>];
+								<span class="variable">jsonres</span>.<span class="variable">result</span> = <span class="keyword">null</span>;
+							} <span class="keyword">else</span> {
+								<span class="variable">jsonres</span>.<span class="variable">error</span> = <span class="keyword">null</span>;
+								<span class="variable">jsonres</span>.<span class="variable">result</span> = <span class="class">Array</span>.<span class="variable">prototype</span>.<span class="variable">slice</span>.<span class="variable">call</span>(<span class="variable">arguments</span>,<span class="number integer">1</span>);
+							}
+							<span class="variable">jsonres</span>.<span class="variable">id</span> = <span class="variable">jsonrpc</span>.<span class="variable">id</span>;
+							<span class="variable">res</span>.<span class="variable">send</span>(<span class="variable">jsonres</span>);
+						})
+						<span class="variable">fn</span>.<span class="variable">apply</span>(<span class="this">this</span>, <span class="variable">params</span>);
+						<span class="variable">out</span> = <span class="variable">true</span>;
+					} <span class="keyword">catch</span> (<span class="variable">err</span>) {
+						<span class="keyword">if</span> (!<span class="variable">out</span>) 
+							<span class="variable">res</span>.<span class="variable">send</span>({<span class="variable">error</span>:<span class="variable">err</span>, <span class="variable">result</span>:<span class="keyword">null</span>, <span class="variable">id</span>:<span class="variable">id</span>});
+					}
+				};
+
+				<span class="variable">app</span>.<span class="variable">get</span>(&<span class="variable">quot</span>;/<span class="variable">jsonrpc</span>&<span class="variable">quot</span>;, <span class="keyword">function</span> (<span class="variable">req</span>, <span class="variable">res</span>, <span class="variable">next</span>) {
+					<span class="variable">handleJsonRpc</span>(<span class="variable">req</span>.<span class="variable">query</span>.<span class="variable">jsonrpc</span>, <span class="variable">req</span>, <span class="variable">res</span>, <span class="variable">next</span>);
+				})
+				<span class="variable">app</span>.<span class="variable">post</span>(&<span class="variable">quot</span>;/<span class="variable">jsonrpc</span>&<span class="variable">quot</span>;, <span class="keyword">function</span> (<span class="variable">req</span>,<span class="variable">res</span>,<span class="variable">next</span>) {
+					<span class="variable">handleJsonRpc</span>(<span class="variable">req</span>.<span class="variable">body</span>.<span class="variable">json</span>,<span class="variable">req</span>, <span class="variable">res</span>, <span class="variable">next</span>);
+				})
+
+			},
+			<span class="keyword">function</span> <span class="variable">initModules</span>(<span class="variable">cb1</span>) {
+				<span class="variable">async</span>.<span class="variable">forEachSeries</span>(<span class="variable">tmodules</span>, <span class="keyword">function</span> (<span class="variable">minfo</span>, <span class="variable">cb2</span>) {
+					<span class="variable">console</span>.<span class="variable">time</span>(<span class="variable">minfo</span>.<span class="variable">name</span>);
+					<span class="keyword">var</span> <span class="variable">module</span> = <span class="variable">require</span>(<span class="variable">minfo</span>.<span class="variable">require</span>);
+					<span class="variable">module</span>.<span class="variable">init</span>(<span class="variable">self</span>,<span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">moduleObj</span>) {
+						<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb2</span>(<span class="variable">err</span>);
+						<span class="variable">modules</span>[<span class="variable">minfo</span>.<span class="variable">name</span>]=<span class="variable">moduleObj</span>;
+						<span class="keyword">if</span> (<span class="variable">moduleObj</span>.<span class="variable">localePath</span>) {
+							<span class="variable">_</span>.<span class="variable">forEach</span>(<span class="variable">fs</span>.<span class="variable">readdirSync</span>(<span class="variable">moduleObj</span>.<span class="variable">localePath</span>), <span class="keyword">function</span> (<span class="variable">file</span>) {
+								<span class="keyword">var</span> <span class="variable">re</span> = <span class="variable">file</span>.<span class="variable">match</span>(<span class="regexp">/.*\.(.*)\.po/i</span>);
+								<span class="keyword">if</span> (<span class="variable">re</span>) {
+									<span class="keyword">var</span> <span class="variable">lc</span> = <span class="variable">re</span>[<span class="number integer">1</span>];
+									<span class="keyword">if</span> (<span class="variable">i18l</span>[<span class="variable">lc</span>]==<span class="keyword">null</span>)
+										<span class="variable">i18l</span>[<span class="variable">lc</span>] = <span class="keyword">new</span> <span class="class">Gettext</span>();
+									<span class="keyword">var</span> <span class="variable">gt</span> = <span class="variable">i18l</span>[<span class="variable">lc</span>];
+									<span class="keyword">var</span> <span class="variable">parsed</span> = <span class="variable">gt</span>.<span class="variable">parse_po</span>(&<span class="variable">quot</span>;&<span class="variable">quot</span>;+<span class="variable">fs</span>.<span class="variable">readFileSync</span>(<span class="variable">moduleObj</span>.<span class="variable">localePath</span>+&<span class="variable">quot</span>;/&<span class="variable">quot</span>;+<span class="variable">file</span>));
+									<span class="keyword">var</span> <span class="variable">rv</span> = {}; <span class="keyword">var</span> <span class="variable">domain</span> = <span class="variable">minfo</span>.<span class="variable">name</span>;
+									<span class="comment">// munge domain into/outof header</span>
+									<span class="keyword">if</span> (<span class="variable">parsed</span>) {
+										<span class="keyword">if</span> (! <span class="variable">parsed</span>[&<span class="variable">quot</span>;&<span class="variable">quot</span>;]) <span class="variable">parsed</span>[&<span class="variable">quot</span>;&<span class="variable">quot</span>;] = {};
+										<span class="keyword">if</span> (! <span class="variable">parsed</span>[&<span class="variable">quot</span>;&<span class="variable">quot</span>;][&<span class="variable">quot</span>;<span class="variable">domain</span>&<span class="variable">quot</span>;]) <span class="variable">parsed</span>[&<span class="variable">quot</span>;&<span class="variable">quot</span>;][&<span class="variable">quot</span>;<span class="variable">domain</span>&<span class="variable">quot</span>;] = <span class="variable">domain</span>;
+										<span class="variable">domain</span> = <span class="variable">parsed</span>[&<span class="variable">quot</span>;&<span class="variable">quot</span>;][&<span class="variable">quot</span>;<span class="variable">domain</span>&<span class="variable">quot</span>;];
+										<span class="variable">rv</span>[<span class="variable">domain</span>] = <span class="variable">parsed</span>;
+										<span class="variable">gt</span>.<span class="variable">parse_locale_data</span>(<span class="variable">rv</span>);
+									}
+								}
+							})
+						}
+						<span class="variable">console</span>.<span class="variable">timeEnd</span>(<span class="variable">minfo</span>.<span class="variable">name</span>);
+						<span class="variable">cb2</span>();
+					});
+				},<span class="variable">cb1</span>);
+			}],
+			<span class="keyword">function</span> <span class="variable">end</span>(<span class="variable">err</span>) {
+				<span class="variable">console</span>.<span class="variable">timeEnd</span>(&<span class="variable">quot</span>;<span class="variable">startApp</span>&<span class="variable">quot</span>;);
+				<span class="keyword">if</span> (<span class="variable">err</span>) <span class="variable">cb</span>(<span class="variable">err</span>);
+				<span class="variable">require</span>(&<span class="variable">quot</span>;..<span class="regexp">/pages/users</span>&<span class="variable">quot</span>;)(<span class="variable">self</span>,<span class="variable">webapp</span>,<span class="variable">modules</span>[<span class="string">'core'</span>].<span class="variable">api</span>,&<span class="variable">quot</span>;/<span class="variable">core</span>&<span class="variable">quot</span>;);
+				<span class="variable">require</span>(&<span class="variable">quot</span>;..<span class="regexp">/pages/index</span>&<span class="variable">quot</span>;)(<span class="variable">self</span>,<span class="variable">webapp</span>,<span class="variable">modules</span>[<span class="string">'core'</span>].<span class="variable">api</span>,&<span class="variable">quot</span>;/<span class="variable">core</span>&<span class="variable">quot</span>;);
+
+				<span class="variable">webapp</span>.<span class="variable">listen</span>(<span class="number integer">1337</span>);
+				<span class="variable">console</span>.<span class="variable">log</span>(&<span class="variable">quot</span>;<span class="class">Express</span> <span class="variable">server</span> <span class="variable">listening</span> <span class="variable">on</span> <span class="variable">port</span> %<span class="variable">d</span> <span class="keyword">in</span> %<span class="variable">s</span> <span class="variable">mode</span>&<span class="variable">quot</span>;, <span class="variable">webapp</span>.<span class="variable">address</span>().<span class="variable">port</span>, <span class="variable">webapp</span>.<span class="variable">settings</span>.<span class="variable">env</span>);
+				<span class="variable">self</span>.<span class="variable">emit</span>(&<span class="variable">quot</span>;<span class="class">WebStarted</span>&<span class="variable">quot</span>;);
+				<span class="variable">cb</span>();
+			}
+		);
+	}
+
+	<span class="this">this</span>.<span class="variable">getDB</span> = <span class="keyword">function</span> (<span class="variable">cb</span>) {
+		<span class="variable">cb</span>(<span class="keyword">null</span>,<span class="variable">_adb</span>);
+	}
+
+	<span class="this">this</span>.<span class="variable">getModule</span> = <span class="keyword">function</span> (<span class="variable">name</span>, <span class="variable">cb</span>) {
+		<span class="variable">cb</span>(<span class="keyword">null</span>, <span class="variable">modules</span>[<span class="variable">name</span>]);
+	}
+
+	<span class="this">this</span>.<span class="variable">getModulesInfo</span> = <span class="keyword">function</span> (<span class="variable">cb</span>) {
+		<span class="keyword">var</span> <span class="variable">ret</span> = [];
+		<span class="variable">_</span>.<span class="variable">forEach</span>(<span class="variable">tmodules</span>, <span class="keyword">function</span> (<span class="variable">minfo</span>) {
+			<span class="variable">ret</span>.<span class="variable">push</span>({<span class="variable">name</span>:<span class="variable">minfo</span>.<span class="variable">name</span>, <span class="variable">description</span>:<span class="variable">minfo</span>.<span class="variable">description</span>, <span class="variable">url</span>:&<span class="variable">quot</span>;<span class="regexp">/&quot;+minfo.name+&quot;/</span>&<span class="variable">quot</span>;});
+		});
+		<span class="variable">cb</span>(<span class="keyword">null</span>, <span class="variable">ret</span>);
+	}
+
+	<span class="this">this</span>.<span class="variable">getWebApp</span> = <span class="keyword">function</span> (<span class="variable">cb</span>) {
+		<span class="variable">cb</span>(<span class="keyword">null</span>, <span class="variable">webapp</span>);
+	}
+
+	<span class="this">this</span>.<span class="variable">getUniqueId</span> = <span class="keyword">function</span>(<span class="variable">cb</span>) {
+		<span class="variable">console</span>.<span class="variable">time</span>(&<span class="variable">quot</span>;<span class="variable">getUniqueId</span>&<span class="variable">quot</span>;);
+		<span class="keyword">var</span> <span class="variable">id</span>;
+		<span class="variable">async</span>.<span class="variable">waterfall</span>([
+			<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">fs</span>.<span class="variable">readFile</span>,<span class="variable">storepath</span>+&<span class="variable">quot</span>;<span class="variable">unique</span>.<span class="variable">id</span>&<span class="variable">quot</span>;),
+			<span class="keyword">function</span> (<span class="variable">data</span>, <span class="variable">cb1</span>) {
+				<span class="variable">id</span> = <span class="variable">parseInt</span>(<span class="variable">data</span>);
+				<span class="variable">id</span>++;
+				<span class="variable">fs</span>.<span class="variable">writeFile</span>(<span class="variable">storepath</span>+&<span class="variable">quot</span>;<span class="variable">unique</span>.<span class="variable">id</span>&<span class="variable">quot</span>;,&<span class="variable">quot</span>;&<span class="variable">quot</span>;+<span class="variable">id</span>,<span class="variable">cb1</span>);
+			}], <span class="keyword">function</span> (<span class="variable">err</span>) {
+				<span class="variable">console</span>.<span class="variable">timeEnd</span>(&<span class="variable">quot</span>;<span class="variable">getUniqueId</span>&<span class="variable">quot</span>;);
+				<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb</span>(<span class="variable">err</span>);
+				<span class="variable">cb</span>(<span class="keyword">null</span>,<span class="variable">id</span>)
+			}
+		)
+	}
+
+	<span class="this">this</span>.<span class="variable">getRandomString</span> = <span class="keyword">function</span> (<span class="variable">bits</span>,<span class="variable">cb</span>) {
+		<span class="keyword">var</span> <span class="variable">chars</span>,<span class="variable">rand</span>,<span class="variable">i</span>,<span class="variable">ret</span>;
+		<span class="variable">chars</span>=<span class="string">'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'</span>;
+		<span class="variable">ret</span>=<span class="string">''</span>;
+		<span class="comment">// in v8, Math.random() yields 32 pseudo-random bits (in spidermonkey it gives 53)</span>
+		<span class="keyword">while</span> (<span class="variable">bits</span> &<span class="variable">gt</span>; <span class="number integer">0</span>) {
+			<span class="variable">rand</span>=<span class="class">Math</span>.<span class="variable">floor</span>(<span class="class">Math</span>.<span class="variable">random</span>()*<span class="variable">x100000000</span>) <span class="comment">// 32-bit integer</span>
+			<span class="comment">// base 64 means 6 bits per character, so we use the top 30 bits from rand to give 30/6=5 characters.</span>
+			<span class="keyword">for</span>(<span class="variable">i</span>=<span class="number integer">26</span>; <span class="variable">i</span>&<span class="variable">gt</span>;<span class="number integer">0</span> &<span class="variable">amp</span>;&<span class="variable">amp</span>; <span class="variable">bits</span>&<span class="variable">gt</span>;<span class="number integer">0</span>; <span class="variable">i</span>-=<span class="number integer">6</span>, <span class="variable">bits</span>-=<span class="number integer">6</span>) <span class="variable">ret</span>+=<span class="variable">chars</span>[<span class="variable">x3F</span> &<span class="variable">amp</span>; <span class="variable">rand</span> &<span class="variable">gt</span>;&<span class="variable">gt</span>;&<span class="variable">gt</span>; <span class="variable">i</span>]
+		}
+		<span class="keyword">return</span> <span class="variable">cb</span>(<span class="keyword">null</span>,<span class="variable">ret</span>);
+	}
+
+	<span class="this">this</span>.<span class="variable">i18n</span> = <span class="keyword">function</span> (<span class="variable">langtoken</span>,<span class="variable">domain</span>,<span class="variable">text1</span>,<span class="variable">text2</span>,<span class="variable">n</span>)  {
+		<span class="comment">// 1st guess langtoken is langtoken exactly as it is</span>
+		<span class="keyword">var</span> <span class="variable">gt</span> = <span class="variable">i18l</span>[<span class="variable">langtoken</span>];
+		<span class="comment">// 2nd guess, langtoken is api token and it can have a language</span>
+		<span class="keyword">if</span> (<span class="variable">gt</span>==<span class="keyword">null</span>) {
+			<span class="keyword">var</span> <span class="variable">lc</span> = <span class="variable">modules</span>[<span class="string">'core'</span>].<span class="variable">api</span>.<span class="variable">getLanguageSync</span>(<span class="variable">langtoken</span>);
+			<span class="keyword">if</span> (<span class="variable">lc</span>)
+				<span class="variable">gt</span> = <span class="variable">i18l</span>[<span class="variable">lc</span>];
+		}
+		<span class="comment">// 3nd guess, system default</span>
+		<span class="keyword">if</span> (<span class="variable">gt</span>==<span class="keyword">null</span>)
+			<span class="variable">gt</span> = <span class="variable">i18l</span>[<span class="string">'ru_RU'</span>]; <span class="comment">// TODO: we need to have system default language</span>
+		<span class="comment">// final guess, fallback to empty one (dummy)</span>
+		<span class="keyword">if</span> (<span class="variable">gt</span>==<span class="keyword">null</span>)
+			<span class="variable">gt</span> = <span class="variable">dummyGT</span>;
+		<span class="keyword">return</span> <span class="variable">gt</span>.<span class="variable">dgettext</span>(<span class="variable">domain</span>, <span class="variable">text1</span>);
+	}
+
+}
+
+<span class="variable">util</span>.<span class="variable">inherits</span>(<span class="class">Skilap</span>, <span class="variable">events</span>.<span class="class">EventEmitter</span>);
+
+<span class="variable">module</span>.<span class="variable">exports</span>.<span class="variable">createApp</span> = <span class="keyword">function</span> () {
+	<span class="keyword">return</span> <span class="keyword">new</span> <span class="class">Skilap</span>();
+}
+</code></pre>
+</td>
+</tr><tr class="filename"><td><h2 id="../modules/core/./lib/coreapi.js"><a href="#">coreapi</a></h2></td><td>../modules/core/./lib/coreapi.js</td></tr><tr class="code">
+<td class="docs">
+<p> Module Imports
+ </p>
+</td>
+<td class="code">
+<pre><code><span class="keyword">var</span> <span class="variable">_</span> = <span class="variable">require</span>(<span class="string">'underscore'</span>);
+<span class="keyword">var</span> <span class="variable">async</span> = <span class="variable">require</span>(<span class="string">'async'</span>);
+<span class="keyword">var</span> <span class="class">SkilapError</span> = <span class="variable">require</span>(&<span class="variable">quot</span>;./<span class="class">SkilapError</span>&<span class="variable">quot</span>;);</code></pre>
+</td>
+</tr>
+<tr class="code">
+<td class="docs">
+<p>Super duper module
+ </p>
+</td>
+<td class="code">
+<pre><code><span class="keyword">function</span> <span class="class">CoreApi</span>(<span class="variable">ctx</span>) {
+	<span class="keyword">var</span> <span class="variable">sessions</span> = {};
+	<span class="keyword">var</span> <span class="variable">self</span> = <span class="this">this</span>;
+	<span class="keyword">var</span> <span class="variable">core_users</span> = <span class="keyword">null</span>;
+	<span class="keyword">var</span> <span class="variable">core_clients</span> = <span class="keyword">null</span>;
+
+	<span class="this">this</span>.<span class="variable">getLanguageSync</span> = <span class="keyword">function</span>(<span class="variable">token</span>) {
+		<span class="keyword">var</span> <span class="variable">s</span> = <span class="variable">sessions</span>[<span class="variable">token</span>];
+		<span class="keyword">if</span> (<span class="variable">s</span>!=<span class="keyword">null</span>)
+			<span class="keyword">return</span> &<span class="variable">quot</span>;<span class="variable">ru_RU</span>&<span class="variable">quot</span>;;
+	}
+
+	<span class="this">this</span>.<span class="variable">loadData</span> = <span class="keyword">function</span> (<span class="variable">cb</span>) {
+		<span class="variable">async</span>.<span class="variable">waterfall</span>([
+			<span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="variable">ctx</span>.<span class="variable">getDB</span>(<span class="variable">cb1</span>);
+			},
+			<span class="keyword">function</span> (<span class="variable">adb</span>,<span class="variable">cb1</span>) {
+				<span class="variable">async</span>.<span class="variable">parallel</span>([
+					<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">adb</span>.<span class="variable">ensure</span>, &<span class="variable">quot</span>;<span class="variable">core_users</span>&<span class="variable">quot</span>;,{<span class="variable">type</span>:<span class="string">'cached_key_map'</span>,<span class="variable">buffered</span>:<span class="variable">true</span>}),
+					<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">adb</span>.<span class="variable">ensure</span>, &<span class="variable">quot</span>;<span class="variable">core_clients</span>&<span class="variable">quot</span>;,{<span class="variable">type</span>:<span class="string">'cached_key_map'</span>,<span class="variable">buffered</span>:<span class="variable">true</span>})
+				], <span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">results</span>) {
+					<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb1</span>(<span class="variable">err</span>);
+					<span class="variable">core_users</span> = <span class="variable">results</span>[<span class="number integer">0</span>];
+					<span class="variable">core_clients</span> = <span class="variable">results</span>[<span class="number integer">1</span>];
+					<span class="variable">cb1</span>();
+				});
+			}
+		], <span class="variable">cb</span>)
+	}</code></pre>
+</td>
+</tr>
+<tr class="code">
+<td class="docs">
+<p>This should be first call to API. Function will return token that will be used
+for all next API calls.</p>
+
+<h2></h2>
+
+<ul><li><p><strong>param</strong>: <em>String</em>  appId some id that identifies client, might be GUID</p></li><li><p><strong>param</strong>: <em>String</em>  clientId unique for this appId identity, like iPhone UDID</p></li><li><p><strong>param</strong>: <em>String</em>  signature for now just reserver</p></li><li><p><strong>returns</strong>: <em>String</em>  some temporary valid identity to call other API functions</p></li></ul>
+</td>
+<td class="code">
+<pre><code><span class="this">this</span>.<span class="variable">getApiToken</span> = <span class="keyword">function</span> (<span class="variable">appId</span>, <span class="variable">clientId</span>, <span class="variable">signature</span>, <span class="variable">cb</span>) {
+		<span class="comment">// 1st steep, check that appId+clientId are correct (signature matches)</span>
+		<span class="comment">// this will later also check that app is known and so on</span>
+		
+		<span class="keyword">var</span> <span class="variable">apiToken</span> = <span class="keyword">null</span>;
+		<span class="keyword">var</span> <span class="variable">user</span>;
+
+		<span class="variable">async</span>.<span class="variable">waterfall</span>([
+			<span class="comment">// generate unique id</span>
+			<span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="variable">async</span>.<span class="variable">whilst</span>(<span class="keyword">function</span> () { 
+						<span class="keyword">return</span> <span class="variable">apiToken</span>==<span class="keyword">null</span> || <span class="variable">sessions</span>[<span class="variable">apiToken</span>]!=<span class="keyword">null</span>;
+					}, <span class="keyword">function</span> (<span class="variable">cb2</span>) {
+						<span class="variable">ctx</span>.<span class="variable">getRandomString</span>(<span class="number integer">64</span>, <span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">rnd</span>) {
+							<span class="variable">apiToken</span> = <span class="variable">rnd</span>;
+							<span class="variable">cb2</span>();
+						})
+					}, <span class="keyword">function</span> (<span class="variable">err</span>) {
+						<span class="variable">cb1</span>(<span class="variable">err</span>);
+					})
+			},
+			<span class="keyword">function</span> (<span class="variable">cb1</span>) {
+				<span class="variable">core_clients</span>.<span class="variable">get</span>(<span class="variable">clientId</span>,<span class="variable">cb1</span>);
+			},
+			<span class="keyword">function</span> (<span class="variable">client</span>,<span class="variable">cb1</span>) {
+				<span class="keyword">if</span> (<span class="variable">client</span>==<span class="keyword">null</span>) <span class="keyword">return</span> <span class="variable">cb1</span>(<span class="keyword">new</span> <span class="class">Error</span>());
+				<span class="variable">core_users</span>.<span class="variable">get</span>(<span class="variable">client</span>.<span class="variable">uid</span>,<span class="variable">cb1</span>);
+			},
+			<span class="keyword">function</span> (<span class="variable">user_</span>, <span class="variable">cb1</span>) {
+				<span class="keyword">if</span> (<span class="variable">user_</span>==<span class="keyword">null</span>) <span class="keyword">return</span> <span class="variable">cb1</span>(<span class="keyword">new</span> <span class="class">Error</span>());
+				<span class="variable">user</span> = <span class="variable">user_</span>;
+				<span class="variable">cb1</span>();
+			}
+		], <span class="keyword">function</span> (<span class="variable">err</span>) {
+			<span class="keyword">if</span> (<span class="variable">err</span>) {
+				<span class="variable">user</span> = {<span class="variable">type</span>:&<span class="variable">quot</span>;<span class="variable">guest</span>&<span class="variable">quot</span>;};
+			}
+			<span class="keyword">var</span> <span class="variable">session</span> = {<span class="variable">user</span>:<span class="variable">user</span>,<span class="variable">clientId</span>:<span class="variable">clientId</span>,<span class="variable">appId</span>:<span class="variable">appId</span>};
+			<span class="variable">sessions</span>[<span class="variable">apiToken</span>] = <span class="variable">session</span>;
+			<span class="variable">cb</span>(<span class="keyword">null</span>, <span class="variable">apiToken</span>);
+		});
+	}
+
+	<span class="this">this</span>.<span class="variable">checkPerm</span> = <span class="keyword">function</span> (<span class="variable">token</span>, <span class="variable">opts</span>, <span class="variable">cb</span>) {
+		<span class="keyword">var</span> <span class="variable">perm</span> = <span class="variable">opts</span>[<span class="number integer">0</span>];
+		<span class="keyword">var</span> <span class="variable">session</span> = <span class="variable">sessions</span>[<span class="variable">token</span>];
+		<span class="keyword">if</span> (!<span class="variable">session</span>) <span class="keyword">return</span> <span class="variable">cb</span>(<span class="keyword">new</span> <span class="class">SkilapError</span>(<span class="string">'Wrong access token'</span>,<span class="string">'InvalidToken'</span>));
+		<span class="keyword">if</span> (<span class="variable">session</span>.<span class="variable">user</span>.<span class="variable">type</span>==&<span class="variable">quot</span>;<span class="variable">admin</span>&<span class="variable">quot</span>;) {
+			<span class="comment">// admin is valid only for core</span>
+			<span class="keyword">if</span> (<span class="variable">perm</span>.<span class="variable">indexOf</span>(&<span class="variable">quot</span>;<span class="variable">core</span>&<span class="variable">quot</span>;)==<span class="number integer">0</span>) 
+				<span class="variable">cb</span>()
+			<span class="keyword">else</span>
+				<span class="variable">cb</span>(<span class="keyword">new</span> <span class="class">SkilapError</span>(<span class="string">'Admin user can do only administrative tasks'</span>,<span class="string">'AccessDenied'</span>));
+		}
+		<span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">session</span>.<span class="variable">user</span>.<span class="variable">type</span>==&<span class="variable">quot</span>;<span class="variable">guest</span>&<span class="variable">quot</span>;)
+			<span class="variable">cb</span>(<span class="keyword">new</span> <span class="class">SkilapError</span>(<span class="variable">ctx</span>.<span class="variable">i18n</span>(<span class="variable">token</span>, &<span class="variable">quot</span>;<span class="variable">core</span>&<span class="variable">quot</span>;, &<span class="variable">quot</span>;<span class="class">Access</span> <span class="variable">denied</span>&<span class="variable">quot</span>;),<span class="string">'AccessDenied'</span>));
+		<span class="keyword">else</span> 
+			<span class="variable">cb</span>();
+	}
+
+	<span class="this">this</span>.<span class="variable">getAllUsers</span> = 	<span class="keyword">function</span> (<span class="variable">token</span>, <span class="variable">cb</span>) {
+		<span class="variable">async</span>.<span class="variable">series</span> ([
+			<span class="keyword">function</span> <span class="variable">start</span>(<span class="variable">cb1</span>) {
+				<span class="variable">async</span>.<span class="variable">parallel</span>([
+					<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">self</span>.<span class="variable">checkPerm</span>,<span class="variable">token</span>,[&<span class="variable">quot</span>;<span class="variable">core</span>.<span class="variable">user</span>.<span class="variable">view</span>&<span class="variable">quot</span>;])
+				],<span class="variable">cb1</span>);
+			}, 
+			<span class="keyword">function</span> <span class="variable">get</span>(<span class="variable">cb1</span>) {
+				<span class="keyword">var</span> <span class="variable">users</span> = [];
+				<span class="variable">core_users</span>.<span class="variable">scan</span>(<span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">key</span>, <span class="variable">acc</span>) {
+					<span class="keyword">if</span> (<span class="variable">err</span>) <span class="variable">cb1</span>(<span class="variable">err</span>);
+					<span class="keyword">if</span> (<span class="variable">key</span>) <span class="variable">users</span>.<span class="variable">push</span>(<span class="variable">acc</span>);
+						<span class="keyword">else</span> <span class="variable">cb1</span>(<span class="keyword">null</span>, <span class="variable">users</span>);
+					},
+				<span class="variable">true</span>);
+			}], <span class="keyword">function</span> <span class="variable">end</span>(<span class="variable">err</span>, <span class="variable">results</span>) {
+				<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb</span>(<span class="variable">err</span>);
+				<span class="variable">cb</span>(<span class="keyword">null</span>, <span class="variable">results</span>[<span class="number integer">1</span>]);
+			}
+		)
+	}
+
+	<span class="this">this</span>.<span class="variable">saveUser</span> = <span class="keyword">function</span> (<span class="variable">token</span>, <span class="variable">newUser</span>, <span class="variable">cb</span>) {
+		<span class="keyword">if</span> (<span class="variable">newUser</span>.<span class="variable">id</span>!=<span class="keyword">null</span>) {
+			<span class="comment">// update </span>
+			<span class="variable">async</span>.<span class="variable">waterfall</span>([
+				<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">self</span>.<span class="variable">checkPerms</span>,<span class="variable">token</span>,[&<span class="variable">quot</span>;<span class="variable">core</span>.<span class="variable">user</span>.<span class="variable">edit</span>&<span class="variable">quot</span>;]),
+				<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">core_users</span>.<span class="variable">get</span>, <span class="variable">newUser</span>.<span class="variable">id</span>),
+				<span class="keyword">function</span> <span class="variable">updateUser</span> (<span class="variable">updUser</span>,<span class="variable">cb1</span>) {
+					<span class="variable">core_users</span>.<span class="variable">put</span>(<span class="variable">updUser</span>.<span class="variable">id</span>, <span class="variable">upUser</span>, <span class="variable">cb1</span>);
+				}
+			], <span class="variable">cb</span>);
+		} <span class="keyword">else</span> {
+			<span class="comment">// create new</span>
+			<span class="variable">async</span>.<span class="variable">waterfall</span>([
+				<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">self</span>.<span class="variable">checkPerm</span>,<span class="variable">token</span>,[&<span class="variable">quot</span>;<span class="variable">core</span>.<span class="variable">user</span>.<span class="variable">edit</span>&<span class="variable">quot</span>;]),
+				<span class="keyword">function</span> <span class="variable">checkUserUniq</span> (<span class="variable">cb1</span>) {
+					<span class="keyword">var</span> <span class="variable">unique</span> = <span class="variable">true</span>;
+					<span class="variable">core_users</span>.<span class="variable">scan</span>(<span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">key</span>, <span class="variable">user</span>) {
+						<span class="keyword">if</span> (<span class="variable">key</span>==<span class="keyword">null</span>)
+							<span class="variable">unique</span>?<span class="variable">cb1</span>():<span class="variable">cb1</span>(<span class="keyword">new</span> <span class="class">Error</span>(&<span class="variable">quot</span>;<span class="class">User</span> <span class="variable">log</span>-<span class="keyword">in</span> <span class="variable">is</span> <span class="variable">not</span> <span class="variable">unique</span>&<span class="variable">quot</span>;));
+						<span class="keyword">else</span> {
+							<span class="keyword">if</span> (<span class="variable">user</span>.<span class="variable">login</span> == <span class="variable">newUser</span>.<span class="variable">login</span>)
+								<span class="variable">unique</span> = <span class="variable">false</span>;
+						}
+					},<span class="variable">true</span>)
+				},
+				<span class="variable">async</span>.<span class="variable">apply</span>(<span class="variable">ctx</span>.<span class="variable">getUniqueId</span>),
+				<span class="keyword">function</span> <span class="variable">save</span>(<span class="variable">newId</span>, <span class="variable">cb1</span>) {
+					<span class="variable">newUser</span>.<span class="variable">id</span> = <span class="variable">newId</span>;
+					<span class="variable">core_users</span>.<span class="variable">put</span>(<span class="variable">newId</span>, <span class="variable">newUser</span>, <span class="variable">cb1</span>);
+				}
+			], <span class="variable">cb</span>)
+		}
+	}
+	
+	<span class="this">this</span>.<span class="variable">loginByPass</span> = <span class="keyword">function</span> (<span class="variable">token</span>, <span class="variable">login</span>, <span class="variable">password</span>, <span class="variable">cb</span> ) {
+		<span class="keyword">var</span> <span class="variable">won</span> = <span class="variable">false</span>;
+		<span class="variable">core_users</span>.<span class="variable">scan</span>(<span class="keyword">function</span> (<span class="variable">err</span>, <span class="variable">key</span>, <span class="variable">user</span>) {
+			<span class="keyword">if</span> (<span class="variable">err</span>) <span class="variable">cb1</span>(<span class="variable">err</span>);
+			<span class="keyword">if</span> (<span class="variable">key</span>) {
+				<span class="keyword">if</span> (<span class="variable">user</span>.<span class="variable">login</span> == <span class="variable">login</span> &<span class="variable">amp</span>;&<span class="variable">amp</span>; <span class="variable">user</span>.<span class="variable">password</span> == <span class="variable">password</span>) {
+					<span class="variable">user</span>.<span class="variable">type</span> = &<span class="variable">quot</span>;<span class="variable">user</span>&<span class="variable">quot</span>;;
+					<span class="keyword">var</span> <span class="variable">s</span> = <span class="variable">sessions</span>[<span class="variable">token</span>];
+					<span class="variable">s</span>.<span class="variable">user</span> = <span class="variable">user</span>;
+					<span class="variable">core_clients</span>.<span class="variable">put</span>(<span class="variable">s</span>.<span class="variable">clientId</span>,{<span class="variable">uid</span>:<span class="variable">s</span>.<span class="variable">user</span>.<span class="variable">id</span>,<span class="variable">date</span>:<span class="keyword">new</span> <span class="class">Date</span>(),<span class="variable">appId</span>:<span class="variable">s</span>.<span class="variable">appId</span>}, <span class="keyword">function</span> () {});
+					<span class="variable">cb</span>(<span class="keyword">null</span>, <span class="variable">user</span>);
+					<span class="variable">won</span> = <span class="variable">true</span>;
+				}
+			} <span class="keyword">else</span> {
+				<span class="comment">// special case, hardcoded admin user</span>
+				<span class="keyword">if</span> (<span class="variable">login</span> == &<span class="variable">quot</span>;<span class="variable">admin</span>&<span class="variable">quot</span>; &<span class="variable">amp</span>;&<span class="variable">amp</span>; <span class="variable">password</span> == &<span class="variable">quot</span>;<span class="variable">skilap</span>&<span class="variable">quot</span>;) {
+					<span class="variable">sessions</span>[<span class="variable">token</span>].<span class="variable">user</span> = {<span class="variable">type</span>:&<span class="variable">quot</span>;<span class="variable">admin</span>&<span class="variable">quot</span>;,<span class="variable">screenName</span>:&<span class="variable">quot</span>;<span class="class">Server</span> <span class="class">Owner</span>&<span class="variable">quot</span>;};
+					<span class="variable">cb</span>(<span class="keyword">null</span>, <span class="variable">sessions</span>[<span class="variable">token</span>].<span class="variable">user</span>);
+				} <span class="keyword">else</span> <span class="keyword">if</span> (!<span class="variable">won</span>)
+					<span class="variable">cb</span>(<span class="keyword">new</span> <span class="class">SkilapError</span>(<span class="variable">ctx</span>.<span class="variable">i18n</span>(<span class="variable">token</span>,&<span class="variable">quot</span>;<span class="variable">core</span>&<span class="variable">quot</span>;,&<span class="variable">quot</span>;<span class="class">Log</span>-<span class="keyword">in</span> <span class="variable">failed</span>&<span class="variable">quot</span>;),&<span class="variable">quot</span>;<span class="class">InvalidData</span>&<span class="variable">quot</span>;));
+			}
+		},<span class="variable">true</span>);
+	}
+}
+
+<span class="variable">module</span>.<span class="variable">exports</span>.<span class="variable">init</span> = <span class="keyword">function</span> (<span class="variable">ctx</span>, <span class="variable">cb</span>) {
+	<span class="keyword">var</span> <span class="variable">api</span> = <span class="keyword">new</span> <span class="class">CoreApi</span>(<span class="variable">ctx</span>);
+	<span class="variable">api</span>.<span class="variable">loadData</span>(<span class="keyword">function</span> (<span class="variable">err</span>) {
+		<span class="keyword">if</span> (<span class="variable">err</span>) <span class="keyword">return</span> <span class="variable">cb</span>(<span class="variable">err</span>);
+		<span class="variable">cb</span>(<span class="keyword">null</span>, {<span class="variable">api</span>:<span class="variable">api</span>,<span class="variable">localePath</span>:<span class="variable">__dirname</span>+&<span class="variable">quot</span>;<span class="regexp">/../locale</span>&<span class="variable">quot</span>;});
+	})
+}
+
+</code></pre>
+</td>
+</tr><tr class="filename"><td><h2 id="../modules/safe/./lib/safe.js"><a href="#">safe</a></h2></td><td>../modules/safe/./lib/safe.js</td></tr><tr class="code">
+<td class="docs">
+<p>Module provides set of handy function to deal with thrown errors, callbacks and
+nodejs alike error passing (first function argument). </p>
+
+<p>The goal is to make code more stable (by catching thrown exception) and avoid
+some routine calls. Idea is inspired in Step library which catches error and
+convert them into callback function calls. Async library which appears more
+handy for dealing with async functions (has reacher functionality)  missing this.
+With safe library it is easy to plug-in this when required.</p>
+
+<p>Function are kind of chainable, so instead of <code>safe.trap(safe.sure(function () {} ))</code>
+it is possible to use <code>safe.trap_sure(function() {})</code></p>
+
+<h3>Plain poor code:</h3>
+
+<pre><code>async.series([
+	function (callback) {
+		// .. do something that can throw error
+		// BAD: some dirty code can throw exception here
+		// which breaks nodejs server
+		async.forEach(array, function (e, callback2) {
+			some.getSome(e.id, function (err, some) {
+				// BAD: err is not checked 
+				// .. process some
+				// BAD: boring code
+				callback2();
+			})
+		},callback)
+	}]</code></pre>
+
+<h3>Plain good code:</h3>
+
+<pre><code>async.series([
+	function (callback) {
+		try {
+			// .. do something that can throw error
+			// .. note ANY CODE CAN DO in some conditions
+			async.forEach(array, function (e, callback2) {
+				some.getSome(e.id, function (err, some) {
+					try {
+						if (err) return callback2(err);
+						// .. process some
+						callback2();
+					} catch (err) {
+						callback2(err);
+					}
+				})
+			},callback)
+		} catch (err) {
+			callback(err);
+		}
+	}]</code></pre>
+
+<h3>Safe enhanced good code:</h3>
+
+<pre><code>async.series([
+	safe.trap(function (callback) {
+		async.forEach(array, function (e, callback2) {
+			some.getSome(e.id, safe.trap_sure_results(callback2, function (some) {
+				// .. process some
+			});
+		},callback)
+	}</code></pre>
+
+<p> </p>
+</td>
+<td class="code">
+
+</td>
+</tr>
+<tr class="code">
+<td class="docs">
+<p>Transform synchronious function call result to callback</p>
+
+<p><em>callback is optional, when omited (function get one parameter) it assumes
+callback as last parameter of wrapped function</em></p>
+
+<h2></h2>
+
+<ul><li><p><strong>param</strong>: <em>Function</em>  callback or wrapped function</p></li><li><p><strong>param</strong>: <em>Function</em>  fn wrapped function</p></li></ul>
+</td>
+<td class="code">
+<pre><code><span class="keyword">function</span> <span class="variable">result</span>(<span class="variable">callback</span>,<span class="variable">fn</span>) {
+	<span class="keyword">return</span> <span class="keyword">function</span> () {
+		<span class="keyword">if</span> (<span class="variable">fn</span> == <span class="variable">undefined</span>) {
+			<span class="variable">fn</span> = <span class="variable">callback</span>;
+			<span class="variable">callback</span> = <span class="variable">arguments</span>[<span class="variable">arguments</span>.<span class="variable">length</span>-<span class="number integer">1</span>];
+		}
+		
+		<span class="keyword">var</span> <span class="variable">result</span> = <span class="variable">fn</span>.<span class="variable">apply</span>(<span class="this">this</span>, <span class="variable">arguments</span>);
+		<span class="variable">callback</span>(<span class="keyword">null</span>,<span class="variable">result</span>);
+	}
+}</code></pre>
+</td>
+</tr>
+<tr class="code">
+<td class="docs">
+<p>Strip (hide) first parameter from wrapped function and ensure that
+controll is passed to it when no error happpens. I.e. it does do
+routine error check <code>if (err) return callback(err)</code></p>
+
+<p><em>callback is optional, when omited (function get one parameter) it assumes
+callback as last parameter of wrapped function</em></p>
+
+<h2></h2>
+
+<ul><li><p><strong>param</strong>: <em>Function</em>  callback or wrapped function</p></li><li><p><strong>param</strong>: <em>Function</em>  wrapped function</p></li></ul>
+</td>
+<td class="code">
+<pre><code><span class="keyword">function</span> <span class="variable">sure</span> (<span class="variable">callback</span>,<span class="variable">fn</span>) {
+	<span class="keyword">return</span> <span class="keyword">function</span> () {
+		<span class="keyword">if</span> (<span class="variable">fn</span> == <span class="variable">undefined</span>) {
+			<span class="variable">fn</span> = <span class="variable">callback</span>;
+			<span class="variable">callback</span> = <span class="variable">arguments</span>[<span class="variable">arguments</span>.<span class="variable">length</span>-<span class="number integer">1</span>];
+		}
+		<span class="keyword">if</span> (<span class="variable">arguments</span>[<span class="number integer">0</span>])
+			<span class="variable">callback</span>(<span class="variable">arguments</span>[<span class="number integer">0</span>])
+		<span class="keyword">else</span>
+			<span class="variable">fn</span>.<span class="variable">apply</span>(<span class="this">this</span>, <span class="class">Array</span>.<span class="variable">prototype</span>.<span class="variable">slice</span>.<span class="variable">call</span>(<span class="variable">arguments</span>,<span class="number integer">1</span>));
+	}
+}</code></pre>
+</td>
+</tr>
+<tr class="code">
+<td class="docs">
+<p>Wrap function call into try catch, pass thrown error to callback</p>
+
+<p><em>callback is optional, when omited (function get one parameter) it assumes
+callback as last parameter of wrapped function</em></p>
+
+<h2></h2>
+
+<ul><li><p><strong>param</strong>: <em>Function</em>  callback or wrapped function</p></li><li><p><strong>param</strong>: <em>Function</em>  fn wrapped function</p></li></ul>
+</td>
+<td class="code">
+<pre><code><span class="keyword">function</span> <span class="variable">trap</span> (<span class="variable">callback</span>,<span class="variable">fn</span>) {
+	<span class="keyword">return</span> <span class="keyword">function</span> () {
+		<span class="keyword">if</span> (<span class="variable">fn</span> == <span class="variable">undefined</span>) {
+			<span class="variable">fn</span> = <span class="variable">callback</span>;
+			<span class="variable">callback</span> = <span class="variable">arguments</span>[<span class="variable">arguments</span>.<span class="variable">length</span>-<span class="number integer">1</span>];
+		}
+		<span class="keyword">try</span> {
+			<span class="variable">fn</span>.<span class="variable">apply</span>(<span class="this">this</span>, <span class="variable">arguments</span>);
+		}
+		<span class="keyword">catch</span> (<span class="variable">err</span>) {
+			<span class="variable">callback</span>(<span class="variable">err</span>);
+		}
+	}
+}</code></pre>
+</td>
+</tr>
+<tr class="code">
+<td class="docs">
+<p>Psevdo chains</p>
+</td>
+<td class="code">
+<pre><code><span class="variable">module</span>.<span class="variable">exports</span>.<span class="variable">trap_sure</span> = <span class="keyword">function</span> (<span class="variable">fn</span>, <span class="variable">callback</span>) {
+    <span class="keyword">return</span> <span class="variable">trap</span>(<span class="variable">sure</span>(<span class="variable">fn</span>,<span class="variable">callback</span>));
+}
+
+<span class="variable">module</span>.<span class="variable">exports</span>.<span class="variable">trap_sure_result</span> = <span class="keyword">function</span> (<span class="variable">fn</span>, <span class="variable">callback</span>) {
+    <span class="keyword">return</span> <span class="variable">trap</span>(<span class="variable">sure</span>(<span class="variable">result</span>(<span class="variable">fn</span>,<span class="variable">callback</span>)));
+}</code></pre>
+</td>
+</tr>
+<tr class="code">
+<td class="docs">
+<p>Module exports</p>
+</td>
+<td class="code">
+<pre><code><span class="variable">module</span>.<span class="variable">exports</span>.<span class="variable">trap</span> = <span class="variable">trap</span>;
+<span class="variable">module</span>.<span class="variable">exports</span>.<span class="variable">sure</span> = <span class="variable">sure</span>;
+<span class="variable">module</span>.<span class="variable">exports</span>.<span class="variable">sure</span> = <span class="variable">result</span>;
+</code></pre>
+</td>
+</tr>	</body>
+</html></tbody></table>

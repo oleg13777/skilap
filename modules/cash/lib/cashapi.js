@@ -1,3 +1,6 @@
+/**
+ * Core API
+ */
 var fs = require("fs");
 var _ = require('underscore');
 var alfred = require('alfred');

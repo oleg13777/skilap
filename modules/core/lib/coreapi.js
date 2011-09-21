@@ -1,7 +1,14 @@
+/**
+ Module Imports
+ */
+
 var _ = require('underscore');
 var async = require('async');
 var SkilapError = require("./SkilapError");
 
+/**
+ * Super duper module
+ */
 function CoreApi(ctx) {
 	var sessions = {};
 	var self = this;
@@ -33,6 +40,16 @@ function CoreApi(ctx) {
 		], cb)
 	}
 
+/**
+ * This should be first call to API. Function will return token that will be used
+ * for all next API calls.
+ *
+ * @param {String} appId some id that identifies client, might be GUID
+ * @param {String} clientId unique for this appId identity, like iPhone UDID
+ * @param {String} signature for now just reserver
+ *
+ * @returns {String} some temporary valid identity to call other API functions
+ */
 	this.getApiToken = function (appId, clientId, signature, cb) {
 		// 1st steep, check that appId+clientId are correct (signature matches)
 		// this will later also check that app is known and so on

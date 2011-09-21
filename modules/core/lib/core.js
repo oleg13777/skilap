@@ -1,5 +1,9 @@
+/**
+ * Core
+ */
 var fs = require("fs");
 var _ = require('underscore');
+
 var alfred = require('alfred');
 var async = require('async');
 var Step = require("step");
