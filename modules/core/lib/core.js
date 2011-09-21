@@ -11,7 +11,7 @@ var events = require("events");
 var util = require("util");
 var express = require('express');
 var SkilapError = require("./SkilapError");
-var Gettext = require("./Gettext");
+var Gettext = require("../vendor/Gettext");
 
 function Skilap() {
 	var self = this;
