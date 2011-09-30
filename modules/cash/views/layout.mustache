@@ -11,10 +11,15 @@
 		</style>
 	{{>scripts}}
 </head>
-                  <body>
-                      {{>nav}}
-                          <div id="workspace">
-                                {{{yield}}}
-                                    </div>
-                                      </body>
-                                      </html>
+<body>
+	{{>nav}}
+	<div id="tabs">
+		{{#tabs}}
+			{{#selected}}<b>{{/selected}}<a href='{{url}}'>{{name}}</a>{{#selected}}</b>{{/selected}}<BR>
+		{{/tabs}}
+	</div>
+	<div id="workspace">
+		{{{yield}}}
+	</div>
+</body>
+</html>

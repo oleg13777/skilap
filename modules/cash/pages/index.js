@@ -20,8 +20,11 @@ module.exports = function account(webapp) {
 					})
 				},cb1);
 			},
-			function render () {
-				res.render(__dirname+"/../views/index", {prefix:prefix, accounts: t });
+			function (cb1) {
+				webapp.guessTab(req, {pid:'home',name:'Home',url:req.url}, cb1);
+			},
+			function render (vtabs) {
+				res.render(__dirname+"/../views/index", {prefix:prefix, accounts: t, tabs: vtabs });
 			}],
 			next
 		);

@@ -13,18 +13,23 @@ module.exports = function account(webapp) {
 	app.get(webapp.prefix+'/account', function(req, res, next) {
 		var idx=0,c=0;
 		var pageSize = 20;
+		var count;
 		async.waterfall([
 			function (cb1) {
-				cashapi.getAccountInfo(req.session.apiToken,req.query.id,["count"], cb1);
+				cashapi.getAccountInfo(req.session.apiToken,req.query.id,['count','path'], cb1);
 			},
-			safe.trap(function (data,cb1) {
+			function (data, cb1) {
+				count = data.count;
+				webapp.guessTab(req, {pid:'acc'+req.query.id,name:data.path,url:req.url}, cb1);
+			},
+			safe.trap(function (vtabs,cb1) {
 				var pageSize = 25;
-				var count = data.count;
 				var firstVisible = Math.max(0, count-pageSize);
 				var scrollGap = pageSize*5;
 				var firstDelivered = Math.max(0, count-pageSize-scrollGap);
 				res.render(__dirname+"/../views/account", {
 					settings:{views:__dirname+"/../views"},
+					tabs:vtabs,
 					prefix:prefix,
 					accountId:req.query.id,
 					accountSize:count,
