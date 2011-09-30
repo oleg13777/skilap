@@ -9,8 +9,8 @@
 </table>
 <br>
 <h2>Create new</h2>
-<form id='newuser' method='post' action='/users/new'>
-<input type='hidden' name='success' value='/users/new'/>
+<form id='newuser' method='post' action='{{prefix}}/users/new'>
+<input type='hidden' name='success' value='{{prefix}}/users/new'/>
 name:<input type='text' name='name'/><br>
 login:<input type='text' name='login'/><br>
 password:<input type='password' name='password'/><br>

@@ -6,7 +6,7 @@ var adb = null;
 var cash_accounts = null;
 var cash_transactions = null;
 
-alfred.open('/home/pushok/work/joker/data', function(err, db) {
+alfred.open('../../data/db', function(err, db) {
 	if (err) { throw err; }
 	adb = db;
 	adb.ensure("cash_accounts", {type:'cached_key_map',buffered:false}, function(err,_cash_accounts) {
@@ -127,9 +127,3 @@ fs.createReadStream("./samples/home.xml")
   .pipe(saxStream);
 
 console.log(new Date());
-
-http.createServer(function (req, res) {
-	res.writeHead(200, {'Content-Type': 'text/plain'});
-	res.end('Hello World\n');
-}).listen(1337, "127.0.0.1");
-console.log('Server running at http://127.0.0.1:1337/');

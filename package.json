@@ -6,6 +6,7 @@
       "express": ""
     , "cookies": ""
     , "underscore": ""
+    , "sax": ""
     , "async": ""
     , "sprintf" : ""
     , "alfred" : ""

@@ -85,6 +85,7 @@ this.getApiToken = function (appId, clientId, signature, cb) {
 		function (user_, cb1) {
 			if (user_==null) return cb1(new Error());
 			user = user_;
+			user.type = 'user';
 			cb1();
 		}
 	], function (err) {
@@ -153,6 +154,18 @@ this.getAllUsers = 	function (token, cb) {
 			cb(null, results[1]);
 		}
 	)
+}
+
+/**
+ * Get session user
+ * 
+ * @param {String} token api token
+ */
+this.getUser = function (token, cb) {
+	var session = sessions[token];
+	if (!session) 
+		return cb(new SkilapError('Wrong access token','InvalidToken'));
+	cb(null, session.user);
 }
 
 /**

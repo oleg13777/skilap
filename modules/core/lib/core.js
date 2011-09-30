@@ -48,25 +48,42 @@ function Skilap() {
 					app.use(express.bodyParser());
 					app.use(express.methodOverride());
 					app.use(express.cookieParser());
-					app.use(express.session({ secret: "PushOk" }));
+					app.use(express.session({ secret: 'PushOk' }));
 					app.use(function (req, res, next) {
-						if (req.cookies["skilapid"]==null) {
+						if (req.cookies['skilapid']==null) {
 							var clientId; self.getRandomString(128, function (err, rnd) { clientId = rnd; });
-							res.cookie("skilapid",clientId, { maxAge: 3600000, path: '/' });
+							res.cookie('skilapid',clientId, { maxAge: 3600000, path: '/' });
+							res.cookie('sguard','1', { maxAge: 3600000, path: '/', secure:true });
 						}
-						if (req.session.apiToken==null) {
-							modules['core'].api.getApiToken("default",req.cookies["skilapid"],"fake",function (err, apiToken) {
-								req.session.apiToken = apiToken;
-								next();
-							});
-						} else next();
+						async.series([
+							function ensureToken (cb3) {
+								if (req.session.apiToken==null) {
+									modules['core'].api.getApiToken('default',req.cookies['skilapid'],'fake',function (err, apiToken) {
+										req.session.apiToken = apiToken;
+										cb3();
+									});
+								} else cb3();
+							}],	function secureGuard (err) {
+								modules['core'].api.getUser(req.session.apiToken, function (err, user) {
+									if (user.type != 'guest' && req.cookies['sguard']==null) {
+										console.log('Redirect to secure');
+										res.redirect('https://'+req.headers.host+req.url);
+									} else next();
+								});
+							}
+						)
 					});
 					app.use(app.router);
 					app.use(function (err,req,res,next) {
 						if (err.skilap) {
-							if (err.skilap.subject = "AccessDenied") {
-								console.log(err);
-								res.render(__dirname+"/../views/accessDenied", {prefix:"",success:req.url});
+							if (err.skilap.subject = 'AccessDenied') {
+								if (req.cookies['sguard']==null) {
+									console.log('Log-in should be secure');
+									res.redirect('https://'+req.headers.host+req.url);
+								} else { 
+									console.log(err);
+									res.render(__dirname+'/../views/accessDenied', {prefix:'',success:req.url});
+								}
 							} else next(err);
 						} else
 							next(err);
@@ -191,8 +208,18 @@ function Skilap() {
 				require("../pages/users")(self,webapp,modules['core'].api,"/core");
 				require("../pages/index")(self,webapp,modules['core'].api,"/core");
 
-				webapp.listen(1337);
-				console.log("Express server listening on port %d in %s mode", webapp.address().port, webapp.settings.env);
+				var options = {
+					key: fs.readFileSync('/home/pushok/work/skilap/privatekey.pem'),
+					cert: fs.readFileSync('/home/pushok/work/skilap/certificate.pem')
+				};
+				var https = express.createServer(options);
+				var http = express.createServer();
+				https.use(webapp);
+				http.use(webapp);
+				https.listen(443);
+				http.listen(80);
+
+				// console.log("Express server listening on port %d in %s mode", webapp.address().port, webapp.settings.env);
 				self.emit("WebStarted");
 				cb();
 			}
