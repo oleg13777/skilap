@@ -12,13 +12,16 @@
 	{{>scripts}}
 </head>
 <body>
-	{{>nav}}
+	<div id="header">
+		<a href='/' id="logo"></a>
+		<div class="menu">{{>nav}}</div>
+	</div>
 	<div id="tabs">
 		{{#tabs}}
-			{{#selected}}<b>{{/selected}}<a href='{{url}}'>{{name}}</a>{{#selected}}</b>{{/selected}}<BR>
+			{{#selected}}<b>{{/selected}}<a class="sl_border sl_border_radius" href='{{url}}'><div class="sl_text">{{name}}</div></a>{{#selected}}</b>{{/selected}}
 		{{/tabs}}
 	</div>
-	<div id="workspace">
+	<div id="workspace" class="sl_border">
 		{{{yield}}}
 	</div>
 </body>

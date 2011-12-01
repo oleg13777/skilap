@@ -1,10 +1,13 @@
 body {
-  padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  min-width: 1024px;
+  background-color: #f6f6f6;
 }
 
 a {
-  color: #00B7FF;
+  /*color: #00B7FF;*/
+  color: #3439EA;
+  cursor: pointer;
 }
 
 table { border-collapse:collapse }
@@ -15,3 +18,79 @@ tr { height: 24px;}
 .account { text-align: left; width:200px }
 .number { text-align: left; width:50px }
 
+#header{
+	margin-left: 15px;
+	height: 40px;
+	position: relative;
+}
+
+#header #logo{
+	background: url("../images/logo.png") no-repeat scroll center center #fff;
+    border: 2px solid #0A8ABF;
+    border-radius: 5px 5px 5px 5px;
+    -moz-border-radius: 5px 5px 5px 5px;
+    -webkit-border-radius: 5px 5px 5px 5px;
+    height: 66px;
+    left: 84px;
+    position: absolute;
+    top: 10px;
+    width: 65px;
+}
+
+#header .menu{
+	margin-left: 200px;
+	height: 100%;
+}
+
+#header .menu a{
+	line-height: 30px;
+	color: #193479;
+	font-size: 122%;
+	text-decoration: underline;
+}
+
+#tabs{
+	float: left;
+    margin-left: 50px;
+    margin-top: 50px;
+    width: 165px;
+}
+
+#tabs a div{
+	text-transform: capitalize;
+	margin: 5px 5px 5px 10px;
+}
+
+.sl_border{
+	border: 2px solid #193479;
+}
+
+#tabs .sl_border_radius{
+	border-radius: 5px 0 0 5px;
+	-moz-border-radius: 5px 0 0 5px;
+	-webkit-border-radius: 5px 0 0 5px;
+}
+
+#tabs .sl_text{font-size: 105%;}
+
+#tabs a{
+	display: block;
+	margin: 5px 0;
+	background-color: #E6F9C0;
+	border-right: none !important;
+}
+
+#tabs a:hover{
+	
+}
+
+#workspace{
+	margin-left: 215px;
+	margin-right: 20px;
+	min-height: 400px;
+	background-color: #fff;
+}
+
+#workspace .dataTables_wrapper, #workspace .dataTables_scroll{
+	clear: none;
+}
