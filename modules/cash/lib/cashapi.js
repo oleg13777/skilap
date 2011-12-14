@@ -101,7 +101,7 @@ function CashApi (ctx) {
 		)
 	}
 
-function getAccountByPath(path,cb) {
+function getAccountByPath(path,cb) {	
 	Step (
 		function start() {
 			waitForData (this);
@@ -109,6 +109,9 @@ function getAccountByPath(path,cb) {
 		function get() {
 			var newAccId = null;
 			_.forEach(stats, function (accStat,key) {
+				console.log("key = ");
+				console.log(key);
+				console.log(accStat.path);
 				if (accStat.path == path)
 					newAccId = key;
 			});

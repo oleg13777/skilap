@@ -61,7 +61,7 @@ module.exports = function account(webapp) {
 					cb1(err, results[0], results[1]);
 				})
 			},
-			safe(function (tr, newAccId,cb1) {
+			safe.trap_sure_result(function (tr, newAccId,cb1) {
 				if (req.body.columnId == 5 || req.body.columnId == 6) {
 					var newVal = eval(req.body.value);
 					if (req.body.columnId == 6)
@@ -96,22 +96,22 @@ module.exports = function account(webapp) {
 	});
 
 	app.get(webapp.prefix+'/account/:id/getaccounts', function(req, res, next) {
-		var tmp = [];
+		var tmp = [];		
 		async.waterfall([
 			async.apply(cashapi.getAllAccounts, req.session.apiToken),
 			function (accounts,cb1) {
 				var tmp = [];
 				async.forEach(accounts, function (acc, cb2) {
-					cashapi.getAccountInfo(req.session.apiToken, acc.id, ["path"], safe(function (info) {
+					cashapi.getAccountInfo(req.session.apiToken, acc.id, ["path"], safe.trap_sure_result(cb2,function (info) {
 						if (info.path.search(req.query.term)!=-1)
 							tmp.push(info.path);
 						cb2();
-					},cb2,true));
+					}));
 				}, function (err) {
 					cb1(err, tmp);
 				})
 			},
-			function (hints, cb1) {
+			function (hints, cb1) {				
 				res.send(_.uniq(hints));
 				cb1();
 			} 
@@ -121,7 +121,7 @@ module.exports = function account(webapp) {
 	});
 
 	app.get(webapp.prefix+'/account/:id/getdesc', function(req, res) {
-		var tmp = [];
+		var tmp = [];		
 		async.waterfall([
 			function (cb1) {
 				cashapi.getAccountRegister(req.session.apiToken, req.params.id,0,null, cb1);
@@ -129,11 +129,11 @@ module.exports = function account(webapp) {
 			function (register,cb1) {
 				var tmp = [];
 				async.forEach(register, function (trs,cb2) {
-					cashapi.getTransaction(req.session.apiToken,trs.id, safe(function(tr) {
+					cashapi.getTransaction(req.session.apiToken,trs.id, safe.trap_sure_result(cb2,function(tr) {
 						if (tr.description.search(req.query.term)!=-1)
 							tmp.push(tr.description);
 						cb2();
-					},cb2,true));
+					}));
 				}, function (err) {
 					cb1(err,tmp);
 				});
