@@ -108,10 +108,7 @@ function getAccountByPath(path,cb) {
 		},
 		function get() {
 			var newAccId = null;
-			_.forEach(stats, function (accStat,key) {
-				console.log("key = ");
-				console.log(key);
-				console.log(accStat.path);
+			_.forEach(stats, function (accStat,key) {				
 				if (accStat.path == path)
 					newAccId = key;
 			});
