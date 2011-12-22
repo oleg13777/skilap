@@ -147,4 +147,4 @@ Module exports
 */ 
 module.exports.trap = trap;
 module.exports.sure = sure;
-module.exports.sure = result;
+module.exports.result = result;

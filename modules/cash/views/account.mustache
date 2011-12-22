@@ -57,7 +57,7 @@ $(document).ready(function(){
 				null,
 				{ "type":"datepicker" },
 				{ "placeholder":"","type":"autocomplete","autocomplete":{"source":"{{prefix}}/account/{{accountId}}/getdesc"}},
-				{ "type":"autocomplete","autocomplete":{"source":"{{prefix}}/account/{{accountId}}/getaccounts"}},
+				{ "type":"select","loadurl":"{{prefix}}/account/{{accountId}}/getaccounts","onblur":"submit"},
 				{ "sClass": "value","placeholder":"" },
 				{ "sClass": "value","placeholder":"" },
 				null
