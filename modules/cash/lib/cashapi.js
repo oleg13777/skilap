@@ -101,24 +101,52 @@ function CashApi (ctx) {
 		)
 	}
 
-function getAccountByPath(path,cb) {
-	Step (
-		function start() {
-			waitForData (this);
-		},
-		function get() {
-			var newAccId = null;
-			_.forEach(stats, function (accStat,key) {
-				if (accStat.path == path)
-					newAccId = key;
-			});
-			if (newAccId==null)
-				process.nextTick(function () { cb(new Error("No such account")); });
-			else 
-				process.nextTick(function () { cb(null, newAccId); });
-		}
-	)
-}
+	function getChildAccounts(token, parentId, cb) {
+		async.series ([
+			function start(cb1) {
+				async.parallel([
+					async.apply(coreapi.checkPerm,token,["cash.view"]),
+					async.apply(waitForData)
+				],cb1);
+			}, 
+			function get(cb1) {
+				var accounts = [];
+				cash_accounts.scan(function (err, key, acc) {
+					if (err) cb1(err);
+					if (key) {
+						var id = acc.parent;
+						if (id == parentId) {
+							accounts.push(acc);
+						}
+					} else { 
+						cb1(null, accounts);
+					}
+				}, true);
+			}], function end(err, results) {
+				if (err) return cb(err);
+				cb(null, results[1]);
+			}
+		)
+	}
+
+	function getAccountByPath(path,cb) {
+		Step (
+			function start() {
+				waitForData (this);
+			},
+			function get() {
+				var newAccId = null;
+				_.forEach(stats, function (accStat,key) {
+					if (accStat.path == path)
+						newAccId = key;
+				});
+				if (newAccId==null)
+					process.nextTick(function () { cb(new Error("No such account")); });
+				else 
+					process.nextTick(function () { cb(null, newAccId); });
+			}
+		)
+	}
 
 	function getAccountInfo(token, accId, details, cb) {
 		async.series ([
@@ -133,12 +161,12 @@ function getAccountByPath(path,cb) {
 				var accStats = stats[accId];
 				res.id = accId;
 				_.forEach(details, function (val) {
-						if (val == "value")
-							res.value = accStats.value;
-						else if (val == "count") 
-							res.count = accStats.count;
-						else if (val == "path") 
-							res.path = accStats.path;
+					if (val == "value")
+						res.value = accStats.value;
+					else if (val == "count") 
+						res.count = accStats.count;
+					else if (val == "path") 
+						res.path = accStats.path;
 				});
 				process.nextTick(function () {cb1(null, res);});
 			}], function (err, results) {
@@ -263,7 +291,7 @@ function getAccountByPath(path,cb) {
 		stats = {};
 		function getAccStats(accId) {
 			if (stats[accId]==null)
-				stats[accId] = {id:accId,value:0, count:0, trDateIndex:[]};
+				stats[accId] = {id:accId, value:0, count:0, trDateIndex:[]};
 			return stats[accId];
 		}
 		async.auto({
@@ -338,6 +366,7 @@ this.getAccountRegister = getAccountRegister;
 this.getTransaction = getTransaction;
 this.saveTransaction = saveTransaction;
 this.getAccountByPath = getAccountByPath;
+this.getChildAccounts = getChildAccounts;
 }
 
 module.exports.init = function (ctx,cb) {

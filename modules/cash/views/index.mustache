@@ -1,5 +1,10 @@
-<table border=1>
-{{#accounts}}
-	<TR><TD><a href='{{ahref}}'>{{name}}</a></TD><TD align="right">{{value}} p.</TD></TR>
-{{/accounts}}
-</TABLE>
+<div id="home">
+	<h2>Assets: <span>{{#funCalcSumm}}ASSETS{{/funCalcSumm}} p.</span></h2>
+	<hr size="2" noshade />
+	{{#funAssets}}ASSETS{{/funAssets}}
+
+	<br /><br />
+	<h2>Liabilities: <span>{{#funCalcSumm}}LIABILITIES{{/funCalcSumm}} p.</span></h2>
+	<hr size="2" noshade />
+	{{#funLiabilities}}LIABILITIES{{/funLiabilities}}
+</div>
