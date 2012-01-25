@@ -7,6 +7,7 @@ var alfred = require('alfred');
 var async = require('async');
 var Step = require("step");
 var events = require("events");
+var sax = require("sax");
 
 function CashApi (ctx) {
 	var self = this;
@@ -148,6 +149,12 @@ function CashApi (ctx) {
 		)
 	}
 
+	function chPerm(token, cb) {
+		async.parallel([
+			async.apply(coreapi.checkPerm,token,["cash.view"])
+		],cb);
+	}
+
 	function getAccountInfo(token, accId, details, cb) {
 		async.series ([
 			function (cb1) {
@@ -268,6 +275,92 @@ function CashApi (ctx) {
 		})
 	}
 
+	function clearAccaunts (token, ids, cb) {
+		if (ids == null) {
+			async.series ([
+				function (cb1) {
+					async.parallel([
+						async.apply(coreapi.checkPerm,token,["cash.edit"]),
+						async.apply(waitForData)
+					],cb1);
+				},
+				function (cb1) {
+					cash_accounts.clear(cb1);
+				} 
+			], function (err) {
+				if (err) return cb(err);
+				process.nextTick(function () { calcStats(function () {})});
+				cb(null);
+			});
+		} else {
+			cb(null);
+		}
+	}
+
+	function importAccaunts (token, accounts, cb) {
+		async.series ([
+			function (cb1) {
+				async.parallel([
+					async.apply(coreapi.checkPerm,token,["cash.edit"]),
+					async.apply(waitForData)
+				],cb1);
+			},
+			function (cb1) {
+				accounts.forEach(function (e) {
+					cash_accounts.put(e.id,e,function (err) {if (err) { throw err; }});
+				});
+				cb1();
+			}, 
+		], function (err) {
+			if (err) return cb(err);
+			process.nextTick(function () { calcStats(function () {})});
+			cb(null);
+		})
+	}
+
+	function clearTransaction (token, ids, cb) {
+		if (ids == null) {
+			async.series ([
+				function (cb1) {
+					async.parallel([
+						async.apply(coreapi.checkPerm,token,["cash.edit"]),
+						async.apply(waitForData)
+					],cb1);
+				},
+				function (cb1) {
+					cash_transactions.clear(cb1);
+				} 
+			], function (err) {
+				if (err) return cb(err);
+				process.nextTick(function () { calcStats(function () {})});
+				cb(null);
+			});
+		} else {
+			cb(null);
+		}
+	}
+
+	function importTransactions (token, transactions, cb) {
+		async.series ([
+			function (cb1) {
+				async.parallel([
+					async.apply(coreapi.checkPerm,token,["cash.edit"]),
+					async.apply(waitForData)
+				],cb1);
+			},
+			function (cb1) {
+				transactions.forEach(function (e) {
+					cash_transactions.put(e.id,e,function (err) {if (err) { throw err; }});
+				});
+				cb1();
+			}, 
+		], function (err) {
+			if (err) return cb(err);
+			process.nextTick(function () { calcStats(function () {})});
+			cb(null);
+		})
+	}
+
 	function getAccPath(acc, cb) {
 		if (acc.id!=acc.parent && acc.parent!=1) {
 			cash_accounts.get(acc.parent, function(err, parentAcc) {
@@ -360,6 +453,108 @@ function CashApi (ctx) {
 		);
 	}
 
+	function parseGnuCashXml(fileName, callback){
+		// stream usage
+		// takes the same options as the parser
+		var saxStream = sax.createStream();
+
+		saxStream.on("error", function (e) {
+			// unhandled errors will throw, since this is a proper node
+			// event emitter.
+			console.error("error!", e)
+			// clear the error
+			this._parser.error = null
+			this._parser.resume()
+		})
+
+		var tr;
+		var acc;
+		var split;
+		var nodetext;
+		var transactions = [];
+		var accounts = [];
+		var accMap = {};
+		var path = [];
+		var gluid = 1;
+		var gluMap = {};
+		saxStream.on("opentag", function (node) {
+			path.push(node.name);
+			if (node.name == "GNC:TRANSACTION") {
+				tr = {splits:[]};
+			} else if (node.name == "GNC:ACCOUNT") {
+				acc = {};
+			} else if (node.name == "TRN:SPLIT") {
+				split = {};
+			}
+		})
+
+		saxStream.on("text", function (text) {
+			nodetext = text;
+		})
+
+		saxStream.on("closetag", function (name) {
+			var node = {name:name};
+			path.pop();
+			if (name == "GNC:TRANSACTION") {
+				transactions.push(tr);
+			} else if (node.name == "TRN:DESCRIPTION") {
+				tr.description = nodetext;
+			} else if (node.name == "TRN:ID") {
+				gluMap[nodetext]=gluid;
+				tr.id = gluid; gluid++;
+			} else if (node.name == "TS:DATE") {
+				if (path[path.length-1]=="TRN:DATE-ENTERED") {
+					tr.dateEntered = new Date(nodetext);
+				}
+			} else if (node.name == "ACT:NAME") {
+				acc.name = nodetext;
+			} else if (node.name == "ACT:TYPE") {
+				acc.type = nodetext;
+			} else if (node.name == "ACT:ID") {
+				gluMap[nodetext]=gluid;
+				acc.id = gluid; gluid++;
+			} else if (node.name == "ACT:PARENT") {
+				acc.parent = gluMap[nodetext];
+			} else if (node.name == "CMDTY:ID") {
+				if (path[path.length-1]=="ACT:COMMODITY") {
+					acc.cmdtyId = nodetext;
+				} else if (path[path.length-1]=="TRN:CURRENCY") {
+					tr.currency = nodetext;
+				}
+			} else if (node.name == "GNC:ACCOUNT") {
+				if (acc.type != "ROOT") {
+					accounts.push (acc);
+					accMap[acc.id]=acc;
+				}
+			} else if (node.name == "SPLIT:QUANTITY") {
+				split.quantity = eval(nodetext);
+			} if (node.name == "SPLIT:VALUE") {
+				split.value = eval(nodetext);
+			} if (node.name == "SPLIT:MEMO") {
+				split.memo = nodetext;
+			} if (node.name == "SPLIT:ID") {
+				gluMap[nodetext]=gluid;
+				split.id = gluid; gluid++;
+			}  if (node.name == "SPLIT:ACCOUNT") {
+				split.accountId = gluMap[nodetext];
+			} else if (node.name == "TRN:SPLIT") {
+				if (accMap[split.accountId]==null) {
+					exit(0);
+				}
+				tr.splits.push(split);
+			}
+		})
+
+		saxStream.on("end", function (node) {
+			var ret = {tr:transactions, acc:accounts};
+			process.nextTick(function(){
+				callback(ret);
+			});
+		})
+		
+		fs.createReadStream(fileName).pipe(saxStream);
+	}
+
 this.getAllAccounts = getAllAccounts;
 this.getAccountInfo = getAccountInfo;
 this.getAccountRegister = getAccountRegister;
@@ -367,6 +562,12 @@ this.getTransaction = getTransaction;
 this.saveTransaction = saveTransaction;
 this.getAccountByPath = getAccountByPath;
 this.getChildAccounts = getChildAccounts;
+this.chPerm = chPerm;
+this.importTransactions = importTransactions;
+this.importAccaunts = importAccaunts;
+this.parseGnuCashXml = parseGnuCashXml;
+this.clearAccaunts = clearAccaunts;
+this.clearTransaction = clearTransaction;
 }
 
 module.exports.init = function (ctx,cb) {

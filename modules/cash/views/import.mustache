@@ -1,0 +1,26 @@
+<div id="home">
+<h3> {{caption}} </h3>
+{{#upload}}
+<form action="{{prefix}}/import?step=1" enctype="multipart/form-data" method="post">
+	<p><input type="file" name="upload" multiple="multiple"></p>
+	<p><input type="submit" value="Upload"></p>
+</form>
+{{/upload}}
+
+{{#step1}}
+transactions = {{transactions}}<br>
+accounts = {{accounts}}
+<form action="{{prefix}}/import?step=2" enctype="multipart/form-data" method="post">
+	<input type="hidden" name="fileName" value="{{path}}">
+	<p><input type="submit" value="Import"></p>
+</form>
+{{/step1}}
+
+{{#step2}}
+{{transactions}} transactions and {{accounts}} accounts were imported
+{{/step2}}
+
+{{#error}}
+Wrong data. Please try again.
+{{/error}}
+</div id="home">

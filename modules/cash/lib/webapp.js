@@ -27,6 +27,7 @@ self.ctx.once("WebStarted", function (err) {
 		web.use(skconnect.vstatic(__dirname + '/../public',{vpath:"/cash"}));
 		require("../pages/account.js")(self);
 		require("../pages/index.js")(self);
+		require("../pages/import.js")(self);
 	})
 })
 

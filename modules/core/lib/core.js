@@ -10,6 +10,7 @@ var Step = require("step");
 var events = require("events");
 var util = require("util");
 var express = require('express');
+var Form = require('connect-form');
 var SkilapError = require("./SkilapError");
 var Gettext = require("../vendor/Gettext");
 
@@ -43,6 +44,7 @@ function Skilap() {
 
 				// Configuration
 				app.configure(function(){
+					app.use(Form());
 					app.set('view engine', 'mustache');
 					app.register(".mustache", require('stache'));
 					app.use(express.bodyParser());
@@ -219,7 +221,7 @@ function Skilap() {
 				https.listen(443);
 				http.listen(80);
 
-				// console.log("Express server listening on port %d in %s mode", webapp.address().port, webapp.settings.env);
+				 //console.log("Express server listening on port %d in %s mode", webapp.address().port, webapp.settings.env);
 				self.emit("WebStarted");
 				cb();
 			}

@@ -8,6 +8,7 @@ var cash_transactions = null;
 
 alfred.open('../../data/db', function(err, db) {
 	if (err) { throw err; }
+	console.log("db: " + db);
 	adb = db;
 	adb.ensure("cash_accounts", {type:'cached_key_map',buffered:false}, function(err,_cash_accounts) {
 		cash_accounts = _cash_accounts;
