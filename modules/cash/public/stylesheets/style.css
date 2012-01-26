@@ -28,8 +28,7 @@ tr { height: 24px;}
 .number { text-align: left; width:50px }
 
 #home {
-	padding-left: 20px;
-	padding-right: 20px;
+	padding: 10px 20px 0 20px;
 	width: 40%;
 }
 
@@ -52,6 +51,15 @@ tr { height: 24px;}
 #home .main div span{
 	float: right;
 	margin-right: 20px;
+}
+
+#import {
+	padding: 10px 20px 0 20px;
+	width: 40%;
+}
+
+#import hr{
+	margin: 10px 0 10px 0;
 }
 
 #header{

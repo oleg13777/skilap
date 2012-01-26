@@ -1,26 +1,34 @@
-<div id="home">
-<h3> {{caption}} </h3>
+<div id="import">
+<h2> {{caption}} </h2>
+<hr size="2" noshade />
+
 {{#upload}}
 <form action="{{prefix}}/import?step=1" enctype="multipart/form-data" method="post">
-	<p><input type="file" name="upload" multiple="multiple"></p>
-	<p><input type="submit" value="Upload"></p>
+	<input type="file" name="upload">
+	<hr size="2" noshade />
+	<input type="submit" value="Next" style="width: 87px; height: 20px"/>
 </form>
 {{/upload}}
 
 {{#step1}}
-transactions = {{transactions}}<br>
+transactions = {{transactions}}
 accounts = {{accounts}}
+<hr size="2" noshade />
 <form action="{{prefix}}/import?step=2" enctype="multipart/form-data" method="post">
 	<input type="hidden" name="fileName" value="{{path}}">
-	<p><input type="submit" value="Import"></p>
+	<input type="submit" value="Next" style="width: 87px; height: 20px">
 </form>
 {{/step1}}
 
 {{#step2}}
-{{transactions}} transactions and {{accounts}} accounts were imported
+<form action="{{prefix}}" enctype="multipart/form-data" method="get">
+	{{transactions}} transactions and {{accounts}} accounts were imported
+	<hr size="2" noshade />
+	<input type="submit" value="Finish" style="width: 87px; height: 20px">
+</form>
 {{/step2}}
 
 {{#error}}
 Wrong data. Please try again.
 {{/error}}
-</div id="home">
+</div>
