@@ -8,6 +8,7 @@ var async = require('async');
 var Step = require("step");
 var events = require("events");
 var sax = require("sax");
+var gunzip = require("gzbz2/gunzipstream");
 
 function CashApi (ctx) {
 	var self = this;
@@ -552,7 +553,11 @@ function CashApi (ctx) {
 			});
 		})
 		
-		fs.createReadStream(fileName).pipe(saxStream);
+		var dump = fs.readFileSync(fileName);
+		if (dump[0] == 31 && dump[1] == 139 && dump[2] == 8)
+			gunzip.wrap(fileName, {encoding: "utf8"}).pipe(saxStream);
+		else 
+			fs.createReadStream(fileName).pipe(saxStream);
 	}
 
 this.getAllAccounts = getAllAccounts;
