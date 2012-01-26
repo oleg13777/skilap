@@ -19,5 +19,6 @@
     , "mime": ">= 0.0.1"  
 	, "connect-form" : ""
 	, "temp" : ""
+	, "gzbz2" : ""
     }
 }
