@@ -397,7 +397,9 @@ function CashApi (ctx) {
 					if (k!=null) {
 						c++;
 						getAccPath(acc, function (path) { 
-							getAccStats(acc.id).path = path;
+							var accStats = getAccStats(acc.id);
+							accStats.path = path;
+							accStats.parent = acc.parent;
 							if (--c==0) cb1();
 						});
 					} else if (--c==0) cb1();
@@ -412,6 +414,15 @@ function CashApi (ctx) {
 					tr.splits.forEach(function(split) {
 						var accStats = getAccStats(split.accountId);
 						accStats.value+=split.value;
+						// move balance to parent accounts
+						function modifyParentValue(childStats) {
+							var parentStats = stats[childStats.parent];
+							if (parentStats!=null) {
+								parentStats.value+=split.value;
+								modifyParentValue(parentStats);
+							}
+						}
+						modifyParentValue(accStats);
 						accStats.count++;
 						accStats.trDateIndex.push({id:tr.id,date:tr.dateEntered});
 					});
