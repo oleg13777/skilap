@@ -1,10 +1,22 @@
+*{
+	padding: 0;
+	margin: 0;
+	list-style-type: none;
+}
+
+img { 
+	border:none; 
+}
+
 body {
-  padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  min-width: 1024px;
+  background-color: #f6f6f6;
 }
 
 a {
-  color: #00B7FF;
+  color: #3439EA;
+  cursor: pointer;
 }
 
 table { border-collapse:collapse }
