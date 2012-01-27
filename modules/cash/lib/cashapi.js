@@ -553,8 +553,12 @@ function CashApi (ctx) {
 			});
 		})
 		
-		var dump = fs.readFileSync(fileName);
-		if (dump[0] == 31 && dump[1] == 139 && dump[2] == 8)
+		var buffer = new Buffer(3);
+		var fd = fs.openSync(fileName, 'r');
+		fs.readSync(fd, buffer, 0, 3, 0);
+		fs.closeSync(fd);
+
+		if (buffer[0] == 31 && buffer[1] == 139 && buffer[2] == 8)
 			gunzip.wrap(fileName, {encoding: "utf8"}).pipe(saxStream);
 		else 
 			fs.createReadStream(fileName).pipe(saxStream);

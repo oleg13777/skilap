@@ -35,11 +35,11 @@ module.exports = function account(webapp) {
 			if (err) return callback(err);
 			async.forEachSeries(accounts, function(acc, cb2){
 				getAccountDetails(token, acc, types, function(det1) {
-					if (_.indexOf(types, acc.type) !=-1 && det1.value > 0) {
+					if (_.indexOf(types, acc.type) !=-1) {
 						assets_.push(det1);
 					}
+					cb2();
 				});
-				cb2();
 			}, callback);
 		});
 	}
@@ -59,9 +59,8 @@ module.exports = function account(webapp) {
 					for (var i = 0; i < items.length; i++) {
 						var item = items[i];
 						summ += item.value;
-						summ += calcSumm(item.childs);
 					}
-					return summ;
+					return 	Math.round(summ*100)/100;;
 				}
 				var funCalcSumm = function() {
 					return function (text) {
@@ -73,6 +72,7 @@ module.exports = function account(webapp) {
 					var s = "";
 					for (var i = 0; i < assets_.length; i++) {
 						var a = assets_[i];
+						if (a.value==0 && a.childs.length==0) continue;
 						s += "<div><a href='"+a.ahref+"'>"+a.name+"</a><span>"+a.value+" p.</span>";
 						var ch = getAssetsForHtml(a.childs);
 						if (ch !="") {
