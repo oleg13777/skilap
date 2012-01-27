@@ -397,9 +397,7 @@ function CashApi (ctx) {
 					if (k!=null) {
 						c++;
 						getAccPath(acc, function (path) { 
-							var accStats = getAccStats(acc.id);
-							accStats.path = path;
-							accStats.parent = acc.parent;
+							getAccStats(acc.id).path = path;
 							if (--c==0) cb1();
 						});
 					} else if (--c==0) cb1();
@@ -414,15 +412,6 @@ function CashApi (ctx) {
 					tr.splits.forEach(function(split) {
 						var accStats = getAccStats(split.accountId);
 						accStats.value+=split.value;
-						// move balance to parent accounts
-						function modifyParentValue(childStats) {
-							var parentStats = stats[childStats.parent];
-							if (parentStats!=null) {
-								parentStats.value+=split.value;
-								modifyParentValue(parentStats);
-							}
-						}
-						modifyParentValue(accStats);
 						accStats.count++;
 						accStats.trDateIndex.push({id:tr.id,date:tr.dateEntered});
 					});
@@ -564,8 +553,12 @@ function CashApi (ctx) {
 			});
 		})
 		
-		var dump = fs.readFileSync(fileName);
-		if (dump[0] == 31 && dump[1] == 139 && dump[2] == 8)
+		var buffer = new Buffer(3);
+		var fd = fs.openSync(fileName, 'r');
+		fs.readSync(fd, buffer, 0, 3, 0);
+		fs.closeSync(fd);
+
+		if (buffer[0] == 31 && buffer[1] == 139 && buffer[2] == 8)
 			gunzip.wrap(fileName, {encoding: "utf8"}).pipe(saxStream);
 		else 
 			fs.createReadStream(fileName).pipe(saxStream);
