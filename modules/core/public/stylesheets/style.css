@@ -2,6 +2,8 @@
 	padding: 0;
 	margin: 0;
 	list-style-type: none;
+	line-height: 20px;
+	color: #3F4142;
 }
 
 img { 
@@ -9,13 +11,13 @@ img {
 }
 
 body {
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  font: 14px Arial, Helvetica, "Lucida Grande", sans-serif;
   min-width: 1024px;
   background-color: #f6f6f6;
 }
 
 a {
-  color: #3439EA;
+  color: #00b7ff;
   cursor: pointer;
 }
 
@@ -27,3 +29,51 @@ tr { height: 24px;}
 .account { text-align: left; width:200px }
 .number { text-align: left; width:50px }
 
+#header{
+	padding: 10px 50px;
+}
+
+#header a{
+	font-size: 16px;
+	text-transform: uppercase;
+}
+
+#workspace{
+	padding: 20px 50px;
+}
+
+.home.title{
+	text-align: center;
+	padding: 10px 0;
+	font-size: 20px;
+}
+
+.home.subTitle{
+	font-size: 16px;
+	padding: 10px 0;
+}
+
+.modulesList{
+	box-shadow: 0 0 5px 1px #ccc;
+	-moz-box-shadow: 0 0 5px 1px #ccc;
+	-webkit-box-shadow: 0 0 5px 1px #ccc;
+	padding: 0 20px;
+	background-color: #fcfcfc;
+	margin-bottom: 20px;
+}
+
+.modulesList li{
+	padding: 5px 0;
+	border-bottom: 1px solid #ccc;
+	list-style-type: disc;
+}
+
+.modulesList li:last-child{border-bottom: none;}
+
+.modulName{
+	font-size: 16px;
+}
+
+.hint{
+	font-style: italic;
+}
