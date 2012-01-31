@@ -1,8 +1,13 @@
-<center><h2>{{#i18n}}Welcome to SkiLap!{{/i18n}}<br></h2></center>
-Following modules are available:
-<ul>
-{{#modules}}
-	<li><a href='{{url}}'><b>{{name}}</b></a><br>{{description}}
-{{/modules}}
+<div class='home title'>
+	<h2>{{#i18n}}Welcome to SkiLap!{{/i18n}}</h2>
+</div>
+<div class='home subTitle'>Following modules are available:</div>
+<ul class='modulesList'>
+	{{#modules}}
+		<li>
+			<a class='modulName' href='{{url}}'>{{name}}</a>
+			<div>{{description}}</div>
+		</li>
+	{{/modules}}
 </ul>
-<i>Please note, you might need to log-in to get access to some modules.</i>
+<div class='hint'>Please note, you might need to log-in to get access to some modules.</div>
