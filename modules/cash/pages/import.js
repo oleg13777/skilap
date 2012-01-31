@@ -68,6 +68,7 @@ module.exports = function account(webapp) {
 		} else if (step == 2) {
 			var accounts;
 			var transactions;
+			var tabs;
 			async.waterfall([
 				async.apply(cashapi.chPerm, req.session.apiToken),
 				function (err , cb1) {
@@ -92,8 +93,12 @@ module.exports = function account(webapp) {
 				function (cb1) {
 					webapp.guessTab(req, {pid:'import',name:'Import',url:req.url}, cb1);
 				},
-				function render (vtabs) {
-					res.render(__dirname+"/../views/import", {prefix:prefix, tabs:vtabs, caption: "data saved", step2:true, transactions:transactions.length, accounts:accounts.length});
+				function (vtabs, cb1) {
+					tabs = vtabs;
+					webapp.removeTabs(req, null /*['import']*/, cb1);
+				},
+				function render (cb1) {
+					res.render(__dirname+"/../views/import", {prefix:prefix, tabs:tabs, caption: "data saved", step2:true, transactions:transactions.length, accounts:accounts.length});
 				}],
 				next
 			);

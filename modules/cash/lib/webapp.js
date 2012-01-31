@@ -83,7 +83,7 @@ this.guessTab = function (req, ti,cb) {
 			var tab;
 			// search current tabs
 			_.forEach(views.tabs, function (t) {
-				var vtab = {name:t.name,url:t.url};
+				var vtab = {name:t.name,url:t.url,pid:t.pid};
 				if (ti.pid==t.pid) {
 					tab = t;
 					vtab.selected = true;
@@ -93,7 +93,7 @@ this.guessTab = function (req, ti,cb) {
 			// if tab for that page not found create new
 			if (tab==null) {
 				tab = {name:ti.name, pid:ti.pid, url:ti.url};
-				vtabs.push({name:ti.name, selected:true, url:ti.url});
+				vtabs.push({name:ti.name, selected:true, url:ti.url, pid:ti.pid});
 				views.tabs.push(tab);
 				if (user.type!='guest')
 					cash_userviews.put(user.id,views,cb)
@@ -106,6 +106,44 @@ this.guessTab = function (req, ti,cb) {
 		}
 	)
 }
+
+this.removeTabs = function (req, tabIds, cb) {
+	var vtabs=[], user;
+	async.waterfall ([
+		// we need user first
+		function (cb1) {
+			coreapi.getUser(req.session.apiToken, cb1);
+		},
+		function (user_, cb1) {
+			user = user_;
+			if (user.type!='guest')
+				if (tabIds == null) {
+					cash_userviews.put(user.id, {tabs:[]},cb);
+				} else {
+					cash_userviews.get(user.id, cb1);
+				}
+			else
+				cb1(null,{});
+		},
+		function (views, cb1) {
+			var tIds = {};
+			var _views = {tabs:[]};
+			tabIds.forEach(function(t) {
+				tIds[t]=t;
+			});
+			views.tabs.forEach(function (t) {
+				var tab = tIds[t.pid];
+				if (!tab) {
+					_views.tabs.push(t);
+				}
+			});
+			cash_userviews.put(user.id,_views,cb1);
+		}], function (err, results) {
+			cb(err);
+		}
+	)
+}
+
 }
 
 module.exports.init = function (ctx,cb) {

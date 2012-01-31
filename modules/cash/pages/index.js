@@ -51,6 +51,14 @@ module.exports = function account(webapp) {
 			async.apply(getAssets, req.session.apiToken, 1, assetsTypes, assets),
 			async.apply(getAssets, req.session.apiToken, 1, liabilitiesTypes, liabilities),
 			function (cb1) {
+				var pid = req.query.close;
+				if (pid) {
+					webapp.removeTabs(req, [pid], cb1);
+				} else {
+					cb1();
+				}
+			},
+			function (cb1) {
 				webapp.guessTab(req, {pid:'home',name:'Home',url:req.url}, cb1);
 			},
 			function render (vtabs) {
