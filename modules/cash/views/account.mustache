@@ -1,16 +1,28 @@
 <table id="acc">
-<thead><th/><th>#</th><th>Date</th><th>Description</th><th>Path</th><th>Recieved</th><th>Spend</th><th>Ballance</th><thead>
-<tbody>
-{{#transactions}}
-	<TR><TD>{{num}}</TD><TD>{{date}}</TD><TD>{{description}}</TD><TD>{{accpath}}</TD><TD>{{value}}</TD><TD/><TD/></TR>
-{{/transactions}}
-<tbody>
+	<thead>
+		<th>#</th>
+		<th>Date</th>
+		<th>Description</th>
+		<th>Path</th>
+		<th>Recieved</th>
+		<th>Spend</th>
+		<th>Ballance</th>
+	<thead>
+	<tbody>
+		{{#transactions}}
+		<tr>
+			<td>{{num}}</td>
+			<td>{{date}}</td>
+			<td>{{description}}</td>
+			<td>{{accpath}}</td>
+			<td>{{value}}</td>
+			<td></td>
+			<td></td>
+		</tr>
+		{{/transactions}}
+	<tbody>
 </table>
-<br>
-<table id="accNew">
-	<TR><TD class="number"/><TD class="value"/><TD class="description"/><TD class="account"/><TD class="value"/><TD class="value"/><TD class="value"/></TR>
-</table>
-
+<br/>
 <script>
 $(document).ready(function(){
 	// autocomplete input type
@@ -24,7 +36,6 @@ $(document).ready(function(){
 	var hasEdited = false;
 	$('#acc').dataTable({
 			"aoColumns": [
-				{ "bVisible":false, "bSortable": false, "bSearchable":false },
 				{ "sClass": "number", "bSortable": false, "bSearchable":false },
 				{ "sClass": "value", "bSortable": false, "bSearchable":false },
 				{ "sClass": "description", "bSortable": false, "bSearchable":false },
@@ -49,17 +60,17 @@ $(document).ready(function(){
 //			},
 			"fnInitComplete": function () {
 				this.oScroller.fnScrollToRow( {{firstVisible}},false );
-				}
+				}			
 			}).makeEditable({
 				"sUpdateURL":"{{prefix}}/account/{{accountId}}/updatecell",
 				"sHttpMethod":"GET",
 				"aoColumns": [
 				null,
-				{ "type":"datepicker" },
-				{ "placeholder":"","type":"autocomplete","autocomplete":{"source":"{{prefix}}/account/{{accountId}}/getdesc"}},
+				{ "type":"datepicker","onblur":"submit" },
+				{ "placeholder":"","type":"autocomplete","autocomplete":{"source":"{{prefix}}/account/{{accountId}}/getdesc"},"onblur":"submit"},
 				{ "type":"select","loadurl":"{{prefix}}/account/{{accountId}}/getaccounts","onblur":"submit"},
-				{ "sClass": "value","placeholder":"" },
-				{ "sClass": "value","placeholder":"" },
+				{ "sClass": "value","placeholder":"","onblur":"submit" },
+				{ "sClass": "value","placeholder":"","onblur":"submit" },
 				null
 				]
 				});

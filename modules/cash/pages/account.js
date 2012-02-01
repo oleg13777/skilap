@@ -1,5 +1,5 @@
 var DateFormat = require('dateformatjs').DateFormat;
-var df = new DateFormat("yyyy.MM.dd");
+var df = new DateFormat("MM/dd/yyyy");
 var sprintf = require('sprintf').sprintf;
 var _ = require('underscore');
 var async = require('async');
@@ -52,19 +52,21 @@ module.exports = function account(webapp) {
 						cashapi.getTransaction(req.session.apiToken, req.body.id, cb2);
 					},
 					function (cb2) {
-						if (req.body.columnId==4)
-							cashapi.getAccountByPath(req.body.value, cb2)
-						else 
+						if (req.body.columnId==3){						
+							cashapi.getAccountByPath(req.body.value, cb2);
+						}
+						else{ 							
 							cb2(null,null);
+						}
 					}
-				], function (err, results) {
-					cb1(err, results[0], results[1]);
-				})
-			},
-			safe.trap_sure_result(function (tr, newAccId,cb1) {
-				if (req.body.columnId == 5 || req.body.columnId == 6) {
+				], function (err, results) {					
+					cb1(err, results[0],results[1]);
+				});
+			},			
+			function (tr, newAccId,cb1) {				
+				if (req.body.columnId == 4 || req.body.columnId == 5) {
 					var newVal = eval(req.body.value);
-					if (req.body.columnId == 6)
+					if (req.body.columnId == 5)
 						newVal *= -1;
 					newTr = {id:tr.id,splits:[]};
 					tr.splits.forEach(function(split) {
@@ -73,7 +75,7 @@ module.exports = function account(webapp) {
 					else
 						newTr.splits.push({id:split.id,value:newVal*-1})
 					});
-				} else if (req.body.columnId == 4 ) {
+				} else if (req.body.columnId == 3 ) {
 					if (newAccId!=null) {
 						newTr = {id:tr.id,splits:[]};
 						tr.splits.forEach(function(split) {
@@ -81,15 +83,16 @@ module.exports = function account(webapp) {
 								newTr.splits.push({id:split.id,accountId:newAccId})
 						});
 					}
-				} else if (req.body.columnId == 3 ) {
-					newTr = {id:tr.id,description:req.body.value};
 				} else if (req.body.columnId == 2 ) {
-					var newDate = new Date(req.body.value);
-					newTr = {id:tr.id,dateEntered:newDate,datePosted:newDate};
+					newTr = {id:tr.id,description:req.body.value};
+				} else if (req.body.columnId == 1 ) {										
+					var dateFormat = new DateFormat(DateFormat.W3C);
+					var newDate = dateFormat.format(new Date(req.body.value));					
+					newTr = {id:tr.id,dateEntered:newDate,datePosted:newDate};					
 				}
 				cashapi.saveTransaction(req.session.apiToken, newTr, cb1);
 				res.send(req.body.value);
-			})
+			}
 		], function (err) {
 			if (err) return next(err);
 		});
@@ -112,7 +115,11 @@ module.exports = function account(webapp) {
 				})
 			},
 			function (hints, cb1) {				
-				res.send(_.uniq(hints));
+				var hintsObject={};
+				for(var i in hints){
+					hintsObject[hints[i]] = hints[i];
+				}
+				res.send(hintsObject);
 				cb1();
 			} 
 		], function (err) {
@@ -199,14 +206,14 @@ module.exports = function account(webapp) {
 					var recv = trs.recv;
 					var send = trs.send;
 					var dp = new Date(tr.dateEntered);
-					data.aaData.push([tr.id,idx+1,df.format(dp),tr.description,
+					data.aaData.push([tr.id,df.format(dp),tr.description,
 						recv.length==1?accInfo[recv[0].accountId].path:"Multiple",
 						send.value>0?sprintf("%.2f",send.value):null,
 						send.value<=0?sprintf("%.2f",send.value*-1):null,
 						sprintf("%.2f",trs.ballance)]);
 				}
 				if ((idx+i)==count) {
-					data.aaData.push(["new",idx+1,df.format(new Date()),"",null,null,null,sprintf("%.2f",trs.ballance)]);
+					data.aaData.push(["new",df.format(new Date()),"",null,null,null,sprintf("%.2f",trs.ballance)]);
 				}
 				data.iTotalRecords = count+1;
 				data.iTotalDisplayRecords = count+1;

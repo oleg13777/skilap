@@ -226,6 +226,8 @@ function CashApi (ctx) {
 	}
 
 	function saveTransaction (token,tr,cb) {
+		console.log("tr save Transaction");
+		console.log(tr);
 		var trUpd;
 		async.series ([
 			function (cb1) {
@@ -260,13 +262,16 @@ function CashApi (ctx) {
 								// add new split
 							}
 					});
-				} else if (tr.description != null) {
+				} 
+				if (tr.description != null) {
 					trUpd.description = tr.description;
-				} else if (tr.datePosted != null) {
+				} 
+				if (tr.datePosted != null) {
 					trUpd.datePosted = tr.datePosted;
-				} else if (tr.dateEntered != null) {
+				} 
+				if (tr.dateEntered != null) {
 					trUpd.dateEntered = tr.dateEntered;
-				}
+				}				
 				cash_transactions.put(trUpd.id, trUpd, cb1);
 			}
 		], function (err) {
