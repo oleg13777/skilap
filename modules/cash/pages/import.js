@@ -10,8 +10,7 @@ module.exports = function account(webapp) {
 
 	app.get(prefix + "/import", function(req, res, next) {
 		async.waterfall([
-			async.apply(cashapi.chPerm, req.session.apiToken),
-			function (err, cb1) {
+			function (cb1) {
 				webapp.guessTab(req, {pid:'import',name:'Import',url:req.url}, cb1);
 			},
 			function render (vtabs) {
@@ -44,8 +43,7 @@ module.exports = function account(webapp) {
 			var acc_count = 0;
 			var tr_count = 0;
 			async.waterfall([
-				async.apply(cashapi.chPerm, req.session.apiToken),
-				function (err, cb1) {
+				function (cb1) {
 					cashapi.parseGnuCashXml(req.files.upload.path, function (ret) {
 						acc_count = ret.acc.length;
 						tr_count = ret.tr.length;
@@ -68,24 +66,31 @@ module.exports = function account(webapp) {
 		} else if (step == 2) {
 			var accounts;
 			var transactions;
+			var prices;
 			var tabs;
 			async.waterfall([
-				async.apply(cashapi.chPerm, req.session.apiToken),
-				function (err , cb1) {
+				function (cb1) {
 					var data = fs.readFileSync(req.fields.fileName, 'ascii');
 					var obj = JSON.parse(data);
 					accounts = obj.acc;
 					transactions = obj.tr;
+					prices = obj.prices;
 					cb1();
 				},
 				function (cb1) {
-					cashapi.clearAccaunts(req.session.apiToken, null, cb1);
+					cashapi.clearPrices(req.session.apiToken, null, cb1);
 				},
 				function (cb1) {
-					cashapi.importAccaunts(req.session.apiToken, accounts, cb1);
+					cashapi.importPrices(req.session.apiToken, prices, cb1);
 				},
 				function (cb1) {
-					cashapi.clearTransaction(req.session.apiToken, null, cb1);
+					cashapi.clearAccounts(req.session.apiToken, null, cb1);
+				},
+				function (cb1) {
+					cashapi.importAccounts(req.session.apiToken, accounts, cb1);
+				},
+				function (cb1) {
+					cashapi.clearTransactions(req.session.apiToken, null, cb1);
 				},
 				function (cb1) {
 					cashapi.importTransactions(req.session.apiToken, transactions, cb1);
@@ -104,8 +109,7 @@ module.exports = function account(webapp) {
 			);
 		} else {
 			async.waterfall([
-				async.apply(cashapi.chPerm, req.session.apiToken),
-				function (err, cb1) {
+				function (cb1) {
 					webapp.guessTab(req, {pid:'import',name:'Import',url:req.url}, cb1);
 				},
 				function render (vtabs) {

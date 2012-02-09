@@ -48,8 +48,8 @@ module.exports = function account(webapp) {
 		var assets = [];
 		var liabilities = [];
 		async.waterfall([
-			async.apply(getAssets, req.session.apiToken, 1, assetsTypes, assets),
-			async.apply(getAssets, req.session.apiToken, 1, liabilitiesTypes, liabilities),
+			async.apply(getAssets, req.session.apiToken, 0, assetsTypes, assets),
+			async.apply(getAssets, req.session.apiToken, 0, liabilitiesTypes, liabilities),
 			function (cb1) {
 				var pid = req.query.close;
 				if (pid) {
