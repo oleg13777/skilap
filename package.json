@@ -4,21 +4,21 @@
   , "private": true
   , "dependencies": {
       "express": ""
+    , "connect": ""
     , "cookies": ""
+    , "jsorm-i18n": ""
     , "underscore": ""
     , "sax": ""
     , "async": ""
     , "sprintf" : ""
     , "alfred" : ""
-    , "stache" : ""
+    , "hogan" : ""
     , "dateformatjs" : ""
     , "step" : ">=0.0.3"
     , "carrier" : ">= 0.1.0"
     , "crc" : ">= 0.1.0"
     , "qs": ">= 0.3.1"
     , "mime": ">= 0.0.1"  
-	, "connect-form" : ""
 	, "temp" : ""
-	, "gzbz2" : ""
     }
 }

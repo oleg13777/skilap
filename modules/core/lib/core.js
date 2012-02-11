@@ -2,6 +2,7 @@
  * Core
  */
 var fs = require("fs");
+var path = require("path");
 var _ = require('underscore');
 
 var alfred = require('alfred');
@@ -10,9 +11,37 @@ var Step = require("step");
 var events = require("events");
 var util = require("util");
 var express = require('express');
-var Form = require('connect-form');
 var SkilapError = require("./SkilapError");
 var Gettext = require("../vendor/Gettext");
+var hogan=require('hogan');
+var adapter=require('./hogan-express.js');
+var i18n = require('jsorm-i18n');
+
+var tmpl = {
+    compile: function (source, options) {
+		views = (options && options.settings && options.settings.views) || './views';
+		var tc = hogan.compile(source);
+		// we need overwrite for this specific template
+		// rp (RenderPartials) function to provide partial content
+		var orp = tc.rp;
+		tc.rp = function (name, context, partials, indent) {
+			var partial = partials[name];
+			if (partial==null) {
+				var partialFileName = views + '/' + name + (options.extension || '.mustache')
+				partial = path.existsSync(partialFileName) ? fs.readFileSync(partialFileName, "utf-8") : "";
+				partials[name]=hogan.compile(partial.toString());
+			}
+			return orp.call(this,name, context,partials, indent);
+		}
+		return function (options) {
+			var html = tc.render(options,options.partials);
+			if (options.body!=null) {
+				html = html.replace("<content/>",options.body);
+			}
+			return html;
+		}
+	}
+}
 
 function Skilap() {
 	var self = this;
@@ -44,9 +73,9 @@ function Skilap() {
 
 				// Configuration
 				app.configure(function(){
-					app.use(Form());
 					app.set('view engine', 'mustache');
-					app.register(".mustache", require('stache'));
+					app.set('view options',{layout:true});					
+					app.register(".mustache", tmpl);
 					app.use(express.bodyParser());
 					app.use(express.methodOverride());
 					app.use(express.cookieParser());
@@ -295,7 +324,23 @@ function Skilap() {
 			gt = dummyGT;
 		return gt.dgettext(domain, text1);
 	}
+	
+	this.i18n_cytext = function(langtoken,curId,value) {
+		var cur = i18n.currency(curId);
+		var res = cur.format(value);
+		if (curId == 'RUB') {
+			res = res.replace('руб','')+ " руб";
+		}
+		return res;
+	}
 
+	this.i18n_cyval = function(curId,value) {
+		var cur = i18n.currency(curId);
+		var res = cur.format(value);
+		res = res.replace(/[^0123456789.]/g,'');
+		return res;
+	}
+	
 }
 
 util.inherits(Skilap, events.EventEmitter);

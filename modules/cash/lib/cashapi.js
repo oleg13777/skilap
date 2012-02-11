@@ -8,7 +8,8 @@ var async = require('async');
 var Step = require("step");
 var events = require("events");
 var sax = require("sax");
-var gunzip = require("gzbz2/gunzipstream");
+var util = require("util");
+var zlib = require("zlib");
 
 function CashApi (ctx) {
 	var self = this;
@@ -98,7 +99,29 @@ function CashApi (ctx) {
 			}], 
 		cb);
 	}
-
+	
+	function getCmdtyPrice(token,cmdty,currency,date,method,cb) {
+		if (_(cmdty).isEqual(currency)) return cb(null,1);
+		// not sure what template means
+		if (cmdty.id=='template') return cb(null,1);
+		async.series ([
+			function start(cb1) {
+				async.parallel([
+					async.apply(coreapi.checkPerm,token,["cash.view"]),
+					async.apply(waitForData)
+				],cb1);
+			}, 
+			function get(cb1) {
+				var key = JSON.stringify({from:cmdty,to:currency});
+				var ptree = stats.priceTree[key];
+				if (ptree==null) return cb(new Error("Unknown price pair"));
+				cb1(null,ptree.last);
+			}], function end(err, results) {
+				if (err) return cb(err);
+				cb(null, results[1]);
+			}
+		)
+	}
 
 	function getAllAccounts(token, cb) {
 		async.series ([
@@ -444,6 +467,49 @@ function CashApi (ctx) {
 			return stats[accId];
 		}
 		async.auto({
+			price_tree: function (cb1) {
+				stats.priceTree = {};
+				cash_prices.scan(function(err, k, price) {
+					if (err) return cb1(err);
+					if (k==null) { 
+						return cb1();
+					}
+					var date = new Date(price.date);
+					var year = date.getFullYear();
+					var month = date.getMonth();
+					var dirs = [ 
+						{rate:price.value,key:JSON.stringify({from:price.cmdty,to:price.currency})},
+						{rate:1/price.value,key:JSON.stringify({to:price.currency,from:price.cmdty})}];
+					_(dirs).forEach(function (dir) {
+						var dirTree = stats.priceTree[dir.key];
+						if (dirTree==null) stats.priceTree[dir.key]=dirTree={};
+						var yearTree = dirTree[year];
+						if (yearTree==null) dirTree[year]=yearTree={};
+						var monthArray = yearTree[month];
+						if (monthArray==null) yearTree[month]=monthArray=[];
+						monthArray.push({date:date,rate:dir.rate});
+						if (dirTree.average==null) {
+							dirTree.average=dir.rate;
+							dirTree.max=dir.rate;
+							dirTree.min=dir.rate;
+							dirTree.last = dir.rate;
+							dirTree.lastDate = date;
+							dirTree.quotes=1;
+						}
+						else {
+							dirTree.average=dirTree.average*dirTree.quotes+dir.rate;
+							dirTree.quotes++;
+							dirTree.average/=dirTree.quotes;
+						}
+						if (dir.rate>dirTree.max)
+							dirTree.max = dir.rate;
+						if (dir.rate<dirTree.min)
+							dirTree.min = dir.rate;
+						if (date>dirTree.lastDate)
+							dirTree.last = dir.rate;
+					})
+				}, true)
+			},
 			account_paths: function (cb1) {
 				var next = this;
 				var c=1;
@@ -648,7 +714,7 @@ function CashApi (ctx) {
 		fs.closeSync(fd);
 
 		if (buffer[0] == 31 && buffer[1] == 139 && buffer[2] == 8)
-			gunzip.wrap(fileName, {encoding: "utf8"}).pipe(saxStream);
+			fs.createReadStream(fileName).pipe(zlib.createUnzip()).pipe(saxStream)
 		else 
 			fs.createReadStream(fileName).pipe(saxStream);
 	}
@@ -667,6 +733,7 @@ this.parseGnuCashXml = parseGnuCashXml;
 this.clearAccounts = clearAccaunts;
 this.clearTransactions = clearTransaction;
 this.clearPrices = clearPrices;
+this.getCmdtyPrice = getCmdtyPrice;
 }
 
 module.exports.init = function (ctx,cb) {

@@ -100,11 +100,6 @@ tr { height: 24px;}
     width: 165px;
 }
 
-#tabs a div{
-	text-transform: capitalize;
-	margin: 5px 5px 5px 10px;
-}
-
 .sl_border{
 	border: 2px solid #193479;
 }
@@ -117,7 +112,7 @@ tr { height: 24px;}
 
 #tabs .sl_text{font-size: 105%;}
 
-#tabs a{
+#tabs div{
 	display: block;
 	margin: 5px 0;
 	background-color: #E6F9C0;

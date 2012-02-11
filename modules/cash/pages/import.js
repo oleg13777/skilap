@@ -20,26 +20,10 @@ module.exports = function account(webapp) {
 		);
 	});
 
-	function wait(req, res, callback) {
-		if (!req.form) {
-			callback();
-		} else {
-			req.form.complete(function(err, fields, files) {
-				if (err)
-					callback(err);
-				else {
-					req.fields = fields;
-					req.files = files;
-					callback();
-				}
-			});
-		}
-	}
-
-	app.post(prefix + "/import", wait, function(req, res, next) {
+	app.post(prefix + "/import", function(req, res, next) {
 		var step = req.query.step;
 		var path;
-		if (step == 1){
+		if (step == 1) {
 			var acc_count = 0;
 			var tr_count = 0;
 			async.waterfall([
@@ -70,7 +54,7 @@ module.exports = function account(webapp) {
 			var tabs;
 			async.waterfall([
 				function (cb1) {
-					var data = fs.readFileSync(req.fields.fileName, 'ascii');
+					var data = fs.readFileSync(req.body.fileName, 'ascii');
 					var obj = JSON.parse(data);
 					accounts = obj.acc;
 					transactions = obj.tr;
