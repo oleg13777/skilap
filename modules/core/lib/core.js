@@ -277,20 +277,9 @@ function Skilap() {
 	}
 
 	this.getUniqueId = function(cb) {
-		console.time("getUniqueId");
-		var id;
-		async.waterfall([
-			async.apply(fs.readFile,storepath+"unique.id"),
-			function (data, cb1) {
-				id = parseInt(data);
-				id++;
-				fs.writeFile(storepath+"unique.id",""+id,cb1);
-			}], function (err) {
-				console.timeEnd("getUniqueId");
-				if (err) return cb(err);
-				cb(null,id)
-			}
-		)
+		var id = parseInt(fs.readFileSync(storepath+"unique.id","utf-8"));
+		id++; fs.writeFileSync(storepath+"unique.id",id.toString());
+		process.nextTick(function () { cb(null,id)});
 	}
 
 	this.getRandomString = function (bits,cb) {

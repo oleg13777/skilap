@@ -28,7 +28,7 @@ module.exports = function account(webapp) {
 			var tr_count = 0;
 			async.waterfall([
 				function (cb1) {
-					cashapi.parseGnuCashXml(req.files.upload.path, function (ret) {
+					cashapi.parseGnuCashXml(req.files.upload.path, function (err, ret) {
 						acc_count = ret.acc.length;
 						tr_count = ret.tr.length;
 						var str = JSON.stringify(ret);

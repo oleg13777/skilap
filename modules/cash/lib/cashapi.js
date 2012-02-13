@@ -250,7 +250,6 @@ function CashApi (ctx) {
 			}
 		], function (err, results) {
 			if (err) return cb(err);
-			console.log(results[1]);
 			cb(null,results[1]);
 		})
 	}
@@ -702,10 +701,52 @@ function CashApi (ctx) {
 		})
 
 		saxStream.on("end", function (node) {
-			var ret = {tr:transactions, acc:accounts, prices:prices};
-			process.nextTick(function(){
-				callback(ret);
-			});
+			// we need to transpond ids to our own space
+			var aidMap={};
+			async.series([
+				function transpondAccounts(cb) {
+					async.forEachSeries(accounts, function (acc,cb) {
+						ctx.getUniqueId(function (err, id) {
+							if (err) return cb(err);
+							aidMap[acc.id]=id;
+							acc.id = id;
+							cb();
+						})
+					},cb)
+				},
+				function transpondAccountsTree(cb) {
+					_(accounts).forEach(function (acc) {
+						if (acc.parentId!=0)
+							acc.parentId=aidMap[acc.parentId];
+					})
+					cb();
+				},
+				function transpondTransactions(cb) {
+					async.forEachSeries(transactions, function (trn,cb) {
+						async.forEachSeries(trn.splits, function (split,cb) {
+							split.accountId = aidMap[split.accountId];
+							ctx.getUniqueId(function (err, id) {
+								if (err) return cb(err);
+								split.id = id;
+								cb();
+							})
+						}, function (err) {
+							if (err) return cb(err);
+							ctx.getUniqueId(function (err, id) {
+								if (err) return cb(err);
+								trn.id = id;
+								cb();
+							})
+						})
+					},cb)
+				}
+			], function (err) {
+				if (err) return cb(err);
+				var ret = {tr:transactions, acc:accounts, prices:prices};
+				process.nextTick(function(){
+					callback(null,ret);
+				});
+			})
 		})
 		
 		var buffer = new Buffer(3);
