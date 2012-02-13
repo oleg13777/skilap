@@ -14,7 +14,6 @@ var express = require('express');
 var SkilapError = require("./SkilapError");
 var Gettext = require("../vendor/Gettext");
 var hogan=require('hogan');
-var adapter=require('./hogan-express.js');
 var i18n = require('jsorm-i18n');
 
 var tmpl = {
