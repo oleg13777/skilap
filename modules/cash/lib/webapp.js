@@ -185,6 +185,7 @@ module.exports.init = function (ctx,cb) {
 		}], function done(err, results) {
 			var m = results[1];
 			m.api = results[0];
+			m.localePath = __dirname+'/../locale';
 			cb(null, m);
 		}
 	)

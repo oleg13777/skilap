@@ -120,7 +120,7 @@ function Skilap() {
 					});
 					app.dynamicHelpers({
 						i18n: function(req, res){
-							var domain, re = req.url.match(/\/(\w+)\/.*/i);
+							var domain, re = req.url.match(/\/(\w+)[/?#]?/i);
 							domain = re?re[1]:"core";
 							return function () { return function (text, render) {
 								return self.i18n(req.session.apiToken, domain, text);
@@ -327,10 +327,11 @@ function Skilap() {
 	this.i18n_cytext = function(langtoken,curId,value) {
 		var cur = i18n.currency(curId);
 		var res = cur.format(value);
-		if (curId == 'RUB') {
-			res = res.replace('руб','')+ " руб";
-		}
-		return res;
+		var m = res.match(/([^0123456789., ]*)([0123456789., ]*)([^0123456789., ]*)/);
+		if (m && m.length>3)
+			return m[1]+" "+m[2]+ " "+m[3];
+		else 
+			return res;
 	}
 
 	this.i18n_cyval = function(curId,value) {
