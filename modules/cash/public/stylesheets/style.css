@@ -19,13 +19,166 @@ a {
   cursor: pointer;
 }
 
-table { border-collapse:collapse; }
-td { white-space: nowrap; border: 1px solid black}
-tr { height: 24px;}
-.value { text-align: right; width:10%; }
-.description { text-align: left; width:25%; }
-.account { text-align: left; width:20%; }
-.number { text-align: left; width:10%; }
+
+td { 
+	white-space: nowrap;
+}
+.value{
+	text-align: right; 
+	width:10%;
+}
+.description{
+	text-align: left; 
+	width:20%; 
+}
+.account{
+	text-align: left; 
+	width:25%; 
+}
+.number{ 
+	text-align: left; 
+	width:10%;
+}
+
+.ski_gridWrapper{
+	background-color:#efefef;
+}
+
+.ski_gridHeaderWrapper table,.ski_gridBodyWrapper table{
+	table-layout:fixed;
+}
+
+.ski_gridHeaderWrapper table{
+	background-color:#96b183;
+}
+
+.ski_gridHeaderWrapper{
+	margin-right:17px;	
+}
+
+.ski_gridBodyWrapper{
+	position:relative;
+	height:400px;
+	overflow-y:scroll;
+}
+.ski_gridBodyWrapper .tdContent{
+	position:relative;
+	padding:5px;
+	text-overflow:ellipsis;
+	overflow:hidden;
+}
+.ski_gridBodyWrapper .tdContent .ski_editable{
+	display:block;
+	position:absolute;
+	top:0;
+	left:0;	
+}
+.ski_gridBodyWrapper .tdContent .ski_datepicker_btn{
+	display:block;
+	position:absolute;
+	top:7px;
+	right:5px;
+	z-index:1;
+}
+.ski_gridBodyWrapper tr{
+	color:#333;
+}
+.ski_gridBodyWrapper tr.mainRow.odd{
+	background-color:#BFDEB9;
+}
+.ski_gridBodyWrapper tr.mainRow.even{
+	background-color:#F6FFDA;
+}
+.ski_gridBodyWrapper tr.mainRow.selected{
+	background-color:#FFEF98;
+}
+.ski_gridBodyWrapper tr.splitRow{	
+	background-color:#EDE7D3;
+}
+.ski_gridBodyScroller{
+	position:absolute;
+	top:0;
+	left:0;
+	width:1px;
+}
+
+.ski_gridToolbox{
+	height:35px;	
+	margin-bottom:2px;	
+	background: #f5f5f4;
+    background: -moz-linear-gradient(top, #f5f5f4, #e7e5e4);
+    background: -webkit-gradient(linear, left top, left bottom, 
+                color-stop(0%,#f5f5f4), color-stop(100%,#e7e5e4));
+    background: -webkit-linear-gradient(top, #f5f5f4, #e7e5e4);
+    background: -o-linear-gradient(top, #f5f5f4, #e7e5e4);
+    background: -ms-linear-gradient(top, #f5f5f4, #e7e5e4);
+    background: linear-gradient(top, #f5f5f4, #e7e5e4);
+    border-bottom:1px solid #c4c4c4;
+}
+
+.ski_button{   
+    border: 1px solid transparent;
+    border-radius: 4px 4px 4px 4px;
+    color: #333;
+    cursor: pointer;
+    display: block;
+    padding: 0px 10px;
+    height:25px;
+    line-height:25px;
+    text-align: center;   
+}
+
+.ski_button:hover{   
+    border: 1px solid #888582;
+    border-radius: 4px 4px 4px 4px;
+    color: #333;
+    cursor: pointer;
+    display: block;
+    padding: 0px 10px;
+    height:25px;
+    line-height:25px;
+    text-align: center;   
+    background: #fff;
+    background: -moz-linear-gradient(top, #fff, #ededed);
+    background: -webkit-gradient(linear, left top, left bottom, 
+                color-stop(0%,#fff), color-stop(100%,#ededed));
+    background: -webkit-linear-gradient(top, #fff, #ededed);
+    background: -o-linear-gradient(top, #fff, #ededed);
+    background: -ms-linear-gradient(top, #fff, #ededed);
+    background: linear-gradient(top, #fff, #ededed);
+    
+}
+
+.ski_button.selected{   
+    border: 1px solid #888582;
+    border-radius: 4px 4px 4px 4px;
+    color: #333;
+    cursor: pointer;
+    display: block;
+    padding: 0px 10px;
+    height:25px;
+    line-height:25px;
+    text-align: center;   
+    background: #d1cfcc;
+    background: -moz-linear-gradient(top, #d1cfcc, #c0bdba);
+    background: -webkit-gradient(linear, left top, left bottom, 
+                color-stop(0%,#d1cfcc), color-stop(100%,#c0bdba));
+    background: -webkit-linear-gradient(top, #d1cfcc, #c0bdba);
+    background: -o-linear-gradient(top, #d1cfcc, #c0bdba);
+    background: -ms-linear-gradient(top, #d1cfcc, #c0bdba);
+    background: linear-gradient(top, #d1cfcc, #c0bdba);
+    
+}
+
+.ski_splitButton{
+	float:left;	
+	margin:5px  0 0 10px;
+}
+
+.invisible{
+display:none;
+}
+
 
 #home {
 	padding: 10px 20px 0 20px;

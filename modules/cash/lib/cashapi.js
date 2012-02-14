@@ -225,9 +225,7 @@ function CashApi (ctx) {
 		})
 	}
 
-	function saveTransaction (token,tr,cb) {
-		console.log("tr save Transaction");
-		console.log(tr);
+	function saveTransaction (token,tr,cb) {		
 		var trUpd;
 		async.series ([
 			function (cb1) {
@@ -244,6 +242,10 @@ function CashApi (ctx) {
 			}, 
 			function (cb1) {
 				// update branch
+				console.log('tr.splits = ');
+				console.log(tr.splits);
+				console.log('trUpd.splits =');
+				console.log(trUpd.splits);
 				if (tr.splits !=null) {
 					// ammount is changed
 					_.forEach(tr.splits, function (newSplit) {
@@ -253,7 +255,8 @@ function CashApi (ctx) {
 									if (updSplit.id == newSplit.id) {
 										if (newSplit.value != null) {
 											updSplit.value = newSplit.value;
-										} else if (newSplit.accountId!=null) {
+										}
+										if (newSplit.accountId!=null) {
 											updSplit.accountId = newSplit.accountId;
 										}
 									}
