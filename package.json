@@ -11,7 +11,7 @@
     , "sax": ""
     , "async": ""
     , "sprintf" : ""
-    , "alfred" : ""
+    , "alfred" : "git://github.com/sergeyksv/alfred.git"
     , "hogan" : ""
     , "dateformatjs" : ""
     , "step" : ">=0.0.3"
