@@ -1,10 +1,17 @@
 <div id="home">
-	<h2>Assets: <span>{{#funCalcSumm}}ASSETS{{/funCalcSumm}} p.</span></h2>
+	<h2>{{#i18n}}Assets{{/i18n}}: <span>{{assetsSum}}</span></h2>
 	<hr size="2" noshade />
-	{{#funAssets}}ASSETS{{/funAssets}}
-
+	<div class="main">
+	{{#assets}}
+		{{>index_account}}
+	{{/assets}}
+	</div>
 	<br /><br />
-	<h2>Liabilities: <span>{{#funCalcSumm}}LIABILITIES{{/funCalcSumm}} p.</span></h2>
+	<h2>{{#i18n}}Liabilities{{/i18n}}: <span>{{liabilitiesSum}}</span></h2>
 	<hr size="2" noshade />
-	{{#funAssets}}LIABILITIES{{/funAssets}}
+	<div class="main">
+	{{#liabilities}}
+		{{>index_account}}
+	{{/liabilities}}
+	</div>
 </div>

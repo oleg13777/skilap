@@ -67,6 +67,14 @@ this.init = function (cb) {
 this.guessTab = function (req, ti,cb) {
 	var vtabs=[], user;
 	async.waterfall ([
+		// handle tab close which can be submitted thru query
+		function (cb1) {
+			var pid = req.query.close;
+			if (pid) {
+				self.removeTabs(req, [pid], cb1);
+			} else
+				cb1();
+		},		
 		// we need user first
 		function (cb) {
 			coreapi.getUser(req.session.apiToken, cb);
@@ -144,6 +152,23 @@ this.removeTabs = function (req, tabIds, cb) {
 	)
 }
 
+this.i18n_cmdtytext = function(langtoken,cmdty,value) {
+	if (cmdty.space == 'ISO4217')
+		return ctx.i18n_cytext(langtoken,cmdty.id,value)
+	else {
+		var res = ctx.i18n_cytext(langtoken,'USD',value);
+		res.replace('USD',cmdty.id);
+		return res;
+	}
+}
+		
+this.i18n_cmdtyval = function(cmdty,value) {
+	if (cmdty.space == 'ISO4217')
+		return ctx.i18n_cyval(cmdty.id,value)
+	else 
+		return ctx.i18n_cyval('USD',value)
+}
+
 }
 
 module.exports.init = function (ctx,cb) {
@@ -160,6 +185,7 @@ module.exports.init = function (ctx,cb) {
 		}], function done(err, results) {
 			var m = results[1];
 			m.api = results[0];
+			m.localePath = __dirname+'/../locale';
 			cb(null, m);
 		}
 	)

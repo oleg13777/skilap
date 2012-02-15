@@ -18,12 +18,13 @@
 	</div>
 	<div id="tabs">
 		{{#tabs}}
-			{{#selected}}<b>{{/selected}}<a class="sl_border sl_border_radius" href='{{url}}'><div class="sl_text">{{name}}</div></a>{{#selected}}</b>{{/selected}}
-			{{#selected}}<b>{{/selected}}<a class="sl_border sl_border_radius" href='{{prefix}}?close={{pid}}'><div class="sl_text">close {{name}}</div></a>{{#selected}}</b>{{/selected}}
+			<div class="sl_border sl_border_radius">
+			{{#selected}}<b>{{/selected}}( <a href='{{prefix}}?close={{pid}}'>X</a> ) <a href='{{url}}'><span class="sl_text">{{name}}</span></a>{{#selected}}</b>{{/selected}}
+			</div>
 		{{/tabs}}
 	</div>
 	<div id="workspace" class="sl_border">
-		{{{yield}}}
+		<content/>
 	</div>
 </body>
 </html>

@@ -7,6 +7,7 @@ module.exports = function account(webapp) {
 	var prefix = webapp.prefix
 	var assetsTypes = ["BANK", "CASH", "ASSET", "STOCK", "MUTUAL", "CURENCY"];
 	var liabilitiesTypes = ["CREDIT", "LIABILITY", "RECEIVABLE", "PAYABLE"];
+	var repCmdty = {space:"ISO4217",id:"RUB"};
 	
 	function getAccountDetails(token, acc, types, callback) {
 		var childs = [];
@@ -17,14 +18,36 @@ module.exports = function account(webapp) {
 			get_details: ['get_childs', function(){
 				cashapi.getAccountInfo(token, acc.id, ["value"], function(err, d) {
 					if (err) return callback(err);
-					value = Math.round(d.value*100)/100;
 					var det = {};
+					det.cmdty = acc.cmdty;
 					det.name = acc.name;
-					det.value = value;
-					det.ahref = prefix+"/account?id="+acc.id;
-					det.id = acc.id;
-					det.childs = childs;
-					callback(det);
+					// do the conversion
+					async.series ([
+						function (cb) {
+							cashapi.getCmdtyPrice(token,det.cmdty,repCmdty,null,null, function (err, rate) {
+								if (err) {
+									console.log(acc);
+									return cb(err);
+								}
+								if (!_(repCmdty).isEqual(det.cmdty)) 
+									det.quantity = d.value;
+								det.value = parseFloat(webapp.i18n_cmdtyval(det.cmdty.id,d.value*rate));
+								det.id = acc.id;
+								det.childs = childs;
+								_(childs).forEach (function (e) {
+									det.value+=e.value;
+								})
+								det.fvalue = webapp.i18n_cmdtytext(token,repCmdty,det.value);
+								if (det.quantity)
+									det.fquantity = webapp.i18n_cmdtytext(token,det.cmdty,det.quantity);
+									
+								cb();
+							})
+						}
+					], function (err) {
+						if (err) console.log(err);
+						callback(det);
+					})
 				})
 			}]
 		});
@@ -48,59 +71,22 @@ module.exports = function account(webapp) {
 		var assets = [];
 		var liabilities = [];
 		async.waterfall([
-			async.apply(getAssets, req.session.apiToken, 1, assetsTypes, assets),
-			async.apply(getAssets, req.session.apiToken, 1, liabilitiesTypes, liabilities),
-			function (cb1) {
-				var pid = req.query.close;
-				if (pid) {
-					webapp.removeTabs(req, [pid], cb1);
-				} else {
-					cb1();
-				}
-			},
+			async.apply(getAssets, req.session.apiToken, 0, assetsTypes, assets),
+			async.apply(getAssets, req.session.apiToken, 0, liabilitiesTypes, liabilities),
 			function (cb1) {
 				webapp.guessTab(req, {pid:'home',name:'Home',url:req.url}, cb1);
 			},
 			function render (vtabs) {
-				function calcSumm(items) {
-					var summ = 0;
-					for (var i = 0; i < items.length; i++) {
-						var item = items[i];
-						summ += item.value;
-					}
-					return 	Math.round(summ*100)/100;;
-				}
-				var funCalcSumm = function() {
-					return function (text) {
-						if (text == "ASSETS") return calcSumm(assets);
-						if (text == "LIABILITIES") return calcSumm(liabilities);
-					}
-				}
-				function getAssetsForHtml(assets_) {
-					var s = "";
-					for (var i = 0; i < assets_.length; i++) {
-						var a = assets_[i];
-						if (a.value==0 && a.childs.length==0) continue;
-						s += "<div><a href='"+a.ahref+"'>"+a.name+"</a><span>"+a.value+" p.</span>";
-						var ch = getAssetsForHtml(a.childs);
-						if (ch !="") {
-							s += ch;
-						}
-						s += "</div>\n";
-					}
-					return s;
-				}
-				var funAssets = function () {
-					return function (text) {
-						var str = "<div class=\"main\">\n";
-						if (text == "ASSETS") str += getAssetsForHtml(assets);
-						if (text == "LIABILITIES") str += getAssetsForHtml(liabilities);
-						return str + "</div>\n";
-					}
-				}
-				res.render(__dirname+"/../views/index", {prefix:prefix, tabs:vtabs, funAssets:funAssets, funCalcSumm:funCalcSumm});
+				var rdata = {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs};
+				rdata.assetsSum = webapp.i18n_cmdtytext(req.session.apiToken,repCmdty,_(assets).reduce(function (m,e) {return m+e.value;},0));
+				rdata.liabilitiesSum = webapp.i18n_cmdtytext(req.session.apiToken,repCmdty,_(liabilities).reduce(function (m,e) {return m+e.value;},0));
+				rdata.assets = assets;
+				rdata.liabilities = liabilities;
+				
+				res.render(__dirname+"/../views/index", rdata);
 			}],
 			next
 		);
 	});
 }
+1
