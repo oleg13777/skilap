@@ -53,6 +53,7 @@ td {
 }
 
 .ski_gridHeaderWrapper{
+	position:relative;
 	margin-right:17px;	
 }
 
@@ -61,9 +62,10 @@ td {
 	height:400px;
 	overflow-y:scroll;
 }
-.ski_gridBodyWrapper .tdContent{
+.ski_gridWrapper .tdContent{
 	position:relative;
-	padding:5px;
+	height:100%;	
+	padding:0 5px;
 	text-overflow:ellipsis;
 	overflow:hidden;
 }
@@ -175,8 +177,18 @@ td {
 	margin:5px  0 0 10px;
 }
 
+.ski_vline,.ski_hline{
+	position:absolute;
+	top:0;
+	left:0;
+	width:1px;
+	height:1px;
+	background-color:#333;
+	z-index:2;
+}
+
 .invisible{
-display:none;
+	display:none;
 }
 
 

@@ -4,7 +4,7 @@
 	var options = $.extend( {
 		sAjaxSource : '',
 		tableHeight : 400,
-		rowHeight:30,
+		rowHeight:25,
 		columnsCount:7,
 		columns:[],
 		editable:{}	
@@ -15,28 +15,32 @@
 	function settings(){
 		this.tableId = '';
 		this.tableBodyRef = null;
-		this.tableRowRef = null;		
-		this.totalRowsCount = 0;
-		this.jqXHR = null;		
-		this.rowsLimit = 0;
+		this.tableRowRef = null;
+		this.colContainerRef = null;		
+		this.headerWrapperRef = null;
 		this.bodyScrollerRef = null;
-		this.bodyWrapperRef = null;
+		this.bodyWrapperRef = null;		
+		this.totalRowsCount = 0;				
+		this.rowsLimit = 0;
 		this.totalHeight=0;
-		this.tablePosition=0;		
+		this.tablePosition=0;
+		this.jqXHR = null;		
 		this.sEcho = 1;		
 		this.splitsColumnNum = options.columnsCount;
 		this.splitButton = null;
 		this.selectedRowId = 0;
 		this.rowEditedData = null;
+		this.isNotDrawBorders = true;
 	};
 	
 	function init($obj){		
 		var objSettings = new settings();
-		wrapGrid($obj,objSettings);		
+		objSettings.colContainerRef = $('<div class="tdContent"></div>').css('line-height',options.rowHeight+'px');
+		wrapGrid($obj,objSettings);
 		var tableBody = $obj.find('tbody')[0];
 		objSettings.tableBodyRef = $(tableBody);
 		var trTemplate = $obj.find('tbody tr')[0];
-		objSettings.tableRowRef = $(trTemplate);
+		objSettings.tableRowRef = $(trTemplate);		
 		if(options.sAjaxSource == ''){
 			showError('ajax source is undefined');
 		}
@@ -48,10 +52,10 @@
 			"cache": false			
 		});
 		jqXHR.done(function(data){
-			objSettings.totalRowsCount = data.iTotalRecords;			
-			objSettings.totalHeight = data.iTotalRecords*options.rowHeight;
+			objSettings.totalRowsCount = data.iTotalRecords+1;			
+			objSettings.totalHeight = objSettings.totalRowsCount*options.rowHeight;
 			objSettings.bodyScrollerRef.css('height',objSettings.totalHeight+'px');
-			var tablePosition = objSettings.totalHeight-objSettings.rowsLimit*options.rowHeight-2;
+			var tablePosition = objSettings.totalHeight - objSettings.rowsLimit*options.rowHeight;			
 			objSettings.tablePosition = tablePosition;								
 			var offset = objSettings.totalRowsCount - objSettings.rowsLimit;
 			showGrid($obj,objSettings,offset);
@@ -67,9 +71,11 @@
 		var $gridHeaderWrapper = $('<div class="ski_gridHeaderWrapper"></div>');
 		var $gridHeader = $obj.clone();
 		$gridHeader.find('tbody').remove();
+		$gridHeader.find('th').css('height',options.rowHeight+'px').wrapInner(objSettings.colContainerRef.clone());		
 		$gridHeader.removeAttr('id');
 		$gridHeaderWrapper.append($gridHeader);		
 		$obj.parent().prepend($gridHeaderWrapper);
+		objSettings.headerWrapperRef = $gridHeaderWrapper;
 		/* add scroll to table body */
 		$gridBodyWrapper = $('<div class="ski_gridBodyWrapper"></div>');
 		$obj.find('thead').remove();		
@@ -91,21 +97,20 @@
 		$obj.parents('.ski_gridWrapper').prepend($toolbox);
 		/* scroll event */
 		objSettings.bodyWrapperRef.on('scroll',function(){									
-			var scrollPosition = $(this).scrollTop();
-			var tablePosition = scrollPosition + options.tableHeight -objSettings.rowsLimit*options.rowHeight-2;
+			var scrollPosition = $(this).scrollTop();			
+			var tablePosition = scrollPosition;// + 400 -objSettings.rowsLimit*options.rowHeight-2;
 			objSettings.tablePosition = tablePosition;				
 			var offset = objSettings.totalRowsCount - objSettings.rowsLimit - Math.round((objSettings.totalHeight-scrollPosition - options.tableHeight)/options.rowHeight);
 			showGrid($obj,objSettings,offset);			
 		});
 		
 		/* column select event */		
-		objSettings.bodyWrapperRef.find('tbody').on('click','td',function(){
-			
+		objSettings.bodyWrapperRef.find('tbody').on('click','td',function(){			
 			handleColumnClick($(this),objSettings);
 		});
 	};
 	
-	function showGrid($obj,objSettings,offset){		
+	function showGrid($obj,objSettings,offset){			
 		$obj.css('top',objSettings.tablePosition+'px');
 		objSettings.sEcho++;
 		var jqXHR = $.ajax( {
@@ -132,8 +137,10 @@
 							$(td).attr(key,options.columns[j].attr[key]);
 						}
 					}
-					var tdVal = data.aaData[i][j];						
-					$(td).css('height',options.rowHeight).attr('num',j).append('<div class="tdContent">'+(tdVal ? tdVal : '&nbsp;')+'</div>');
+					var tdVal = data.aaData[i][j];	
+					var $tdContent = objSettings.colContainerRef.clone();
+					$tdContent.html(tdVal ? tdVal : '&nbsp;');				
+					$(td).css('height',options.rowHeight).attr('num',j).append($tdContent);
 				}
 				objSettings.tableBodyRef.append(tr.addClass('mainRow').attr('recordid',data.aaData[i][0]));
 				/* Add splits rows 
@@ -148,13 +155,17 @@
 						/* fill splits rows */
 						if(j < splitsLength){										
 							var td = tr.find('td')[3];
-							$(td).append('<div class="tdContent">'+splits[j]['path']+'</div>');
+							var $tdContent = objSettings.colContainerRef.clone();
+							$tdContent.text(splits[j]['path']);
+							$(td).append($tdContent);
 							var columnIndex = 4;
 							if(splits[j]['value'] < 0){
 								columnIndex = 5;
 							}
 							var td = tr.find('td')[columnIndex];
-							$(td).append('<div class="tdContent">'+splits[j]['value']+'</div>');
+							var $tdContent = objSettings.colContainerRef.clone();
+							$tdContent.text(splits[j]['value']);
+							$(td).append($tdContent);
 						}
 						/* union some cells */
 						if(firstRow){
@@ -176,8 +187,36 @@
 			if(objSettings.selectedRowId){
 				objSettings.tableBodyRef.find('tr.mainRow[recordid="'+objSettings.selectedRowId+'"]').addClass('selected');
 			}
+			if(objSettings.isNotDrawBorders){
+				drawGridBorders($obj,objSettings);
+			}
 			handleSplitRowsShow(objSettings);											
 		});
+	};
+	
+	/*
+	 * Draw vertical and horizontal lines instead table borders
+	 */
+	function drawGridBorders($obj,objSettings){				
+		var $vline = $('<div class="ski_vline"></div>');		
+		$vline.height(options.tableHeight + options.rowHeight);
+		var columnHeaders = objSettings.headerWrapperRef.find('th');
+		var w=0;
+		for(i=0;i<columnHeaders.length-1;i++){
+			var $th = $(columnHeaders[i]);
+			var $vline_tmp = $vline.clone();
+			w += $th.width();
+			objSettings.headerWrapperRef.append($vline_tmp.css('left',w+'px'));
+		}
+		var $hline = $('<div class="ski_hline"></div>');		
+		$hline.width($obj.width());
+		var linesCount = Math.round(options.tableHeight/options.rowHeight);
+		var h=0;
+		for(i=0;i<linesCount+1;i++){
+			h += options.rowHeight;
+			objSettings.headerWrapperRef.append($hline.clone().css('top',h+'px'));
+		}
+		objSettings.isNotDrawBorders = false;
 	};
 	
 	function clearGrid(objSettings){		
@@ -194,7 +233,7 @@
 				objSettings.tableBodyRef.find('tr.splitRow[recordid="'+objSettings.selectedRowId+'"]').addClass('invisible');
 			}
 		}
-	}
+	};
 	
 	function handleColumnClick($col,objSettings){		
 		if($col.hasClass('selected')){
@@ -307,12 +346,12 @@
 			$element.css({'width':$col.width()+'px','height':$col.height()+'px'});				
 			$($col.find('.tdContent')[0]).prepend($element);			
 		}		
-	}
+	};
 	
 	function getColumnVal($col){
 		var $tdContent = $($col.find('.tdContent')[0]);
 		return $.trim($tdContent.text());
-	}
+	};
 	
 	function getColumnValFromControl($firstChild,objSettings){		
 		var val="";
@@ -328,7 +367,7 @@
 			break;
 		}		
 		return $.trim(val);
-	}
+	};
 	
 	function updateRow(rowEditedData,objSettings){
 		if(!rowEditedData.columns)
@@ -348,7 +387,7 @@
 			console.log('fail');
 			objSettings.bodyWrapperRef.scroll();
 		});
-	}
+	};
 	
 	function showError(errorText){
 		alert(errorText);
