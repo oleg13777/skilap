@@ -253,13 +253,14 @@ module.exports = function account(webapp) {
 	app.get(webapp.prefix+'/account/:id/getgrid', function(req, res, next) {
 		var data = {sEcho:req.query.sEcho,iTotalRecords:0,iTotalDisplayRecords:0,aaData:[]};
 		var idx=Math.max(req.query.iDisplayStart,0);
-		var count,register;
+		var count,register,currentAccountPath;
 		async.waterfall([
 			function (cb1) {
-				cashapi.getAccountInfo(req.session.apiToken, req.params.id,["count"], cb1);
+				cashapi.getAccountInfo(req.session.apiToken, req.params.id,["count","path"], cb1);
 			},
 			function (data,cb1) {
 				count = data.count;
+				currentAccountPath = data.path;				
 				var limit = Math.min(count-idx,req.query.iDisplayLength);
 				cashapi.getAccountRegister(req.session.apiToken, req.params.id,idx,limit, cb1);
 			},
@@ -282,12 +283,11 @@ module.exports = function account(webapp) {
 						});
 					},
 					function (cb2) {
-						var accInfo = [];					
+						var accInfo = [];
+						accInfo.push({'id':req.params.id,'path':currentAccountPath});					
 						async.forEach(_.keys(aids), function (aid, cb3) {
 							cashapi.getAccountInfo(req.session.apiToken, aid,["path"],safe.trap_sure_result(cb3,function(info) {
-								accInfo.push(info);	
-								console.log('accInfo = ');
-								console.log(info);							
+								accInfo.push(info);															
 							}));
 						}, function (err) {
 							cb2(err, accInfo);
@@ -306,12 +306,16 @@ module.exports = function account(webapp) {
 					var recv = trs.recv;
 					var send = trs.send;
 					var dp = new Date(tr.dateEntered);
-					var splitsInfo=[];					
+					var splitsInfo=[];
+					_.forEach(tr.splits,function(split){
+						split.path = accInfo[split.accountId].path;
+						splitsInfo.push(split);
+					});								
 					data.aaData.push([tr.id,df.format(dp),tr.description,
 						recv.length==1?accInfo[recv[0].accountId].path:"Multiple",
 						send.value>0?sprintf("%.2f",send.value):null,
 						send.value<=0?sprintf("%.2f",send.value*-1):null,
-						sprintf("%.2f",trs.ballance),tr.splits]);
+						sprintf("%.2f",trs.ballance),splitsInfo]);
 				}
 				if ((idx+i)==count) {
 					data.aaData.push(["new",df.format(new Date()),"",null,null,null,sprintf("%.2f",trs.ballance)]);

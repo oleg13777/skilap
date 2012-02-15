@@ -148,7 +148,7 @@
 						/* fill splits rows */
 						if(j < splitsLength){										
 							var td = tr.find('td')[3];
-							$(td).append('<div class="tdContent">'+splits[j]['accountId']+'</div>');
+							$(td).append('<div class="tdContent">'+splits[j]['path']+'</div>');
 							var columnIndex = 4;
 							if(splits[j]['value'] < 0){
 								columnIndex = 5;
@@ -326,13 +326,8 @@
 			case 'datepicker':
 				val = $firstChild.find('input').val();
 			break;
-		}
-		val = $.trim(val);
-		if(options.editable.columns[colNum].format && options.editable.columns[colNum].format=="number" && val != ""){
-			var iVal = parseInt(val);
-			return iVal.toFixed(2);
-		}
-		return val
+		}		
+		return $.trim(val);
 	}
 	
 	function updateRow(rowEditedData,objSettings){

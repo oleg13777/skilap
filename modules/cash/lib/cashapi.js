@@ -171,9 +171,9 @@ function CashApi (ctx) {
 				_.forEach(details, function (val) {
 					if (val == "value")
 						res.value = accStats.value;
-					else if (val == "count") 
+					if (val == "count") 
 						res.count = accStats.count;
-					else if (val == "path") 
+					if (val == "path") 
 						res.path = accStats.path;
 				});
 				process.nextTick(function () {cb1(null, res);});
