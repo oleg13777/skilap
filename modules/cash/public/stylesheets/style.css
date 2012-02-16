@@ -91,7 +91,7 @@ td {
 .ski_gridBodyWrapper tr.mainRow.even{
 	background-color:#F6FFDA;
 }
-.ski_gridBodyWrapper tr.mainRow.selected{
+.ski_gridBodyWrapper tr.mainRow.ski_selected{
 	background-color:#FFEF98;
 }
 .ski_gridBodyWrapper tr.splitRow{	
@@ -151,7 +151,7 @@ td {
     
 }
 
-.ski_button.selected{   
+.ski_button.ski_selected{   
     border: 1px solid #888582;
     border-radius: 4px 4px 4px 4px;
     color: #333;
