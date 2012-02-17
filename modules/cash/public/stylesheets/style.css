@@ -62,6 +62,15 @@ tr { height: 24px;}
 	margin: 10px 0 10px 0;
 }
 
+#dialog table {
+	width: 100%;
+}
+
+#dialog table td {
+	border: 0;
+	padding: 3px;
+}
+
 #header{
 	margin-left: 15px;
 	height: 40px;

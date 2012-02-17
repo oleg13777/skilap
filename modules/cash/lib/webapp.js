@@ -19,6 +19,7 @@ this.web = null;
 this.prefix = "/cash";
 this.tabs = [];
 var cash_userviews;
+var cash_userviews_settings;
 var coreapi;
 
 self.ctx.once("WebStarted", function (err) {
@@ -28,6 +29,7 @@ self.ctx.once("WebStarted", function (err) {
 		require("../pages/account.js")(self);
 		require("../pages/index.js")(self);
 		require("../pages/import.js")(self);
+		require("../pages/report.js")(self);
 	})
 })
 
@@ -40,9 +42,11 @@ function loadData (cb) {
 			var adb = results[0];
 			async.parallel([
 				async.apply(adb.ensure, "cash_userviews",{type:'cached_key_map',buffered:false}),
+				async.apply(adb.ensure, "cash_userviews_settings",{type:'cached_key_map',buffered:false}),
 			], function (err, results) {
 				if (err) return cb(err)
 				cash_userviews = results[0];
+				cash_userviews_settings = results[1];
 				cb();
 			})
 		}
@@ -142,6 +146,18 @@ this.removeTabs = function (req, tabIds, cb) {
 			cb(err);
 		}
 	)
+}
+
+this.saveTabSettings = function(req, tabId, settings, cb) {
+	coreapi.getUser(req.session.apiToken, function (err, user) {
+		cash_userviews_settings.put(user.id+"-"+tabId, settings, cb);
+	});
+}
+
+this.getTabSettings = function(req, tabId, cb) {
+	coreapi.getUser(req.session.apiToken, function (err, user) {
+		cash_userviews_settings.get(user.id+"-"+tabId, cb);
+	});
 }
 
 }

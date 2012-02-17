@@ -53,7 +53,13 @@ module.exports = function account(webapp) {
 			function (cb1) {
 				var pid = req.query.close;
 				if (pid) {
-					webapp.removeTabs(req, [pid], cb1);
+					async.parallel([
+						async.apply(webapp.removeTabs, req, [pid]),
+						async.apply(webapp.saveTabSettings, req, pid, null)
+					], function (err, results) {
+						cb1(err);
+					});
+//					webapp.removeTabs(req, [pid], cb1);
 				} else {
 					cb1();
 				}

@@ -79,6 +79,26 @@ function CashApi (ctx) {
 		cb);
 	}
 
+	function getAccount(token, id, cb) {
+		async.series ([
+			function start(cb1) {
+				async.parallel([
+					async.apply(coreapi.checkPerm,token,["cash.view"]),
+					async.apply(waitForData)
+				],cb1);
+			}, 
+			function get(cb1) {
+				cash_accounts.get(id, function (err, acc) {
+					if (err) cb1(err);
+					cb1(null, acc);
+				},
+				true);
+			}], function end(err, result) {
+				if (err) return cb(err);
+				cb(null, result[1]);
+			}
+		)
+	}
 
 	function getAllAccounts(token, cb) {
 		async.series ([
@@ -453,7 +473,7 @@ function CashApi (ctx) {
 			}
 		);
 	}
-
+	
 	function parseGnuCashXml(fileName, callback){
 		// stream usage
 		// takes the same options as the parser
@@ -504,7 +524,8 @@ function CashApi (ctx) {
 				gluMap[nodetext]=gluid;
 				tr.id = gluid; gluid++;
 			} else if (node.name == "TS:DATE") {
-				if (path[path.length-1]=="TRN:DATE-ENTERED") {
+				if (path[path.length-1]=="TRN:DATE-POSTED") {
+					console.log(nodetext); //wrong date
 					tr.dateEntered = new Date(nodetext);
 				}
 			} else if (node.name == "ACT:NAME") {
@@ -564,6 +585,38 @@ function CashApi (ctx) {
 			fs.createReadStream(fileName).pipe(saxStream);
 	}
 
+	function calcAccSummByPerriod(token, startDate, endDate, accId, cb) {
+		var Value = 0;
+		async.series([
+			function start(cb1) {
+				async.parallel([
+					async.apply(coreapi.checkPerm,token,["cash.view"]),
+					async.apply(waitForData)
+				],cb1);
+			}, 
+			function (cb1) {
+				var next = this;
+				cash_transactions.scan(function (err, k, tr) {
+					if (err) return cb1(err);
+					if (k==null) return cb1();
+					var date = new Date(tr.dateEntered);
+					if (startDate.valueOf() <= date.valueOf() && endDate.valueOf() > date.valueOf()){
+						tr.splits.forEach(function(split) {
+							if (split.accountId == accId) {
+								Value += split.value;
+							}
+						});
+					}
+				},true)
+			}],
+			function done (err) {
+				if (err) console.log(err);
+				cb(err, Value);
+			}
+		);
+	}
+	
+
 this.getAllAccounts = getAllAccounts;
 this.getAccountInfo = getAccountInfo;
 this.getAccountRegister = getAccountRegister;
@@ -577,6 +630,8 @@ this.importAccaunts = importAccaunts;
 this.parseGnuCashXml = parseGnuCashXml;
 this.clearAccaunts = clearAccaunts;
 this.clearTransaction = clearTransaction;
+this.getAccount = getAccount;
+this.calcAccSummByPerriod = calcAccSummByPerriod;
 }
 
 module.exports.init = function (ctx,cb) {

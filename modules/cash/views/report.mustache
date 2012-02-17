@@ -1,0 +1,134 @@
+<script type="text/javascript" src="/cash/javascripts/jquery.js"></script>
+<script type="text/javascript" src="/cash/javascripts/jquery-ui.min.js"></script>
+<script type="text/javascript" src="/cash/javascripts/highcharts/highcharts.js"></script>
+
+<script type="text/javascript">
+	var chart;
+	$(document).ready(function() {
+		chart = new Highcharts.Chart({
+			chart: {
+				renderTo: 'container',
+				defaultSeriesType: 'column'
+			},
+			title: {
+				text: '{{x_title}}'
+			},
+			xAxis: {
+				categories: {{categories}}
+			},
+			yAxis: {
+				title: {
+					text: '{{y_title}}'
+				},
+				stackLabels: {
+					enabled: true,
+					style: {
+						fontWeight: 'bold',
+						color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+					},
+					formatter : function () {
+						return this.total.toFixed(2);
+					}
+				}
+			},
+			credits: {
+				enabled: true
+			},
+			tooltip: {
+				formatter: function() {
+					return '<b>'+this.series.name +'</b>: '+ this.y +'<br/>'+
+						 'Total: '+ this.point.stackTotal.toFixed(2);
+				}
+			},
+			plotOptions: {
+				column: {
+					stacking: 'normal',
+					dataLabels: {
+						enabled: false,
+						color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white'
+					}
+				}
+			},
+			series: {{series}}
+		});
+	});
+</script>
+
+<script type="text/javascript">
+$(function(){
+	var params = {{params}};
+	var form = document.forms.properties;
+	form.elements.maxAcc.value=params.maxAcc;
+	if (params.accType == "EXPENSE") {
+		form.elements.report_type.selectedIndex=0;
+	} else {
+		form.elements.report_type.selectedIndex=1;
+	}
+	$("#startDate").datepicker();
+	$("#startDate").datepicker('setDate', new Date(params.startDate));
+	$("#endDate").datepicker();
+	$("#endDate").datepicker('setDate', new Date(params.endDate));
+	$("#openD").click(function(){
+		$("#dialog").dialog("open");
+	});
+	$("#dialog").dialog({
+		position: ["center","center"],
+		buttons: {
+			"apply": function() {
+				var f = document.forms.properties;
+				var startDate = new Date(f.elements.startDate.value);
+				var endDate = new Date(f.elements.endDate.value);
+				var maxAcc = f.elements.maxAcc.value;
+				var reportType = f.elements.report_type.selectedIndex;
+				if (reportType == 0)
+					reportType = "expense";
+				else if (reportType == 1)
+					reportType = "income";
+				location.href="/cash/report?start_date="+startDate.getTime()+"&end_date="+endDate.getTime()+"&max_acc="+maxAcc+"&report_type="+reportType;
+			},
+			"close": function() {
+				$(this).dialog("close");
+			}
+		},
+		autoOpen: false,
+		resizable: false,
+		height: 230,
+		width: 350,
+		modal: true,
+		draggable: false
+	});
+});
+</script>
+	
+<div id="dialog" title="Report settings" style="width: 600; height: 200px;">
+	<form name="properties">
+		<table>
+			<tr>
+				<td>start date:</td>
+				<td><input type="text" id="startDate" tabindex="-1"></tr>
+			</tr>
+			<tr>
+				<td>end date:</td>
+				<td><input type="text" id="endDate" tabindex="-1"></td>
+			</tr>
+			<tr>
+				<td>max account:</td>
+				<td><input type="text" id="maxAcc"></td>
+			</tr>
+			<tr>
+				<td>Select report:</td>
+				<td>
+					<select name="report_type">
+						<option>Expense Over Time</option>
+						<option>Income Over Time</option>
+					</select>
+				</td>
+			</tr>
+		</table>
+	</form>
+</div>
+
+<a id="openD" href="#">Properties</a>
+
+<div id="container" style="width: 100%; height: 700px;"></div>
+
