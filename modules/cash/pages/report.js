@@ -123,10 +123,8 @@ module.exports = function account(webapp) {
 		var maxAcc = 10;
 		var newQuery = false;
 		async.waterfall([
-			//check login
-			async.apply(cashapi.chPerm, req.session.apiToken),
 			// parse query request
-			function (err, cb1) {
+			function (cb1) {
 				if (req.query) {
 
 					if (req.query.report_type){
@@ -183,7 +181,6 @@ module.exports = function account(webapp) {
 				var perriods = getPerriods(startDate, endDate);
 				var categories = getCatigories(perriods);
 				if (settings && !newQuery) {
-					console.log(settings);
 					cb1(null, settings);
 				} else {
 					async.waterfall([

@@ -14,7 +14,7 @@
 				text: '{{x_title}}'
 			},
 			xAxis: {
-				categories: {{categories}}
+				categories: {{{categories}}}
 			},
 			yAxis: {
 				title: {
@@ -49,14 +49,14 @@
 					}
 				}
 			},
-			series: {{series}}
+			series: {{{series}}}
 		});
 	});
 </script>
 
 <script type="text/javascript">
 $(function(){
-	var params = {{params}};
+	var params = {{{params}}};
 	var form = document.forms.properties;
 	form.elements.maxAcc.value=params.maxAcc;
 	if (params.accType == "EXPENSE") {

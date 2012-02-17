@@ -816,7 +816,6 @@ function CashApi (ctx) {
 			}
 		);
 	}
-	
 
 this.getAllAccounts = getAllAccounts;
 this.getAccountInfo = getAccountInfo;
