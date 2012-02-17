@@ -16,14 +16,18 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../modules/core/lib/coreapi.js:125 ../modules/core/lib/viewStrings.js:1
-msgid "Access denied"
+#: ../modules/cash/lib/viewStrings.js:1
+msgid "Skilap"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:243
-msgid "Log-in failed"
+#: ../modules/cash/lib/viewStrings.js:2
+msgid "Import"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:2
-msgid "Welcome to SkiLap!"
+#: ../modules/cash/lib/viewStrings.js:3
+msgid "Assets"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:4
+msgid "Liabilities"
 msgstr ""

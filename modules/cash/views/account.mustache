@@ -1,67 +1,55 @@
-<table id="acc">
-<thead><th/><th>#</th><th>Date</th><th>Description</th><th>Path</th><th>Recieved</th><th>Spend</th><th>Ballance</th><thead>
-<tbody>
-{{#transactions}}
-	<TR><TD>{{num}}</TD><TD>{{date}}</TD><TD>{{description}}</TD><TD>{{accpath}}</TD><TD>{{value}}</TD><TD/><TD/></TR>
-{{/transactions}}
-<tbody>
-</table>
-<br>
-<table id="accNew">
-	<TR><TD class="number"/><TD class="value"/><TD class="description"/><TD class="account"/><TD class="value"/><TD class="value"/><TD class="value"/></TR>
+
+<table id="acc" cellspacing="0" cellpadding="5" width="100%">	
+<thead>
+		<th class="number">#</th>
+		<th class="value">Date</th>
+		<th class="description">Description</th>
+		<th class="account">Path</th>
+		<th class="value">Recieved</th>
+		<th class="value">Spend</th>
+		<th class="value">Ballance</th>
+	</thead>
+	<tbody>
+		
+		<tr>
+			<td class="number">{{num}}</td>
+			<td class="value">{{date}}</td>
+			<td class="description">{{description}}</td>
+			<td class="account">{{accpath}}</td>
+			<td class="value">{{value}}</td>
+			<td class="value"></td>
+			<td class="value"></td>
+		</tr>
+		
+	</tbody>
 </table>
 
+<br/>
 <script>
-$(document).ready(function(){
-	// autocomplete input type
-	$.editable.addInputType('autocomplete', {
-		element : $.editable.types.text.element,
-		plugin : function(settings, original) {
-			console.log("bullshit");
-			$('input', this).autocomplete(settings.autocomplete);
-		}
-	});
-	var hasEdited = false;
-	$('#acc').dataTable({
-			"aoColumns": [
-				{ "bVisible":false, "bSortable": false, "bSearchable":false },
-				{ "sClass": "number", "bSortable": false, "bSearchable":false },
-				{ "sClass": "value", "bSortable": false, "bSearchable":false },
-				{ "sClass": "description", "bSortable": false, "bSearchable":false },
-				{ "sClass": "account", "bSortable": false, "bSearchable":false },
-				{ "sClass": "value","bSortable": false, "bSearchable":false },
-				{ "sClass": "value","bSortable": false, "bSearchable":false },
-				{ "sClass": "value","bSortable": false, "bSearchable":false }
-				],
-			"iDisplayStart":{{firstVisible}},
-//			"iDisplayLength":{{pageSize}},
-			"iScrollGap":0,
-			"iDeferLoading":{{accountSize}},
-			"bProcessing": true,
-			"bSort":false,
-			"bFilter":false,
-			"bServerSide": true,
-			"sScrollY": "480px",
-			"sAjaxSource": "{{prefix}}/account/{{accountId}}/getgrid",
-			"sDom": "frtiS",
-//			"oScroller": {
-//				"rowHeight": 24
-//			},
-			"fnInitComplete": function () {
-				this.oScroller.fnScrollToRow( {{firstVisible}},false );
-				}
-			}).makeEditable({
-				"sUpdateURL":"{{prefix}}/account/{{accountId}}/updatecell",
-				"sHttpMethod":"GET",
-				"aoColumns": [
+$(document).ready(function(){	
+	$('#acc').skiGrid({
+		"sAjaxSource": "{{prefix}}/account/{{accountId}}/getgrid",
+		"columns":[
+			{"attr":{"name":"id"}},
+			{"attr":{"name":"date"}},
+			{"attr":{"name":"description"}},
+			{"attr":{"name":"path"}},
+			{"attr":{"name":"deposit"}},
+			{"attr":{"name":"withdrawal"}},
+			{"attr":{"name":"total"}}
+		],
+		"editable":{
+			"sUpdateURL":"{{prefix}}/account/{{accountId}}/updaterow",			
+			"columns": [
 				null,
-				{ "type":"datepicker" },
-				{ "placeholder":"","type":"autocomplete","autocomplete":{"source":"{{prefix}}/account/{{accountId}}/getdesc"}},
-				{ "type":"select","loadurl":"{{prefix}}/account/{{accountId}}/getaccounts","onblur":"submit"},
-				{ "sClass": "value","placeholder":"" },
-				{ "sClass": "value","placeholder":"" },
+				{"type":"datepicker","icon":"{{prefix}}/images/calendar.gif"},
+				{"type":"autocomplete","source":"{{prefix}}/account/{{accountId}}/getdesc","placeholder":""},
+				{"type":"select","source":"{{prefix}}/account/{{accountId}}/getaccounts"},
+				{"type":"input","format":"number"},
+				{"type":"input","format":"number"},
 				null
-				]
-				});
+			]
+		}		
+	});	
 });
 </script>

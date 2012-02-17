@@ -8,13 +8,15 @@ var async = require('async');
 var Step = require("step");
 var events = require("events");
 var sax = require("sax");
-var gunzip = require("gzbz2/gunzipstream");
+var util = require("util");
+var zlib = require("zlib");
 
 function CashApi (ctx) {
 	var self = this;
 	this.ctx = ctx;
 	var cash_accounts = null;
 	var cash_transactions = null;
+	var cash_prices = null;
 	var sema = new events.EventEmitter();
 	var dataReady = false;
 	var dataActive = false;
@@ -41,21 +43,40 @@ function CashApi (ctx) {
 	function loadData (cb) {
 		var adb;
 		async.series([
-				async.apply(self.ctx.getDB)
-			], function (err, results) {
-				if (err) return cb(err);
-				var adb = results[0];
+			function openDb(cb) {
+				self.ctx.getDB(function (err, _adb) {
+					if (err) return cb(err);
+					adb = _adb;
+					cb();
+				})
+			},
+			function openCollections(cb) {
 				async.parallel([
-					async.apply(adb.ensure, "cash_accounts",{type:'cached_key_map',buffered:false}),
-					async.apply(adb.ensure, "cash_transactions",{type:'cached_key_map',buffered:false})
+					function accounts (cb) {
+						adb.ensure("cash_accounts",{type:'cached_key_map',buffered:false},cb);
+					},
+					function transactions (cb) {
+						adb.ensure("cash_transactions",{type:'cached_key_map',buffered:false},cb);
+					},
+					function prices (cb) {
+						adb.ensure("cash_prices",{type:'cached_key_map',buffered:false},cb);
+					}
 				], function (err, results) {
 					if (err) return cb(err)
 					cash_accounts = results[0];
 					cash_transactions = results[1];
+					cash_prices = results[2];
 					cb();
 				})
+			}, 
+			function ensureIndexes(cb) {
+				async.parallel([
+					function (cb) {
+						cash_accounts.addIndex("parentId",function (acc) { return acc.parentId; }, cb);
+					}
+				], cb)
 			}
-		)
+		],cb)
 	}; 
 
 	function unloadData() {
@@ -100,6 +121,30 @@ function CashApi (ctx) {
 		)
 	}
 
+
+	function getCmdtyPrice(token,cmdty,currency,date,method,cb) {
+		if (_(cmdty).isEqual(currency)) return cb(null,1);
+		// not sure what template means
+		if (cmdty.id=='template') return cb(null,1);
+		async.series ([
+			function start(cb1) {
+				async.parallel([
+					async.apply(coreapi.checkPerm,token,["cash.view"]),
+					async.apply(waitForData)
+				],cb1);
+			}, 
+			function get(cb1) {
+				var key = JSON.stringify({from:cmdty,to:currency});
+				var ptree = stats.priceTree[key];
+				if (ptree==null) return cb(new Error("Unknown price pair"));
+				cb1(null,ptree.last);
+			}], function end(err, results) {
+				if (err) return cb(err);
+				cb(null, results[1]);
+			}
+		)
+	}
+
 	function getAllAccounts(token, cb) {
 		async.series ([
 			function start(cb1) {
@@ -132,18 +177,10 @@ function CashApi (ctx) {
 				],cb1);
 			}, 
 			function get(cb1) {
-				var accounts = [];
-				cash_accounts.scan(function (err, key, acc) {
+				cash_accounts.find({parentId: {$eq: parentId}}).all(function (err, accounts) {
 					if (err) cb1(err);
-					if (key) {
-						var id = acc.parent;
-						if (id == parentId) {
-							accounts.push(acc);
-						}
-					} else { 
-						cb1(null, accounts);
-					}
-				}, true);
+					cb1(null, _(accounts).map(function (e) {return e.value;}));
+				});
 			}], function end(err, results) {
 				if (err) return cb(err);
 				cb(null, results[1]);
@@ -170,12 +207,6 @@ function CashApi (ctx) {
 		)
 	}
 
-	function chPerm(token, cb) {
-		async.parallel([
-			async.apply(coreapi.checkPerm,token,["cash.view"])
-		],cb);
-	}
-
 	function getAccountInfo(token, accId, details, cb) {
 		async.series ([
 			function (cb1) {
@@ -191,9 +222,9 @@ function CashApi (ctx) {
 				_.forEach(details, function (val) {
 					if (val == "value")
 						res.value = accStats.value;
-					else if (val == "count") 
+					if (val == "count") 
 						res.count = accStats.count;
-					else if (val == "path") 
+					if (val == "path") 
 						res.path = accStats.path;
 				});
 				process.nextTick(function () {cb1(null, res);});
@@ -245,7 +276,7 @@ function CashApi (ctx) {
 		})
 	}
 
-	function saveTransaction (token,tr,cb) {
+	function saveTransaction (token,tr,cb) {		
 		var trUpd;
 		async.series ([
 			function (cb1) {
@@ -262,6 +293,10 @@ function CashApi (ctx) {
 			}, 
 			function (cb1) {
 				// update branch
+				console.log('tr.splits = ');
+				console.log(tr.splits);
+				console.log('trUpd.splits =');
+				console.log(trUpd.splits);
 				if (tr.splits !=null) {
 					// ammount is changed
 					_.forEach(tr.splits, function (newSplit) {
@@ -271,7 +306,8 @@ function CashApi (ctx) {
 									if (updSplit.id == newSplit.id) {
 										if (newSplit.value != null) {
 											updSplit.value = newSplit.value;
-										} else if (newSplit.accountId!=null) {
+										}
+										if (newSplit.accountId!=null) {
 											updSplit.accountId = newSplit.accountId;
 										}
 									}
@@ -280,13 +316,16 @@ function CashApi (ctx) {
 								// add new split
 							}
 					});
-				} else if (tr.description != null) {
+				} 
+				if (tr.description != null) {
 					trUpd.description = tr.description;
-				} else if (tr.datePosted != null) {
+				} 
+				if (tr.datePosted != null) {
 					trUpd.datePosted = tr.datePosted;
-				} else if (tr.dateEntered != null) {
+				} 
+				if (tr.dateEntered != null) {
 					trUpd.dateEntered = tr.dateEntered;
-				}
+				}				
 				cash_transactions.put(trUpd.id, trUpd, cb1);
 			}
 		], function (err) {
@@ -338,6 +377,49 @@ function CashApi (ctx) {
 			cb(null);
 		})
 	}
+	
+	function clearPrices (token, ids, cb) {
+		if (ids == null) {
+			async.series ([
+				function (cb1) {
+					async.parallel([
+						async.apply(coreapi.checkPerm,token,["cash.edit"]),
+						async.apply(waitForData)
+					],cb1);
+				},
+				function (cb1) {
+					cash_prices.clear(cb1);
+				} 
+			], function (err) {
+				if (err) return cb(err);
+				process.nextTick(function () { calcStats(function () {})});
+				cb(null);
+			});
+		} else {
+			cb(null);
+		}
+	}
+
+	function importPrices (token, prices, cb) {
+		async.series ([
+			function (cb1) {
+				async.parallel([
+					async.apply(coreapi.checkPerm,token,["cash.edit"]),
+					async.apply(waitForData)
+				],cb1);
+			},
+			function (cb1) {
+				prices.forEach(function (e) {
+					cash_prices.put(e.id,e,function (err) {if (err) { throw err; }});
+				});
+				cb1();
+			}, 
+		], function (err) {
+			if (err) return cb(err);
+			process.nextTick(function () { calcStats(function () {})});
+			cb(null);
+		})
+	}	
 
 	function clearTransaction (token, ids, cb) {
 		if (ids == null) {
@@ -383,8 +465,8 @@ function CashApi (ctx) {
 	}
 
 	function getAccPath(acc, cb) {
-		if (acc.id!=acc.parent && acc.parent!=1) {
-			cash_accounts.get(acc.parent, function(err, parentAcc) {
+		if (acc.id!=acc.parentId && acc.parentId!=0) {
+			cash_accounts.get(acc.parentId, function(err, parentAcc) {
 				if (parentAcc==null) {
 					cb("");
 				} else {
@@ -409,6 +491,49 @@ function CashApi (ctx) {
 			return stats[accId];
 		}
 		async.auto({
+			price_tree: function (cb1) {
+				stats.priceTree = {};
+				cash_prices.scan(function(err, k, price) {
+					if (err) return cb1(err);
+					if (k==null) { 
+						return cb1();
+					}
+					var date = new Date(price.date);
+					var year = date.getFullYear();
+					var month = date.getMonth();
+					var dirs = [ 
+						{rate:price.value,key:JSON.stringify({from:price.cmdty,to:price.currency})},
+						{rate:1/price.value,key:JSON.stringify({to:price.currency,from:price.cmdty})}];
+					_(dirs).forEach(function (dir) {
+						var dirTree = stats.priceTree[dir.key];
+						if (dirTree==null) stats.priceTree[dir.key]=dirTree={};
+						var yearTree = dirTree[year];
+						if (yearTree==null) dirTree[year]=yearTree={};
+						var monthArray = yearTree[month];
+						if (monthArray==null) yearTree[month]=monthArray=[];
+						monthArray.push({date:date,rate:dir.rate});
+						if (dirTree.average==null) {
+							dirTree.average=dir.rate;
+							dirTree.max=dir.rate;
+							dirTree.min=dir.rate;
+							dirTree.last = dir.rate;
+							dirTree.lastDate = date;
+							dirTree.quotes=1;
+						}
+						else {
+							dirTree.average=dirTree.average*dirTree.quotes+dir.rate;
+							dirTree.quotes++;
+							dirTree.average/=dirTree.quotes;
+						}
+						if (dir.rate>dirTree.max)
+							dirTree.max = dir.rate;
+						if (dir.rate<dirTree.min)
+							dirTree.min = dir.rate;
+						if (date>dirTree.lastDate)
+							dirTree.last = dir.rate;
+					})
+				}, true)
+			},
 			account_paths: function (cb1) {
 				var next = this;
 				var c=1;
@@ -431,7 +556,7 @@ function CashApi (ctx) {
 					if (k==null) return cb1();
 					tr.splits.forEach(function(split) {
 						var accStats = getAccStats(split.accountId);
-						accStats.value+=split.value;
+						accStats.value+=split.quantity;
 						accStats.count++;
 						accStats.trDateIndex.push({id:tr.id,date:tr.dateEntered});
 					});
@@ -492,20 +617,26 @@ function CashApi (ctx) {
 		var acc;
 		var split;
 		var nodetext;
+		var price;
 		var transactions = [];
 		var accounts = [];
+		var prices = [];
 		var accMap = {};
 		var path = [];
 		var gluid = 1;
 		var gluMap = {};
+		var rootId = null;
 		saxStream.on("opentag", function (node) {
 			path.push(node.name);
 			if (node.name == "GNC:TRANSACTION") {
-				tr = {splits:[]};
+				tr = {currency:{},splits:[]};
 			} else if (node.name == "GNC:ACCOUNT") {
-				acc = {};
+				acc = {parentId:0,cmdty:{}};
 			} else if (node.name == "TRN:SPLIT") {
 				split = {};
+			} else if (node.name == "PRICE") {
+				price = {id:gluid,cmdty:{},currency:{}};
+				gluid++;
 			}
 		})
 
@@ -518,6 +649,8 @@ function CashApi (ctx) {
 			path.pop();
 			if (name == "GNC:TRANSACTION") {
 				transactions.push(tr);
+			} else if (name == "PRICE") {
+				prices.push(price);
 			} else if (node.name == "TRN:DESCRIPTION") {
 				tr.description = nodetext;
 			} else if (node.name == "TRN:ID") {
@@ -527,6 +660,10 @@ function CashApi (ctx) {
 				if (path[path.length-1]=="TRN:DATE-POSTED") {
 					console.log(nodetext); //wrong date
 					tr.dateEntered = new Date(nodetext);
+				} else if (path[path.length-1]=="TRN:DATE-POSTED") {
+					tr.datePosted = new Date(nodetext);
+				} else if (path[path.length-1]=="PRICE:TIME") {
+					price.date = new Date(nodetext);
 				}
 			} else if (node.name == "ACT:NAME") {
 				acc.name = nodetext;
@@ -536,17 +673,35 @@ function CashApi (ctx) {
 				gluMap[nodetext]=gluid;
 				acc.id = gluid; gluid++;
 			} else if (node.name == "ACT:PARENT") {
-				acc.parent = gluMap[nodetext];
+				acc.parentId = gluMap[nodetext];
+				if (acc.parentId == rootId)
+					acc.parentId = 0;
 			} else if (node.name == "CMDTY:ID") {
 				if (path[path.length-1]=="ACT:COMMODITY") {
-					acc.cmdtyId = nodetext;
+					acc.cmdty.id = nodetext;
 				} else if (path[path.length-1]=="TRN:CURRENCY") {
-					tr.currency = nodetext;
+					tr.currency.id = nodetext;
+				} else if (path[path.length-1]=="PRICE:COMMODITY") {
+					price.cmdty.id = nodetext;
+				} else if (path[path.length-1]=="PRICE:CURRENCY") {
+					price.currency.id = nodetext;
+				}
+			} else if (node.name == "CMDTY:SPACE") {
+				if (path[path.length-1]=="ACT:COMMODITY") {
+					acc.cmdty.space = nodetext;
+				} else if (path[path.length-1]=="TRN:CURRENCY") {
+					tr.currency.space = nodetext;
+				} else if (path[path.length-1]=="PRICE:COMMODITY") {
+					price.cmdty.space = nodetext;
+				} else if (path[path.length-1]=="PRICE:CURRENCY") {
+					price.currency.space = nodetext;
 				}
 			} else if (node.name == "GNC:ACCOUNT") {
 				if (acc.type != "ROOT") {
 					accounts.push (acc);
 					accMap[acc.id]=acc;
+				} else {
+					rootId = acc.id;
 				}
 			} else if (node.name == "SPLIT:QUANTITY") {
 				split.quantity = eval(nodetext);
@@ -564,14 +719,60 @@ function CashApi (ctx) {
 					exit(0);
 				}
 				tr.splits.push(split);
+			} if (node.name == "PRICE:VALUE") {
+				price.value = eval(nodetext);
+			} if (node.name == "SPLIT:MEMO") {
+				split.memo = nodetext;
 			}
 		})
 
 		saxStream.on("end", function (node) {
-			var ret = {tr:transactions, acc:accounts};
-			process.nextTick(function(){
-				callback(ret);
-			});
+			// we need to transpond ids to our own space
+			var aidMap={};
+			async.series([
+				function transpondAccounts(cb) {
+					async.forEachSeries(accounts, function (acc,cb) {
+						ctx.getUniqueId(function (err, id) {
+							if (err) return cb(err);
+							aidMap[acc.id]=id;
+							acc.id = id;
+							cb();
+						})
+					},cb)
+				},
+				function transpondAccountsTree(cb) {
+					_(accounts).forEach(function (acc) {
+						if (acc.parentId!=0)
+							acc.parentId=aidMap[acc.parentId];
+					})
+					cb();
+				},
+				function transpondTransactions(cb) {
+					async.forEachSeries(transactions, function (trn,cb) {
+						async.forEachSeries(trn.splits, function (split,cb) {
+							split.accountId = aidMap[split.accountId];
+							ctx.getUniqueId(function (err, id) {
+								if (err) return cb(err);
+								split.id = id;
+								cb();
+							})
+						}, function (err) {
+							if (err) return cb(err);
+							ctx.getUniqueId(function (err, id) {
+								if (err) return cb(err);
+								trn.id = id;
+								cb();
+							})
+						})
+					},cb)
+				}
+			], function (err) {
+				if (err) return cb(err);
+				var ret = {tr:transactions, acc:accounts, prices:prices};
+				process.nextTick(function(){
+					callback(null,ret);
+				});
+			})
 		})
 		
 		var buffer = new Buffer(3);
@@ -580,7 +781,7 @@ function CashApi (ctx) {
 		fs.closeSync(fd);
 
 		if (buffer[0] == 31 && buffer[1] == 139 && buffer[2] == 8)
-			gunzip.wrap(fileName, {encoding: "utf8"}).pipe(saxStream);
+			fs.createReadStream(fileName).pipe(zlib.createUnzip()).pipe(saxStream)
 		else 
 			fs.createReadStream(fileName).pipe(saxStream);
 	}
@@ -624,12 +825,14 @@ this.getTransaction = getTransaction;
 this.saveTransaction = saveTransaction;
 this.getAccountByPath = getAccountByPath;
 this.getChildAccounts = getChildAccounts;
-this.chPerm = chPerm;
 this.importTransactions = importTransactions;
-this.importAccaunts = importAccaunts;
+this.importAccounts = importAccaunts;
+this.importPrices = importPrices;
 this.parseGnuCashXml = parseGnuCashXml;
-this.clearAccaunts = clearAccaunts;
-this.clearTransaction = clearTransaction;
+this.clearAccounts = clearAccaunts;
+this.clearTransactions = clearTransaction;
+this.clearPrices = clearPrices;
+this.getCmdtyPrice = getCmdtyPrice;
 this.getAccount = getAccount;
 this.calcAccSummByPerriod = calcAccSummByPerriod;
 }
