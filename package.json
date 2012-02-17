@@ -8,6 +8,7 @@
     , "cookies": ""
     , "jsorm-i18n": ""
     , "underscore": ""
+    , "safe": "git://github.com/sergeyksv/safejs.git"
     , "sax": ""
     , "async": ""
     , "sprintf" : ""
