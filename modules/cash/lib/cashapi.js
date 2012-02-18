@@ -73,6 +73,9 @@ function CashApi (ctx) {
 				async.parallel([
 					function (cb) {
 						cash_accounts.addIndex("parentId",function (acc) { return acc.parentId; }, cb);
+					},
+					function (cb) {
+						cash_transactions.addIndex("datePosted",{ordered:true},function (trn) { return (new Date(trn.datePosted)).valueOf(); }, cb);
 					}
 				], cb)
 			}
@@ -786,8 +789,8 @@ function CashApi (ctx) {
 			fs.createReadStream(fileName).pipe(saxStream);
 	}
 
-	function calcAccSummByPerriod(token, startDate, endDate, accId, cb) {
-		var Value = 0;
+	function getTransactionInDateRange(token, range, cb) {
+		var res = [];
 		async.series([
 			function start(cb1) {
 				async.parallel([
@@ -796,23 +799,18 @@ function CashApi (ctx) {
 				],cb1);
 			}, 
 			function (cb1) {
-				var next = this;
-				cash_transactions.scan(function (err, k, tr) {
-					if (err) return cb1(err);
-					if (k==null) return cb1();
-					var date = new Date(tr.dateEntered);
-					if (startDate.valueOf() <= date.valueOf() && endDate.valueOf() > date.valueOf()){
-						tr.splits.forEach(function(split) {
-							if (split.accountId == accId) {
-								Value += split.value;
-							}
-						});
-					}
-				},true)
+				var stream = cash_transactions.find({datePosted: {$range: [range[0].valueOf(),range[1].valueOf(),range[2],range[3]]}}).stream();
+				stream.on('record', function (key,tr) {
+					res.push(tr);
+				});
+				stream.on('end',cb1);
+				stream.on('error',cb1);
 			}],
 			function done (err) {
 				if (err) console.log(err);
-				cb(err, Value);
+				process.nextTick(function () {
+					cb(err, res);
+				});
 			}
 		);
 	}
@@ -833,7 +831,7 @@ this.clearTransactions = clearTransaction;
 this.clearPrices = clearPrices;
 this.getCmdtyPrice = getCmdtyPrice;
 this.getAccount = getAccount;
-this.calcAccSummByPerriod = calcAccSummByPerriod;
+this.getTransactionsInDateRange = getTransactionInDateRange;
 }
 
 module.exports.init = function (ctx,cb) {
