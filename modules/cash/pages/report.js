@@ -11,7 +11,7 @@ module.exports = function account(webapp) {
 	function getPeriods (sd, ed) {
 		var ret = [];
 		var start = new Date(sd.valueOf());
-		var end;
+		var end = new Date(sd.valueOf());
 		while (end.valueOf() < ed.valueOf()) {
 			end = new Date(start.getFullYear(),start.getMonth()+1,1);
 			if (ed.valueOf()<end.valueOf())

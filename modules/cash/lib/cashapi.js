@@ -75,7 +75,7 @@ function CashApi (ctx) {
 						cash_accounts.addIndex("parentId",function (acc) { return acc.parentId; }, cb);
 					},
 					function (cb) {
-						cash_transactions.addIndex("datePosted",{ordered:true},function (trn) { return (new Date(trn.datePosted)).valueOf(); }, cb);
+						cash_transactions.addIndex("datePosted",function (trn) { return (new Date(trn.datePosted)).valueOf(); }, cb);
 					}
 				], cb)
 			}
@@ -561,7 +561,7 @@ function CashApi (ctx) {
 						var accStats = getAccStats(split.accountId);
 						accStats.value+=split.quantity;
 						accStats.count++;
-						accStats.trDateIndex.push({id:tr.id,date:tr.dateEntered});
+						accStats.trDateIndex.push({id:tr.id,date:tr.datePosted});
 					});
 				},true)
 			},
@@ -660,8 +660,8 @@ function CashApi (ctx) {
 				gluMap[nodetext]=gluid;
 				tr.id = gluid; gluid++;
 			} else if (node.name == "TS:DATE") {
-				if (path[path.length-1]=="TRN:DATE-POSTED") {
-					console.log(nodetext); //wrong date
+				if (path[path.length-1]=="TRN:DATE-ENTERED") {
+					console.log(nodetext);
 					tr.dateEntered = new Date(nodetext);
 				} else if (path[path.length-1]=="TRN:DATE-POSTED") {
 					tr.datePosted = new Date(nodetext);
