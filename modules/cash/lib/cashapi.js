@@ -661,7 +661,6 @@ function CashApi (ctx) {
 				tr.id = gluid; gluid++;
 			} else if (node.name == "TS:DATE") {
 				if (path[path.length-1]=="TRN:DATE-ENTERED") {
-					console.log(nodetext);
 					tr.dateEntered = new Date(nodetext);
 				} else if (path[path.length-1]=="TRN:DATE-POSTED") {
 					tr.datePosted = new Date(nodetext);
