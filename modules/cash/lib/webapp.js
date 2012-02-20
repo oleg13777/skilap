@@ -19,7 +19,6 @@ this.web = null;
 this.prefix = "/cash";
 this.tabs = [];
 var cash_userviews;
-var cash_userviews_settings;
 var coreapi;
 
 self.ctx.once("WebStarted", function (err) {
@@ -41,12 +40,10 @@ function loadData (cb) {
 			if (err) return cb(err);
 			var adb = results[0];
 			async.parallel([
-				async.apply(adb.ensure, "cash_userviews",{type:'cached_key_map',buffered:false}),
-				async.apply(adb.ensure, "cash_userviews_settings",{type:'cached_key_map',buffered:false}),
+				async.apply(adb.ensure, "cash_userviews",{type:'cached_key_map',buffered:false})
 			], function (err, results) {
 				if (err) return cb(err)
 				cash_userviews = results[0];
-				cash_userviews_settings = results[1];
 				cb();
 			})
 		}
@@ -157,15 +154,51 @@ this.removeTabs = function (req, tabIds, cb) {
 }
 
 this.saveTabSettings = function(req, tabId, settings, cb) {
-	coreapi.getUser(req.session.apiToken, function (err, user) {
-		cash_userviews_settings.put(user.id+"-"+tabId, settings, cb);
-	});
+	var user;
+	async.waterfall ([
+		// we need user first
+		function (cb1) {
+			coreapi.getUser(req.session.apiToken, cb1);
+		},
+		function (_user, cb1) {
+			user = _user;
+			cash_userviews.get(user.id,cb1);
+		},
+		function (views, cb1) {
+			_.forEach(views.tabs, function (t) {
+				if (t.pid == tabId) {
+					t.settings = settings
+					cash_userviews.put(user.id, views, cb1);
+				}
+			});
+			cash_userviews.put(user.id, views, cb1);
+		}], function (err, results) {
+			cb(err);
+		}
+	)
 }
 
 this.getTabSettings = function(req, tabId, cb) {
-	coreapi.getUser(req.session.apiToken, function (err, user) {
-		cash_userviews_settings.get(user.id+"-"+tabId, cb);
-	});
+	async.waterfall ([
+		// we need user first
+		function (cb1) {
+			coreapi.getUser(req.session.apiToken, cb1);
+		},
+		function (user, cb1) {
+			cash_userviews.get(user.id,cb1);
+		},
+		function (views, cb1) {
+			var ret = {};
+			views.tabs.forEach(function (t){
+				if (t.pid == tabId) {
+					ret = t.settings;
+				}
+			});
+			cb1(null, ret);
+		}], function (err, results) {
+			cb(err, results);
+		}
+	)
 }
 
 this.i18n_cmdtytext = function(langtoken,cmdty,value) {

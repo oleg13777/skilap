@@ -86,8 +86,8 @@ module.exports = function account(webapp) {
 	
 	app.get(prefix + "/report", function(req, res, next) {
 		var accType = "EXPENSE";
-		var x_title = "";
-		var y_title = "";
+		x_title = "Expense Over Time";
+		y_title = "Total Expense";
 		var startDate = new Date(new Date().getFullYear()-1, 0, 1);
 		var endDate = new Date(new Date().getFullYear()-1, 11, 31);
 		var maxAcc = 10;
@@ -150,9 +150,11 @@ module.exports = function account(webapp) {
 			function (params, vtabs, settings, cb1) {
 				var periods = getPeriods(startDate, endDate);
 				var categories = _(periods).map(function (p) { return (p.start.getMonth()+1)+"."+p.start.getFullYear();});
-				if (settings && !newQuery) {
+				if (settings && !newQuery && !_.isEmpty(settings)) {
+					console.log("old settings");
 					cb1(null, settings);
 				} else {
+					console.log("new settings");
 					async.waterfall([
 						async.apply(cashapi.getAllAccounts, req.session.apiToken),
 						function (accounts, cb2) {
