@@ -151,10 +151,8 @@ module.exports = function account(webapp) {
 				var periods = getPeriods(startDate, endDate);
 				var categories = _(periods).map(function (p) { return (p.start.getMonth()+1)+"."+p.start.getFullYear();});
 				if (settings && !newQuery && !_.isEmpty(settings)) {
-					console.log("old settings");
 					cb1(null, settings);
 				} else {
-					console.log("new settings");
 					async.waterfall([
 						async.apply(cashapi.getAllAccounts, req.session.apiToken),
 						function (accounts, cb2) {
