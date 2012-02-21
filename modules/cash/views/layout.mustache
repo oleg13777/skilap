@@ -10,6 +10,27 @@
 		@import "{{prefix}}/stylesheets/jquery-ui/jquery-ui-1.8.17.custom.css";
 	</style>
 	{{>scripts}}
+	<script>
+		$(document).ready(function(){
+			$(".closeTab").on("click", function(e){
+				var self = $(this);
+				var jqXHR = $.ajax({
+					"url": "{{prefix}}/close?pid=" + self.attr('pid'),
+					"dataType": "json"
+				});
+				jqXHR.done(function(data){
+					if (self.parent().hasClass("active") && data){
+						location.href="{{prefix}}";
+					} else {
+						self.parent().parent().remove();
+					}
+				});
+				jqXHR.fail(function(data){
+				});
+				e.preventDefault();
+			});
+		});
+	</script>
 </head>
 <body>
 	<div id="header">
@@ -19,7 +40,7 @@
 	<div id="tabs">
 		{{#tabs}}
 			<div class="sl_border sl_border_radius">
-			{{#selected}}<b>{{/selected}}( <a href='{{prefix}}?close={{pid}}'>X</a> ) <a href='{{url}}'><span class="sl_text">{{name}}</span></a>{{#selected}}</b>{{/selected}}
+			<span {{#selected}}class="{{activeTabClass}}"{{/selected}}>( <a href='{{url}}' pid="{{pid}}" class="closeTab">X</a> ) <a href='{{url}}'><span class="sl_text">{{name}}</span></a></span>
 			</div>
 		{{/tabs}}
 	</div>

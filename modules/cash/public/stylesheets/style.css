@@ -286,6 +286,8 @@ td {
 
 #tabs .sl_text{font-size: 105%;}
 
+#tabs .active {font-weight: bold;}
+
 #tabs div{
 	display: block;
 	margin: 5px 0;

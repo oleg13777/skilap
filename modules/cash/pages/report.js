@@ -133,12 +133,12 @@ module.exports = function account(webapp) {
 				cb1(null, {startDate:startDate, endDate:endDate, accType:accType, maxAcc:maxAcc});
 			},
 			function (params, cb1) {
-				async.parallel({
-					getSettings : function(cb2) {
-						webapp.getTabSettings(req, 'report', cb2);
-					},
+				async.series({
 					getVTabs : function(cb2) {
 						webapp.guessTab(req, {pid:'report',name:'Report',url:req.url}, cb2);
+					},
+					getSettings : function(cb2) {
+						webapp.getTabSettings(req.session.apiToken, 'report', cb2);
 					}
 				}, 
 				function (err, results){
@@ -165,7 +165,7 @@ module.exports = function account(webapp) {
 				}
 			},
 			function (settings) {
-				webapp.saveTabSettings(req, 'report', settings, function (err, len, pos) {
+				webapp.saveTabSettings(req.session.apiToken, 'report', settings, function (err, len, pos) {
 					res.render(__dirname+"/../views/report", settings);
 				});
 			}],
