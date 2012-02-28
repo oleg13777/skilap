@@ -10,6 +10,12 @@
 		@import "{{prefix}}/stylesheets/jquery-ui/jquery-ui-1.8.17.custom.css";
 	</style>
 	{{>scripts}}
+<!--
+<script type="text/javascript" src="{{prefix}}/javascripts/date.js"></script>
+<script type="text/javascript" src="{{prefix}}/javascripts/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="{{prefix}}/javascripts/jquery-ui-1.8.17.custom.min.js"></script>
+<script type="text/javascript" src="{{prefix}}/javascripts/jquery.skiGrid.js"></script>
+-->
 	<script>
 		$(document).ready(function(){
 			$(".closeTab").on("click", function(e){
@@ -19,7 +25,7 @@
 					"dataType": "json"
 				});
 				jqXHR.done(function(data){
-					if (self.parent().hasClass("active") && data){
+					if (self.parent().hasClass("active")){
 						location.href="{{prefix}}";
 					} else {
 						self.parent().parent().remove();

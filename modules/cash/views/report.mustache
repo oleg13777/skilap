@@ -1,9 +1,14 @@
-<script type="text/javascript" src="/cash/javascripts/jquery.js"></script>
-<script type="text/javascript" src="/cash/javascripts/jquery-ui.min.js"></script>
-<script type="text/javascript" src="/cash/javascripts/highcharts/highcharts.js"></script>
+<script type="text/javascript" src="{{prefix}}/javascripts/highcharts/highcharts.js"></script>
 
 <script type="text/javascript">
 	var chart;
+	var params = {{{params}}};
+	var x_title = "Expense Over Time";
+	var y_title = "Total Expense";
+	if (params.accType == "INCOME") {
+		x_title = "Income Over Time";
+		y_title = "Total Income";
+	}
 	$(document).ready(function() {
 		chart = new Highcharts.Chart({
 			chart: {
@@ -11,14 +16,14 @@
 				defaultSeriesType: 'column'
 			},
 			title: {
-				text: '{{x_title}}'
+				text: x_title
 			},
 			xAxis: {
 				categories: {{{categories}}}
 			},
 			yAxis: {
 				title: {
-					text: '{{y_title}}'
+					text: y_title
 				},
 				stackLabels: {
 					enabled: true,
@@ -52,7 +57,6 @@
 			series: {{{series}}}
 		});
 		
-		var params = {{{params}}};
 		var form = document.forms.properties;
 		form.elements.maxAcc.value=params.maxAcc;
 		if (params.accType == "EXPENSE") {
@@ -84,7 +88,7 @@
 					var jqXHR = $.ajax({
 						"type": "POST",
 						"data": p,
-						"url": "{{prefix}}/report",
+						"url": "{{prefix}}/report"+location.search,
 						"dataType": "text"
 					});
 					jqXHR.done(function(data){

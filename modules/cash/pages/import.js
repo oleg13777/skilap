@@ -84,7 +84,7 @@ module.exports = function account(webapp) {
 				},
 				function (vtabs, cb1) {
 					tabs = vtabs;
-					webapp.removeTabs(req, null /*['import']*/, cb1);
+					webapp.removeTabs(req.session.apiToken, null /*['import']*/, cb1);
 				},
 				function render (cb1) {
 					res.render(__dirname+"/../views/import", {prefix:prefix, tabs:tabs, caption: "data saved", step2:true, transactions:transactions.length, accounts:accounts.length});
