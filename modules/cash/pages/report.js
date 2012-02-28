@@ -84,6 +84,17 @@ module.exports = function account(webapp) {
 		})
 	}
 	
+	function createNewSettings(token, params, categories, vtabs, periods, cb){
+		async.waterfall([
+			async.apply(cashapi.getAllAccounts, token),
+			function (accounts, cb1) {
+				calcAccStatsByPerriod(token, accounts, params.accType, params.startDate, params.endDate, periods, params.maxAcc, cb1);
+			}
+		], function (err, series) {
+			cb(null, {prefix:prefix, tabs:vtabs, x_title:x_title, y_title:y_title, categories:JSON.stringify(categories), series:JSON.stringify(series), params:JSON.stringify(params)});
+		});
+	};
+	
 	app.get(prefix + "/report", function(req, res, next) {
 		var accType = "EXPENSE";
 		x_title = "Expense Over Time";
@@ -91,85 +102,99 @@ module.exports = function account(webapp) {
 		var startDate = new Date(new Date().getFullYear()-1, 0, 1);
 		var endDate = new Date(new Date().getFullYear()-1, 11, 31);
 		var maxAcc = 10;
-		var newQuery = false;
+		var pid = 'expense';
+		var name = 'expense';
+		var url = req.url;
+		var redirect = true;
+		
+		if (req.query && req.query.name) {
+			name = req.query.name;
+			pid = name;
+			redirect = false;
+		} else {
+			url = req.url+"?name="+name;
+		}
+
+		var params = {startDate:startDate, endDate:endDate, accType:accType, maxAcc:maxAcc, reportName:name};
+		console.log(params);
+		var periods = getPeriods(params.startDate, params.endDate);
+		var categories = _(periods).map(function (p) { return (p.start.getMonth()+1)+"."+p.start.getFullYear();});
+
+		if (redirect) {
+			async.waterfall([
+				function (cb1) {
+					webapp.guessTab(req, {pid:pid, name:name, url:url}, cb1);
+				},
+				function (vtabs, cb1) {
+					createNewSettings(req.session.apiToken, params, categories, vtabs, periods, cb1);
+				},
+				function (settings, cb1) {
+					webapp.saveTabSettings(req.session.apiToken, pid, settings, cb1);
+				},
+				function (cb1) {
+					res.redirect(url);
+				}],
+				next
+			);
+		} else {
+			async.waterfall([
+				function (cb1) {
+					webapp.getTabSettings(req.session.apiToken, pid, cb1);
+				},
+				function (settings, cb1) {
+					if (settings && !_.isEmpty(settings)) {
+						cb1(null, settings);
+					} else {
+						webapp.guessTab(req, {pid:pid, name:name, url:url}, function(err, vtabs) {
+							createNewSettings(req.session.apiToken, params, categories, vtabs, periods, function(err, settings) {
+								webapp.saveTabSettings(req.session.apiToken, pid, settings, function(err){
+									cb1(err, settings);
+								})
+							});
+						});
+					}
+				},
+				function (settings) {
+					res.render(__dirname+"/../views/report", settings);
+				}],
+				next
+			);
+		}
+	});
+	
+	app.post(prefix+"/report", function(req, res, next) {
 		async.waterfall([
-			// parse query request
 			function (cb1) {
-				if (req.query) {
-
-					if (req.query.report_type){
-						if (req.query.report_type == "expense"){
-							accType = "EXPENSE";
-							x_title = "Expense Over Time";
-							y_title = "Total Expense";
-							newQuery = true;
-						}
-						if (req.query.report_type == "income"){
-							accType = "INCOME";
-							x_title = "Income Over Time";
-							y_title = "Total Income";
-							newQuery = true;
-						}
-					}
-
-					if (req.query.max_acc) {
-						maxAcc = req.query.max_acc;
-						newQuery = true;
-					}
-
-					if (req.query.start_date && req.query.end_date) {
-						startDate = new Date(parseInt(req.query.start_date));
-						endDate = new Date(parseInt(req.query.end_date));
-						newQuery = true;
-					}
-
-					if (req.query.max_acc) {
-						maxAcc = req.query.max_acc;
-						newQuery = true;
-					}
-				} else {
-					newQuery = false;
+				var accType = "EXPENSE";
+				var x_title = "Expense Over Time";
+				var y_title = "Total Expense";
+				if (req.body.reportType == "INCOME"){
+					accType = "INCOME";
+					x_title = "Income Over Time";
+					y_title = "Total Income";
 				}
-				cb1(null, {startDate:startDate, endDate:endDate, accType:accType, maxAcc:maxAcc});
+				var maxAcc = req.body.maxAcc;
+				var startDate = new Date(parseInt(req.body.startDate));
+				var endDate = new Date(parseInt(req.body.endDate));
+				var reportName = req.body.reportName;
+				cb1(null, {startDate:startDate, endDate:endDate, accType:accType, maxAcc:maxAcc, reportName:reportName});
 			},
 			function (params, cb1) {
-				async.series({
-					getVTabs : function(cb2) {
-						webapp.guessTab(req, {pid:'report',name:'Report',url:req.url}, cb2);
-					},
-					getSettings : function(cb2) {
-						webapp.getTabSettings(req.session.apiToken, 'report', cb2);
-					}
-				}, 
-				function (err, results){
-					var settings = results.getSettings;
-					var vtabs = results.getVTabs;
-					cb1(err, params, vtabs, settings);
-				});
-			},
-			function (params, vtabs, settings, cb1) {
-				var periods = getPeriods(startDate, endDate);
+				var periods = getPeriods(params.startDate, params.endDate);
 				var categories = _(periods).map(function (p) { return (p.start.getMonth()+1)+"."+p.start.getFullYear();});
-				if (settings && !newQuery && !_.isEmpty(settings)) {
-					cb1(null, settings);
-				} else {
-					async.waterfall([
-						async.apply(cashapi.getAllAccounts, req.session.apiToken),
-						function (accounts, cb2) {
-							calcAccStatsByPerriod(req.session.apiToken, accounts, params.accType, params.startDate, params.endDate, periods, maxAcc, cb2);
-						}
-					], 
-					function (err, series) {
-						cb1(null, {prefix:prefix, tabs:vtabs, x_title:x_title, y_title:y_title, categories:JSON.stringify(categories), series:JSON.stringify(series), params:JSON.stringify(params)});
+				webapp.guessTab(req, {pid:params.reportName, name:params.reportName,url:req.url+"?name="+params.reportName}, function(err, vtabs) {
+					createNewSettings(req.session.apiToken, params, categories, vtabs, periods, function(err, settings) {
+						cb1(err, settings, params.reportName);
 					});
-				}
-			},
-			function (settings) {
-				webapp.saveTabSettings(req.session.apiToken, 'report', settings, function (err, len, pos) {
-					res.render(__dirname+"/../views/report", settings);
 				});
-			}],
-			next
-		);
+			},
+			function(settings, name){
+				webapp.saveTabSettings(req.session.apiToken, name, settings, function (err, len, pos) {
+					res.writeHead(200, {'Content-Type': 'text/plain'});
+					var redirectUrl = prefix+"/report?name="+name;
+					res.end(redirectUrl);
+				});
+			}
+		], next);
 	});
 }

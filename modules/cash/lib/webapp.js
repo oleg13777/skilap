@@ -161,7 +161,6 @@ this.saveTabSettings = function(token, tabId, settings, cb) {
 			_.forEach(views.tabs, function (t) {
 				if (t.pid == tabId) {
 					t.settings = settings
-					cash_userviews.put(user.id, views, cb1);
 				}
 			});
 			cash_userviews.put(user.id, views, cb1);

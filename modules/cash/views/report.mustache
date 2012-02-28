@@ -51,53 +51,63 @@
 			},
 			series: {{{series}}}
 		});
-	});
-</script>
-
-<script type="text/javascript">
-$(function(){
-	var params = {{{params}}};
-	var form = document.forms.properties;
-	form.elements.maxAcc.value=params.maxAcc;
-	if (params.accType == "EXPENSE") {
-		form.elements.report_type.selectedIndex=0;
-	} else {
-		form.elements.report_type.selectedIndex=1;
-	}
-	$("#startDate").datepicker();
-	$("#startDate").datepicker('setDate', new Date(params.startDate));
-	$("#endDate").datepicker();
-	$("#endDate").datepicker('setDate', new Date(params.endDate));
-	$("#openD").click(function(){
-		$("#dialog").dialog("open");
-	});
-	$("#dialog").dialog({
-		position: ["center","center"],
-		buttons: {
-			"apply": function() {
-				var f = document.forms.properties;
-				var startDate = new Date(f.elements.startDate.value);
-				var endDate = new Date(f.elements.endDate.value);
-				var maxAcc = f.elements.maxAcc.value;
-				var reportType = f.elements.report_type.selectedIndex;
-				if (reportType == 0)
-					reportType = "expense";
-				else if (reportType == 1)
-					reportType = "income";
-				location.href="/cash/report?start_date="+startDate.getTime()+"&end_date="+endDate.getTime()+"&max_acc="+maxAcc+"&report_type="+reportType;
+		
+		var params = {{{params}}};
+		var form = document.forms.properties;
+		form.elements.maxAcc.value=params.maxAcc;
+		if (params.accType == "EXPENSE") {
+			form.elements.report_type.selectedIndex=0;
+		} else {
+			form.elements.report_type.selectedIndex=1;
+		}
+		$("#startDate").datepicker();
+		$("#startDate").datepicker('setDate', new Date(params.startDate));
+		$("#endDate").datepicker();
+		$("#endDate").datepicker('setDate', new Date(params.endDate));
+		form.elements.reportName.value=params.reportName;
+		$("#openD").click(function(){
+			$("#dialog").dialog("open");
+		});
+		$("#dialog").dialog({
+			position: ["center","center"],
+			buttons: {
+				"apply": function() {
+					var f = document.forms.properties;
+					var p = {
+						startDate : new Date(f.elements.startDate.value).getTime(),
+						endDate : new Date(f.elements.endDate.value).getTime(),
+						maxAcc : f.elements.maxAcc.value,
+						reportType : f.elements.report_type.options[f.elements.report_type.selectedIndex].value,
+						reportName : f.elements.reportName.value,
+						version: 1
+					}
+					var jqXHR = $.ajax({
+						"type": "POST",
+						"data": p,
+						"url": "{{prefix}}/report",
+						"dataType": "text"
+					});
+					jqXHR.done(function(data){
+						location.href=data;
+					});
+					jqXHR.fail(function(data){
+					});
+				},
+				"close": function() {
+					$(this).dialog("close");
+				}
 			},
-			"close": function() {
-				$(this).dialog("close");
-			}
-		},
-		autoOpen: false,
-		resizable: false,
-		height: 230,
-		width: 350,
-		modal: true,
-		draggable: false
+			autoOpen: false,
+			resizable: false,
+			height: 300,
+			width: 350,
+			modal: true,
+			draggable: false
+		});
+		
+		$(".closeTab").on("click", function(e){
+		});
 	});
-});
 </script>
 	
 <div id="dialog" title="Report settings" style="width: 600; height: 200px;">
@@ -116,11 +126,15 @@ $(function(){
 				<td><input type="text" id="maxAcc"></td>
 			</tr>
 			<tr>
+				<td>Report name:</td>
+				<td><input type="text" id="reportName"></td>
+			</tr>
+			<tr>
 				<td>Select report:</td>
 				<td>
 					<select name="report_type">
-						<option>Expense Over Time</option>
-						<option>Income Over Time</option>
+						<option value="EXPENSE">Expense Over Time</option>
+						<option value="INCOME">Income Over Time</option>
 					</select>
 				</td>
 			</tr>
