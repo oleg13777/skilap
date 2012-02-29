@@ -19,7 +19,6 @@ a {
   cursor: pointer;
 }
 
-
 td { 
 	white-space: nowrap;
 }
@@ -191,6 +190,22 @@ td {
 	display:none;
 }
 
+/** start css for treeview */
+div.tree div {
+	padding-left:16px;
+}
+div.tree div.parent div {
+	display:none;
+	cursor:default;
+}
+div.tree div.parent {
+	cursor:pointer !important;
+	background:transparent url(../images/plus.png) no-repeat top left;
+}
+div.tree div.expanded {
+	background:transparent url(../images/minus.png) no-repeat top left;
+}
+/** end css for treeview */
 
 #home {
 	padding: 10px 20px 0 20px;

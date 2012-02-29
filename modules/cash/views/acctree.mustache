@@ -1,0 +1,22 @@
+<script>
+$(function() {
+	$('div.tree div:has(div)').addClass('parent');
+	$('div.tree div').click(function() {
+		var obj = $(this);
+		obj.children('div').toggle();
+		obj.filter('.parent').toggleClass('expanded');
+		return;
+	});
+	$('div.tree div a').click(function() {
+		location.href=this.href;
+	});
+});
+</script>
+
+<div id="home">
+	<div class="main tree">
+	{{#assets}}
+		{{>acctree_item}}
+	{{/assets}}
+	</div>
+</div>
