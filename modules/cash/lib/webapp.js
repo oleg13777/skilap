@@ -28,6 +28,8 @@ self.ctx.once("WebStarted", function (err) {
 		require("../pages/account.js")(self);
 		require("../pages/index.js")(self);
 		require("../pages/import.js")(self);
+		require("../pages/report.js")(self);
+		require("../pages/acctree.js")(self);
 	})
 })
 
@@ -39,7 +41,7 @@ function loadData (cb) {
 			if (err) return cb(err);
 			var adb = results[0];
 			async.parallel([
-				async.apply(adb.ensure, "cash_userviews",{type:'cached_key_map',buffered:false}),
+				async.apply(adb.ensure, "cash_userviews",{type:'cached_key_map',buffered:false})
 			], function (err, results) {
 				if (err) return cb(err)
 				cash_userviews = results[0];
@@ -67,14 +69,6 @@ this.init = function (cb) {
 this.guessTab = function (req, ti,cb) {
 	var vtabs=[], user;
 	async.waterfall ([
-		// handle tab close which can be submitted thru query
-		function (cb1) {
-			var pid = req.query.close;
-			if (pid) {
-				self.removeTabs(req, [pid], cb1);
-			} else
-				cb1();
-		},		
 		// we need user first
 		function (cb) {
 			coreapi.getUser(req.session.apiToken, cb);
@@ -95,13 +89,14 @@ this.guessTab = function (req, ti,cb) {
 				if (ti.pid==t.pid) {
 					tab = t;
 					vtab.selected = true;
+					vtab.activeTabClass = "active";
 				}
 				vtabs.push(vtab);
 			});
 			// if tab for that page not found create new
 			if (tab==null) {
 				tab = {name:ti.name, pid:ti.pid, url:ti.url};
-				vtabs.push({name:ti.name, selected:true, url:ti.url, pid:ti.pid});
+				vtabs.push({name:ti.name, selected:true, url:ti.url, pid:ti.pid, activeTabClass: "active"});
 				views.tabs.push(tab);
 				if (user.type!='guest')
 					cash_userviews.put(user.id,views,cb)
@@ -115,12 +110,12 @@ this.guessTab = function (req, ti,cb) {
 	)
 }
 
-this.removeTabs = function (req, tabIds, cb) {
+this.removeTabs = function (token, tabIds, cb) {
 	var vtabs=[], user;
 	async.waterfall ([
 		// we need user first
 		function (cb1) {
-			coreapi.getUser(req.session.apiToken, cb1);
+			coreapi.getUser(token, cb1);
 		},
 		function (user_, cb1) {
 			user = user_;
@@ -148,6 +143,53 @@ this.removeTabs = function (req, tabIds, cb) {
 			cash_userviews.put(user.id,_views,cb1);
 		}], function (err, results) {
 			cb(err);
+		}
+	)
+}
+
+this.saveTabSettings = function(token, tabId, settings, cb) {
+	var user;
+	async.waterfall ([
+		// we need user first
+		function (cb1) {
+			coreapi.getUser(token, cb1);
+		},
+		function (_user, cb1) {
+			user = _user;
+			cash_userviews.get(user.id,cb1);
+		},
+		function (views, cb1) {
+			_.forEach(views.tabs, function (t) {
+				if (t.pid == tabId) {
+					t.settings = settings
+				}
+			});
+			cash_userviews.put(user.id, views, cb1);
+		}], function (err, results) {
+			cb(err);
+		}
+	)
+}
+
+this.getTabSettings = function(token, tabId, cb) {
+	async.waterfall ([
+		// we need user first
+		function (cb1) {
+			coreapi.getUser(token, cb1);
+		},
+		function (user, cb1) {
+			cash_userviews.get(user.id,cb1);
+		},
+		function (views, cb1) {
+			var ret = {};
+			views.tabs.forEach(function (t){
+				if (t.pid == tabId) {
+					ret = t.settings;
+				}
+			});
+			cb1(null, ret);
+		}], function (err, results) {
+			cb(err, results);
 		}
 	)
 }

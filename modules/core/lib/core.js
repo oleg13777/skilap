@@ -82,8 +82,8 @@ function Skilap() {
 					app.use(function (req, res, next) {
 						if (req.cookies['skilapid']==null) {
 							var clientId; self.getRandomString(128, function (err, rnd) { clientId = rnd; });
-							res.cookie('skilapid',clientId, { maxAge: 3600000, path: '/' });
-							res.cookie('sguard','1', { maxAge: 3600000, path: '/', secure:true });
+							res.cookie('skilapid',clientId, { maxAge: 1000*60*60*24*5, path: '/' });
+							res.cookie('sguard','1', { maxAge: 1000*60*60*24*5, path: '/', secure:true });
 						}
 						async.series([
 							function ensureToken (cb3) {

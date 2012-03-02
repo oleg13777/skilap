@@ -19,7 +19,6 @@ a {
   cursor: pointer;
 }
 
-
 td { 
 	white-space: nowrap;
 }
@@ -266,6 +265,22 @@ height:30px;
 	display:none;
 }
 
+/** start css for treeview */
+div.tree div {
+	padding-left:16px;
+}
+div.tree div.parent div {
+	display:none;
+	cursor:default;
+}
+div.tree div.parent {
+	cursor:pointer !important;
+	background:transparent url(../images/plus.png) no-repeat top left;
+}
+div.tree div.expanded {
+	background:transparent url(../images/minus.png) no-repeat top left;
+}
+/** end css for treeview */
 
 #home {
 	padding: 10px 20px 0 20px;
@@ -300,6 +315,15 @@ height:30px;
 
 #import hr{
 	margin: 10px 0 10px 0;
+}
+
+#dialog table {
+	width: 100%;
+}
+
+#dialog table td {
+	border: 0;
+	padding: 3px;
 }
 
 #header{
@@ -351,6 +375,8 @@ height:30px;
 }
 
 #tabs .sl_text{font-size: 105%;}
+
+#tabs .active {font-weight: bold;}
 
 #tabs div{
 	display: block;

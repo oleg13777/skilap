@@ -74,6 +74,9 @@ function CashApi (ctx) {
 				async.parallel([
 					function (cb) {
 						cash_accounts.addIndex("parentId",function (acc) { return acc.parentId; }, cb);
+					},
+					function (cb) {
+						cash_transactions.addIndex("datePosted",function (trn) { return (new Date(trn.datePosted)).valueOf(); }, cb);
 					}
 				], cb)
 			}
@@ -100,7 +103,29 @@ function CashApi (ctx) {
 			}], 
 		cb);
 	}
-	
+
+	function getAccount(token, id, cb) {
+		async.series ([
+			function start(cb1) {
+				async.parallel([
+					async.apply(coreapi.checkPerm,token,["cash.view"]),
+					async.apply(waitForData)
+				],cb1);
+			}, 
+			function get(cb1) {
+				cash_accounts.get(id, function (err, acc) {
+					if (err) cb1(err);
+					cb1(null, acc);
+				},
+				true);
+			}], function end(err, result) {
+				if (err) return cb(err);
+				cb(null, result[1]);
+			}
+		)
+	}
+
+
 	function getCmdtyPrice(token,cmdty,currency,date,method,cb) {
 		if (_(cmdty).isEqual(currency)) return cb(null,1);
 		// not sure what template means
@@ -623,7 +648,7 @@ function CashApi (ctx) {
 						var accStats = getAccStats(split.accountId);
 						accStats.value+=split.quantity;
 						accStats.count++;
-						accStats.trDateIndex.push({id:tr.id,date:tr.dateEntered});
+						accStats.trDateIndex.push({id:tr.id,date:tr.datePosted});
 					});
 				},true)
 			},
@@ -663,7 +688,7 @@ function CashApi (ctx) {
 			}
 		);
 	}
-
+	
 	function parseGnuCashXml(fileName, callback){
 		// stream usage
 		// takes the same options as the parser
@@ -850,6 +875,32 @@ function CashApi (ctx) {
 			fs.createReadStream(fileName).pipe(saxStream);
 	}
 
+	function getTransactionInDateRange(token, range, cb) {
+		var res = [];
+		async.series([
+			function start(cb1) {
+				async.parallel([
+					async.apply(coreapi.checkPerm,token,["cash.view"]),
+					async.apply(waitForData)
+				],cb1);
+			}, 
+			function (cb1) {
+				var stream = cash_transactions.find({datePosted: {$range: [range[0].valueOf(),range[1].valueOf(),range[2],range[3]]}}).stream();
+				stream.on('record', function (key,tr) {
+					res.push(tr);
+				});
+				stream.on('end',cb1);
+				stream.on('error',cb1);
+			}],
+			function done (err) {
+				if (err) console.log(err);
+				process.nextTick(function () {
+					cb(err, res);
+				});
+			}
+		);
+	}
+
 this.getAllAccounts = getAllAccounts;
 this.getAccountInfo = getAccountInfo;
 this.getAccountRegister = getAccountRegister;
@@ -867,6 +918,8 @@ this.clearAccounts = clearAccaunts;
 this.clearTransactions = clearTransaction;
 this.clearPrices = clearPrices;
 this.getCmdtyPrice = getCmdtyPrice;
+this.getAccount = getAccount;
+this.getTransactionsInDateRange = getTransactionInDateRange;
 }
 
 module.exports.init = function (ctx,cb) {
