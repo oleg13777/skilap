@@ -28,7 +28,7 @@ module.exports = function account(webapp) {
 					webapp.removeTabs(req.session.apiToken, ['restore'], cb1);
 				},
 				function (cb1) {
-					res.redirect(prefix);
+					res.redirect(prefix+"/acctree");
 				}
 			],next);
 		} else {
