@@ -180,22 +180,11 @@ function CashApi (ctx) {
 					async.apply(waitForData)
 				],cb1);
 			}, 
-			/*function get(cb1) {
+			function get(cb1) {
 				cash_accounts.find({parentId: {$eq: parentId}}).all(function (err, accounts) {
 					if (err) cb1(err);
 					cb1(null, _(accounts).map(function (e) {return e.value;}));
 				});
-			}*/
-			function get(cb1) {
-				var accounts = [];
-				cash_accounts.scan(function (err, key, acc) {
-					if (err) cb1(err);
-					if (key && acc.parentId == parentId) {
-						accounts.push(acc);
-					} 
-				},
-				true);
-				cb1(null, accounts);
 			}
 			], function end(err, results) {
 				if (err) return cb(err);
@@ -915,17 +904,17 @@ function CashApi (ctx) {
 
 	function getDefaultsAccounts(token, cb){
 		var accounts = [
-			{name:"Cash", type:"CASH", ch:["My wallet"]},
-			{name:"Credit Cards", type:"CREDIT CARD", ch:["My card"]},
-			{name:"Income", type:"INCOME", ch:["Salary","Interest","Assets sale","Other"]},
-			{name:"Car", type:"EXPENSE", ch:["Fuel","Insurance","Service","Repair","Other"]},
-			{name:"Life", type:"EXPENSE", ch:["Food","Drugs","Transport","Other"]},
-			{name:"Utilities", type:"EXPENSE", ch:["Mobile links","Fixed links","House","Education","Other"]},
-			{name:"Hobby", type:"EXPENSE", ch:["Sport","Garden","Charuty","Other"]},
-			{name:"Real assets", type:"EXPENSE", ch:["Transport","Furniture","Estate","Goods","Insurance","Other"]},
-			{name:"Recreation", type:"EXPENSE", ch:["Travel","Pleasures","Food & drinks","Events","Other"]},
-			{name:"Accidental", type:"EXPENSE", ch:["Stolen","Gifts","Bad debts","Other"]},
-			{name:"Debts", type:"EQUITY", ch:["Friends"]}
+			{name:ctx.i18n(token, 'cash', 'Cash'), type:'CASH', ch:[ctx.i18n(token, 'cash', 'My wallet')]},
+			{name:ctx.i18n(token, 'cash', 'Credit Cards'), type:'CREDIT CARD', ch:[ctx.i18n(token, 'cash', 'My card')]},
+			{name:ctx.i18n(token, 'cash', 'Income'), type:'INCOME', ch:[ctx.i18n(token, 'cash', 'Salary'), ctx.i18n(token, 'cash', 'Interest'), ctx.i18n(token, 'cash', 'Assets sale'), ctx.i18n(token, 'cash', 'Other')]},
+			{name:ctx.i18n(token, 'cash', 'Car'), type:'EXPENSE', ch:[ctx.i18n(token, 'cash', 'Fuel'), ctx.i18n(token, 'cash', 'Insurance'), ctx.i18n(token, 'cash', 'Service'), ctx.i18n(token, 'cash', 'Repair'), ctx.i18n(token, 'cash', 'Other')]},
+			{name:ctx.i18n(token, 'cash', 'Life'), type:'EXPENSE', ch:[ctx.i18n(token, 'cash', 'Food'), ctx.i18n(token, 'cash', 'Drugs'), ctx.i18n(token, 'cash', 'Transport'), ctx.i18n(token, 'cash', 'Other')]},
+			{name:ctx.i18n(token, 'cash', 'Utilities'), type:'EXPENSE', ch:[ctx.i18n(token, 'cash', 'Mobile links'), ctx.i18n(token, 'cash', 'Fixed links'), ctx.i18n(token, 'cash', 'House'), ctx.i18n(token, 'cash', 'Education'), ctx.i18n(token, 'cash', 'Other')]},
+			{name:ctx.i18n(token, 'cash', 'Hobby'), type:'EXPENSE', ch:[ctx.i18n(token, 'cash', 'Sport'), ctx.i18n(token, 'cash', 'Garden'), ctx.i18n(token, 'cash', 'Charuty'), ctx.i18n(token, 'cash', 'Other')]},
+			{name:ctx.i18n(token, 'cash', 'Real assets'), type:'EXPENSE', ch:[ctx.i18n(token, 'cash', 'Transport'), ctx.i18n(token, 'cash', 'Furniture'), ctx.i18n(token, 'cash', 'Estate'), ctx.i18n(token, 'cash', 'Goods'), ctx.i18n(token, 'cash', 'Insurance'), ctx.i18n(token, 'cash', 'Other')]},
+			{name:ctx.i18n(token, 'cash', 'Recreation'), type:'EXPENSE', ch:[ctx.i18n(token, 'cash', 'Travel'), ctx.i18n(token, 'cash', 'Pleasures'), ctx.i18n(token, 'cash', 'Food & drinks'), ctx.i18n(token, 'cash', 'Events'), ctx.i18n(token, 'cash', 'Other')]},
+			{name:ctx.i18n(token, 'cash', 'Accidental'), type:'EXPENSE', ch:[ctx.i18n(token, 'cash', 'Stolen'), ctx.i18n(token, 'cash', 'Gifts'), ctx.i18n(token, 'cash', 'Bad debts'), ctx.i18n(token, 'cash', 'Other')]},
+			{name:ctx.i18n(token, 'cash', 'Debts'), type:'EQUITY', ch:[ctx.i18n(token, 'cash', 'Friends')]}
 		];
 
 		var ret = [];
@@ -936,7 +925,7 @@ function CashApi (ctx) {
 				
 				async.forEachSeries(acc.ch, function(name, cb2) {
 					ctx.getUniqueId(function(err, id) {
-						ret.push({parentId:uniqId, cmdty:cmdty, name:ctx.i18n(token, 'cash', name), id:id, type:acc.type});
+						ret.push({parentId:uniqId, cmdty:cmdty, name:name, id:id, type:acc.type});
 						cb2();
 					});
 				}, cb1);

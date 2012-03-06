@@ -2,13 +2,190 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-02-13 13:38+0400\n"
+"POT-Creation-Date: 2012-03-06 15:37+0400\n"
 "PO-Revision-Date: \n"
-"Last-Translator: Sergey Korotkov <sergey@pushok.com>\n"
+"Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: ../modules/cash/lib/cashapi.js:918
+msgid "Cash"
+msgstr "Наличные"
+
+#: ../modules/cash/lib/cashapi.js:918
+msgid "My wallet"
+msgstr "Мой кошелек"
+
+#: ../modules/cash/lib/cashapi.js:919
+msgid "Credit Cards"
+msgstr "Кредитные карты"
+
+#: ../modules/cash/lib/cashapi.js:919
+msgid "My card"
+msgstr "Моя карта"
+
+#: ../modules/cash/lib/cashapi.js:920
+msgid "Income"
+msgstr "Доход"
+
+#: ../modules/cash/lib/cashapi.js:920
+msgid "Salary"
+msgstr "Зарплата"
+
+#: ../modules/cash/lib/cashapi.js:920
+msgid "Interest"
+msgstr "Проценты"
+
+#: ../modules/cash/lib/cashapi.js:920
+msgid "Assets sale"
+msgstr "Продажа активов"
+
+#: ../modules/cash/lib/cashapi.js:920
+#: ../modules/cash/lib/cashapi.js:921
+#: ../modules/cash/lib/cashapi.js:922
+#: ../modules/cash/lib/cashapi.js:923
+#: ../modules/cash/lib/cashapi.js:924
+#: ../modules/cash/lib/cashapi.js:925
+#: ../modules/cash/lib/cashapi.js:926
+#: ../modules/cash/lib/cashapi.js:927
+msgid "Other"
+msgstr "Разное"
+
+#: ../modules/cash/lib/cashapi.js:921
+msgid "Car"
+msgstr "Машина"
+
+#: ../modules/cash/lib/cashapi.js:921
+msgid "Fuel"
+msgstr "Топливо"
+
+#: ../modules/cash/lib/cashapi.js:921
+#: ../modules/cash/lib/cashapi.js:925
+msgid "Insurance"
+msgstr "Страховка"
+
+#: ../modules/cash/lib/cashapi.js:921
+msgid "Service"
+msgstr "Обслуживание"
+
+#: ../modules/cash/lib/cashapi.js:921
+msgid "Repair"
+msgstr "Ремонт"
+
+#: ../modules/cash/lib/cashapi.js:922
+msgid "Life"
+msgstr "Жизнь"
+
+#: ../modules/cash/lib/cashapi.js:922
+msgid "Food"
+msgstr "Еда"
+
+#: ../modules/cash/lib/cashapi.js:922
+msgid "Drugs"
+msgstr "Лекарства"
+
+#: ../modules/cash/lib/cashapi.js:922
+#: ../modules/cash/lib/cashapi.js:925
+msgid "Transport"
+msgstr "Транспорт"
+
+#: ../modules/cash/lib/cashapi.js:923
+msgid "Utilities"
+msgstr "Коммунальные услуги"
+
+#: ../modules/cash/lib/cashapi.js:923
+msgid "Mobile links"
+msgstr "Мобильный телефон"
+
+#: ../modules/cash/lib/cashapi.js:923
+msgid "Fixed links"
+msgstr "Стационарный телефон"
+
+#: ../modules/cash/lib/cashapi.js:923
+msgid "House"
+msgstr "Дом"
+
+#: ../modules/cash/lib/cashapi.js:923
+msgid "Education"
+msgstr "Образование"
+
+#: ../modules/cash/lib/cashapi.js:924
+msgid "Hobby"
+msgstr "Хобби"
+
+#: ../modules/cash/lib/cashapi.js:924
+msgid "Sport"
+msgstr "Спорт"
+
+#: ../modules/cash/lib/cashapi.js:924
+msgid "Garden"
+msgstr "Сад"
+
+#: ../modules/cash/lib/cashapi.js:924
+msgid "Charuty"
+msgstr "Благотворительность"
+
+#: ../modules/cash/lib/cashapi.js:925
+msgid "Real assets"
+msgstr "Недвижимость"
+
+#: ../modules/cash/lib/cashapi.js:925
+msgid "Furniture"
+msgstr "Мебель"
+
+#: ../modules/cash/lib/cashapi.js:925
+msgid "Estate"
+msgstr "Имущество"
+
+#: ../modules/cash/lib/cashapi.js:925
+msgid "Goods"
+msgstr "Товары"
+
+#: ../modules/cash/lib/cashapi.js:926
+msgid "Recreation"
+msgstr "отдых"
+
+#: ../modules/cash/lib/cashapi.js:926
+msgid "Travel"
+msgstr "Путешествия"
+
+#: ../modules/cash/lib/cashapi.js:926
+msgid "Pleasures"
+msgstr "Удовольствия"
+
+#: ../modules/cash/lib/cashapi.js:926
+msgid "Food & drinks"
+msgstr "Еда и напитки"
+
+#: ../modules/cash/lib/cashapi.js:926
+msgid "Events"
+msgstr "Случайные расходы"
+
+#: ../modules/cash/lib/cashapi.js:927
+msgid "Accidental"
+msgstr "Непредвиденные расходы"
+
+#: ../modules/cash/lib/cashapi.js:927
+msgid "Stolen"
+msgstr "Украденное"
+
+#: ../modules/cash/lib/cashapi.js:927
+msgid "Gifts"
+msgstr "Подарки"
+
+#: ../modules/cash/lib/cashapi.js:927
+msgid "Bad debts"
+msgstr "Безнадежные долги"
+
+#: ../modules/cash/lib/cashapi.js:928
+msgid "Debts"
+msgstr "Долги"
+
+#: ../modules/cash/lib/cashapi.js:928
+msgid "Friends"
+msgstr "Друзья"
 
 #: ../modules/cash/lib/viewStrings.js:1
 msgid "Skilap"
@@ -19,10 +196,22 @@ msgid "Import"
 msgstr "Импорт"
 
 #: ../modules/cash/lib/viewStrings.js:3
+msgid "Report"
+msgstr "Отчет"
+
+#: ../modules/cash/lib/viewStrings.js:4
+msgid "Tree"
+msgstr "Дерево"
+
+#: ../modules/cash/lib/viewStrings.js:5
+msgid "toDefaults"
+msgstr "Аккаунты по умолчаню"
+
+#: ../modules/cash/lib/viewStrings.js:6
 msgid "Assets"
 msgstr "Активы"
 
-#: ../modules/cash/lib/viewStrings.js:4
+#: ../modules/cash/lib/viewStrings.js:7
 msgid "Liabilities"
 msgstr "Обязательства"
 

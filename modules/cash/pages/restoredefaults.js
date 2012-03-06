@@ -5,12 +5,13 @@ module.exports = function account(webapp) {
 	var app = webapp.web;
 	var cashapi = webapp.api;
 	var prefix = webapp.prefix
+	var ctx = webapp.ctx;
 	
 	app.get(prefix + "/restoredefaults", function(req, res, next) {
 		if (_.isEmpty(req.query)) {
 			async.waterfall([
 				function (cb1) {
-					webapp.guessTab(req, {pid:'restore',name:'Restore to defaults',url:req.url}, cb1);
+					webapp.guessTab(req, {pid:'restore',name:ctx.i18n(req.session.apiToken, 'cash', 'toDefaults'),url:req.url}, cb1);
 				},
 				function render (vtabs) {
 					var rdata = {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs};

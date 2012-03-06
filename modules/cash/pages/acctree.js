@@ -6,6 +6,7 @@ module.exports = function account(webapp) {
 	var cashapi = webapp.api;
 	var prefix = webapp.prefix
 	var repCmdty = {space:"ISO4217",id:"RUB"};
+	var ctx = webapp.ctx;
 	
 	function getAccountDetails(token, acc, callback) {
 		var childs = [];
@@ -67,7 +68,7 @@ module.exports = function account(webapp) {
 		async.waterfall([
 			async.apply(getAccWithChild, req.session.apiToken, 0, assets),
 			function (cb1) {
-				webapp.guessTab(req, {pid:'acctree',name:'Tree', url:req.url}, cb1);
+				webapp.guessTab(req, {pid:'acctree',name:ctx.i18n(req.session.apiToken, 'cash', 'Tree'), url:req.url}, cb1);
 			},
 			function render (vtabs) {
 				var rdata = {
