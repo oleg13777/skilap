@@ -179,12 +179,24 @@ function CashApi (ctx) {
 					async.apply(waitForData)
 				],cb1);
 			}, 
-			function get(cb1) {
+			/*function get(cb1) {
 				cash_accounts.find({parentId: {$eq: parentId}}).all(function (err, accounts) {
 					if (err) cb1(err);
 					cb1(null, _(accounts).map(function (e) {return e.value;}));
 				});
-			}], function end(err, results) {
+			}*/
+			function get(cb1) {
+				var accounts = [];
+				cash_accounts.scan(function (err, key, acc) {
+					if (err) cb1(err);
+					if (key && acc.parentId == parentId) {
+						accounts.push(acc);
+					} 
+				},
+				true);
+				cb1(null, accounts);
+			}
+			], function end(err, results) {
 				if (err) return cb(err);
 				cb(null, results[1]);
 			}
@@ -814,6 +826,73 @@ function CashApi (ctx) {
 		);
 	}
 
+	function getDefaultsAccounts(token, cb){
+		var accounts = [
+			{name:"Cash", type:"CASH", ch:["My wallet"]},
+			{name:"Credit Cards", type:"CREDIT CARD", ch:["My card"]},
+			{name:"Income", type:"INCOME", ch:["Salary","Interest","Assets sale","Other"]},
+			{name:"Car", type:"EXPENSE", ch:["Fuel","Insurance","Service","Repair","Other"]},
+			{name:"Life", type:"EXPENSE", ch:["Food","Drugs","Transport","Other"]},
+			{name:"Utilities", type:"EXPENSE", ch:["Mobile links","Fixed links","House","Education","Other"]},
+			{name:"Hobby", type:"EXPENSE", ch:["Sport","Garden","Charuty","Other"]},
+			{name:"Real assets", type:"EXPENSE", ch:["Transport","Furniture","Estate","Goods","Insurance","Other"]},
+			{name:"Recreation", type:"EXPENSE", ch:["Travel","Pleasures","Food & drinks","Events","Other"]},
+			{name:"Accidental", type:"EXPENSE", ch:["Stolen","Gifts","Bad debts","Other"]},
+			{name:"Debts", type:"EQUITY", ch:["Friends"]}
+		];
+
+		var ret = [];
+		var cmdty = {space:"ISO4217",id:"RUB"};
+		async.forEachSeries(accounts, function(acc, cb1) {
+			ctx.getUniqueId(function(err, uniqId) {
+				ret.push({parentId:0, cmdty:cmdty, name:acc.name, id:uniqId, type:acc.type});
+				
+				async.forEachSeries(acc.ch, function(name, cb2) {
+					ctx.getUniqueId(function(err, id) {
+						ret.push({parentId:uniqId, cmdty:cmdty, name:ctx.i18n(token, 'cash', name), id:id, type:acc.type});
+						cb2();
+					});
+				}, cb1);
+			});
+		}, function(err) {
+			cb(err, ret);
+		});
+	}
+
+
+	function restoreToDefaults(token, cb){
+		async.waterfall([
+			function start(cb1) {
+				async.parallel([
+					async.apply(coreapi.checkPerm,token,["cash.edit"]),
+					async.apply(waitForData)
+				],cb1);
+			}, 
+			function (results ,cb1) {
+				cash_prices.clear(cb1);
+			},
+			function (cb1) {
+				cash_transactions.clear(cb1);
+			},
+			function (cb1){
+				cash_accounts.clear(cb1);
+			},
+			function (cb1) {
+				getDefaultsAccounts(token, cb1);
+			},
+			function (accounts, cb1) {
+				accounts.forEach(function (e) {
+					cash_accounts.put(e.id,e,function (err) {if (err) { throw err; }});
+				});
+				cb1();
+			}
+		], function (err) {
+			if (err) return cb(err);
+			process.nextTick(function () { calcStats(function () {})});
+			cb(null);
+		});
+	}
+
 this.getAllAccounts = getAllAccounts;
 this.getAccountInfo = getAccountInfo;
 this.getAccountRegister = getAccountRegister;
@@ -831,6 +910,7 @@ this.clearPrices = clearPrices;
 this.getCmdtyPrice = getCmdtyPrice;
 this.getAccount = getAccount;
 this.getTransactionsInDateRange = getTransactionInDateRange;
+this.restoreToDefaults = restoreToDefaults;
 }
 
 module.exports.init = function (ctx,cb) {

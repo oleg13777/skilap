@@ -57,6 +57,7 @@ module.exports = function account(webapp) {
 					var data = fs.readFileSync(req.body.fileName, 'ascii');
 					var obj = JSON.parse(data);
 					accounts = obj.acc;
+					console.log(accounts);
 					transactions = obj.tr;
 					prices = obj.prices;
 					cb1();
@@ -84,7 +85,7 @@ module.exports = function account(webapp) {
 				},
 				function (vtabs, cb1) {
 					tabs = vtabs;
-					webapp.removeTabs(req.session.apiToken, null /*['import']*/, cb1);
+					webapp.removeTabs(req.session.apiToken, null, cb1);
 				},
 				function render (cb1) {
 					res.render(__dirname+"/../views/import", {prefix:prefix, tabs:tabs, caption: "data saved", step2:true, transactions:transactions.length, accounts:accounts.length});

@@ -1,0 +1,17 @@
+<script>
+	$(function() {
+		$( "input:submit, a, button", "#home" ).button();
+	});
+</script>
+
+<div id="home">
+	<h2>Attention!</h2>
+	<hr size="2" noshade />
+	<br />
+	<p>All data will be removed and can not be restored anyway!</p>
+	<br />
+	<h3>Are you shure?</h3>
+	<br />
+	<a href="{{prefix}}/restoredefaults?confirm=false">Cancel</a> <a href="{{prefix}}/restoredefaults?confirm=true">Confirm</a>
+
+</div>
