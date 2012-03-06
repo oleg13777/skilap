@@ -23,7 +23,12 @@
 		
 	</tbody>
 </table>
-
+<div id="ski_dialog-confirm" title="Invalid fields data">
+	<p>
+		<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+		Please correct field data or discard all changes
+	</p>
+</div>
 <br/>
 <script>
 $(document).ready(function(){	
@@ -39,7 +44,8 @@ $(document).ready(function(){
 			{"attr":{"name":"total"}}
 		],
 		"editable":{
-			"sUpdateURL":"{{prefix}}/account/{{accountId}}/updaterow",			
+			"sUpdateURL":"{{prefix}}/account/{{accountId}}/updaterow",	
+			"sAddURL":"{{prefix}}/account/{{accountId}}/addrow",		
 			"columns": [
 				null,
 				{"type":"datepicker","icon":"{{prefix}}/images/calendar.gif"},
@@ -51,5 +57,6 @@ $(document).ready(function(){
 			]
 		}		
 	});	
+	
 });
 </script>

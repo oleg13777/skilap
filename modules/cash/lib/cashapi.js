@@ -10,6 +10,7 @@ var events = require("events");
 var sax = require("sax");
 var util = require("util");
 var zlib = require("zlib");
+var extend = require('node.extend');
 
 function CashApi (ctx) {
 	var self = this;
@@ -203,7 +204,7 @@ function CashApi (ctx) {
 		)
 	}
 
-	function getAccountByPath(path,cb) {
+	function getAccountByPath(path,cb) {		
 		Step (
 			function start() {
 				waitForData (this);
@@ -213,7 +214,7 @@ function CashApi (ctx) {
 				_.forEach(stats, function (accStat,key) {
 					if (accStat.path == path)
 						newAccId = key;
-				});
+				});				
 				if (newAccId==null)
 					process.nextTick(function () { cb(new Error("No such account")); });
 				else 
@@ -342,6 +343,92 @@ function CashApi (ctx) {
 					trUpd.dateEntered = tr.dateEntered;
 				}				
 				cash_transactions.put(trUpd.id, trUpd, cb1);
+			}
+		], function (err) {
+			if (err) return cb(err);
+			process.nextTick(function () { calcStats(function () {})});
+			cb(null);
+		})
+	}
+	
+	function updateTransaction (token,modifiedTr,cb) {		
+		var updatedTr={};
+		async.series ([
+			function (cb1) {
+				async.parallel([
+					async.apply(coreapi.checkPerm,token,["cash.edit"]),
+					async.apply(waitForData)
+				],cb1);
+			}, 
+			function (cb1) {				
+				cash_transactions.get(modifiedTr.id,function (err, tr_) {
+					updatedTr = tr_;									
+					extend(updatedTr,modifiedTr);					
+					cb1(err);
+				});				
+			}, 
+			function (cb1) {
+				async.forEachSeries(updatedTr.splits,function(split,cb2){
+					if(split.id){
+						cb2();
+					}
+					else{
+						ctx.getUniqueId(function (err, id) {
+							if (err){
+								return cb1(err);
+							}
+							split.id = id;
+							cb2();
+						});
+					}
+					
+				},cb1);
+			},
+			function(cb1){
+				console.log('updated tr = ');	
+				console.log(updatedTr);	
+				cash_transactions.put(updatedTr.id, updatedTr, cb1);
+			}			
+		], function (err) {
+			if (err) return cb(err);
+			process.nextTick(function () { calcStats(function () {})});
+			cb(null);
+		})
+	}
+	
+	function addTransaction(token,newTr,cb){		
+		async.series ([
+			function (cb1) {
+				async.parallel([
+					async.apply(coreapi.checkPerm,token,["cash.edit"]),
+					async.apply(waitForData)
+				],cb1);
+			}, 			
+			function (cb1) {
+				async.forEachSeries(newTr.splits,function(split,cb2){					
+					ctx.getUniqueId(function (err, id) {
+						if (err){
+							return cb1(err);
+						}
+						split.id = id;
+						cb2();
+					});					
+				},cb1);				
+			},
+			function(cb1){				
+				ctx.getUniqueId(function (err, id) {
+					if (err){
+						return cb1(err);
+					}
+					newTr.id = id;
+					cb1();
+				});	
+			
+			},
+			function(cb1){
+				console.log('newTr = ');
+				console.log(newTr);
+				cash_transactions.put(newTr.id, newTr, cb1);
 			}
 		], function (err) {
 			if (err) return cb(err);
@@ -898,6 +985,8 @@ this.getAccountInfo = getAccountInfo;
 this.getAccountRegister = getAccountRegister;
 this.getTransaction = getTransaction;
 this.saveTransaction = saveTransaction;
+this.updateTransaction = updateTransaction;
+this.addTransaction = addTransaction;
 this.getAccountByPath = getAccountByPath;
 this.getChildAccounts = getChildAccounts;
 this.importTransactions = importTransactions;

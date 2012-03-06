@@ -41,6 +41,7 @@ td {
 
 .ski_gridWrapper{
 	background-color:#efefef;
+	position:relative;
 }
 
 .ski_gridHeaderWrapper table,.ski_gridBodyWrapper table{
@@ -68,13 +69,13 @@ td {
 	text-overflow:ellipsis;
 	overflow:hidden;
 }
-.ski_gridBodyWrapper .tdContent .ski_editable{
+.ski_gridWrapper .tdContent .ski_editable{
 	display:block;
 	position:absolute;
 	top:0;
 	left:0;	
 }
-.ski_gridBodyWrapper .tdContent .ski_datepicker_btn{
+.ski_gridWrapper .tdContent .ski_datepicker_btn{
 	display:block;
 	position:absolute;
 	top:7px;
@@ -93,7 +94,7 @@ td {
 .ski_gridBodyWrapper tr.mainRow.ski_selected{
 	background-color:#FFEF98;
 }
-.ski_gridBodyWrapper tr.splitRow{	
+.ski_gridWrapper tr.splitRow{	
 	background-color:#EDE7D3;
 }
 .ski_gridBodyScroller{
@@ -183,6 +184,80 @@ td {
 	width:1px;
 	height:1px;
 	background-color:#333;
+	z-index:3;
+}
+
+.ski_validate-error{
+	background-color:red;
+}
+
+
+#ski_dialog-confirm{
+	display:none;
+}
+.ski_gridFooterWrapper{
+	position:relative;
+	height:35px;	
+	margin-bottom:2px;	
+	background: #f5f5f4;
+    background: -moz-linear-gradient(top, #f5f5f4, #e7e5e4);
+    background: -webkit-gradient(linear, left top, left bottom, 
+                color-stop(0%,#f5f5f4), color-stop(100%,#e7e5e4));
+    background: -webkit-linear-gradient(top, #f5f5f4, #e7e5e4);
+    background: -o-linear-gradient(top, #f5f5f4, #e7e5e4);
+    background: -ms-linear-gradient(top, #f5f5f4, #e7e5e4);
+    background: linear-gradient(top, #f5f5f4, #e7e5e4);
+    border-bottom:1px solid #c4c4c4;
+}
+
+.ski_newTrContainer{
+	position:absolute;
+	top:-25px;
+	left:0;
+	height:25px;
+	width:100px;
+	background-color:#f6a828;
+	box-shadow:0 -1px 5px 0;
+	border-radius:4px;
+	z-index:2;
+}
+
+.ski_addButton,.ski_saveButton,.ski_cancelButton{
+	float:left;
+	margin:5px  0 0 10px;
+}
+.ski_addButton,.ski_addButton:hover,.ski_addButton.ski_selected{
+background: url("../images/add-icon.png") no-repeat 0 2px;
+padding-left:25px;
+}
+.ski_saveButton,.ski_saveButton:hover{
+background: url("../images/save-icon.png") no-repeat 0 2px;
+padding-left:25px;
+}
+
+.ski_cancelButton,.ski_cancelButton:hover{
+background: url("../images/cancel-icon.png") no-repeat 0 2px;
+padding-left:25px;
+}
+
+.ski_newRow{
+height:30px;
+}
+
+#ski_addForm label, #ski_addForm input { display:block; }
+#ski_addForm input.text,#ski_addForm select.text { margin-bottom:12px; width:95%; height:25px;}
+#ski_addForm fieldset { 
+	position:relative;
+	padding:0; 
+	border:0; 
+	margin-top:5px; 
+}
+
+#ski_addForm .ui-datepicker-trigger{
+	display:block;
+	position:absolute;
+	top:25px;
+	right:20px;
 	z-index:1;
 }
 
