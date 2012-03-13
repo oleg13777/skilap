@@ -330,6 +330,21 @@ function Skilap() {
 		return res;
 	}
 	
+	var currencies = null;
+	this.i18n_getCurrencies = function (langtoken) {
+		if (currencies!=null) return currencies;
+		var res = [];
+		var cu = i18n.currency().getCurrencies();
+		_(cu).forEach(function(cid) {
+			var cur = i18n.currency(cid);
+			var sa = cur.format(0);
+			sa= sa.replace(/[0123456789. ]/g,'');
+			res.push({iso:cid,name:cur.getName(),symbol:sa,country:cur.getCountry()});
+		})
+		currencies = res;
+		return res;
+	}
+	
 }
 
 util.inherits(Skilap, events.EventEmitter);
