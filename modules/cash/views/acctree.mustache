@@ -1,5 +1,8 @@
 <script>
 $(function() {
+	$('#acc_parent option').filter('[pid="0"]').each(function(e) {
+		$(this).text($.trim($(this).text()));
+	});
 	$('div.tree div:has(div)').addClass('parent');
 	$('div.tree div').on("click", function(e) {
 		var obj = $(this);
@@ -110,10 +113,10 @@ $(function() {
 				<td>Parent account:</td>
 				<td>
 					<select name="acc_parent" id="acc_parent">
-							<option value="0">Root</option>
-						{{#allAcc}}
-							<option value="{{id}}">{{name}}</option>
-						{{/allAcc}}
+						<option value="0" pid="0">Root</option>
+						{{#assets}}
+							{{>acctree_list_item}}
+						{{/assets}}
 					</select>
 				</td>
 			</tr>

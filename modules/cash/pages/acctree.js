@@ -66,12 +66,9 @@ module.exports = function account(webapp) {
 
 	app.get(prefix+"/acctree", function(req, res, next) {
 		var assets = [];
-		var allAcc = [];
 		async.waterfall([
 			async.apply(getAccWithChild, req.session.apiToken, 0, assets),
-			async.apply(cashapi.getAllAccounts, req.session.apiToken),
-			function (_allAcc,cb1) {
-				allAcc = _allAcc;
+			function (cb1) {
 				webapp.guessTab(req, {pid:'acctree',name:ctx.i18n(req.session.apiToken, 'cash', 'Tree'), url:req.url}, cb1);
 			},
 			function render (vtabs) {
@@ -80,8 +77,7 @@ module.exports = function account(webapp) {
 						prefix:prefix, 
 						tabs:vtabs, 
 						assets:assets,
-						token: req.session.apiToken,
-						allAcc: allAcc
+						token: req.session.apiToken
 					};
 				res.render(__dirname+"/../views/acctree", rdata);
 			}],
