@@ -11,11 +11,146 @@ $(function() {
 		location.href=this.href;
 		return false;
 	});
+	$('.editAcc').on("click", function(e){
+		var self = $(this);
+		var types = ["BANK","CASH","ASSET","CREDIT","LIABILITY","STOCK","MUTUAL","CURENCY","INCOME","EXPENSE","EQUITY","RECIEVABLE","PAYABLE"];
+		var curency = ["RUB"];
+		var form = document.forms.properties;
+		form.elements.acc_id.value = self.attr('aid');
+		var secret = form.elements.token.value;
+		var json = {
+				"jsonrpc": "2.0",
+				"method": "cash.getAccount",
+				"params": [secret, self.attr('aid') ],
+				"id":1
+			};
+		var jqXHR = $.ajax({
+				"type": "POST",
+				"data": {json: JSON.stringify(json)},
+				"dataType": "json",
+				"url": "/jsonrpc",
+			});
+		jqXHR.done(function(data){
+			var acc = data.result[0];
+			form.elements.acc_name.value = acc.name;
+			opts = form.elements.acc_parent.options;
+			for (var i=0; i<opts.length; i++) {
+				if (opts[i].value == acc.parentId){
+					opts.selectedIndex=i;
+				}
+			}
+			form.elements.acc_type.selectedIndex = types.indexOf(acc.type);
+			form.elements.acc_curency.selectedIndex = curency.indexOf(acc.cmdty.id);
+		});
+		jqXHR.fail(function(data){
+		});
+		$("#dialog").dialog("open");
+		return false;
+	});
+	$("#dialog").dialog({
+		position: ["center","center"],
+		buttons: {
+			"apply": function() {
+				var f = document.forms.properties;
+				var params = {
+						id: f.elements.acc_id.value,
+						name: f.elements.acc_name.value,
+						parentId: f.elements.acc_parent.options[f.elements.acc_parent.selectedIndex].value,
+						curency: f.elements.acc_curency.options[f.elements.acc_curency.selectedIndex].value,
+						type: f.elements.acc_type.options[f.elements.acc_type.selectedIndex].value
+					};
+				var jqXHR = $.ajax({
+					"type": "POST",
+					"data": params,
+					"dataType": "json",
+					"url": "{{prefix}}/accupd",
+				});
+				jqXHR.done(function(data){
+					var curent = $('#'+data.id);
+					$('#open'+data.id).text(data.name);
+					var parent;
+					if (data.parentId == 0) {
+						parent = $('#tree_root');
+						parent.append(curent);
+					} else {
+						parent = $('#'+data.parentId);
+						parent.addClass('expanded');
+						parent.children('div').show();
+						parent.append(curent);
+					}
+				});
+				jqXHR.fail(function(data){
+				});
+				$(this).dialog("close");
+			},
+			"close": function() {
+				$(this).dialog("close");
+			}
+		},
+		autoOpen: false,
+		resizable: false,
+		height: 270,
+		width: 350,
+		modal: true,
+		draggable: false
+	});
 });
 </script>
 
+<div id="dialog" title="Report settings" style="width: 600; height: 200px;">
+	<form name="properties">
+		<input type="hidden" id="acc_id">
+		<input type="hidden" id="token" value="{{token}}">
+		<table>
+			<tr>
+				<td>Name:</td>
+				<td><input type="text" id="acc_name"></tr>
+			</tr>
+			<tr>
+				<td>Parent account:</td>
+				<td>
+					<select name="acc_parent" id="acc_parent">
+							<option value="0">Root</option>
+						{{#allAcc}}
+							<option value="{{id}}">{{name}}</option>
+						{{/allAcc}}
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>Curency:</td>
+				<td>
+					<select name="acc_curency" id="acc_curency">
+						<option value="RUB">RUB</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>Type:</td>
+				<td>
+					<select name="acc_type" id="accType">
+						<option value="BANK">Bank</option>
+						<option value="CASH">Cash</option>
+						<option value="ASSET">Asset</option>
+						<option value="CREDIT">Credit card</option>
+						<option value="LIABILITY">Liability</option>
+						<option value="STOCK">Stock</option>
+						<option value="MUTUAL">Mutual found</option>
+						<option value="CURENCY">Curency</option>
+						<option value="INCOME">Income</option>
+						<option value="EXPENSE">Expense</option>
+						<option value="EQUITY">Equity</option>
+						<option value="RECIEVABLE">Recievable</option>
+						<option value="PAYABLE">Payable</option>
+					</select>
+				</td>
+			</tr>
+		</table>
+	</form>
+</div>
+
 <div id="home">
-	<div class="main tree">
+	<div id="tree_root" class="main tree">
 	{{#assets}}
 		{{>acctree_item}}
 	{{/assets}}

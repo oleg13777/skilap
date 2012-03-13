@@ -340,6 +340,24 @@ function CashApi (ctx) {
 		})
 	}
 	
+	function saveAccount(token, account, cb) {
+		async.series ([
+			function start(cb1) {
+				async.parallel([
+					async.apply(coreapi.checkPerm,token,["cash.edit"]),
+					async.apply(waitForData)
+				],cb1);
+			}, 
+			function get(cb1) {
+				cash_accounts.put(account.id, account, cb1);
+			}], function end(err, result) {
+				if (err) return cb(err);
+				process.nextTick(function () { calcStats(function () {})});
+				cb(null);
+			}
+		)
+	}
+	
 	function updateTransaction (token,modifiedTr,cb) {		
 		var updatedTr={};
 		async.series ([
@@ -990,6 +1008,7 @@ this.getCmdtyPrice = getCmdtyPrice;
 this.getAccount = getAccount;
 this.getTransactionsInDateRange = getTransactionInDateRange;
 this.restoreToDefaults = restoreToDefaults;
+this.saveAccount = saveAccount;
 }
 
 module.exports.init = function (ctx,cb) {

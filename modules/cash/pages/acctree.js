@@ -20,6 +20,7 @@ module.exports = function account(webapp) {
 					var det = {};
 					det.cmdty = acc.cmdty;
 					det.name = acc.name;
+					det.parentId = acc.parentId;
 					// do the conversion
 					async.series ([
 						function (cb) {
@@ -65,9 +66,12 @@ module.exports = function account(webapp) {
 
 	app.get(prefix+"/acctree", function(req, res, next) {
 		var assets = [];
+		var allAcc = [];
 		async.waterfall([
 			async.apply(getAccWithChild, req.session.apiToken, 0, assets),
-			function (cb1) {
+			async.apply(cashapi.getAllAccounts, req.session.apiToken),
+			function (_allAcc,cb1) {
+				allAcc = _allAcc;
 				webapp.guessTab(req, {pid:'acctree',name:ctx.i18n(req.session.apiToken, 'cash', 'Tree'), url:req.url}, cb1);
 			},
 			function render (vtabs) {
@@ -75,11 +79,34 @@ module.exports = function account(webapp) {
 						settings:{views:__dirname+"/../views"},
 						prefix:prefix, 
 						tabs:vtabs, 
-						assets:assets
+						assets:assets,
+						token: req.session.apiToken,
+						allAcc: allAcc
 					};
 				res.render(__dirname+"/../views/acctree", rdata);
 			}],
 			next
 		);
+	});
+
+	app.post(prefix+"/accupd", function(req, res, next) {
+		var cmdty = {space:"ISO4217",id:"RUB"};
+		async.waterfall([
+			async.apply(cashapi.getAccount, req.session.apiToken, req.body.id),
+			function(acc, cb1) {
+				console.log(acc);
+				acc.name=req.body.name;
+				acc.parentId=req.body.parentId;
+				acc.type=req.body.type;
+				acc.cmdty={space:"ISO4217",id:req.body.curency};
+				cashapi.saveAccount(req.session.apiToken, acc, function(err) {
+					cb1(err, acc);
+				});
+			},
+			function(acc, cb1){
+				res.writeHead(200, {'Content-Type': 'text/plain'});
+				res.end(JSON.stringify(acc));
+			}
+		],next);
 	});
 }
