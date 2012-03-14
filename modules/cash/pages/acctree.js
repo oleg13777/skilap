@@ -66,8 +66,20 @@ module.exports = function account(webapp) {
 
 	app.get(prefix+"/acctree", function(req, res, next) {
 		var assets = [];
+		var curencies = [];
+		var assetsTypes = [];
 		async.waterfall([
 			async.apply(getAccWithChild, req.session.apiToken, 0, assets),
+			function (cb1) {
+				ctx.i18n_getCurrencies("rus", cb1);
+			},
+			function(_curencies, cb1){
+				cashapi.getAssetsTypes(function(err, types){
+					curencies = _curencies
+					assetsTypes = types;
+					cb1();
+				});
+			},
 			function (cb1) {
 				webapp.guessTab(req, {pid:'acctree',name:ctx.i18n(req.session.apiToken, 'cash', 'Tree'), url:req.url}, cb1);
 			},
@@ -77,7 +89,11 @@ module.exports = function account(webapp) {
 						prefix:prefix, 
 						tabs:vtabs, 
 						assets:assets,
-						token: req.session.apiToken
+						token: req.session.apiToken,
+						curencies: curencies,
+						curencyStr: JSON.stringify(curencies),
+						assetsTypes: assetsTypes,
+						types: JSON.stringify(assetsTypes)
 					};
 				res.render(__dirname+"/../views/acctree", rdata);
 			}],

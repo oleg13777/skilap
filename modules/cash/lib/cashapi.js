@@ -954,7 +954,6 @@ function CashApi (ctx) {
 		});
 	}
 
-
 	function restoreToDefaults(token, cb){
 		async.waterfall([
 			function start(cb1) {
@@ -988,6 +987,25 @@ function CashApi (ctx) {
 		});
 	}
 
+	function getAssetsTypes(cb) {
+		var types = [
+				{value:"BANK", name:"Bank"},
+				{value:"CASH", name:"Cash"},
+				{value:"ASSET", name:"Asset"},
+				{value:"CREDIT", name:"Credit card"},
+				{value:"LIABILITY", name:"Liability"},
+				{value:"STOCK", name:"Stock"},
+				{value:"MUTUAL", name:"Mutual found"},
+				{value:"CURENCY", name:"Curency"},
+				{value:"INCOME", name:"Income"},
+				{value:"EXPENSE", name:"Expense"},
+				{value:"EQUITY", name:"Equity"},
+				{value:"RECIEVABLE", name:"Recievable"},
+				{value:"PAYABLE", name:"Payable"}
+			]
+		cb (null, types);
+	}
+
 this.getAllAccounts = getAllAccounts;
 this.getAccountInfo = getAccountInfo;
 this.getAccountRegister = getAccountRegister;
@@ -1009,6 +1027,7 @@ this.getAccount = getAccount;
 this.getTransactionsInDateRange = getTransactionInDateRange;
 this.restoreToDefaults = restoreToDefaults;
 this.saveAccount = saveAccount;
+this.getAssetsTypes = getAssetsTypes;
 }
 
 module.exports.init = function (ctx,cb) {

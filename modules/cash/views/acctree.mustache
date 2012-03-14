@@ -16,8 +16,8 @@ $(function() {
 	});
 	$('.editAcc').on("click", function(e){
 		var self = $(this);
-		var types = ["BANK","CASH","ASSET","CREDIT","LIABILITY","STOCK","MUTUAL","CURENCY","INCOME","EXPENSE","EQUITY","RECIEVABLE","PAYABLE"];
-		var curency = ["RUB"];
+		var types = {{{types}}};
+		var curency = {{{curencyStr}}};
 		var form = document.forms.properties;
 		form.elements.acc_id.value = self.attr('aid');
 		var secret = form.elements.token.value;
@@ -42,8 +42,12 @@ $(function() {
 					opts.selectedIndex=i;
 				}
 			}
-			form.elements.acc_type.selectedIndex = types.indexOf(acc.type);
-			form.elements.acc_curency.selectedIndex = curency.indexOf(acc.cmdty.id);
+			for (var i=0; i<types.length; i++) {
+				if (types[i].value == acc.type) form.elements.acc_type.selectedIndex = i;
+			}
+			for (var i=0; i<curency.length; i++) {
+				if (curency[i].iso == acc.cmdty.id) form.elements.acc_curency.selectedIndex = i;
+			}
 		});
 		jqXHR.fail(function(data){
 		});
@@ -93,7 +97,7 @@ $(function() {
 		autoOpen: false,
 		resizable: false,
 		height: 270,
-		width: 350,
+		width: 450,
 		modal: true,
 		draggable: false
 	});
@@ -124,7 +128,9 @@ $(function() {
 				<td>Curency:</td>
 				<td>
 					<select name="acc_curency" id="acc_curency">
-						<option value="RUB">RUB</option>
+						{{#curencies}}
+							<option value="{{iso}}">{{iso}} - {{country}}</option>
+						{{/curencies}}
 					</select>
 				</td>
 			</tr>
@@ -132,19 +138,9 @@ $(function() {
 				<td>Type:</td>
 				<td>
 					<select name="acc_type" id="accType">
-						<option value="BANK">Bank</option>
-						<option value="CASH">Cash</option>
-						<option value="ASSET">Asset</option>
-						<option value="CREDIT">Credit card</option>
-						<option value="LIABILITY">Liability</option>
-						<option value="STOCK">Stock</option>
-						<option value="MUTUAL">Mutual found</option>
-						<option value="CURENCY">Curency</option>
-						<option value="INCOME">Income</option>
-						<option value="EXPENSE">Expense</option>
-						<option value="EQUITY">Equity</option>
-						<option value="RECIEVABLE">Recievable</option>
-						<option value="PAYABLE">Payable</option>
+						{{#assetsTypes}}
+							<option value="{{value}}">{{name}}</option>
+						{{/assetsTypes}}
 					</select>
 				</td>
 			</tr>
