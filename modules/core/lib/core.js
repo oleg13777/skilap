@@ -331,8 +331,8 @@ function Skilap() {
 	}
 	
 	var currencies = null;
-	this.i18n_getCurrencies = function (langtoken) {
-		if (currencies!=null) return currencies;
+	this.i18n_getCurrencies = function (langtoken, cb) {
+		if (currencies!=null) cb(null, currencies);
 		var res = [];
 		var cu = i18n.currency().getCurrencies();
 		_(cu).forEach(function(cid) {
@@ -342,7 +342,7 @@ function Skilap() {
 			res.push({iso:cid,name:cur.getName(),symbol:sa,country:cur.getCountry()});
 		})
 		currencies = res;
-		return res;
+		cb(null, res);
 	}
 	
 }
