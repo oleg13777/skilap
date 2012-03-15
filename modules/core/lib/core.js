@@ -160,10 +160,9 @@ function Skilap() {
 							res.redirect(req.body.success);
 					});
 				});
-				function handleJsonRpc(jsonrpctext, req, res, next) {
+				function handleJsonRpc(jsonrpc, req, res, next) {
 					var id = null; var out = false;
 					try {
-						var jsonrpc = jsonrpctext;
 						id = jsonrpc.id;
 						var func = jsonrpc.method.match(/^(.*)\.(.*)$/);
 						var module = func[1];

@@ -341,19 +341,26 @@ function CashApi (ctx) {
 	}
 	
 	function saveAccount(token, account, cb) {
-		async.series ([
+		async.waterfall ([
 			function start(cb1) {
 				async.parallel([
 					async.apply(coreapi.checkPerm,token,["cash.edit"]),
 					async.apply(waitForData)
 				],cb1);
-			}, 
-			function get(cb1) {
+			},
+			function (t, cb1) {
+				if (account.id)
+					cb1(null, account.id);
+				else
+					ctx.getUniqueId(cb1);
+			},
+			function get(id, cb1) {
+				account.id = id;
 				cash_accounts.put(account.id, account, cb1);
 			}], function end(err, result) {
 				if (err) return cb(err);
 				process.nextTick(function () { calcStats(function () {})});
-				cb(null);
+				cb(null, account);
 			}
 		)
 	}

@@ -102,22 +102,22 @@ module.exports = function account(webapp) {
 	});
 
 	app.post(prefix+"/accupd", function(req, res, next) {
-		var cmdty = {space:"ISO4217",id:"RUB"};
 		async.waterfall([
-			async.apply(cashapi.getAccount, req.session.apiToken, req.body.id),
-			function(acc, cb1) {
-				console.log(acc);
+			function(cb1) {
+				var acc = {};
+				acc.id = req.body.id;
 				acc.name=req.body.name;
 				acc.parentId=req.body.parentId;
 				acc.type=req.body.type;
 				acc.cmdty={space:"ISO4217",id:req.body.curency};
-				cashapi.saveAccount(req.session.apiToken, acc, function(err) {
-					cb1(err, acc);
-				});
+				cashapi.saveAccount(req.session.apiToken, acc, cb1);
 			},
 			function(acc, cb1){
+				getAccountDetails(req.session.apiToken, acc, function (det) {cb1(null, det)});
+			},
+			function(det, cb1){
 				res.writeHead(200, {'Content-Type': 'text/plain'});
-				res.end(JSON.stringify(acc));
+				res.end(JSON.stringify(det));
 			}
 		],next);
 	});
