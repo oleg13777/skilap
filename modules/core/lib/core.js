@@ -163,7 +163,7 @@ function Skilap() {
 				function handleJsonRpc(jsonrpctext, req, res, next) {
 					var id = null; var out = false;
 					try {
-						var jsonrpc = JSON.parse(jsonrpctext);
+						var jsonrpc = jsonrpctext;
 						id = jsonrpc.id;
 						var func = jsonrpc.method.match(/^(.*)\.(.*)$/);
 						var module = func[1];
@@ -195,7 +195,7 @@ function Skilap() {
 					handleJsonRpc(req.query.jsonrpc, req, res, next);
 				})
 				app.post("/jsonrpc", function (req,res,next) {
-					handleJsonRpc(req.body.json,req, res, next);
+					handleJsonRpc(req.body, req, res, next);
 				})
 
 			},

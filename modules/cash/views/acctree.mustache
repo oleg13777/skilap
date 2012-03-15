@@ -21,35 +21,28 @@ $(function() {
 		var form = document.forms.properties;
 		form.elements.acc_id.value = self.attr('aid');
 		var secret = form.elements.token.value;
-		var json = {
-				"jsonrpc": "2.0",
-				"method": "cash.getAccount",
-				"params": [secret, self.attr('aid') ],
-				"id":1
-			};
-		var jqXHR = $.ajax({
-				"type": "POST",
-				"data": {json: JSON.stringify(json)},
-				"dataType": "json",
-				"url": "/jsonrpc",
-			});
-		jqXHR.done(function(data){
-			var acc = data.result[0];
-			form.elements.acc_name.value = acc.name;
-			opts = form.elements.acc_parent.options;
-			for (var i=0; i<opts.length; i++) {
-				if (opts[i].value == acc.parentId){
-					opts.selectedIndex=i;
+		
+		var rpc = new jsonrpc.JsonRpc('/jsonrpc');
+		rpc.call('cash.getAccount', secret, self.attr('aid'), {
+			success: function (data) {
+				console.log(data); 
+				var acc = data[0];
+				form.elements.acc_name.value = acc.name;
+				opts = form.elements.acc_parent.options;
+				for (var i=0; i<opts.length; i++) {
+					if (opts[i].value == acc.parentId){
+						opts.selectedIndex=i;
+					}
 				}
-			}
-			for (var i=0; i<types.length; i++) {
-				if (types[i].value == acc.type) form.elements.acc_type.selectedIndex = i;
-			}
-			for (var i=0; i<curency.length; i++) {
-				if (curency[i].iso == acc.cmdty.id) form.elements.acc_curency.selectedIndex = i;
-			}
-		});
-		jqXHR.fail(function(data){
+				for (var i=0; i<types.length; i++) {
+					if (types[i].value == acc.type) form.elements.acc_type.selectedIndex = i;
+				}
+				for (var i=0; i<curency.length; i++) {
+					if (curency[i].iso == acc.cmdty.id) form.elements.acc_curency.selectedIndex = i;
+				}
+			},
+			failure: function (reason) {
+			},
 		});
 		$("#dialog").dialog("open");
 		return false;
