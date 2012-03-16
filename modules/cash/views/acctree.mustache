@@ -8,7 +8,6 @@ $(function() {
 		var obj = $(this);
 		obj.children('div').toggle();
 		obj.filter('.parent').toggleClass('expanded');
-		console.log(e.target);
 		return false;
 	});
 	$(document).on("click", 'div.tree div a', function(e) {
@@ -21,7 +20,6 @@ $(function() {
 		return false;
 	});
 	$(document).on("click", ".editAcc", function(e){
-		console.log("onclick");
 		var self = $(this);
 		var types = {{{types}}};
 		var curency = {{{curencyStr}}};
