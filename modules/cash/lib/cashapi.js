@@ -1029,16 +1029,16 @@ function CashApi (ctx) {
 						if (split.accountId == accId)
 							if (transferId) {
 								split.accountId = transferId;
-								cash_transactions.put(key, tr, function (err) {if (err) { throw err; }});
+								cash_transactions.put(key, tr, function (err) { if (err) throw err;	});
 							} else {
-								cash_transactions.put(key, {}, function (err) {if (err) { throw err; }})
+								cash_transactions.put(key, {}, function (err) {if (err) throw err; });
 							}
 					});
 				});
 				cb1();
 			},
 			function (cb1) {
-				cash_accounts.put(accId, {}, function (err) {if (err) { throw err; }});
+				cash_accounts.put(accId, {}, function (err) {if (err) throw err; });
 				cb1();
 			}
 		], function (err) {

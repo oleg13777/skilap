@@ -91,9 +91,7 @@ module.exports = function account(webapp) {
 						assets:assets,
 						token: req.session.apiToken,
 						curencies: curencies,
-						curencyStr: JSON.stringify(curencies),
-						assetsTypes: assetsTypes,
-						types: JSON.stringify(assetsTypes)
+						assetsTypes: assetsTypes
 					};
 				res.render(__dirname+"/../views/acctree", rdata);
 			}],
