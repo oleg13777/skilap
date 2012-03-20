@@ -118,6 +118,7 @@ $(function() {
 				var newParent = document.forms.deleteAccForm.elements.new_parent.options[document.forms.deleteAccForm.elements.new_parent.selectedIndex].value
 				rpc.call('cash.deleteAccount', secret, $('#del_acc').val(), newParent, {
 					success: function (data) {
+						console.log(data);
 						$('#'+$('#del_acc').val()).remove();
 					},
 					failure: function (reason) {

@@ -1027,14 +1027,14 @@ function CashApi (ctx) {
 					if (err) {console.log(err); cb1(err);}
 					_(tr.splits).forEach(function (split) {
 						if (split.accountId == accId)
-							if (transferId)
+							if (transferId) {
 								split.accountId = transferId;
-							else
-								trIds.push(key);
+								cash_transactions.put(key, tr, function (err) {if (err) { throw err; }});
+							} else {
+								cash_transactions.put(key, {}, function (err) {if (err) { throw err; }})
+							}
 					});
 				});
-				if (trIds.length > 0)
-					_(trIds).forEach(function(tid){cash_transactions.put(tid, {}, function (err) {if (err) { throw err; }})});
 				cb1();
 			},
 			function (cb1) {
