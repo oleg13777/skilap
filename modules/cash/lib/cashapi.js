@@ -1013,6 +1013,41 @@ function CashApi (ctx) {
 		cb (null, types);
 	}
 
+	function deleteAccount(token, accId, transferId, cb){
+		async.series([
+			function start(cb1) {
+				async.parallel([
+					async.apply(coreapi.checkPerm,token,["cash.edit"]),
+					async.apply(waitForData)
+				],cb1);
+			}, 
+			function (cb1) {
+				var trIds = [];
+				cash_transactions.scan(function (err, key, tr) {
+					if (err) {console.log(err); cb1(err);}
+					_(tr.splits).forEach(function (split) {
+						if (split.accountId == accId)
+							if (transferId)
+								split.accountId = transferId;
+							else
+								trIds.push(key);
+					});
+				});
+				if (trIds.length > 0)
+					_(trIds).forEach(function(tid){cash_transactions.put(tid, {}, function (err) {if (err) { throw err; }})});
+				cb1();
+			},
+			function (cb1) {
+				cash_accounts.put(accId, {}, function (err) {if (err) { throw err; }});
+				cb1();
+			}
+		], function (err) {
+			if (err) { console.log(err); cb(err);}
+			process.nextTick(function () { calcStats(function () {})});
+			cb(null);
+		});
+	}
+
 this.getAllAccounts = getAllAccounts;
 this.getAccountInfo = getAccountInfo;
 this.getAccountRegister = getAccountRegister;
@@ -1035,6 +1070,7 @@ this.getTransactionsInDateRange = getTransactionInDateRange;
 this.restoreToDefaults = restoreToDefaults;
 this.saveAccount = saveAccount;
 this.getAssetsTypes = getAssetsTypes;
+this.deleteAccount = deleteAccount;
 }
 
 module.exports.init = function (ctx,cb) {

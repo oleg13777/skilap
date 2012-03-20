@@ -3,6 +3,9 @@ $(function() {
 	$('#acc_parent option').filter('[pid="0"]').each(function(e) {
 		$(this).text($.trim($(this).text()));
 	});
+	$('#new_parent option').filter('[pid="0"]').each(function(e) {
+		$(this).text($.trim($(this).text()));
+	});
 	$('div.tree div:has(div)').addClass('parent');
 	$(document).on("click", 'div.tree div', function(e) {
 		var obj = $(this);
@@ -14,8 +17,8 @@ $(function() {
 		location.href=this.href;
 		return false;
 	});
-	$('#add_new').on("click", function(e){
-		document.forms.properties.elements.acc_id.value=null;
+	$(document).on('click', '#add_new', function(e){
+		$('#acc_id').val(null);
 		$("#dialog").dialog("open");
 		return false;
 	});
@@ -72,7 +75,7 @@ $(function() {
 				jqXHR.done(function(data){
 					var curent = $('#'+data.id);
 					if (!curent.length) {
-						curent = $('<div id="'+data.id+'"><a id="open'+data.id+'" href=\'/cash/account?id='+data.id+'\'>'+data.name+'</a> (<a href="#" class="editAcc" aid="'+data.id+'">edit</a>)<span>'+data.fvalue+'</span></div>');
+						curent = $('<div id="'+data.id+'"><a id="open'+data.id+'" href=\'/cash/account?id='+data.id+'\'>'+data.name+'</a> (<a href="#" class="editAcc" aid="'+data.id+'">edit</a> <a href="#" class="deleteAcc" aid="{{id}}">delete</a>)<span>'+data.fvalue+'</span></div>');
 					}
 					$('#open'+data.id).text(data.name);
 					var parent;
@@ -101,10 +104,73 @@ $(function() {
 		modal: true,
 		draggable: false
 	});
+	$(document).on("click", ".deleteAcc", function(e){
+		$('#del_acc').val($(this).attr('aid'));
+		$("#deleteDialog").dialog("open");
+		return false;
+	});
+	$("#deleteDialog").dialog({
+		position: ["center","center"],
+		buttons: {
+			"apply": function() {
+				var secret = $('#token').val();
+				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
+				var newParent = document.forms.deleteAccForm.elements.new_parent.options[document.forms.deleteAccForm.elements.new_parent.selectedIndex].value
+				rpc.call('cash.deleteAccount', secret, $('#del_acc').val(), newParent, {
+					success: function (data) {
+						$('#'+$('#del_acc').val()).remove();
+					},
+					failure: function (reason) {
+					},
+				});
+				$(this).dialog("close");
+			},
+			"close": function() {
+				$(this).dialog("close");
+			}
+		},
+		autoOpen: false,
+		resizable: false,
+		height: 300,
+		width: 500,
+		modal: true,
+		draggable: false
+	});
+	$(document).on('click', 'input[type="radio"]', function (e) {
+		console.log($(this));
+		if ($(this).attr('id')=="move") {
+			$("#new_parent").removeAttr('disabled');
+		} else {
+			$("#new_parent").attr('disabled', 'disabled');
+		}
+	});
 });
 </script>
 
-<div id="dialog" title="Report settings" style="width: 600; height: 200px;">
+<div id="deleteDialog" title="Delete account" style="width: 600px; height: 200px;">
+	<form name ="deleteAccForm">
+		<input type="hidden" id="del_acc">
+		<h2>Delete account</h2>
+		<table>
+			<tr>
+				<td>Transactions</td>
+				<td><input id="del" type="radio" name="action" checked /> Delete <input id="move" type="radio" name="action"> Move</td>
+			</tr>
+			<tr>
+				<td>Move to</td>
+				<td>
+					<select name="new_parent" id="new_parent" disabled>
+						{{#assets}}
+							{{>acctree_list_item}}
+						{{/assets}}
+					</select>
+				</td>
+			</tr>
+		</table>
+	</form>
+</div>
+
+<div id="dialog" title="Account properties" style="width: 600px; height: 200px;">
 	<form name="properties">
 		<input type="hidden" id="acc_id">
 		<input type="hidden" id="token" value="{{token}}">
