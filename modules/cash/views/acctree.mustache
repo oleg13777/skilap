@@ -3,7 +3,7 @@ $(function() {
 	$('#acc_parent option').filter('[pid="0"]').each(function(e) {
 		$(this).text($.trim($(this).text()));
 	});
-	$('#new_parent option').filter('[pid="0"]').each(function(e) {
+	$('.new_parent option').filter('[pid="0"]').each(function(e) {
 		$(this).text($.trim($(this).text()));
 	});
 	$('div.tree div:has(div)').addClass('parent');
@@ -92,6 +92,8 @@ $(function() {
 	});
 	$(document).on("click", ".deleteAcc", function(e){
 		$('#del_acc').val($(this).attr('aid'));
+		var accName = $('#open'+$(this).attr('aid')).html();
+		$('#deleteDialog').dialog( "option", "title", "Delete account \"" + accName +"\"");
 		$("#deleteDialog").dialog("open");
 		return false;
 	});
@@ -117,42 +119,67 @@ $(function() {
 		},
 		autoOpen: false,
 		resizable: false,
-		height: 300,
-		width: 500,
+		height: 500,
+		width: 350,
 		modal: true,
 		draggable: false
 	});
+	$('#sub_acc_tr *').attr('disabled', 'disabled');
 	$(document).on('click', 'input[type="radio"]', function (e) {
-		console.log($(this));
-		if ($(this).attr('id')=="move") {
-			$("#new_parent").removeAttr('disabled');
+		if ($(this).attr('action')=="move") {
+			$(this).parent().find(".new_parent").removeAttr('disabled');
+			if ($(this).attr('name') == "sub_acc_action") $('#sub_acc_tr *').attr('disabled', 'disabled');
 		} else {
-			$("#new_parent").attr('disabled', 'disabled');
+			$(this).parent().find(".new_parent").attr('disabled', 'disabled');
+			if ($(this).attr('name') == "sub_acc_action") $('#sub_acc_tr *').removeAttr('disabled');
 		}
 	});
 });
 </script>
 
-<div id="deleteDialog" title="Delete account" style="width: 600px; height: 200px;">
+<div id="deleteDialog">
 	<form name ="deleteAccForm">
 		<input type="hidden" id="del_acc">
-		<h2>Delete account</h2>
-		<table>
-			<tr>
-				<td>Transactions</td>
-				<td><input id="del" type="radio" name="action" checked /> Delete <input id="move" type="radio" name="action"> Move</td>
-			</tr>
-			<tr>
-				<td>Move to</td>
-				<td>
-					<select name="new_parent" id="new_parent" disabled>
-						{{#assets}}
-							{{>acctree_list_item}}
-						{{/assets}}
-					</select>
-				</td>
-			</tr>
-		</table>
+		<div id="sub_tr">
+			<h3>Transactions:</h3>
+			<p>If this account contans transactions. What would you like to do with these transactions?</p>
+			<br />
+			<p><input action="del" type="radio" name="trn_action" /> Delete<br />
+			<input action="move" type="radio" name="trn_action" checked /> Move to:
+			<select class="new_parent" disabled>
+				{{#assets}}
+					{{>acctree_list_item}}
+				{{/assets}}
+			</select></p>
+		</div>
+		</br>
+		<hr />
+		<div id="sub_acc">
+			<h3>Sub-accounts:</h3>
+			<p>If this account contans sub-accounts. What would you like to do with these sub-accounts?</p>
+			<br />
+			<p><input action="del" type="radio" name="sub_acc_action"/> Delete<br />
+			<input action="move" type="radio" name="sub_acc_action" checked /> Move to:
+			<select class="new_parent" disabled>
+				{{#assets}}
+					{{>acctree_list_item}}
+				{{/assets}}
+			</select></p>
+			</div>
+			</br>
+			<hr />
+		<div id="sub_acc_tr">
+			<h3>Sub-account transactions:</h3>
+			<p>If one or more sub-account contan transactions. What would you like to do with these transactios?</p>
+			<br />
+			<p><input action="del" type="radio" name="sub_acc_trn_action" /> Delete<br />
+			<input action="move" type="radio" name="sub_acc_trn_action" checked /> Move to:
+			<select class="new_parent" disabled>
+				{{#assets}}
+					{{>acctree_list_item}}
+				{{/assets}}
+			</select></p>
+		</div>
 	</form>
 </div>
 
