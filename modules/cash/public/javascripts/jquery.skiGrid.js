@@ -198,6 +198,12 @@
 				}
 			}			
 		});
+		
+		/* fix grid when window change */
+		$(window).on('resize',function(){
+			console.log('window change');
+			drawGridBorders($obj,objSettings);
+		});
 	};
 	
 	function showGrid($obj,objSettings,offset){			
@@ -285,7 +291,8 @@
 	/*
 	 * Draw vertical and horizontal lines instead table borders
 	 */
-	function drawGridBorders($obj,objSettings){				
+	function drawGridBorders($obj,objSettings){	
+		objSettings.gridWrapper.find('.ski_vline,.ski_hline').remove();			
 		var $vline = $('<div class="ski_vline"></div>');		
 		$vline.height(options.tableHeight + options.rowHeight);
 		var columnHeaders = objSettings.headerWrapperRef.find('th');
