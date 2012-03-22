@@ -82,6 +82,42 @@ td {
 	right:5px;
 	z-index:1;
 }
+
+.ski_gridWrapper .tdContent .ski_select_btn{
+	display:block;
+	position:absolute;
+	top:0px;
+	right:0px;
+	width:20px;
+	height:25px;
+	background:url('../images/down-arrow.png') no-repeat 50% 50% #fff;
+	border-left:1px solid #333;
+	cursor:pointer;
+	z-index:1;
+}
+
+.ski_gridWrapper .tdContent .ski_select_btn:hover{
+background-color:#eee;
+}
+
+.ski_gridWrapper .ski_select_popup{
+	position:relative;
+	
+}
+
+.ski_gridWrapper .ski_select_popup .ui-autocomplete{
+	max-height:250px;
+	max-width:270px;
+	overflow-y:scroll;
+	z-index:3 !important;
+}
+
+.ski_gridWrapper .ski_select_popup .ui-autocomplete li a{
+	font-size:14px;
+	padding:0;
+	line-height:120%;
+}
+
 .ski_gridBodyWrapper tr{
 	color:#333;
 }
@@ -216,9 +252,7 @@ td {
 	left:0;
 	height:25px;
 	width:100px;
-	background-color:#f6a828;
-	box-shadow:0 -1px 5px 0;
-	border-radius:4px;
+	background-color:#ccc;	
 	z-index:2;
 }
 

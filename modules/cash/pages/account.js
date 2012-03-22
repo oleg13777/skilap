@@ -478,6 +478,7 @@ module.exports = function account(webapp) {
 				}				
 				data.iTotalRecords = count;
 				data.iTotalDisplayRecords = count;
+				data.currentDate = df.format(new Date());
 				res.send(data);
 			})
 		], function (err) {

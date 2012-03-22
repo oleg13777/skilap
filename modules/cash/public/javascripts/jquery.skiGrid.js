@@ -31,8 +31,9 @@
 		this.rowEditedData = null;
 		this.rowNewData = null;
 		this.isNotDrawBorders = true;
-		this.newTrContainer = null;
-		this.trButtons = {};
+		this.newTrContainer = null;		
+		this.currentDate = null;
+		this.isRowAdded = false;
 	};
 	
 	function init($obj){		
@@ -57,16 +58,26 @@
 			"cache": false			
 		});
 		jqXHR.done(function(data){
-			objSettings.totalRowsCount = data.iTotalRecords+1;			
-			objSettings.totalHeight = objSettings.totalRowsCount*options.rowHeight;
-			objSettings.bodyScrollerRef.css('height',objSettings.totalHeight+'px');
-			var tablePosition = objSettings.totalHeight - objSettings.rowsLimit*options.rowHeight;			
-			objSettings.tablePosition = tablePosition;								
+			updateGridSettings(data,objSettings);							
 			var offset = objSettings.totalRowsCount - objSettings.rowsLimit;
 			showGrid($obj,objSettings,offset);
 			objSettings.bodyWrapperRef.scrollTop(objSettings.totalHeight);				
 		}); 
 		
+	};
+	
+	function updateGridSettings(data,objSettings){
+		objSettings.currentDate = data.currentDate;
+		objSettings.totalRowsCount = data.iTotalRecords+2;			
+		objSettings.totalHeight = objSettings.totalRowsCount*options.rowHeight;
+		objSettings.bodyScrollerRef.css('height',objSettings.totalHeight+'px');
+		var tablePosition = objSettings.totalHeight - objSettings.rowsLimit*options.rowHeight;			
+		objSettings.tablePosition = tablePosition;	
+		if(objSettings.isRowAdded){
+			objSettings.isRowAdded = false;
+			var prevScrollPosition = objSettings.bodyWrapperRef.scrollTop();
+			objSettings.bodyWrapperRef.scrollTop(prevScrollPosition + options.rowHeight);
+		}
 	};
 	
 	function wrapGrid($obj,objSettings){
@@ -104,18 +115,7 @@
 		$newTrGrid.find('thead').remove().end().find('tbody tr').remove().end().removeAttr('id').removeAttr('style');		
 		$newTrContainer.append($newTrGrid);
 		objSettings.newTrContainer = $newTrContainer;
-		$gridFooterWrapper.append($newTrContainer);
-		
-		var $addButton = $('<div class="ski_addButton ski_button">Add transaction</div>');
-		var $saveButton = $('<div class="ski_saveButton ski_add_control invisible ski_button">Save</div>');		
-		var $discardButton = $('<div class="ski_cancelButton ski_add_control invisible ski_button">Discard</div>');
-		objSettings.trButtons.add = $addButton;
-		objSettings.trButtons.save = $saveButton;
-		objSettings.trButtons.discard = $discardButton;	
-		$gridFooterWrapper.append($addButton);
-		$gridFooterWrapper.append($saveButton);
-		$gridFooterWrapper.append($discardButton);
-		
+		$gridFooterWrapper.append($newTrContainer);				
 		$obj.parents('.ski_gridWrapper').append($gridFooterWrapper);
 		createRowForNewTransaction(objSettings);		
 	};
@@ -129,41 +129,9 @@
 		});
 		
 		/* show block for adding new transaction */
-		objSettings.trButtons.add.on('click',function(){
-			if($(this).hasClass('ski_selected')){
-				showNewTransactionContainer($obj,objSettings,false);
-				$(this).removeClass('ski_selected');
-				$(".ski_add_control").addClass('invisible');
-			}
-			else{
-				showNewTransactionContainer($obj,objSettings,true);
-				$(this).addClass('ski_selected');
-				$(".ski_add_control").removeClass('invisible');
-			}			
-			handleNewTrSplitRowsShow(objSettings);					
-		});
-		
-		/* save new transaction event */
-		objSettings.trButtons.save.on('click',function(){
-			console.log('save new tr');
-			/* before saving, we need update value for last selected column */
-			var $firstCol = $(objSettings.newTrContainer.find('tr:first td:first')[0]);
-			console.log($firstCol);			
-			handleNewTrColumnClick($firstCol,objSettings);
-			processRowAdd(objSettings,function(err){
-				if(!err){
-					objSettings.rowNewData={};
-					clearDataForNewTransaction(objSettings);			
-					objSettings.bodyWrapperRef.scroll();
-					objSettings.trButtons.add.click();
-				}
-			});
-		});
-		
-		/* cancel saving new transaction event */
-		objSettings.trButtons.discard.on('click',function(){
-			clearDataForNewTransaction(objSettings);			
-		});
+		objSettings.gridWrapper.on('GridLoad',function(){
+			showNewTransactionContainer($obj,objSettings,true);							
+		});		
 		
 		/* scroll event */
 		objSettings.bodyWrapperRef.on('scroll',function(){									
@@ -174,13 +142,61 @@
 			showGrid($obj,objSettings,offset);			
 		});				
 		/* column select event */		
-		objSettings.bodyWrapperRef.find('tbody').on('click','td',function(){			
+		objSettings.bodyWrapperRef.find('tbody').on('click','td',function(){
+			var $firstColumn = $(objSettings.tableBodyRef.find('td.ski_selected')).prev('td[name="id"]');
+			handleNewTrColumnClick($firstColumn,objSettings);			
 			handleColumnClick($(this),objSettings);
 		});
 		
 		/* new transaction column select event */		
-		objSettings.newTrContainer.find('tbody').on('click','td',function(){			
+		objSettings.newTrContainer.find('tbody').on('click','td',function(){
+			var $firstColumn = $(objSettings.tableBodyRef.find('td.ski_selected')).prev('td[name="id"]');
+			handleColumnClick($firstColumn,objSettings);					
 			handleNewTrColumnClick($(this),objSettings);
+		});
+		/* handle tab key */
+		objSettings.gridWrapper.find('tbody').on('keypress','td',function(e){
+			if(e.keyCode == 9){				
+				$(this).next().click();
+				if($(this).next().attr('name') == 'total'){
+					triggerModifyData($(this),objSettings);					
+				}
+				return false;
+			}
+			if(e.keyCode == 13 && ($(this).attr('name') == 'deposit' || $(this).attr('name') == 'withdrawal')){
+				$(this).next().click();
+				triggerModifyData($(this),objSettings);	
+			}			
+		});
+		/* handle modify data */
+		objSettings.gridWrapper.on('AddRowData',function(){			
+			/* before saving, we need update value for last selected column */
+			var $firstCol = $(objSettings.newTrContainer.find('tr:first td:first')[0]);					
+			handleNewTrColumnClick($firstCol,objSettings);
+			processRowAdd(objSettings,function(err){
+				if(!err){
+					objSettings.rowNewData={};
+					clearDataForNewTransaction(objSettings);
+					objSettings.isRowAdded = true;			
+					objSettings.bodyWrapperRef.scroll();					
+				}
+			});
+		});
+		
+		objSettings.gridWrapper.on('DiscardRowData',function(){	
+			clearDataForNewTransaction(objSettings);
+		});
+		
+		objSettings.gridWrapper.on('UpdateRowData',function(){			
+			var allRows =  objSettings.tableBodyRef.find('tr.mainRow');
+			for(i=0;i<allRows.length;i++){
+				var $row = $(allRows[i]);
+				if($row.hasClass('ski_selected')){
+					var nextIndex = i < allRows.length - 2 ? i+1 : i-1;
+					$(allRows[nextIndex]).find('td[name="id"]').click();
+					break;
+				}
+			}			
 		});
 	};
 	
@@ -199,8 +215,8 @@
 			if (data.sEcho*1 < objSettings.sEcho)
 				return;
 			
-			console.log(data);
 			clearGrid(objSettings);
+			updateGridSettings(data,objSettings);
 			for(var i=0;i<data.aaData.length;i++){
 				var tr = objSettings.tableRowRef.clone();						
 				for(var j=0;j<options.columnsCount;j++){
@@ -261,7 +277,8 @@
 			if(objSettings.isNotDrawBorders){
 				drawGridBorders($obj,objSettings);
 			}
-			handleSplitRowsShow(objSettings);											
+			handleSplitRowsShow(objSettings);
+			objSettings.gridWrapper.trigger('GridLoad');
 		});
 	};
 	
@@ -325,16 +342,14 @@
 		}
 	};
 	
-	function handleNewTrSplitRowsShow(objSettings){
-		if(objSettings.trButtons.add.hasClass('ski_selected')){
-			if(objSettings.splitButton.hasClass('ski_selected')){
-				showNewTrSplits(objSettings,true);
-				showPathInNewMainRow(objSettings,false);
-			}
-			else{
-				showNewTrSplits(objSettings,false);
-				showPathInNewMainRow(objSettings,true);
-			}
+	function handleNewTrSplitRowsShow(objSettings){		
+		if(objSettings.splitButton.hasClass('ski_selected')){
+			showNewTrSplits(objSettings,true);
+			showPathInNewMainRow(objSettings,false);
+		}
+		else{
+			showNewTrSplits(objSettings,false);
+			showPathInNewMainRow(objSettings,true);
 		}
 	};	
 	
@@ -342,9 +357,7 @@
 		if(!update){
 			update = false;
 		}
-		console.log('showNewTrSplits');
-		var splitRows = objSettings.newTrContainer.find('tr.splitRow');
-		console.log('splitRowsLength = '+splitRows.length);
+		var splitRows = objSettings.newTrContainer.find('tr.splitRow');		
 		var splitHeight = splitRows.length*options.rowHeight;
 		var $splitRow = $(splitRows[0]);
 		var h = objSettings.newTrContainer.height();		
@@ -537,9 +550,7 @@
 	
 	function processRowAdd(objSettings,cb){
 		/* selected row changing */		
-		var rowNewData = $.extend({},objSettings.rowNewData);
-		console.log('rowNewData = ');
-		console.log(objSettings.rowNewData);
+		var rowNewData = $.extend({},objSettings.rowNewData);		
 		addRow(rowNewData,objSettings,function(err){
 			if(err){
 				if(err.error == 'validateError'){
@@ -559,31 +570,67 @@
 		$col.find('.tdContent').removeClass('ski_validate-error');
 		objSettings.colNum = parseInt(colNum);					
 		var val = getColumnVal($col);
-		var $element = null;
+		var $element = null;		
 		var $secondaryElement = null;
 		switch(options.editable.columns[colNum].type){
 			case 'input':				
 				$element = $('<input class= "ski_editable" type="text" value="'+val+'" />');
 				
-			break;
+			break;			
 			case 'select':
-				$element = $('<select class="ski_editable"></select');
+				/* delete previous autocomplete popup */
+				objSettings.gridWrapper.find('.ski_select_popup').remove();
+				/* calculate position of autocomplete popup */
+				var autocompletePos = getAutocompletePos($col,objSettings);
+				$element1 = $('<input style="display:block;width:100%;height:100%" type="text" value="'+val+'" />');
+				$element1.autocomplete({position:autocompletePos});
 				var jqXHR = $.ajax({
-					"url": options.editable.columns[colNum].source,
+					"url": options.editable.columns[colNum].source,					
 					"dataType": "json",
-					"cache": false				
+					"cache": true				
 				});
 				jqXHR.done(function(data){
-					for(var property in data){
-						var selected = '';
-						if(data[property] == val){
-							selected = 'selected';
-						}
-						$element.append('<option value="'+data[property]+'" '+selected+'>'+data[property]+'</option>');
-					}					
+					var src = [];
+					for(i in data){
+						src.push(data[i]);
+					}
+					$element1.autocomplete('option','source',src);
 				});
+				$element2 = $('<div class="ski_select_btn"></div>');
+				var popupId = 'ski_path_popup';
+				//var randId = 'ski_select_popup_'+ getRandomId();				
+				$element3 = $('<div id="'+popupId+'" class="ski_select_popup"></div>');					
+				$wrapElement = $('<div class= "ski_editable"></div>');
+				$wrapElement.append($element1);
+				$wrapElement.append($element2);	
+				objSettings.gridWrapper.append($element3);				
+				$element = $wrapElement;
+				
+				$element1.autocomplete('option','appendTo','#'+popupId);
+				$element1.on('autocompleteopen',function(e,ui){
+					e.target.focus();
+					$('#'+popupId).find('li:first a').mouseover();
+					e.preventDefault();
+				});
+				$element2.on('click',function(){
+					if($(this).hasClass('popup')){
+						$(this).removeClass('popup');
+						$element1.autocomplete('option','minLength',1);
+						$element1.autocomplete('search','');
+					}
+					else{
+						$(this).addClass('popup');						
+						$element1.autocomplete('option','minLength',0);
+						$element1.autocomplete('search','');
+					}
+				});		
+				
 			break;
 			case 'autocomplete':
+				var popupId = 'ski_desc_popup';
+				$element3 = $('<div id="'+popupId+'" class="ski_select_popup"></div>');
+				objSettings.gridWrapper.append($element3);	
+				var autocompletePos = getAutocompletePos($col,objSettings);
 				$element = $('<input class= "ski_editable" type="text" value="'+val+'" />');
 				$element.autocomplete({
 					source: function(request, response){						
@@ -596,7 +643,15 @@
 						jqXHR.done(function(data){
 							response(data);
 						});
-					}
+					},
+					appendTo:'#'+popupId,
+					position: autocompletePos
+				});				
+				
+				$element.on('autocompleteopen',function(e,ui){					
+					e.target.focus();
+					$('#'+popupId).find('li:first a').mouseover();
+					e.preventDefault();
 				});
 			break;
 			case 'datepicker':
@@ -612,14 +667,15 @@
 				$secondaryElement.on('click',function(){$element.datepicker('show');});
 				$wrapElement = $('<div class= "ski_editable"></div>');
 				$wrapElement.append($element);
-				$wrapElement.append($secondaryElement);
+				$wrapElement.append($secondaryElement);				
 				$element = $wrapElement;
 			break;
 		}
 		if($element){
 			$element.css({'width':$col.width()+'px','height':$col.height()+'px'});				
 			$($col.find('.tdContent')[0]).prepend($element);			
-		}			
+		}		
+		$col.find('input').focus();		
 	};
 	
 	function applyColumnAttrsForSplitRow($tr,splitId,objSettings){
@@ -656,18 +712,16 @@
 	};
 	
 	function clearDataForNewTransaction(objSettings){
-		objSettings.newTrContainer.find('tr .tdContent').html('&nbsp;');
-		//objSettings.newTrContainer.find('tr.splitRow:gt(2)').remove();
+		objSettings.newTrContainer.find('td[name!="date"] .tdContent').html('&nbsp;');		
 	};
 	
-	function showNewTransactionContainer($obj,objSettings,show){
-		objSettings.newTrContainer.width($obj.width());
-		if(show){
-			objSettings.newTrContainer.show("slide", { direction: "down" }, 500);
-		}
-		else{
-			objSettings.newTrContainer.hide("slide", { direction: "down" }, 500);
-		}
+	function showNewTransactionContainer($obj,objSettings,show){		
+		if(show && objSettings.newTrContainer.hasClass('invisible')){
+			objSettings.newTrContainer.width($obj.width());
+			objSettings.newTrContainer.find('tr td[name="date"] .tdContent').text(objSettings.currentDate);
+			objSettings.newTrContainer.removeClass('invisible');
+			handleNewTrSplitRowsShow(objSettings);	
+		}		
 	}
 	
 	function showValidateError($col,data,objSettings){
@@ -737,8 +791,8 @@
 			height:180,
 			modal: true,
 			buttons: {
-				"Discard": function() {
-					objSettings.trButtons.discard.click();
+				"Discard": function() {					
+					objSettings.gridWrapper.trigger('DiscardRowData');
 					objSettings.newTrContainer.find('.ski_validate-error').removeClass('ski_validate-error');
 					$( this ).dialog( "close" );
 				},
@@ -758,12 +812,12 @@
 		var val="";
 		var colNum = objSettings.colNum;
 		switch(options.editable.columns[colNum].type){
-			case 'input':				
-			case 'select':				
+			case 'input':							
 			case 'autocomplete':
 				val = $firstChild.val();
 			break;
 			case 'datepicker':
+			case 'select':
 				val = $firstChild.find('input').val();
 			break;
 		}		
@@ -793,13 +847,11 @@
 				}
 				else{
 					cb();
-				}
-				console.log('done');				
+				}								
 			});
 			jqXHR.fail(function(data){
 				var error={error:'invalidResponse'};
-				cb(error);
-				console.log('fail');				
+				cb(error);								
 			});
 		}
 	};
@@ -808,8 +860,14 @@
 		var errorsCount = 0;		
 		var error={error:'validateError'};
 		if(!rowNewData['date'] || rowNewData['date'] == ""){
-			error.date = 1;
-			errorsCount++;
+			/* check date field */
+			var dateColVal = objSettings.newTrContainer.find('td[name="date"] .tdContent').text();
+			if(dateColVal != ''){
+				rowNewData['date'] = dateColVal;
+			}else{
+				error.date = 1;
+				errorsCount++;
+			}
 		}
 		if(!rowNewData['description'] || rowNewData['description'] == ""){
 			error.description = 1;
@@ -837,21 +895,42 @@
 			}
 			else{
 				cb();
-			}
-			console.log('done');
-			//objSettings.bodyWrapperRef.scroll();
+			}			
 		});
 		jqXHR.fail(function(data){
 			var error={error:'invalidResponse'};
-			cb(error);
-			console.log('fail');
-			//objSettings.bodyWrapperRef.scroll();
+			cb(error);			
 		});
 		
 	};
 	
 	function showError(errorText){
 		alert(errorText);
+	};
+	
+	function getRandomId(){
+		var min = 1;
+		var max = 10000;
+		return Math.floor(Math.random() * (max - min + 1)) + min;
+	};
+	
+	function getAutocompletePos($col,objSettings){		
+		var pos = {my:"left top",at:"left bottom"};
+		var columnPos = $col.position();
+		var tableHeight = objSettings.tableBodyRef.height();		
+		if(columnPos.top + 250 > tableHeight || $col.parents('.ski_newTrContainer').length > 0){			
+			pos = {my:"right bottom",at:"right top"};
+		}	
+		return pos;
+	};
+	
+	function triggerModifyData($col,objSettings){
+		if($col.parents('.newTrContainer').length > 0){			
+			objSettings.gridWrapper.trigger('AddRowData');
+		}
+		else{
+			objSettings.gridWrapper.trigger('UpdateRowData');
+		}
 	};
       
 	return this.each(function(){		
