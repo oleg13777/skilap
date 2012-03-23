@@ -885,6 +885,7 @@
 			modal: true,
 			buttons: {
 				"Discard": function() {
+					objSettings.rowEditedData = {};
 					objSettings.bodyWrapperRef.scroll();
 					$( this ).dialog( "close" );
 				},
