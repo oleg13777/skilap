@@ -13,6 +13,7 @@
 	var settingsContainer = {};
 	
 	function settings(){
+		this.obj = null;
 		this.gridWrapper = null;		
 		this.tableBodyRef = null;
 		this.tableRowRef = null;
@@ -38,6 +39,7 @@
 	
 	function init($obj){		
 		var objSettings = new settings();
+		objSettings.obj = $obj;
 		objSettings.rowNewData = {};
 		objSettings.colContainerRef = $('<div class="tdContent"></div>').css('line-height',options.rowHeight+'px');
 		var tableBody = $obj.find('tbody')[0];
@@ -68,7 +70,7 @@
 	
 	function updateGridSettings(data,objSettings){
 		objSettings.currentDate = data.currentDate;
-		objSettings.totalRowsCount = data.iTotalRecords+2;			
+		objSettings.totalRowsCount = data.iTotalRecords+1;			
 		objSettings.totalHeight = objSettings.totalRowsCount*options.rowHeight;
 		objSettings.bodyScrollerRef.css('height',objSettings.totalHeight+'px');
 		var tablePosition = objSettings.totalHeight - objSettings.rowsLimit*options.rowHeight;			
@@ -108,15 +110,13 @@
 		objSettings.splitButton = $splitButton;		
 		$toolbox.append($splitButton);
 		$obj.parents('.ski_gridWrapper').prepend($toolbox);
-		/* add footer panel */
-		var $gridFooterWrapper = $('<div class="ski_gridFooterWrapper"></div>');
-		var $newTrContainer = $('<div class="ski_newTrContainer invisible"></div>');
+		/* add footer panel */		
+		var $newTrContainer = $('<div class="ski_newTrContainer"></div>');
 		var $newTrGrid = $obj.clone();
 		$newTrGrid.find('thead').remove().end().find('tbody tr').remove().end().removeAttr('id').removeAttr('style');		
 		$newTrContainer.append($newTrGrid);
-		objSettings.newTrContainer = $newTrContainer;
-		$gridFooterWrapper.append($newTrContainer);				
-		$obj.parents('.ski_gridWrapper').append($gridFooterWrapper);
+		objSettings.newTrContainer = $newTrContainer;						
+		$obj.parents('.ski_gridWrapper').append($newTrContainer);
 		createRowForNewTransaction(objSettings);		
 	};
 	
@@ -124,13 +124,13 @@
 		/* split button event */
 		objSettings.splitButton.on('click',function(){
 			$(this).toggleClass('ski_selected');
-			handleSplitRowsShow(objSettings);
-			handleNewTrSplitRowsShow(objSettings);
+			handleSplitRowsShow(objSettings);			
 		});
 		
 		/* show block for adding new transaction */
 		objSettings.gridWrapper.on('GridLoad',function(){
-			showNewTransactionContainer($obj,objSettings,true);							
+			objSettings.newTrContainer.find('tr td[name="date"] .tdContent').text(objSettings.currentDate);
+			handleSplitRowsShow(objSettings);						
 		});		
 		
 		/* scroll event */
@@ -142,37 +142,33 @@
 			showGrid($obj,objSettings,offset);			
 		});				
 		/* column select event */		
-		objSettings.bodyWrapperRef.find('tbody').on('click','td',function(){
-			var $firstColumn = $(objSettings.tableBodyRef.find('td.ski_selected')).prev('td[name="id"]');
-			handleNewTrColumnClick($firstColumn,objSettings);			
-			handleColumnClick($(this),objSettings);
+		objSettings.bodyWrapperRef.find('tbody').on('click','td',function(){			
+			handleNewTrColumnClick(null,objSettings);			
+			handleUpdTrColumnClick($(this),objSettings);
 		});
 		
 		/* new transaction column select event */		
-		objSettings.newTrContainer.find('tbody').on('click','td',function(){
-			var $firstColumn = $(objSettings.tableBodyRef.find('td.ski_selected')).prev('td[name="id"]');
-			handleColumnClick($firstColumn,objSettings);					
+		objSettings.newTrContainer.find('tbody').on('click','td',function(){			
+			handleUpdTrColumnClick(null,objSettings);					
 			handleNewTrColumnClick($(this),objSettings);
 		});
 		/* handle tab key */
 		objSettings.gridWrapper.find('tbody').on('keypress','td',function(e){
 			if(e.keyCode == 9){				
-				$(this).next().click();
-				if($(this).next().attr('name') == 'total'){
+				handleColumnClick($(this).next(),objSettings);
+				if($(this).next().attr('name') == 'total'){					
 					triggerModifyData($(this),objSettings);					
 				}
 				return false;
 			}
 			if(e.keyCode == 13 && ($(this).attr('name') == 'deposit' || $(this).attr('name') == 'withdrawal')){
-				$(this).next().click();
+				handleColumnClick($(this).next(),objSettings);
 				triggerModifyData($(this),objSettings);	
+				return false;
 			}			
 		});
 		/* handle modify data */
-		objSettings.gridWrapper.on('AddRowData',function(){			
-			/* before saving, we need update value for last selected column */
-			var $firstCol = $(objSettings.newTrContainer.find('tr:first td:first')[0]);					
-			handleNewTrColumnClick($firstCol,objSettings);
+		objSettings.gridWrapper.on('AddRowData',function(){				
 			processRowAdd(objSettings,function(err){
 				if(!err){
 					objSettings.rowNewData={};
@@ -200,8 +196,7 @@
 		});
 		
 		/* fix grid when window change */
-		$(window).on('resize',function(){
-			console.log('window change');
+		$(window).on('resize',function(){			
 			drawGridBorders($obj,objSettings);
 		});
 	};
@@ -288,13 +283,18 @@
 		});
 	};
 	
+	function clearGrid(objSettings){		
+		objSettings.tableBodyRef.find('tr').remove();		
+	};
+	
 	/*
 	 * Draw vertical and horizontal lines instead table borders
 	 */
 	function drawGridBorders($obj,objSettings){	
 		objSettings.gridWrapper.find('.ski_vline,.ski_hline').remove();			
-		var $vline = $('<div class="ski_vline"></div>');		
-		$vline.height(options.tableHeight + options.rowHeight);
+		var $vline = $('<div class="ski_vline"></div>');
+		var totalHeight = options.tableHeight + objSettings.newTrContainer.height() + objSettings.headerWrapperRef.height();
+		$vline.height(totalHeight);
 		var columnHeaders = objSettings.headerWrapperRef.find('th');
 		var w=0;
 		for(i=0;i<columnHeaders.length-1;i++){
@@ -304,39 +304,53 @@
 			objSettings.headerWrapperRef.append($vline_tmp.css('left',w+'px'));
 		}
 		var $hline = $('<div class="ski_hline"></div>');		
-		$hline.width($obj.width());
-		var linesCount = Math.round(options.tableHeight/options.rowHeight);
+		$hline.width($obj.width());		
+		var linesCount = Math.round(totalHeight/options.rowHeight);
+
 		var h=0;
-		for(i=0;i<linesCount+1;i++){
+		for(i=0;i<linesCount;i++){
 			h += options.rowHeight;
 			objSettings.headerWrapperRef.append($hline.clone().css('top',h+'px'));
 		}
 		objSettings.isNotDrawBorders = false;
-	};
-	
-	function clearGrid(objSettings){		
-		objSettings.tableBodyRef.find('tr').remove();		
-	};
+	};	
 	
 	function handleSplitRowsShow(objSettings){
+		handleUpdTrSplitRowsShow(objSettings);
+		handleNewTrSplitRowsShow(objSettings);
+		drawGridBorders(objSettings.obj,objSettings);
+	};
+	
+	function handleUpdTrSplitRowsShow(objSettings){
 		objSettings.tableBodyRef.find('tr.splitRow').addClass('invisible');		
 		if(objSettings.selectedRowId){			
 			if(objSettings.splitButton.hasClass('ski_selected')){
 				objSettings.tableBodyRef.find('tr.splitRow[recordid="'+objSettings.selectedRowId+'"]').removeClass('invisible');
-				showPathInMainRow(objSettings,false);
+				showPathInUpdMainRow(objSettings,false);
 				
 			}
 			else{
 				objSettings.tableBodyRef.find('tr.splitRow[recordid="'+objSettings.selectedRowId+'"]').addClass('invisible');
-				showPathInMainRow(objSettings,true);
+				showPathInUpdMainRow(objSettings,true);
 				
 			}
 		}
 	};
+	
+	function handleNewTrSplitRowsShow(objSettings){			
+		if(objSettings.splitButton.hasClass('ski_selected') && objSettings.newTrContainer.find('tr.mainRow.ski_selected').length > 0){
+			objSettings.newTrContainer.find('tr.splitRow').removeClass('invisible');
+			showPathInNewMainRow(objSettings,false);
+		}
+		else{			
+			objSettings.newTrContainer.find('tr.splitRow').addClass('invisible');
+			showPathInNewMainRow(objSettings,true);
+		}				
+	};	
 	/*
 	 * Show or hide path field content in main row
 	 */
-	function showPathInMainRow(objSettings,show){
+	function showPathInUpdMainRow(objSettings,show){
 		var $mainRow = $(objSettings.tableBodyRef.find('tr.mainRow[recordid="'+objSettings.selectedRowId+'"]')[0]);
 		var $td = $mainRow.find('td[name="path"]');					
 		if(show){
@@ -347,45 +361,9 @@
 			$td.find('.tdContent').addClass('invisible');
 			$td.addClass('ski_disabled');					
 		}
-	};
-	
-	function handleNewTrSplitRowsShow(objSettings){		
-		if(objSettings.splitButton.hasClass('ski_selected')){
-			showNewTrSplits(objSettings,true);
-			showPathInNewMainRow(objSettings,false);
-		}
-		else{
-			showNewTrSplits(objSettings,false);
-			showPathInNewMainRow(objSettings,true);
-		}
 	};	
 	
-	function showNewTrSplits(objSettings,show,update){
-		if(!update){
-			update = false;
-		}
-		var splitRows = objSettings.newTrContainer.find('tr.splitRow');		
-		var splitHeight = splitRows.length*options.rowHeight;
-		var $splitRow = $(splitRows[0]);
-		var h = objSettings.newTrContainer.height();		
-		if(show && $splitRow.hasClass('invisible')){
-			objSettings.newTrContainer.find('tr.splitRow').removeClass('invisible');
-			var newHeight = h+splitHeight;
-			objSettings.newTrContainer.height(newHeight);
-			objSettings.newTrContainer.css("top","-"+newHeight+"px");			
-		}
-		else if(!show && !$splitRow.hasClass('invisible')){
-			objSettings.newTrContainer.find('tr.splitRow').addClass('invisible');
-			var newHeight = h-splitHeight;
-			objSettings.newTrContainer.height(newHeight);
-			objSettings.newTrContainer.css("top","-"+newHeight+"px");	
-		}
-		else if(update){
-			var newHeight = h+options.rowHeight;
-			objSettings.newTrContainer.height(newHeight);
-			objSettings.newTrContainer.css("top","-"+newHeight+"px");
-		}	
-	};	
+	
 	function showPathInNewMainRow(objSettings,show){
 		var $mainRow = $(objSettings.newTrContainer.find('tr.mainRow')[0]);
 		var $td = $mainRow.find('td[name="path"]');					
@@ -399,8 +377,17 @@
 		}
 	};
 	
-	function handleColumnClick($col,objSettings){			
-		if($col.hasClass('ski_selected') || $col.hasClass('ski_disabled')){
+	function handleColumnClick($col,objSettings){
+		if($col.parents('.ski_newTrContainer').length > 0){
+			handleNewTrColumnClick($col,objSettings);
+		}
+		else{
+			handleUpdTrColumnClick($col,objSettings);
+		}
+	};
+	
+	function handleUpdTrColumnClick($col,objSettings){			
+		if($col != null && ($col.hasClass('ski_selected') || $col.hasClass('ski_disabled'))){
 			return false;
 		}
 		var oldSelecteds = $(objSettings.tableBodyRef.find('td.ski_selected'));		
@@ -449,11 +436,14 @@
 					$oldSelectedTD.parent().after($tr.addClass('splitRow').attr('splitid',parseInt($oldSelectedTD.parent().attr('splitid'))-1).attr('recordId',$oldSelectedTD.parent().attr('recordId')));
 				}			
 			}			
-		}
+		}	
 		processRowChange($col,$oldSelectedTD,objSettings,function(err){
 			if(err){
 				return false;
 			}
+			if($col == null)
+				return false;
+				
 			var colNum = $col.attr('num');
 			if(!options.editable.columns || !options.editable.columns[colNum])
 				return false;
@@ -464,7 +454,7 @@
 	};
 	
 	function handleNewTrColumnClick($col,objSettings){			
-		if($col.hasClass('ski_selected') || $col.hasClass('ski_disabled')){
+		if($col != null && ($col.hasClass('ski_selected') || $col.hasClass('ski_disabled'))){			
 			return false;
 		}
 		var oldSelecteds = $(objSettings.newTrContainer.find('td.ski_selected'));		
@@ -516,35 +506,48 @@
 							.append((index > 2 && index < 6 && !$(element).is(':has(.tdContent)') ? objSettings.colContainerRef.clone() : ''));
 					});
 					$oldSelectedTD.parent().after($tr.addClass('splitRow').attr('splitid',parseInt($oldSelectedTD.parent().attr('splitid'))-1).attr('recordId',$oldSelectedTD.parent().attr('recordId')));
-					showNewTrSplits(objSettings,true,true);
+					
 				}			
 			}			
+		}
+		if($col == null){
+			objSettings.newTrContainer.find('tr.mainRow').removeClass('ski_selected');
+			objSettings.gridWrapper.trigger('AddRowData');
+			return false;
 		}
 		var colNum = $col.attr('num');
 		if(!options.editable.columns || !options.editable.columns[colNum])
 			return false;
 		
-		$col.addClass('ski_selected');	
-		makeColumnEditable($col,colNum,objSettings);		
+		$col.addClass('ski_selected');
+		$col.parent().addClass('ski_selected');	
+		makeColumnEditable($col,colNum,objSettings);
+		handleSplitRowsShow(objSettings);		
 	};
 	
 	function processRowChange($col,$oldCol,objSettings,cb){
 		/* selected row changing */
-		if(!$col.parent().hasClass('ski_selected') && $col.parent().hasClass('mainRow')){
+		if($col == null || !$col.parent().hasClass('ski_selected') && $col.parent().hasClass('mainRow')){
 			var rowEditedData = $.extend({},objSettings.rowEditedData);
 			updateRow(rowEditedData,objSettings,function(err){
 				if(err){
 					if(err.error == 'validateError'){
-						showValidateError($oldCol,err,objSettings);
+						showUpdTrValidateError($oldCol,err,objSettings);
 					}
 					cb(err);
 					return false;
 				}				
 				objSettings.bodyWrapperRef.find('tr.mainRow').removeClass('ski_selected');
-				$col.parent().addClass('ski_selected');
-				objSettings.selectedRowId = $col.parent().attr('recordid');	
-				objSettings.rowEditedData={};
-				objSettings.rowEditedData['id'] = objSettings.selectedRowId;						
+				if($col != null){
+					$col.parent().addClass('ski_selected');
+					objSettings.selectedRowId = $col.parent().attr('recordid');	
+					objSettings.rowEditedData={};
+					objSettings.rowEditedData['id'] = objSettings.selectedRowId;
+				}
+				else{
+					objSettings.selectedRowId = 0;	
+					objSettings.rowEditedData={};
+				}						
 				handleSplitRowsShow(objSettings);				
 				cb();
 				
@@ -557,7 +560,15 @@
 	
 	function processRowAdd(objSettings,cb){
 		/* selected row changing */		
-		var rowNewData = $.extend({},objSettings.rowNewData);		
+		var rowNewData = $.extend({},objSettings.rowNewData);
+		var fieldsCount = 0;
+		for(i in rowNewData){
+			fieldsCount++;
+		}
+		if(fieldsCount == 0){
+			return false;
+		}
+		console.log(rowNewData);		
 		addRow(rowNewData,objSettings,function(err){
 			if(err){
 				if(err.error == 'validateError'){
@@ -619,6 +630,7 @@
 					$('#'+popupId).find('li:first a').mouseover();
 					e.preventDefault();
 				});
+				
 				$element2.on('click',function(){
 					if($(this).hasClass('popup')){
 						$(this).removeClass('popup');
@@ -719,19 +731,11 @@
 	};
 	
 	function clearDataForNewTransaction(objSettings){
-		objSettings.newTrContainer.find('td[name!="date"] .tdContent').html('&nbsp;');		
+		objSettings.newTrContainer.find('td[name!="date"] .tdContent').html('&nbsp;');
+		objSettings.rowNewData = {};		
 	};
 	
-	function showNewTransactionContainer($obj,objSettings,show){		
-		if(show && objSettings.newTrContainer.hasClass('invisible')){
-			objSettings.newTrContainer.width($obj.width());
-			objSettings.newTrContainer.find('tr td[name="date"] .tdContent').text(objSettings.currentDate);
-			objSettings.newTrContainer.removeClass('invisible');
-			handleNewTrSplitRowsShow(objSettings);	
-		}		
-	}
-	
-	function showValidateError($col,data,objSettings){
+	function showUpdTrValidateError($col,data,objSettings){
 		for(key in data){
 			if(key == 'splits'){
 				for(id in data[key]){
@@ -837,7 +841,7 @@
 			editedDataSize++;
 		}		
 		if(editedDataSize < 2){
-			showPathInMainRow(objSettings,true);
+			showPathInUpdMainRow(objSettings,true);
 			cb();
 		}
 		else{		
@@ -932,8 +936,8 @@
 	};
 	
 	function triggerModifyData($col,objSettings){
-		if($col.parents('.newTrContainer').length > 0){			
-			objSettings.gridWrapper.trigger('AddRowData');
+		if($col.parents('.ski_newTrContainer').length > 0){			
+			objSettings.gridWrapper.trigger('AddRowData');			
 		}
 		else{
 			objSettings.gridWrapper.trigger('UpdateRowData');

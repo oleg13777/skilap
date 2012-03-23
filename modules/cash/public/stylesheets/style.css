@@ -127,7 +127,7 @@ background-color:#eee;
 .ski_gridBodyWrapper tr.mainRow.even{
 	background-color:#F6FFDA;
 }
-.ski_gridBodyWrapper tr.mainRow.ski_selected{
+.ski_gridWrapper tr.mainRow.ski_selected{
 	background-color:#FFEF98;
 }
 .ski_gridWrapper tr.splitRow{	
@@ -247,13 +247,16 @@ background-color:#eee;
 }
 
 .ski_newTrContainer{
-	position:absolute;
+	position:relative;
+	border-right:1px solid #333;
+	margin-right:16px;
+	/*position:absolute;
 	top:-25px;
 	left:0;
 	height:25px;
 	width:100px;
 	background-color:#ccc;	
-	z-index:2;
+	z-index:2;*/
 }
 
 .ski_addButton,.ski_saveButton,.ski_cancelButton{
@@ -432,4 +435,8 @@ div.tree div.expanded {
 
 #workspace .dataTables_wrapper, #workspace .dataTables_scroll{
 	clear: none;
+}
+
+.ui-datepicker{
+z-index:3 !important;
 }
