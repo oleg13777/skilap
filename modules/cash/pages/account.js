@@ -98,37 +98,8 @@ module.exports = function account(webapp) {
 		});
 	});
 	
-	app.post(webapp.prefix+'/account/:id/updaterow', function(req, res, next) {
-		var validateData = function(data){
-			var result = {};
-			result.fields = [];
-			if(data.description && data.description == ""){
-				result.fields.push({name:'description',message:'is empty'});
-			}
-			/* verify path, deposit and withdrawal values of splits */
-			result.splits = {};
-			var regex = /^\d+$/;
-			data.splits.forEach(function(split){
-				var invalidFields ={};
-				if(split.deposit != "" && !regex.test(split.deposit)){
-					invalidFields.deposit = 1;
-				}
-				if(split.withdrawal != "" && !regex.test(split.withdrawal)){
-					invalidFields.withdrawal = 1;
-				}
-				if(split.path == ""){
-					invalidFields.path = 1;
-				}
-				if(_.size(invalidFields)){
-					result.splits[split.id] = invalidFields;
-				}
-			});
-			if(_.size(result.splits)){
-				result.error = 'validateError';
-			}			
-			return result;
-		};		
-		var result = validateData(req.body);
+	app.post(webapp.prefix+'/account/:id/updaterow', function(req, res, next) {		
+		var result = validateTrData(req.body);
 		if(result.error){
 			res.send(result)
 			return false;
@@ -230,45 +201,7 @@ module.exports = function account(webapp) {
 	
 	
 	app.post(webapp.prefix+'/account/:id/addrow', function(req, res, next) {		
-		var validateData = function(data){
-			var result = {};
-			result.fields = [];
-			if(!data.date || data.date == ""){
-				result.fields.push({name:'date',message:'is empty'});
-			}
-			if(!data.description || data.description == ""){
-				result.fields.push({name:'description',message:'is empty'});
-			}
-			if(!data.splits || data.splits.length == 0)
-				result.fields.push({name:'splits',message:'is empty'});
-			/* verify path, deposit and withdrawal values of splits */
-			result.splits = {};
-			var regex = /^\d+$/;
-			data.splits.forEach(function(split){
-				var invalidFields ={};
-				if(split.deposit != "" && !regex.test(split.deposit)){
-					invalidFields.deposit = 1;
-				}
-				if(split.withdrawal != "" && !regex.test(split.withdrawal)){
-					invalidFields.withdrawal = 1;
-				}
-				if(split.path == ""){
-					invalidFields.path = 1;
-				}
-				if(split.deposit == "" && split.withdrawal == ""){
-					invalidFields.deposit = 1;
-					invalidFields.withdrawal = 1;
-				}
-				if(_.size(invalidFields)){
-					result.splits[split.id] = invalidFields;
-				}
-			});
-			if(_.size(result.splits)){
-				result.error = 'validateError';
-			}			
-			return result;
-		};
-		var result = validateData(req.body);
+		var result = validateTrData(req.body,true);
 		if(result.error){
 			res.send(result)
 			return false;
@@ -478,11 +411,61 @@ module.exports = function account(webapp) {
 				}				
 				data.iTotalRecords = count;
 				data.iTotalDisplayRecords = count;
+				data.currentDate = df.format(new Date());
+				data.currentAccountId = req.params.id;
 				res.send(data);
 			})
 		], function (err) {
 			if (err) return next(err);
 		});
 	});
+	
+	var validateTrData = function(data,fullValidate){
+		var result = {};
+		result.fields = [];
+		if(fullValidate){
+			if(!data.date || data.date == ""){
+				result.fields.push({name:'date',message:'is empty'});
+			}
+			if(!data.description || data.description == ""){
+				result.fields.push({name:'description',message:'is empty'});
+			}
+			if(!data.splits || data.splits.length == 0)
+				result.fields.push({name:'splits',message:'is empty'});
+		}
+		else{
+			if(data.description && data.description == ""){
+				result.fields.push({name:'description',message:'is empty'});
+			}
+		}
+		/* verify path, deposit and withdrawal values of splits */
+		result.splits = {};
+		var regex = /^\d+\.?\d+?$/;
+		if(data.splits){
+			data.splits.forEach(function(split){
+				var invalidFields ={};
+				if(split.deposit != "" && !regex.test(split.deposit)){
+					invalidFields.deposit = 1;
+				}
+				if(split.withdrawal != "" && !regex.test(split.withdrawal)){
+					invalidFields.withdrawal = 1;
+				}
+				if(split.path == ""){
+					invalidFields.path = 1;
+				}
+				if(split.deposit == "" && split.withdrawal == ""){
+					invalidFields.deposit = 1;
+					invalidFields.withdrawal = 1;
+				}
+				if(_.size(invalidFields)){
+					result.splits[split.id] = invalidFields;
+				}
+			});
+		}
+		if(_.size(result.splits) || result.fields.length > 0){
+			result.error = 'validateError';
+		}			
+		return result;
+	};
 
 }
