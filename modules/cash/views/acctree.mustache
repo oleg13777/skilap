@@ -104,12 +104,32 @@ $(function() {
 				var secret = $('#token').val();
 				var newParent = $("#new_parent option:selected").val();
 				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
-				rpc.call('cash.deleteAccount', secret, $('#del_acc').val(), newParent, {
+				var options = {};
+				if ($('input:checked[type="radio"][name="trn_action"]').attr('action') == "del") {
+					options.delTrn = true;
+				} else {
+					options.delTrn = false;
+					options.newParent = $('#tr_parent option:selected').val();
+				}
+				if ($('input:checked[type="radio"][name="sub_acc_action"]').attr('action')=="move"){
+					options.delSubAcc = false;
+					options.newSubParent = $('#sub_acc_parent option:selected').val();
+				} else {
+					options.delSubAcc = true;
+					if ($('input:checked[type="radio"][name="sub_acc_trn_action"]').attr('action')=="move") {
+						options.delSubAccTrn = false;
+						options.newSubAccTrnParent = $('#sub_acc_trn_parent option:selected').val();
+					} else {
+						options.delSubAccTrn = true;
+					}
+				}
+				console.log(options);
+				rpc.call('cash.deleteAccount', secret, $('#del_acc').val(), options, {
 					success: function (data) {
 						$('#'+$('#del_acc').val()).remove();
 					},
 					failure: function (reason) {
-					},
+					}
 				});
 				$(this).dialog("close");
 			},
@@ -146,7 +166,7 @@ $(function() {
 			<br />
 			<p><input action="del" type="radio" name="trn_action" /> Delete<br />
 			<input action="move" type="radio" name="trn_action" checked /> Move to:
-			<select class="new_parent" disabled>
+			<select id="tr_parent" class="new_parent">
 				{{#assets}}
 					{{>acctree_list_item}}
 				{{/assets}}
@@ -160,7 +180,7 @@ $(function() {
 			<br />
 			<p><input action="del" type="radio" name="sub_acc_action"/> Delete<br />
 			<input action="move" type="radio" name="sub_acc_action" checked /> Move to:
-			<select class="new_parent" disabled>
+			<select id="sub_acc_parent" class="new_parent">
 				{{#assets}}
 					{{>acctree_list_item}}
 				{{/assets}}
@@ -174,7 +194,7 @@ $(function() {
 			<br />
 			<p><input action="del" type="radio" name="sub_acc_trn_action" /> Delete<br />
 			<input action="move" type="radio" name="sub_acc_trn_action" checked /> Move to:
-			<select class="new_parent" disabled>
+			<select id="sub_acc_trn_parent" class="new_parent">
 				{{#assets}}
 					{{>acctree_list_item}}
 				{{/assets}}
