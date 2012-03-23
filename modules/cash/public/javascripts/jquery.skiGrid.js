@@ -34,6 +34,7 @@
 		this.isNotDrawBorders = true;
 		this.newTrContainer = null;		
 		this.currentDate = null;
+		this.currentAccountId = 0;
 		this.isRowAdded = false;
 	};
 	
@@ -70,6 +71,7 @@
 	
 	function updateGridSettings(data,objSettings){
 		objSettings.currentDate = data.currentDate;
+		objSettings.currentAccountId = data.currentAccountId;
 		objSettings.totalRowsCount = data.iTotalRecords+1;			
 		objSettings.totalHeight = objSettings.totalRowsCount*options.rowHeight;
 		objSettings.bodyScrollerRef.css('height',objSettings.totalHeight+'px');
@@ -183,17 +185,32 @@
 			clearDataForNewTransaction(objSettings);
 		});
 		
-		objSettings.gridWrapper.on('UpdateRowData',function(){			
-			var allRows =  objSettings.tableBodyRef.find('tr.mainRow');
-			for(i=0;i<allRows.length;i++){
-				var $row = $(allRows[i]);
-				if($row.hasClass('ski_selected')){
-					var nextIndex = i < allRows.length - 2 ? i+1 : i-1;
-					$(allRows[nextIndex]).find('td[name="id"]').click();
-					break;
+		objSettings.gridWrapper.on('UpdateRowData',function(e,$col){
+			processRowUpdate(objSettings,function(err){
+				if(!err){
+					objSettings.bodyWrapperRef.find('tr.mainRow').removeClass('ski_selected');
+					if($col){						
+						objSettings.selectedRowId = $col.parent().attr('recordid');	
+						objSettings.rowEditedData={};
+						objSettings.rowEditedData['id'] = objSettings.selectedRowId;
+						if(objSettings.isNeedReload){
+							console.log('isNeedReload');
+							objSettings.isNeedReload = false;
+							objSettings.editableColumn = $col;
+							objSettings.bodyWrapperRef.scroll();
+						}
+						else{
+							processColumnEditable($col,objSettings);
+						}												
+					}
+					else{
+						objSettings.selectedRowId = 0;	
+						objSettings.rowEditedData={};
+					}					
 				}
-			}			
+			});				
 		});
+		
 		
 		/* fix grid when window change */
 		$(window).on('resize',function(){			
@@ -248,8 +265,10 @@
 						var $tr = objSettings.tableRowRef.clone();
 						/* fill splits rows */
 						var splitId = -1;
+						var accountId = -1;
 						if(j < splitsLength){	
-							splitId = splits[j].id;									
+							splitId = splits[j].id;
+							accountId = splits[j].accountId;									
 							var td = $tr.find('td')[3];
 							var $tdContent = objSettings.colContainerRef.clone();
 							$tdContent.text(splits[j]['path']);
@@ -265,7 +284,7 @@
 							$tdContent.text(val);
 							$(td).append($tdContent);
 						}						
-						applyColumnAttrsForSplitRow($tr,splitId,objSettings);
+						applyColumnAttrsForSplitRow($tr,splitId,accountId,objSettings);
 						objSettings.tableBodyRef.append($tr.addClass('splitRow invisible').attr('recordId',data.aaData[i][0]));
 					}								
 				}				
@@ -279,7 +298,14 @@
 				drawGridBorders($obj,objSettings);
 			}
 			handleSplitRowsShow(objSettings);
-			objSettings.gridWrapper.trigger('GridLoad');
+			objSettings.gridWrapper.trigger('GridLoad');	
+			if(objSettings.editableColumn){
+				console.log('editableColumn');
+				console.log(objSettings.editableColumn);
+				$updatedCol = $(objSettings.tableBodyRef.find('tr.mainRow[recordid="'+objSettings.editableColumn.parent().attr('recordid')+'"] td[name="'+objSettings.editableColumn.attr('name')+'"]')[0]);
+				processColumnEditable($updatedCol,objSettings);
+				objSettings.editableColumn = null;
+			}		
 		});
 	};
 	
@@ -403,7 +429,11 @@
 				$oldSelectedTD.find('.tdContent').text(newColumnVal);
 				if($oldSelectedTD.parent().hasClass('mainRow')){
 					/* sync split rows with main row data */
-					$($oldSelectedTD.parent().next('.splitRow').next('.splitRow').find('td')[objSettings.colNum]).find('.tdContent').text(newColumnVal);						
+					var recordId = $oldSelectedTD.parent().attr('recordid');
+					$splitRow = $(objSettings.tableBodyRef.find('tr.splitRow[recordid="'+recordId+'"][accountid!="'+objSettings.currentAccountId+'"]')[0]);
+					console.log($splitRow);
+					$($splitRow.find('td')[objSettings.colNum]).find('.tdContent').text(newColumnVal);						
+					//$($oldSelectedTD.parent().next('.splitRow[accountid!="'+objSettings.currentAccountId+'"]').find('td')[objSettings.colNum]).find('.tdContent').text(newColumnVal);						
 				}
 				switch(objSettings.colNum){
 					case 1:
@@ -436,21 +466,14 @@
 					$oldSelectedTD.parent().after($tr.addClass('splitRow').attr('splitid',parseInt($oldSelectedTD.parent().attr('splitid'))-1).attr('recordId',$oldSelectedTD.parent().attr('recordId')));
 				}			
 			}			
-		}	
-		processRowChange($col,$oldSelectedTD,objSettings,function(err){
-			if(err){
-				return false;
-			}
-			if($col == null)
-				return false;
-				
-			var colNum = $col.attr('num');
-			if(!options.editable.columns || !options.editable.columns[colNum])
-				return false;
-			
-			$col.addClass('ski_selected');	
-			makeColumnEditable($col,colNum,objSettings);			
-		});		
+		}
+		if($col == null || !$col.parent().hasClass('ski_selected') && $col.parent().hasClass('mainRow')){
+			objSettings.gridWrapper.trigger('UpdateRowData',[$col]);			
+		}
+		else{
+			processColumnEditable($col,objSettings);
+		}			
+		
 	};
 	
 	function handleNewTrColumnClick($col,objSettings){			
@@ -514,15 +537,8 @@
 			objSettings.newTrContainer.find('tr.mainRow').removeClass('ski_selected');
 			objSettings.gridWrapper.trigger('AddRowData');
 			return false;
-		}
-		var colNum = $col.attr('num');
-		if(!options.editable.columns || !options.editable.columns[colNum])
-			return false;
-		
-		$col.addClass('ski_selected');
-		$col.parent().addClass('ski_selected');	
-		makeColumnEditable($col,colNum,objSettings);
-		handleSplitRowsShow(objSettings);		
+		}		
+		processColumnEditable($col,objSettings);		
 	};
 	
 	function processRowChange($col,$oldCol,objSettings,cb){
@@ -567,8 +583,7 @@
 		}
 		if(fieldsCount == 0){
 			return false;
-		}
-		console.log(rowNewData);		
+		}				
 		addRow(rowNewData,objSettings,function(err){
 			if(err){
 				if(err.error == 'validateError'){
@@ -580,6 +595,116 @@
 			cb();
 			
 		});				
+	};
+	
+	function processRowUpdate(objSettings,cb){		
+		var rowEditedData = $.extend({},objSettings.rowEditedData);
+		console.log('rowEditedData');
+		console.log(rowEditedData);
+		updateRow(rowEditedData,objSettings,function(err){
+			if(err){
+				if(err.error == 'validateError'){
+					showUpdTrValidateError(err,objSettings);
+				}
+				cb(err);
+				return false;
+			}					
+			cb();
+			
+		});			
+		
+	};
+	
+	function addRow(rowNewData,objSettings,cb){
+		var errorsCount = 0;		
+		var error={error:'validateError'};
+		if(!rowNewData['date'] || rowNewData['date'] == ""){
+			/* check date field */
+			var dateColVal = objSettings.newTrContainer.find('td[name="date"] .tdContent').text();
+			if(dateColVal != ''){
+				rowNewData['date'] = dateColVal;
+			}else{
+				error.date = 1;
+				errorsCount++;
+			}
+		}
+		if(!rowNewData['description'] || rowNewData['description'] == ""){
+			error.description = 1;
+			errorsCount++;
+		}
+		if(!rowNewData['splits']){
+			error.splits = {};
+			error.splits.split = {path:1,deposit:1,withdrawal:1};			
+			errorsCount++;
+		}			
+		if(errorsCount){
+			cb(error);
+			return false;
+		}				
+		var jqXHR = $.ajax({
+			"url": options.editable.sAddURL,
+			"data":rowNewData,
+			"type":"POST",
+			"dataType": "json",
+			"cache": false				
+		});
+		jqXHR.done(function(data){
+			if(data.error){
+				cb(data);
+			}
+			else{
+				cb();
+			}			
+		});
+		jqXHR.fail(function(data){
+			var error={error:'invalidResponse'};
+			cb(error);			
+		});
+		
+	};
+	
+	function updateRow(rowEditedData,objSettings,cb){
+		var editedDataSize = 0;
+		for(key in rowEditedData){
+			editedDataSize++;
+		}		
+		if(editedDataSize < 2){
+			showPathInUpdMainRow(objSettings,true);
+			cb();
+		}
+		else{		
+			var jqXHR = $.ajax({
+				"url": options.editable.sUpdateURL,
+				"data":rowEditedData,
+				"type":"POST",
+				"dataType": "json",
+				"cache": false				
+			});
+			jqXHR.done(function(data){
+				if(data.error){
+					cb(data);
+				}
+				else{
+					objSettings.isNeedReload = true;
+					cb();
+				}								
+			});
+			jqXHR.fail(function(data){
+				var error={error:'invalidResponse'};
+				cb(error);								
+			});
+		}
+	};
+	
+	function processColumnEditable($col,objSettings){
+		$col.parent().addClass('ski_selected');
+		var colNum = $col.attr('num');
+		if(!options.editable.columns || !options.editable.columns[colNum])
+			return false;
+		
+		$col.addClass('ski_selected');				
+		makeColumnEditable($col,colNum,objSettings);
+		handleSplitRowsShow(objSettings);	
 	};
 	
 	function makeColumnEditable($col,colNum,objSettings){
@@ -697,8 +822,8 @@
 		$col.find('input').focus();		
 	};
 	
-	function applyColumnAttrsForSplitRow($tr,splitId,objSettings){
-		$tr.attr('splitid',splitId).find('td').each(function(index,element){
+	function applyColumnAttrsForSplitRow($tr,splitId,accountId,objSettings){
+		$tr.attr('splitid',splitId).attr('accountid',accountId).find('td').each(function(index,element){
 			$(element).css('height',options.rowHeight)
 				.attr('num',index).attr('name',options.columns[index].attr['name'])
 				.append((index > 2 && index < 6 && !$(element).is(':has(.tdContent)') ? objSettings.colContainerRef.clone() : ''));
@@ -725,7 +850,7 @@
 		for(var i=0;i<3;i++){
 			var splitId = -1 - i;
 			var $tr = objSettings.tableRowRef.clone();
-			applyColumnAttrsForSplitRow($tr,splitId,objSettings);				
+			applyColumnAttrsForSplitRow($tr,splitId,splitId,objSettings);				
 			objSettings.newTrContainer.find('tbody').append($tr.addClass('splitRow invisible').attr('recordId','new'));
 		}
 	};
@@ -735,7 +860,7 @@
 		objSettings.rowNewData = {};		
 	};
 	
-	function showUpdTrValidateError($col,data,objSettings){
+	function showUpdTrValidateError(data,objSettings){
 		for(key in data){
 			if(key == 'splits'){
 				for(id in data[key]){
@@ -833,87 +958,7 @@
 			break;
 		}		
 		return $.trim(val);
-	};
-	
-	function updateRow(rowEditedData,objSettings,cb){
-		var editedDataSize = 0;
-		for(key in rowEditedData){
-			editedDataSize++;
-		}		
-		if(editedDataSize < 2){
-			showPathInUpdMainRow(objSettings,true);
-			cb();
-		}
-		else{		
-			var jqXHR = $.ajax({
-				"url": options.editable.sUpdateURL,
-				"data":rowEditedData,
-				"type":"POST",
-				"dataType": "json",
-				"cache": false				
-			});
-			jqXHR.done(function(data){
-				if(data.error){
-					cb(data);
-				}
-				else{
-					cb();
-				}								
-			});
-			jqXHR.fail(function(data){
-				var error={error:'invalidResponse'};
-				cb(error);								
-			});
-		}
-	};
-	
-	function addRow(rowNewData,objSettings,cb){
-		var errorsCount = 0;		
-		var error={error:'validateError'};
-		if(!rowNewData['date'] || rowNewData['date'] == ""){
-			/* check date field */
-			var dateColVal = objSettings.newTrContainer.find('td[name="date"] .tdContent').text();
-			if(dateColVal != ''){
-				rowNewData['date'] = dateColVal;
-			}else{
-				error.date = 1;
-				errorsCount++;
-			}
-		}
-		if(!rowNewData['description'] || rowNewData['description'] == ""){
-			error.description = 1;
-			errorsCount++;
-		}
-		if(!rowNewData['splits']){
-			error.splits = {};
-			error.splits.split = {path:1,deposit:1,withdrawal:1};			
-			errorsCount++;
-		}			
-		if(errorsCount){
-			cb(error);
-			return false;
-		}				
-		var jqXHR = $.ajax({
-			"url": options.editable.sAddURL,
-			"data":rowNewData,
-			"type":"POST",
-			"dataType": "json",
-			"cache": false				
-		});
-		jqXHR.done(function(data){
-			if(data.error){
-				cb(data);
-			}
-			else{
-				cb();
-			}			
-		});
-		jqXHR.fail(function(data){
-			var error={error:'invalidResponse'};
-			cb(error);			
-		});
-		
-	};
+	};	
 	
 	function showError(errorText){
 		alert(errorText);

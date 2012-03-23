@@ -99,7 +99,7 @@ module.exports = function account(webapp) {
 	});
 	
 	app.post(webapp.prefix+'/account/:id/updaterow', function(req, res, next) {		
-		var result = validateTrData(req.body,false);
+		var result = validateTrData(req.body);
 		if(result.error){
 			res.send(result)
 			return false;
@@ -412,6 +412,7 @@ module.exports = function account(webapp) {
 				data.iTotalRecords = count;
 				data.iTotalDisplayRecords = count;
 				data.currentDate = df.format(new Date());
+				data.currentAccountId = req.params.id;
 				res.send(data);
 			})
 		], function (err) {
