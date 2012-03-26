@@ -674,7 +674,7 @@ function CashApi (ctx) {
 						var accStats = getAccStats(split.accountId);
 						accStats.value+=split.quantity;
 						accStats.count++;
-						accStats.trDateIndex.push({id:tr.id,date:tr.datePosted});
+						accStats.trDateIndex.push({id:tr.id,date:tr.dateEntered});
 					});
 				},true)
 			},
@@ -684,7 +684,7 @@ function CashApi (ctx) {
 				async.forEach (_.keys(stats), function (accId, cb2) {
 					accStats = stats[accId];
 					// sort by date
-					accStats.trDateIndex = _.sortBy(accStats.trDateIndex,function (e) { return e.date; });
+					accStats.trDateIndex = _.sortBy(accStats.trDateIndex,function (e) { return e.date.valueOf(); });
 					var ballance = 0;
 					async.forEachSeries(accStats.trDateIndex, function (trs,cb3) {
 						cash_transactions.get(trs.id, function (err, tr) {

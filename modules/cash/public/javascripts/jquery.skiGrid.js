@@ -36,6 +36,7 @@
 		this.currentDate = null;
 		this.currentAccountId = 0;
 		this.isRowAdded = false;
+		this.accounts = null;
 	};
 	
 	function init($obj){		
@@ -144,28 +145,27 @@
 			showGrid($obj,objSettings,offset);			
 		});				
 		/* column select event */		
-		objSettings.bodyWrapperRef.find('tbody').on('click','td',function(){			
-			handleNewTrColumnClick(null,objSettings);			
-			handleUpdTrColumnClick($(this),objSettings);
+		objSettings.bodyWrapperRef.find('tbody').on('click','td',function(){				
+			handleColumnClick($(this),objSettings);
 		});
 		
 		/* new transaction column select event */		
-		objSettings.newTrContainer.find('tbody').on('click','td',function(){			
-			handleUpdTrColumnClick(null,objSettings);					
-			handleNewTrColumnClick($(this),objSettings);
+		objSettings.newTrContainer.find('tbody').on('click','td',function(){							
+			handleColumnClick($(this),objSettings);
 		});
 		/* handle tab key */
 		objSettings.gridWrapper.find('tbody').on('keypress','td',function(e){
-			if(e.keyCode == 9){				
+			if(e.keyCode == 9){
+				$(this).find('input').blur();				
 				handleColumnClick($(this).next(),objSettings);
 				if($(this).next().attr('name') == 'total'){					
-					triggerModifyData($(this),objSettings);					
+					triggerModifyData($(this).next(),objSettings);					
 				}
 				return false;
 			}
 			if(e.keyCode == 13 && ($(this).attr('name') == 'deposit' || $(this).attr('name') == 'withdrawal')){
-				handleColumnClick($(this).next(),objSettings);
-				triggerModifyData($(this),objSettings);	
+				handleColumnClick($(this).next(),objSettings);				
+				triggerModifyData($(this).next(),objSettings);	
 				return false;
 			}			
 		});
@@ -185,16 +185,15 @@
 			clearDataForNewTransaction(objSettings);
 		});
 		
-		objSettings.gridWrapper.on('UpdateRowData',function(e,$col){
+		objSettings.gridWrapper.on('UpdateRowData',function(e,$col){			
 			processRowUpdate(objSettings,function(err){
 				if(!err){
 					objSettings.bodyWrapperRef.find('tr.mainRow').removeClass('ski_selected');
-					if($col){						
+					if($col){												
 						objSettings.selectedRowId = $col.parent().attr('recordid');	
 						objSettings.rowEditedData={};
 						objSettings.rowEditedData['id'] = objSettings.selectedRowId;
-						if(objSettings.isNeedReload){
-							console.log('isNeedReload');
+						if(objSettings.isNeedReload){							
 							objSettings.isNeedReload = false;
 							objSettings.editableColumn = $col;
 							objSettings.bodyWrapperRef.scroll();
@@ -203,7 +202,7 @@
 							processColumnEditable($col,objSettings);
 						}												
 					}
-					else{
+					else{							
 						objSettings.selectedRowId = 0;	
 						objSettings.rowEditedData={};
 					}					
@@ -299,9 +298,7 @@
 			}
 			handleSplitRowsShow(objSettings);
 			objSettings.gridWrapper.trigger('GridLoad');	
-			if(objSettings.editableColumn){
-				console.log('editableColumn');
-				console.log(objSettings.editableColumn);
+			if(objSettings.editableColumn){				
 				$updatedCol = $(objSettings.tableBodyRef.find('tr.mainRow[recordid="'+objSettings.editableColumn.parent().attr('recordid')+'"] td[name="'+objSettings.editableColumn.attr('name')+'"]')[0]);
 				processColumnEditable($updatedCol,objSettings);
 				objSettings.editableColumn = null;
@@ -404,11 +401,44 @@
 	};
 	
 	function handleColumnClick($col,objSettings){
+		var $prevInput = $(objSettings.gridWrapper.find('td.ski_selected input')[0]);		
+		if($prevInput && $prevInput.parents('td.account').length > 0 && !$col.hasClass('ski_selected')){
+			if(objSettings.accounts){				
+				var currentAcc = $prevInput.val();				
+				if(currentAcc != "" && $.inArray(currentAcc,objSettings.accounts) == -1){									
+					$("#ski_dialog-confirm-create-account p.text").text('The account "'+currentAcc+'" does not exist. Would you like to create it?');
+					$("#ski_dialog-confirm-create-account").dialog({
+						resizable: false,
+						width:350,
+						height:200,
+						modal: true,
+						buttons: {
+							"Create account": function() {
+								//var accTree = currentAcc.join('::');
+								//currentAcc = accTree[accTree.length-1];								
+								$(this).dialog("close");
+							},
+							Cancel: function() {
+								$(this).dialog("close");
+							}
+						}
+					});					
+					return false
+				}
+			}
+			
+		}
+		processHandleColumnClick($col,objSettings);		
+	};
+	
+	function processHandleColumnClick($col,objSettings){
 		if($col.parents('.ski_newTrContainer').length > 0){
 			handleNewTrColumnClick($col,objSettings);
+			handleUpdTrColumnClick(null,objSettings);
 		}
 		else{
 			handleUpdTrColumnClick($col,objSettings);
+			handleNewTrColumnClick(null,objSettings);
 		}
 	};
 	
@@ -431,8 +461,14 @@
 					/* sync split rows with main row data */
 					var recordId = $oldSelectedTD.parent().attr('recordid');
 					$splitRow = $(objSettings.tableBodyRef.find('tr.splitRow[recordid="'+recordId+'"][accountid!="'+objSettings.currentAccountId+'"]')[0]);
-					console.log($splitRow);
-					$($splitRow.find('td')[objSettings.colNum]).find('.tdContent').text(newColumnVal);						
+					if(objSettings.colNum == 5 || objSettings.colNum == 4){
+						var columnNum = objSettings.colNum  == 4 ? objSettings.colNum+1 : objSettings.colNum-1;
+						$($splitRow.find('td')[objSettings.colNum]).find('.tdContent').text('');	
+						$($splitRow.find('td')[columnNum]).find('.tdContent').text(newColumnVal);
+					}
+					else{
+						$($splitRow.find('td')[objSettings.colNum]).find('.tdContent').text(newColumnVal);
+					}					
 					//$($oldSelectedTD.parent().next('.splitRow[accountid!="'+objSettings.currentAccountId+'"]').find('td')[objSettings.colNum]).find('.tdContent').text(newColumnVal);						
 				}
 				switch(objSettings.colNum){
@@ -598,9 +634,7 @@
 	};
 	
 	function processRowUpdate(objSettings,cb){		
-		var rowEditedData = $.extend({},objSettings.rowEditedData);
-		console.log('rowEditedData');
-		console.log(rowEditedData);
+		var rowEditedData = $.extend({},objSettings.rowEditedData);		
 		updateRow(rowEditedData,objSettings,function(err){
 			if(err){
 				if(err.error == 'validateError'){
@@ -732,12 +766,9 @@
 					"dataType": "json",
 					"cache": true				
 				});
-				jqXHR.done(function(data){
-					var src = [];
-					for(i in data){
-						src.push(data[i]);
-					}
-					$element1.autocomplete('option','source',src);
+				jqXHR.done(function(data){					
+					objSettings.accounts = data;
+					$element1.autocomplete('option','source',data);
 				});
 				$element2 = $('<div class="ski_select_btn"></div>');
 				var popupId = 'ski_path_popup';
@@ -796,7 +827,7 @@
 					e.target.focus();
 					$('#'+popupId).find('li:first a').mouseover();
 					e.preventDefault();
-				});
+				});				
 			break;
 			case 'datepicker':
 				$element = $('<input style="display:block;width:100%;height:100%" type="text" value="'+val+'" readonly />');
@@ -986,7 +1017,7 @@
 			objSettings.gridWrapper.trigger('AddRowData');			
 		}
 		else{
-			objSettings.gridWrapper.trigger('UpdateRowData');
+			objSettings.gridWrapper.trigger('UpdateRowData',[$col]);
 		}
 	};
       
