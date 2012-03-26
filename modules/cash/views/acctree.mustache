@@ -3,6 +3,9 @@ $(function() {
 	$('#acc_parent option').filter('[pid="0"]').each(function(e) {
 		$(this).text($.trim($(this).text()));
 	});
+	$('.new_parent option').filter('[pid="0"]').each(function(e) {
+		$(this).text($.trim($(this).text()));
+	});
 	$('div.tree div:has(div)').addClass('parent');
 	$(document).on("click", 'div.tree div', function(e) {
 		var obj = $(this);
@@ -14,36 +17,23 @@ $(function() {
 		location.href=this.href;
 		return false;
 	});
-	$('#add_new').on("click", function(e){
-		document.forms.properties.elements.acc_id.value=null;
+	$(document).on('click', '#add_new', function(e){
+		$('#acc_id').val(null);
 		$("#dialog").dialog("open");
 		return false;
 	});
 	$(document).on("click", ".editAcc", function(e){
-		var self = $(this);
-		var types = {{{types}}};
-		var curency = {{{curencyStr}}};
-		var form = document.forms.properties;
-		form.elements.acc_id.value = self.attr('aid');
-		var secret = form.elements.token.value;
-		
+		var aid = $(this).attr('aid');
+		$('#acc_id').val(aid);
+		var secret = $('#token').val();
 		var rpc = new jsonrpc.JsonRpc('/jsonrpc');
-		rpc.call('cash.getAccount', secret, self.attr('aid'), {
+		rpc.call('cash.getAccount', secret, aid, {
 			success: function (data) {
 				var acc = data[0];
-				form.elements.acc_name.value = acc.name;
-				opts = form.elements.acc_parent.options;
-				for (var i=0; i<opts.length; i++) {
-					if (opts[i].value == acc.parentId){
-						opts.selectedIndex=i;
-					}
-				}
-				for (var i=0; i<types.length; i++) {
-					if (types[i].value == acc.type) form.elements.acc_type.selectedIndex = i;
-				}
-				for (var i=0; i<curency.length; i++) {
-					if (curency[i].iso == acc.cmdty.id) form.elements.acc_curency.selectedIndex = i;
-				}
+				$('#acc_name').val(acc.name);
+				$('#acc_parent option[value='+acc.parentId+']').attr('selected', 'selected');
+				$('#acc_type option[value="'+acc.type+'"]').attr('selected', 'selected');
+				$('#acc_curency option[value="'+acc.cmdty.id+'"]').attr('selected', 'selected');
 			},
 			failure: function (reason) {
 			},
@@ -55,13 +45,12 @@ $(function() {
 		position: ["center","center"],
 		buttons: {
 			"apply": function() {
-				var f = document.forms.properties;
 				var params = {
-						id: f.elements.acc_id.value,
-						name: f.elements.acc_name.value,
-						parentId: f.elements.acc_parent.options[f.elements.acc_parent.selectedIndex].value,
-						curency: f.elements.acc_curency.options[f.elements.acc_curency.selectedIndex].value,
-						type: f.elements.acc_type.options[f.elements.acc_type.selectedIndex].value
+						id: $('#acc_id').val(),
+						name: $('#acc_name').val(),
+						parentId: $('#acc_parent option:selected').val(),
+						curency: $('#acc_curency option:selected').val(),
+						type: $('#acc_type option:selected').val()
 					};
 				var jqXHR = $.ajax({
 					"type": "POST",
@@ -72,7 +61,7 @@ $(function() {
 				jqXHR.done(function(data){
 					var curent = $('#'+data.id);
 					if (!curent.length) {
-						curent = $('<div id="'+data.id+'"><a id="open'+data.id+'" href=\'/cash/account?id='+data.id+'\'>'+data.name+'</a> (<a href="#" class="editAcc" aid="'+data.id+'">edit</a>)<span>'+data.fvalue+'</span></div>');
+						curent = $('<div id="'+data.id+'"><a id="open'+data.id+'" href=\'/cash/account?id='+data.id+'\'>'+data.name+'</a> (<a href="#" class="editAcc" aid="'+data.id+'">edit</a> <a href="#" class="deleteAcc" aid="{{id}}">delete</a>)<span>'+data.fvalue+'</span></div>');
 					}
 					$('#open'+data.id).text(data.name);
 					var parent;
@@ -101,10 +90,120 @@ $(function() {
 		modal: true,
 		draggable: false
 	});
+	$(document).on("click", ".deleteAcc", function(e){
+		$('#del_acc').val($(this).attr('aid'));
+		var accName = $('#open'+$(this).attr('aid')).html();
+		$('#deleteDialog').dialog( "option", "title", "Delete account \"" + accName +"\"");
+		$("#deleteDialog").dialog("open");
+		return false;
+	});
+	$("#deleteDialog").dialog({
+		position: ["center","center"],
+		buttons: {
+			"apply": function() {
+				var secret = $('#token').val();
+				var newParent = $("#new_parent option:selected").val();
+				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
+				var options = {};
+				if ($('input:checked[type="radio"][name="trn_action"]').attr('action') == "del") {
+					options.delTrn = true;
+				} else {
+					options.delTrn = false;
+					options.newParent = $('#tr_parent option:selected').val();
+				}
+				if ($('input:checked[type="radio"][name="sub_acc_action"]').attr('action')=="move"){
+					options.delSubAcc = false;
+					options.newSubParent = $('#sub_acc_parent option:selected').val();
+				} else {
+					options.delSubAcc = true;
+					if ($('input:checked[type="radio"][name="sub_acc_trn_action"]').attr('action')=="move") {
+						options.delSubAccTrn = false;
+						options.newSubAccTrnParent = $('#sub_acc_trn_parent option:selected').val();
+					} else {
+						options.delSubAccTrn = true;
+					}
+				}
+				console.log(options);
+				rpc.call('cash.deleteAccount', secret, $('#del_acc').val(), options, {
+					success: function (data) {
+						$('#'+$('#del_acc').val()).remove();
+					},
+					failure: function (reason) {
+					}
+				});
+				$(this).dialog("close");
+			},
+			"close": function() {
+				$(this).dialog("close");
+			}
+		},
+		autoOpen: false,
+		resizable: false,
+		height: 500,
+		width: 350,
+		modal: true,
+		draggable: false
+	});
+	$('#sub_acc_tr *').attr('disabled', 'disabled');
+	$(document).on('click', 'input[type="radio"]', function (e) {
+		if ($(this).attr('action')=="move") {
+			$(this).parent().find(".new_parent").removeAttr('disabled');
+			if ($(this).attr('name') == "sub_acc_action") $('#sub_acc_tr *').attr('disabled', 'disabled');
+		} else {
+			$(this).parent().find(".new_parent").attr('disabled', 'disabled');
+			if ($(this).attr('name') == "sub_acc_action") $('#sub_acc_tr *').removeAttr('disabled');
+		}
+	});
 });
 </script>
 
-<div id="dialog" title="Report settings" style="width: 600; height: 200px;">
+<div id="deleteDialog">
+	<form name ="deleteAccForm">
+		<input type="hidden" id="del_acc">
+		<div id="sub_tr">
+			<h3>Transactions:</h3>
+			<p>If this account contans transactions. What would you like to do with these transactions?</p>
+			<br />
+			<p><input action="del" type="radio" name="trn_action" /> Delete<br />
+			<input action="move" type="radio" name="trn_action" checked /> Move to:
+			<select id="tr_parent" class="new_parent">
+				{{#assets}}
+					{{>acctree_list_item}}
+				{{/assets}}
+			</select></p>
+		</div>
+		</br>
+		<hr />
+		<div id="sub_acc">
+			<h3>Sub-accounts:</h3>
+			<p>If this account contans sub-accounts. What would you like to do with these sub-accounts?</p>
+			<br />
+			<p><input action="del" type="radio" name="sub_acc_action"/> Delete<br />
+			<input action="move" type="radio" name="sub_acc_action" checked /> Move to:
+			<select id="sub_acc_parent" class="new_parent">
+				{{#assets}}
+					{{>acctree_list_item}}
+				{{/assets}}
+			</select></p>
+			</div>
+			</br>
+			<hr />
+		<div id="sub_acc_tr">
+			<h3>Sub-account transactions:</h3>
+			<p>If one or more sub-account contan transactions. What would you like to do with these transactios?</p>
+			<br />
+			<p><input action="del" type="radio" name="sub_acc_trn_action" /> Delete<br />
+			<input action="move" type="radio" name="sub_acc_trn_action" checked /> Move to:
+			<select id="sub_acc_trn_parent" class="new_parent">
+				{{#assets}}
+					{{>acctree_list_item}}
+				{{/assets}}
+			</select></p>
+		</div>
+	</form>
+</div>
+
+<div id="dialog" title="Account properties" style="width: 600px; height: 200px;">
 	<form name="properties">
 		<input type="hidden" id="acc_id">
 		<input type="hidden" id="token" value="{{token}}">
@@ -137,7 +236,7 @@ $(function() {
 			<tr>
 				<td>Type:</td>
 				<td>
-					<select name="acc_type" id="accType">
+					<select name="acc_type" id="acc_type">
 						{{#assetsTypes}}
 							<option value="{{value}}">{{name}}</option>
 						{{/assetsTypes}}
