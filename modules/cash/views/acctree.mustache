@@ -123,10 +123,9 @@ $(function() {
 						options.delSubAccTrn = true;
 					}
 				}
-				console.log(options);
 				rpc.call('cash.deleteAccount', secret, $('#del_acc').val(), options, {
 					success: function (data) {
-						$('#'+$('#del_acc').val()).remove();
+						location.reload(true);
 					},
 					failure: function (reason) {
 					}
