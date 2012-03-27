@@ -1018,7 +1018,6 @@ function CashApi (ctx) {
 	}
 
 	function deleteAccount(token, accId, options, cb){
-		console.log(options);
 		async.series([
 			function start(cb1) {
 				async.parallel([
@@ -1029,20 +1028,16 @@ function CashApi (ctx) {
 			function processTransactions(cb1) {
 				cash_transactions.scan(function (err, key, tr) {
 					if (err) cb1(err);
-					if (key){
-						if (tr)
-						_(tr.splits).forEach(function (split) {							
-							if ((split.accountId == accId) && options.newParent){
-								split.accountId = options.newParent;
-								cash_transactions.put(key, tr, function(err){if (err) throw err;});
-							} else if (split.accountId == accId) {
-								cash_transactions.put(key, null, function(err){if (err) throw err;});
-							}
-						});
-					} else {
-						cb1();
-					}
-				}, true);
+					if (tr) _(tr.splits).forEach(function (split) {							
+						if ((split.accountId == accId) && options.newParent){
+							split.accountId = options.newParent;
+							cash_transactions.put(key, tr, function(err){if (err) throw err;});
+						} else if (split.accountId == accId) {
+							cash_transactions.put(key, null, function(err){if (err) throw err;});
+						}
+					});
+				});
+				cb1();
 			},
 			function processSubAccounts(cb1){
 				if (options.newSubParent) {
@@ -1064,17 +1059,10 @@ function CashApi (ctx) {
 								_(tr.splits).forEach(function (split) {
 									if (_(childs).indexOf(split.accountId) > -1){
 										if (options.newSubAccTrnParent) {
-											process.nextTick(function(){
-												cash_transactions.put(key, tr, function(err){
-													if (err) throw err;
-												});
-											});
+											process.nextTick(function(){ cash_transactions.put(key, tr, function(err){ if (err) throw err; }); });
 										} else {
 											split.accountId = options.newSubAccTrnParent;
-											process.nextTick(function() {
-												cash_transactions.put(key, null, function(err){
-													if (err) throw err;
-												});
+											process.nextTick(function() { cash_transactions.put(key, null, function(err){ if (err) throw err; });
 											});
 										}
 									}
@@ -1084,9 +1072,7 @@ function CashApi (ctx) {
 						},
 						function (cb2) {
 							childs.forEach(function (ch){
-								process.nextTick(function() {
-									cash_accounts.put(ch, null, function(err){if (err) throw err;});
-								});
+								process.nextTick(function() { cash_accounts.put(ch, null, function(err){if (err) throw err;}); });
 							});
 							cb2();
 						}
@@ -1095,9 +1081,7 @@ function CashApi (ctx) {
 				cb1();
 			},
 			function deleteAcc(cb1) {
-				process.nextTick( function () {
-					cash_accounts.put(accId, null, function (err) {if (err) throw err; });
-				});
+				process.nextTick( function () { cash_accounts.put(accId, null, function (err) {if (err) throw err; }); });
 				cb1();
 			}
 		], function (err) {
