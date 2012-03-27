@@ -228,7 +228,7 @@ background-color:#eee;
 }
 
 
-#ski_dialog-confirm{
+#ski_dialog-confirm,#ski_dialog-confirm-create-account{
 	display:none;
 }
 .ski_gridFooterWrapper{

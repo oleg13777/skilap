@@ -150,8 +150,8 @@ module.exports = function account(webapp) {
 					modifiedTr['splits'] = [];
 					var imbalance = 0;					
 					tr.splits.forEach(function(split) {
-						var depositVal  = modifiedSplits[split.id].deposit != "" ? parseInt(modifiedSplits[split.id].deposit) : 0;
-						var withdrawalVal  = modifiedSplits[split.id].withdrawal != "" ? parseInt(modifiedSplits[split.id].withdrawal) : 0;
+						var depositVal  = modifiedSplits[split.id].deposit != "" ? parseFloat(modifiedSplits[split.id].deposit) : 0;
+						var withdrawalVal  = modifiedSplits[split.id].withdrawal != "" ? parseFloat(modifiedSplits[split.id].withdrawal) : 0;
 						var splitVal = depositVal - withdrawalVal;
 						imbalance += splitVal;
 						var modifiedSplit = {
@@ -165,8 +165,8 @@ module.exports = function account(webapp) {
 					});
 					for(key in modifiedSplits){
 						split = modifiedSplits[key];
-						var depositVal  = split.deposit != "" ? parseInt(split.deposit) : 0;
-						var withdrawalVal  = split.withdrawal != "" ? parseInt(split.withdrawal) : 0;
+						var depositVal  = split.deposit != "" ? parseFloat(split.deposit) : 0;
+						var withdrawalVal  = split.withdrawal != "" ? parseFloat(split.withdrawal) : 0;
 						var splitVal = depositVal - withdrawalVal;
 						if(splitVal != 0){
 							imbalance += splitVal;
@@ -177,12 +177,12 @@ module.exports = function account(webapp) {
 						/* for classic transaction with two splits made automatic correct */						
 						if(modifiedTr['splits'].length == 2){
 							if(modifiedTr['splits'][1].accountId == req.params.id){
-								modifiedTr['splits'][0].value = -1*modifiedTr['splits'][1].value;
-								modifiedTr['splits'][0].quantity = -1*modifiedTr['splits'][1].quantity;
-							}
-							else{
 								modifiedTr['splits'][1].value = -1*modifiedTr['splits'][0].value;
 								modifiedTr['splits'][1].quantity = -1*modifiedTr['splits'][0].quantity;
+							}
+							else{
+								modifiedTr['splits'][0].value = -1*modifiedTr['splits'][1].value;
+								modifiedTr['splits'][0].quantity = -1*modifiedTr['splits'][1].quantity;
 							}
 						}
 						else{
@@ -234,8 +234,8 @@ module.exports = function account(webapp) {
 				newTr['splits'] = [];
 				var imbalance = 0;					
 				newSplits.forEach(function(split) {
-					var depositVal  = split.deposit != "" ? parseInt(split.deposit) : 0;
-					var withdrawalVal  = split.withdrawal != "" ? parseInt(split.withdrawal) : 0;
+					var depositVal  = split.deposit != "" ? parseFloat(split.deposit) : 0;
+					var withdrawalVal  = split.withdrawal != "" ? parseFloat(split.withdrawal) : 0;
 					var splitVal = depositVal - withdrawalVal;
 					imbalance += splitVal;
 					var modifiedSplit = {													
@@ -303,11 +303,7 @@ module.exports = function account(webapp) {
 				})
 			},
 			function (hints, cb1) {				
-				var hintsObject={};
-				for(var i in hints){
-					hintsObject[hints[i]] = hints[i];
-				}
-				res.send(hintsObject);
+				res.send(hints);
 				cb1();
 			} 
 		], function (err) {

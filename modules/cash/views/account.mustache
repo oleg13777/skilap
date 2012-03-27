@@ -29,11 +29,16 @@
 		Please correct field data or discard all changes
 	</p>
 </div>
+<div id="ski_dialog-confirm-create-account" title="Create account">
+	<p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span></p>
+	<p class="text"></p>
+</div>
 <br/>
 <script>
 $(document).ready(function(){	
 	$('#acc').skiGrid({
 		"sAjaxSource": "{{prefix}}/account/{{accountId}}/getgrid",
+		"sUpdAccount":"{{prefix}}/accupd",
 		"columns":[
 			{"attr":{"name":"id"}},
 			{"attr":{"name":"date"}},
