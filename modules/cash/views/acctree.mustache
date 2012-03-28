@@ -68,7 +68,7 @@ $(function() {
 	});
 	
 	$("body").on('accountDeletedSuccess',function(e,id){
-		$('#'+id).remove();
+		location.reload(true);
 	});	
 });
 </script>

@@ -5,35 +5,26 @@ $(function() {
 		buttons: {
 			"apply": function() {
 				var secret = $('#token').val();
-				var newParent = $("#new_parent option:selected").val();
 				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
 				var options = {};
-				if ($('input:checked[type="radio"][name="trn_action"]').attr('action') == "del") {
-					options.delTrn = true;
-				} else {
-					options.delTrn = false;
+				if ($('input:checked[type="radio"][name="trn_action"]').attr('action') == "move") {
 					options.newParent = $('#tr_parent option:selected').val();
 				}
 				if ($('input:checked[type="radio"][name="sub_acc_action"]').attr('action')=="move"){
-					options.delSubAcc = false;
 					options.newSubParent = $('#sub_acc_parent option:selected').val();
-				} else {
-					options.delSubAcc = true;
-					if ($('input:checked[type="radio"][name="sub_acc_trn_action"]').attr('action')=="move") {
-						options.delSubAccTrn = false;
-						options.newSubAccTrnParent = $('#sub_acc_trn_parent option:selected').val();
-					} else {
-						options.delSubAccTrn = true;
-					}
-				}				
+				} 					options.delSubAcc = true;
+				if ($('input:checked[type="radio"][name="sub_acc_trn_action"]').attr('action')=="move") {
+					options.newSubAccTrnParent = $('#sub_acc_trn_parent option:selected').val();
+				}
 				rpc.call('cash.deleteAccount', secret, $('#del_acc').val(), options, {
 					success: function (data) {
-						window.parent.$("body").trigger('accountDeletedSuccess',[$('#del_acc').val()]);						
+						window.parent.$("body").trigger('accountDeletedSuccess');						
 					},
 					failure: function (reason) {
 						window.parent.$("body").trigger('accountDeletedFailed');
 					}
 				});
+				
 				//$(this).dialog("close");
 				window.parent.$("body .iframeContainer").trigger('closeDialog');
 			},
