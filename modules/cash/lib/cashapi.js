@@ -581,7 +581,7 @@ function CashApi (ctx) {
 	}
 
 	function getAccPath(acc, cb) {
-		if (acc && (acc.id!=acc.parentId) && (acc.parentId!=0)) {
+		if (acc.id!=acc.parentId && acc.parentId!=0) {
 			cash_accounts.get(acc.parentId, function(err, parentAcc) {
 				if (parentAcc==null) {
 					cb("");
@@ -592,11 +592,9 @@ function CashApi (ctx) {
 				}
 			});
 		}
-		else if (acc) {
+		else {
 			cb(acc.name);
-		} else {
-			cb();
-		}
+		} 
 	}
 
 	function calcStats(cb) {
@@ -657,7 +655,7 @@ function CashApi (ctx) {
 				var c=1;
 				cash_accounts.scan(function(err, k, acc) {
 					if (err) return cb1(err);
-					if ((k!=null) && acc) {
+					if (k!=null) {
 						c++;
 						getAccPath(acc, function (path) { 
 							getAccStats(acc.id).path = path;
@@ -672,14 +670,12 @@ function CashApi (ctx) {
 				cash_transactions.scan(function (err, k, tr) {
 					if (err) return cb1(err);
 					if (k==null) return cb1();
-					if (tr) {
-						tr.splits.forEach(function(split) {
-							var accStats = getAccStats(split.accountId);
-							accStats.value+=split.quantity;
-							accStats.count++;
-							accStats.trDateIndex.push({id:tr.id,date:tr.datePosted});
-						});
-					}
+					tr.splits.forEach(function(split) {
+						var accStats = getAccStats(split.accountId);
+						accStats.value+=split.quantity;
+						accStats.count++;
+						accStats.trDateIndex.push({id:tr.id,date:tr.datePosted});
+					});
 				},true)
 			},
 			build_register:['transaction_stats', function (cb1) {
@@ -1028,7 +1024,7 @@ function CashApi (ctx) {
 			function processTransactions(cb1) {
 				cash_transactions.scan(function (err, key, tr) {
 					if (err) cb1(err);
-					if (tr) _(tr.splits).forEach(function (split) {							
+					_(tr.splits).forEach(function (split) {							
 						if ((split.accountId == accId) && options.newParent){
 							split.accountId = options.newParent;
 							cash_transactions.put(key, tr, function(err){if (err) throw err;});

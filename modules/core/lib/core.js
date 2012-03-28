@@ -238,6 +238,7 @@ function Skilap() {
 			function end(err) {
 				console.timeEnd("startApp");
 				if (err) cb(err);
+				require("../pages/home")(self,webapp,modules['core'].api,"/core");
 				require("../pages/users")(self,webapp,modules['core'].api,"/core");
 				require("../pages/index")(self,webapp,modules['core'].api,"/core");
 

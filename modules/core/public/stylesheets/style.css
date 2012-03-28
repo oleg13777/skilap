@@ -42,6 +42,20 @@ tr { height: 24px;}
 	padding: 20px 50px;
 }
 
+#workspace .user{
+	float: left;
+	width: 40%;
+	padding: 0 5%;
+}
+
+#workspace table {
+	width: 100%;
+}
+
+#workspace td {
+	border: none;
+}
+
 .home.title{
 	text-align: center;
 	padding: 10px 0;
