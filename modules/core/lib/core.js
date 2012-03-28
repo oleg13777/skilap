@@ -64,6 +64,10 @@ function Skilap() {
 	this.webapp;
 
 	this.startApp = function (storepath_, cb) {
+		process.on('uncaughException', function (e) {
+			console.log(e);
+			console.trace();
+		})
 		console.time("startApp");
 		storepath = storepath_;
 		async.series([
