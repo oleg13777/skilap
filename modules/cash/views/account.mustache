@@ -1,4 +1,4 @@
-
+<div id="ski_createAccount"></div>
 <table id="acc" cellspacing="0" cellpadding="5" width="100%">	
 <thead>
 		<th class="number">#</th>
@@ -34,11 +34,10 @@
 	<p class="text"></p>
 </div>
 <br/>
-<script>
+<script type="text/javascript">
 $(document).ready(function(){	
 	$('#acc').skiGrid({
-		"sAjaxSource": "{{prefix}}/account/{{accountId}}/getgrid",
-		"sUpdAccount":"{{prefix}}/accupd",
+		"sAjaxSource": "{{prefix}}/account/{{accountId}}/getgrid",		
 		"columns":[
 			{"attr":{"name":"id"}},
 			{"attr":{"name":"date"}},
@@ -61,7 +60,9 @@ $(document).ready(function(){
 				null
 			]
 		}		
-	});	
+	});
+	
+	$("#ski_createAccount").iframeContainer({src:"{{prefix}}/acccreate",host:"{{host}}"});	
 	
 });
 </script>

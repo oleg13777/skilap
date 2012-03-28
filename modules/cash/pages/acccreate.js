@@ -63,8 +63,8 @@ module.exports = function account(webapp) {
 			}, callback);
 		});
 	}
-
-	app.get(prefix+"/acctree", function(req, res, next) {
+	
+	var responseHandler = function(req, res, next, tplName){
 		var assets = [];
 		var curencies = [];
 		var assetsTypes = [];
@@ -79,26 +79,31 @@ module.exports = function account(webapp) {
 					assetsTypes = types;
 					cb1();
 				});
-			},
-			function (cb1) {
-				webapp.guessTab(req, {pid:'acctree',name:ctx.i18n(req.session.apiToken, 'cash', 'Tree'), url:req.url}, cb1);
-			},
-			function render (vtabs) {
+			},			
+			function render () {
 				var rdata = {
 						settings:{views:__dirname+"/../views"},
-						prefix:prefix, 
-						tabs:vtabs, 
+						prefix:prefix,						
 						assets:assets,
 						token: req.session.apiToken,
 						curencies: curencies,
 						assetsTypes: assetsTypes,
-						host:req.headers.host
+						mainLayoutHide:1,
+						host:req.headers.host						
 					};
-				res.render(__dirname+"/../views/acctree", rdata);
+				res.render(__dirname+"/../views/"+tplName, rdata);
 			}],
 			next
 		);
+	};
+
+	app.get(prefix+"/acccreate",  function(req, res, next) {
+		responseHandler(req,res,next,'acccreate');
 	});
+	
+	app.get(prefix+"/accdelete", function(req, res, next) {
+		responseHandler(req,res,next,'accdelete');
+	});		
 
 	app.post(prefix+"/accupd", function(req, res, next) {
 		async.waterfall([

@@ -35,19 +35,25 @@
 	</script>
 </head>
 <body>
-	<div id="header">
-		<a href='/' id="logo"></a>
-		<div class="menu">{{>nav}}</div>
-	</div>
-	<div id="tabs">
-		{{#tabs}}
-			<div class="sl_border sl_border_radius">
-			<span {{#selected}}class="{{activeTabClass}}"{{/selected}}>( <a href='{{url}}' pid="{{pid}}" class="closeTab">X</a> ) <a href='{{url}}'><span class="sl_text">{{name}}</span></a></span>
-			</div>
-		{{/tabs}}
-	</div>
-	<div id="workspace" class="sl_border">
+	{{^mainLayoutHide}}
+		<div id="header">
+			<a href='/' id="logo"></a>
+			<div class="menu">{{>nav}}</div>
+		</div>
+		<div id="tabs">
+			{{#tabs}}
+				<div class="sl_border sl_border_radius">
+				<span {{#selected}}class="{{activeTabClass}}"{{/selected}}>( <a href='{{url}}' pid="{{pid}}" class="closeTab">X</a> ) <a href='{{url}}'><span class="sl_text">{{name}}</span></a></span>
+				</div>
+			{{/tabs}}
+		</div>
+		<div id="workspace" class="sl_border">
+			<content/>
+		</div>
+	{{/mainLayoutHide}}
+	{{#mainLayoutHide}}
 		<content/>
-	</div>
+	{{/mainLayoutHide}}
+	
 </body>
 </html>

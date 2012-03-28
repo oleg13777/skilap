@@ -231,7 +231,7 @@ function CashApi (ctx) {
 						res.count = accStats.count;
 					if (val == "path") 
 						res.path = accStats.path;
-				});
+				});				
 				process.nextTick(function () {cb1(null, res);});
 			}], function (err, results) {
 				if (err) return cb(err);
@@ -581,7 +581,7 @@ function CashApi (ctx) {
 	}
 
 	function getAccPath(acc, cb) {
-		if (acc.id!=acc.parentId && acc.parentId!=0) {
+		if (acc && (acc.id!=acc.parentId) && (acc.parentId!=0)) {
 			cash_accounts.get(acc.parentId, function(err, parentAcc) {
 				if (parentAcc==null) {
 					cb("");
@@ -592,8 +592,10 @@ function CashApi (ctx) {
 				}
 			});
 		}
-		else {
+		else if (acc) {
 			cb(acc.name);
+		} else {
+			cb();
 		}
 	}
 
@@ -655,7 +657,7 @@ function CashApi (ctx) {
 				var c=1;
 				cash_accounts.scan(function(err, k, acc) {
 					if (err) return cb1(err);
-					if (k!=null) {
+					if ((k!=null) && acc) {
 						c++;
 						getAccPath(acc, function (path) { 
 							getAccStats(acc.id).path = path;
@@ -670,12 +672,14 @@ function CashApi (ctx) {
 				cash_transactions.scan(function (err, k, tr) {
 					if (err) return cb1(err);
 					if (k==null) return cb1();
-					tr.splits.forEach(function(split) {
-						var accStats = getAccStats(split.accountId);
-						accStats.value+=split.quantity;
-						accStats.count++;
-						accStats.trDateIndex.push({id:tr.id,date:tr.dateEntered});
-					});
+					if (tr) {
+						tr.splits.forEach(function(split) {
+							var accStats = getAccStats(split.accountId);
+							accStats.value+=split.quantity;
+							accStats.count++;
+							accStats.trDateIndex.push({id:tr.id,date:tr.datePosted});
+						});
+					}
 				},true)
 			},
 			build_register:['transaction_stats', function (cb1) {
@@ -1014,7 +1018,6 @@ function CashApi (ctx) {
 	}
 
 	function deleteAccount(token, accId, options, cb){
-		console.log(options);
 		async.series([
 			function start(cb1) {
 				async.parallel([
@@ -1025,22 +1028,19 @@ function CashApi (ctx) {
 			function processTransactions(cb1) {
 				cash_transactions.scan(function (err, key, tr) {
 					if (err) cb1(err);
-					if (key){
-						_(tr.splits).forEach(function (split) {							
-							if ((split.accountId == accId) && options.newParent && !options.delTrn){
-								split.accountId = options.newParent;
-								cash_transactions.put(key, tr, function(err){if (err) throw err;});
-							} else if ((split.accountId == accId) && options.delTrn) {
-								cash_transactions.put(key, {}, function(err){if (err) throw err;});
-							}
-						});
-					} else {
-						cb1();
-					}
-				}, true);
+					if (tr) _(tr.splits).forEach(function (split) {							
+						if ((split.accountId == accId) && options.newParent){
+							split.accountId = options.newParent;
+							cash_transactions.put(key, tr, function(err){if (err) throw err;});
+						} else if (split.accountId == accId) {
+							cash_transactions.put(key, null, function(err){if (err) throw err;});
+						}
+					});
+				});
+				cb1();
 			},
 			function processSubAccounts(cb1){
-				if (options.newSubParent && !options.delSubAcc) {
+				if (options.newSubParent) {
 					getChildAccounts(token, accId, function(err, childs){
 						_(childs).forEach(function(ch){
 							ch.parentId = options.newSubParent;
@@ -1048,35 +1048,40 @@ function CashApi (ctx) {
 							cash_accounts.put(ch.id, ch, function(err){if (err) throw err;});
 						});
 					});
-				} else if (options.delSubAcc) {
+				} else {
 					var childs = [];
-					getAllChildsId(token, accId, childs, function(){
-						cash_transactions.scan(function (err, key, tr) {
-							_(tr.splits).forEach(function (split) {
-								if (_(childs).indexOf(split.accountId) > -1){
-									if (options.delSubAccTrn) {
-										cash_transactions.put(key, {}, function(err){
-											if (err) throw err;
-										});
-									} else if (options.newSubAccTrnParent) {
-										split.accountId = options.newSubAccTrnParent;
-										cash_transactions.put(key, tr, function(err){
-											if (err) throw err;
-										});
+					async.waterfall([
+						function(cb2){
+							getAllChildsId(token, accId, childs, cb2);
+						},
+						function (cb2){
+							cash_transactions.scan(function (err, key, tr) {
+								_(tr.splits).forEach(function (split) {
+									if (_(childs).indexOf(split.accountId) > -1){
+										if (options.newSubAccTrnParent) {
+											process.nextTick(function(){ cash_transactions.put(key, tr, function(err){ if (err) throw err; }); });
+										} else {
+											split.accountId = options.newSubAccTrnParent;
+											process.nextTick(function() { cash_transactions.put(key, null, function(err){ if (err) throw err; });
+											});
+										}
 									}
-								}
+								});
 							});
-						});
-						console.log(childs);
-					});
-					childs.forEach(function (ch){
-						cash_accounts.put(ch, {}, function(err){if (err) throw err;});
-					});
+							cb2();
+						},
+						function (cb2) {
+							childs.forEach(function (ch){
+								process.nextTick(function() { cash_accounts.put(ch, null, function(err){if (err) throw err;}); });
+							});
+							cb2();
+						}
+					],cb1);
 				}
 				cb1();
 			},
 			function deleteAcc(cb1) {
-				cash_accounts.put(accId, {}, function (err) {if (err) throw err; });
+				process.nextTick( function () { cash_accounts.put(accId, null, function (err) {if (err) throw err; }); });
 				cb1();
 			}
 		], function (err) {

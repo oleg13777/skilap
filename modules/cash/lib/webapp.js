@@ -31,6 +31,7 @@ self.ctx.once("WebStarted", function (err) {
 		require("../pages/report.js")(self);
 		require("../pages/acctree.js")(self);
 		require("../pages/restoredefaults.js")(self);
+		require("../pages/acccreate.js")(self);
 	})
 })
 
