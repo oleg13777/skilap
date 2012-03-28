@@ -210,6 +210,12 @@
 			});				
 		});
 		
+		$("body").on('accountUpdatedSuccess',function(e,data){			
+			if(objSettings.accounts){				
+				objSettings.accounts.push(data.name);
+			}
+		});
+		
 		
 		/* fix grid when window change */
 		$(window).on('resize',function(){			
@@ -413,10 +419,10 @@
 						height:200,
 						modal: true,
 						buttons: {
-							"Create account": function() {
-								//var accTree = currentAcc.join('::');
-								//currentAcc = accTree[accTree.length-1];								
+							"Create account": function() {																							
 								$(this).dialog("close");
+								$("#ski_createAccount").iframeContainer("open");
+								$("#ski_createAccount").iframeContainer("triggerEvent",{name:'setAccountDialogData',data:{name:currentAcc}});	
 							},
 							Cancel: function() {
 								$(this).dialog("close");
@@ -768,7 +774,7 @@
 				});
 				jqXHR.done(function(data){					
 					objSettings.accounts = data;
-					$element1.autocomplete('option','source',data);
+					$element1.autocomplete('option','source',objSettings.accounts);
 				});
 				$element2 = $('<div class="ski_select_btn"></div>');
 				var popupId = 'ski_path_popup';

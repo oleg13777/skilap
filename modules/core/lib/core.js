@@ -17,7 +17,7 @@ var hogan=require('hogan');
 var i18n = require('jsorm-i18n');
 
 var tmpl = {
-    compile: function (source, options) {
+    compile: function (source, options) {	
 		views = (options && options.settings && options.settings.views) || './views';
 		var tc = hogan.compile(source);
 		// we need overwrite for this specific template

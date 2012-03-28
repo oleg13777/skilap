@@ -1,0 +1,130 @@
+<script type="text/javascript">
+$(function() {	
+	$("#dialog").dialog({
+		position: ["left","top"],
+		buttons: {
+			"apply": function() {
+				var params = {
+						id: $('#acc_id').val(),
+						name: $('#acc_name').val(),
+						parentId: $('#acc_parent option:selected').val(),
+						curency: $('#acc_curency option:selected').val(),
+						type: $('#acc_type option:selected').val()
+					};
+				var jqXHR = $.ajax({
+					"type": "POST",
+					"data": params,
+					"dataType": "json",
+					"url": "{{prefix}}/accupd",
+				});
+				jqXHR.done(function(data){
+					window.parent.$("body").trigger('accountUpdatedSuccess',[data]);					
+				});
+				jqXHR.fail(function(data){
+					window.parent.$("body").trigger('accountUpdatedFailed');
+				});
+				//$(this).dialog("close");
+				window.parent.$("body .iframeContainer").trigger('closeDialog');
+			},			
+			close: function() {
+				//$(this).dialog("close");
+				//console.log('closeDialog');
+				window.parent.$("body .iframeContainer").trigger('closeDialog');
+			}
+		},
+		open:function(e,ui){			
+			var w = $(this).parent().width();
+			var h = $(this).parent().height();
+			var p = $(this).parent().position();
+			$(this).parent().css({"top":0,"left":0,"padding":0,"border":0});
+			window.parent.$("body .iframeContainer-ski_createAccount").trigger('openDialog',[w,h,p]);						
+		},
+		close:function(e,ui){
+			window.parent.$("body .iframeContainer").trigger('closeDialog');
+		},
+		autoOpen: true,
+		resizable: false,
+		height: 300,
+		width: 500,
+		modal: true,
+		draggable: false
+	});	
+	
+	function displayMessage(event){		
+		if (event.origin === "https://{{host}}") {		
+			if(event.data.name == 'setAccountDialogData'){									
+				var acc = event.data.data;
+				if(acc.id){			
+					$('#acc_id').val(acc.id);
+				}
+				if(acc.name){
+					$('#acc_name').val(acc.name);
+				}
+				if(acc.parentId){
+					$('#acc_parent option[value='+acc.parentId+']').attr('selected', 'selected');
+				}
+				if(acc.type){
+					$('#acc_type option[value="'+acc.type+'"]').attr('selected', 'selected');
+				}
+				if(acc.cmdty){
+					$('#acc_curency option[value="'+acc.cmdty.id+'"]').attr('selected', 'selected');
+				}
+			}
+			else if(event.data.name == 'resetAccountDialogData'){				
+				$("#dialog form[name='properties']").get(0).reset();
+			}			
+		}		
+	}
+	
+	if (window.addEventListener) {	
+		window.addEventListener("message", displayMessage, false);
+	}
+	else {
+		window.attachEvent("onmessage", displayMessage);
+	}
+
+});
+</script>
+<div id="dialog" title="Account properties" style="width: 600px; height: 200px;">
+	<form name="properties">
+		<input type="hidden" id="acc_id">
+		<input type="hidden" id="token" value="{{token}}">
+		<table>
+			<tr>
+				<td>Name:</td>
+				<td><input type="text" id="acc_name"></tr>
+			</tr>
+			<tr>
+				<td>Parent account:</td>
+				<td>
+					<select name="acc_parent" id="acc_parent">
+						<option value="0" pid="0">Root</option>
+						{{#assets}}
+							{{>acctree_list_item}}
+						{{/assets}}
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>Curency:</td>
+				<td>
+					<select name="acc_curency" id="acc_curency">
+						{{#curencies}}
+							<option value="{{iso}}">{{iso}} - {{country}}</option>
+						{{/curencies}}
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>Type:</td>
+				<td>
+					<select name="acc_type" id="acc_type">
+						{{#assetsTypes}}
+							<option value="{{value}}">{{name}}</option>
+						{{/assetsTypes}}
+					</select>
+				</td>
+			</tr>
+		</table>
+	</form>
+</div>
