@@ -231,7 +231,7 @@ function CashApi (ctx) {
 						res.count = accStats.count;
 					if (val == "path") 
 						res.path = accStats.path;
-				});
+				});				
 				process.nextTick(function () {cb1(null, res);});
 			}], function (err, results) {
 				if (err) return cb(err);

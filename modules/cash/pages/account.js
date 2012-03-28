@@ -35,7 +35,8 @@ module.exports = function account(webapp) {
 					accountSize:count,
 					firstVisible:firstVisible,
 					pageSize:pageSize,
-					scrollGap:scrollGap
+					scrollGap:scrollGap,
+					host:req.headers.host
 				});
 			})
 		], function (err) {

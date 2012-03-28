@@ -16,11 +16,29 @@ $(function() {
 	$(document).on("click", 'div.tree div a', function(e) {
 		location.href=this.href;
 		return false;
-	});
-	$(document).on('click', '#add_new', function(e){
-		$('#acc_id').val(null);
-		$("#dialog").dialog("open");
+	});	
+	
+	$(document).on('click', '#add_new', function(e){		
+		$("#ski_createAccount").iframeContainer("open");	
+		$("#ski_createAccount").iframeContainer("triggerEvent",{name:'resetAccountDialogData'});		
 		return false;
+	});
+	$("body").on('accountUpdatedSuccess',function(e,data){
+		var curent = $('#'+data.id);
+		if (!curent.length) {
+			curent = $('<div id="'+data.id+'"><a id="open'+data.id+'" href=\'/cash/account?id='+data.id+'\'>'+data.name+'</a> (<a href="#" class="editAcc" aid="'+data.id+'">edit</a> <a href="#" class="deleteAcc" aid="{{id}}">delete</a>)<span>'+data.fvalue+'</span></div>');
+		}
+		$('#open'+data.id).text(data.name);
+		var parent;
+		if (data.parentId == 0) {
+			parent = $('#tree_root');
+			parent.append(curent);
+		} else {
+			parent = $('#'+data.parentId);
+			parent.addClass('expanded');
+			parent.children('div').show();
+			parent.append(curent);
+		}
 	});
 	$(document).on("click", ".editAcc", function(e){
 		var aid = $(this).attr('aid');
@@ -29,229 +47,39 @@ $(function() {
 		var rpc = new jsonrpc.JsonRpc('/jsonrpc');
 		rpc.call('cash.getAccount', secret, aid, {
 			success: function (data) {
-				var acc = data[0];
-				$('#acc_name').val(acc.name);
-				$('#acc_parent option[value='+acc.parentId+']').attr('selected', 'selected');
-				$('#acc_type option[value="'+acc.type+'"]').attr('selected', 'selected');
-				$('#acc_curency option[value="'+acc.cmdty.id+'"]').attr('selected', 'selected');
+				var acc = data[0];								
+				$("#ski_createAccount").iframeContainer("triggerEvent",{name:'setAccountDialogData',data:acc});				
 			},
 			failure: function (reason) {
 			},
-		});
-		$("#dialog").dialog("open");
+		});		
+		$("#ski_createAccount").iframeContainer("open");
 		return false;
-	});
-	$("#dialog").dialog({
-		position: ["center","center"],
-		buttons: {
-			"apply": function() {
-				var params = {
-						id: $('#acc_id').val(),
-						name: $('#acc_name').val(),
-						parentId: $('#acc_parent option:selected').val(),
-						curency: $('#acc_curency option:selected').val(),
-						type: $('#acc_type option:selected').val()
-					};
-				var jqXHR = $.ajax({
-					"type": "POST",
-					"data": params,
-					"dataType": "json",
-					"url": "{{prefix}}/accupd",
-				});
-				jqXHR.done(function(data){
-					var curent = $('#'+data.id);
-					if (!curent.length) {
-						curent = $('<div id="'+data.id+'"><a id="open'+data.id+'" href=\'/cash/account?id='+data.id+'\'>'+data.name+'</a> (<a href="#" class="editAcc" aid="'+data.id+'">edit</a> <a href="#" class="deleteAcc" aid="{{id}}">delete</a>)<span>'+data.fvalue+'</span></div>');
-					}
-					$('#open'+data.id).text(data.name);
-					var parent;
-					if (data.parentId == 0) {
-						parent = $('#tree_root');
-						parent.append(curent);
-					} else {
-						parent = $('#'+data.parentId);
-						parent.addClass('expanded');
-						parent.children('div').show();
-						parent.append(curent);
-					}
-				});
-				jqXHR.fail(function(data){
-				});
-				$(this).dialog("close");
-			},
-			"close": function() {
-				$(this).dialog("close");
-			}
-		},
-		autoOpen: false,
-		resizable: false,
-		height: 300,
-		width: 500,
-		modal: true,
-		draggable: false
-	});
+	});	
+	$("#ski_createAccount").iframeContainer({src:"{{prefix}}/acccreate",host:"{{host}}"});	
+	$("#ski_deleteAccount").iframeContainer({src:"{{prefix}}/accdelete",host:"{{host}}"});	
+	
 	$(document).on("click", ".deleteAcc", function(e){
-		$('#del_acc').val($(this).attr('aid'));
+		var accountId = $(this).attr('aid');
 		var accName = $('#open'+$(this).attr('aid')).html();
-		$('#deleteDialog').dialog( "option", "title", "Delete account \"" + accName +"\"");
-		$("#deleteDialog").dialog("open");
+		$("#ski_deleteAccount").iframeContainer("triggerEvent",{name:'setAccountDeleteDialogData',data:{id:accountId,name:accName}});	
+		$("#ski_deleteAccount").iframeContainer("open");		
 		return false;
 	});
-	$("#deleteDialog").dialog({
-		position: ["center","center"],
-		buttons: {
-			"apply": function() {
-				var secret = $('#token').val();
-				var newParent = $("#new_parent option:selected").val();
-				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
-				var options = {};
-				if ($('input:checked[type="radio"][name="trn_action"]').attr('action') == "del") {
-					options.delTrn = true;
-				} else {
-					options.delTrn = false;
-					options.newParent = $('#tr_parent option:selected').val();
-				}
-				if ($('input:checked[type="radio"][name="sub_acc_action"]').attr('action')=="move"){
-					options.delSubAcc = false;
-					options.newSubParent = $('#sub_acc_parent option:selected').val();
-				} else {
-					options.delSubAcc = true;
-					if ($('input:checked[type="radio"][name="sub_acc_trn_action"]').attr('action')=="move") {
-						options.delSubAccTrn = false;
-						options.newSubAccTrnParent = $('#sub_acc_trn_parent option:selected').val();
-					} else {
-						options.delSubAccTrn = true;
-					}
-				}
-				console.log(options);
-				rpc.call('cash.deleteAccount', secret, $('#del_acc').val(), options, {
-					success: function (data) {
-						$('#'+$('#del_acc').val()).remove();
-					},
-					failure: function (reason) {
-					}
-				});
-				$(this).dialog("close");
-			},
-			"close": function() {
-				$(this).dialog("close");
-			}
-		},
-		autoOpen: false,
-		resizable: false,
-		height: 500,
-		width: 350,
-		modal: true,
-		draggable: false
-	});
-	$('#sub_acc_tr *').attr('disabled', 'disabled');
-	$(document).on('click', 'input[type="radio"]', function (e) {
-		if ($(this).attr('action')=="move") {
-			$(this).parent().find(".new_parent").removeAttr('disabled');
-			if ($(this).attr('name') == "sub_acc_action") $('#sub_acc_tr *').attr('disabled', 'disabled');
-		} else {
-			$(this).parent().find(".new_parent").attr('disabled', 'disabled');
-			if ($(this).attr('name') == "sub_acc_action") $('#sub_acc_tr *').removeAttr('disabled');
-		}
-	});
+	
+	$("body").on('accountDeletedSuccess',function(e,id){
+		$('#'+id).remove();
+	});	
 });
 </script>
-
-<div id="deleteDialog">
-	<form name ="deleteAccForm">
-		<input type="hidden" id="del_acc">
-		<div id="sub_tr">
-			<h3>Transactions:</h3>
-			<p>If this account contans transactions. What would you like to do with these transactions?</p>
-			<br />
-			<p><input action="del" type="radio" name="trn_action" /> Delete<br />
-			<input action="move" type="radio" name="trn_action" checked /> Move to:
-			<select id="tr_parent" class="new_parent">
-				{{#assets}}
-					{{>acctree_list_item}}
-				{{/assets}}
-			</select></p>
-		</div>
-		</br>
-		<hr />
-		<div id="sub_acc">
-			<h3>Sub-accounts:</h3>
-			<p>If this account contans sub-accounts. What would you like to do with these sub-accounts?</p>
-			<br />
-			<p><input action="del" type="radio" name="sub_acc_action"/> Delete<br />
-			<input action="move" type="radio" name="sub_acc_action" checked /> Move to:
-			<select id="sub_acc_parent" class="new_parent">
-				{{#assets}}
-					{{>acctree_list_item}}
-				{{/assets}}
-			</select></p>
-			</div>
-			</br>
-			<hr />
-		<div id="sub_acc_tr">
-			<h3>Sub-account transactions:</h3>
-			<p>If one or more sub-account contan transactions. What would you like to do with these transactios?</p>
-			<br />
-			<p><input action="del" type="radio" name="sub_acc_trn_action" /> Delete<br />
-			<input action="move" type="radio" name="sub_acc_trn_action" checked /> Move to:
-			<select id="sub_acc_trn_parent" class="new_parent">
-				{{#assets}}
-					{{>acctree_list_item}}
-				{{/assets}}
-			</select></p>
-		</div>
-	</form>
-</div>
-
-<div id="dialog" title="Account properties" style="width: 600px; height: 200px;">
-	<form name="properties">
-		<input type="hidden" id="acc_id">
-		<input type="hidden" id="token" value="{{token}}">
-		<table>
-			<tr>
-				<td>Name:</td>
-				<td><input type="text" id="acc_name"></tr>
-			</tr>
-			<tr>
-				<td>Parent account:</td>
-				<td>
-					<select name="acc_parent" id="acc_parent">
-						<option value="0" pid="0">Root</option>
-						{{#assets}}
-							{{>acctree_list_item}}
-						{{/assets}}
-					</select>
-				</td>
-			</tr>
-			<tr>
-				<td>Curency:</td>
-				<td>
-					<select name="acc_curency" id="acc_curency">
-						{{#curencies}}
-							<option value="{{iso}}">{{iso}} - {{country}}</option>
-						{{/curencies}}
-					</select>
-				</td>
-			</tr>
-			<tr>
-				<td>Type:</td>
-				<td>
-					<select name="acc_type" id="acc_type">
-						{{#assetsTypes}}
-							<option value="{{value}}">{{name}}</option>
-						{{/assetsTypes}}
-					</select>
-				</td>
-			</tr>
-		</table>
-	</form>
-</div>
-
+<div id="ski_createAccount"></div>
+<div id="ski_deleteAccount"></div>
 <div id="home">
+	<input type="hidden" id="token" value="{{token}}">
 	<div id="tree_root" class="main tree">
 	{{#assets}}
 		{{>acctree_item}}
 	{{/assets}}
 	</div>
-	<a id="add_new" href="#">add new account</a>
+	<a id="add_new" href="javascript:void(0);">add new account</a>
 </div>

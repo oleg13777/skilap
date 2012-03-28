@@ -427,6 +427,7 @@ div.tree div.expanded {
 }
 
 #workspace{
+	position:relative;
 	margin-left: 215px;
 	margin-right: 20px;
 	min-height: 400px;
@@ -439,4 +440,15 @@ div.tree div.expanded {
 
 .ui-datepicker{
 z-index:3 !important;
+}
+
+.iframeContainer{
+position:absolute;
+top:0;
+left:0;
+}
+
+.iframeContainer iframe{
+border:1px solid transparent;
+overflow:hidden;
 }

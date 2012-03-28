@@ -1,0 +1,142 @@
+<script type="text/javascript">
+$(function() {	
+	$("#deleteDialog").dialog({
+		position: ["left","top"],
+		buttons: {
+			"apply": function() {
+				var secret = $('#token').val();
+				var newParent = $("#new_parent option:selected").val();
+				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
+				var options = {};
+				if ($('input:checked[type="radio"][name="trn_action"]').attr('action') == "del") {
+					options.delTrn = true;
+				} else {
+					options.delTrn = false;
+					options.newParent = $('#tr_parent option:selected').val();
+				}
+				if ($('input:checked[type="radio"][name="sub_acc_action"]').attr('action')=="move"){
+					options.delSubAcc = false;
+					options.newSubParent = $('#sub_acc_parent option:selected').val();
+				} else {
+					options.delSubAcc = true;
+					if ($('input:checked[type="radio"][name="sub_acc_trn_action"]').attr('action')=="move") {
+						options.delSubAccTrn = false;
+						options.newSubAccTrnParent = $('#sub_acc_trn_parent option:selected').val();
+					} else {
+						options.delSubAccTrn = true;
+					}
+				}				
+				rpc.call('cash.deleteAccount', secret, $('#del_acc').val(), options, {
+					success: function (data) {
+						window.parent.$("body").trigger('accountDeletedSuccess',[$('#del_acc').val()]);						
+					},
+					failure: function (reason) {
+						window.parent.$("body").trigger('accountDeletedFailed');
+					}
+				});
+				//$(this).dialog("close");
+				window.parent.$("body .iframeContainer").trigger('closeDialog');
+			},
+			"close": function() {
+			//	$(this).dialog("close");
+				window.parent.$("body .iframeContainer").trigger('closeDialog');
+			}
+		},
+		open:function(e,ui){			
+			var w = $(this).parent().width();
+			var h = $(this).parent().height();
+			var p = $(this).parent().position();
+			$(this).parent().css({"top":0,"left":0,"padding":0,"border":0});
+			window.parent.$("body .iframeContainer-ski_deleteAccount").trigger('openDialog',[w,h,p]);						
+		},
+		close:function(e,ui){
+			window.parent.$("body .iframeContainer").trigger('closeDialog');
+		},
+		autoOpen: true,
+		resizable: false,
+		height: 500,
+		width: 350,
+		modal: true,
+		draggable: false
+	});
+	
+	function displayMessage(event){			
+		if (event.origin === "https://{{host}}") {		
+			if(event.data.name == 'setAccountDeleteDialogData'){
+				var acc = event.data.data;
+				console.log(acc);
+				$('#del_acc').val(acc.id);
+				$('#deleteDialog').dialog( "option", "title", "Delete account \"" + acc.name +"\"");			
+			}
+			else if(event.data.name == 'resetAccountDialogData'){				
+				$("#deleteDialog form[name='deleteAccForm']").get(0).reset();
+			}			
+		}		
+	}
+	
+	if (window.addEventListener) {	
+		window.addEventListener("message", displayMessage, false);
+	}
+	else {
+		window.attachEvent("onmessage", displayMessage);
+	}
+	
+	$('#sub_acc_tr *').attr('disabled', 'disabled');
+	$(document).on('click', 'input[type="radio"]', function (e) {
+		if ($(this).attr('action')=="move") {
+			$(this).parent().find(".new_parent").removeAttr('disabled');
+			if ($(this).attr('name') == "sub_acc_action") $('#sub_acc_tr *').attr('disabled', 'disabled');
+		} else {
+			$(this).parent().find(".new_parent").attr('disabled', 'disabled');
+			if ($(this).attr('name') == "sub_acc_action") $('#sub_acc_tr *').removeAttr('disabled');
+		}
+	});
+
+});
+</script>
+<div id="deleteDialog">
+	<form name ="deleteAccForm">
+		<input type="hidden" id="del_acc">
+		<input type="hidden" id="token" value="{{token}}">
+		<div id="sub_tr">
+			<h3>Transactions:</h3>
+			<p>If this account contans transactions. What would you like to do with these transactions?</p>
+			<br />
+			<p><input action="del" type="radio" name="trn_action" /> Delete<br />
+			<input action="move" type="radio" name="trn_action" checked /> Move to:
+			<select id="tr_parent" class="new_parent">
+				{{#assets}}
+					{{>acctree_list_item}}
+				{{/assets}}
+			</select></p>
+		</div>
+		</br>
+		<hr />
+		<div id="sub_acc">
+			<h3>Sub-accounts:</h3>
+			<p>If this account contans sub-accounts. What would you like to do with these sub-accounts?</p>
+			<br />
+			<p><input action="del" type="radio" name="sub_acc_action"/> Delete<br />
+			<input action="move" type="radio" name="sub_acc_action" checked /> Move to:
+			<select id="sub_acc_parent" class="new_parent">
+				{{#assets}}
+					{{>acctree_list_item}}
+				{{/assets}}
+			</select></p>
+			</div>
+			</br>
+			<hr />
+		<div id="sub_acc_tr">
+			<h3>Sub-account transactions:</h3>
+			<p>If one or more sub-account contan transactions. What would you like to do with these transactios?</p>
+			<br />
+			<p><input action="del" type="radio" name="sub_acc_trn_action" /> Delete<br />
+			<input action="move" type="radio" name="sub_acc_trn_action" checked /> Move to:
+			<select id="sub_acc_trn_parent" class="new_parent">
+				{{#assets}}
+					{{>acctree_list_item}}
+				{{/assets}}
+			</select></p>
+		</div>
+	</form>
+</div>
