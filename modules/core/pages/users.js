@@ -2,10 +2,6 @@ var async = require("async");
 
 module.exports = function account(ctx, app, api, prefix) {
 
-	app.get(prefix, function (req, res, next) {
-		res.redirect(prefix+"/users");
-	})
-
 	app.get(prefix+"/users", function(req, res, next) {
 		var t = [];
 		async.waterfall([

@@ -9,11 +9,19 @@
 	{{>scripts}}
 </head>
 <body>
-	<div id="header">
-		{{>nav}}
+	<div id="content">
+		<div id="header">
+			<a href='/' id="logo"></a>
+			<div class="tittle">
+				<h2>{{tittle}}</h2>
+			</div>
+		</div>
+		<div id="workspace"/>
+			<content/>
+		</div>
 	</div>
-	<div id="workspace"/>
-		<content/>
+	<div id="footer">
+		<h2>Copyright by PushOk Software 2011-2012</h2>
 	</div>
 </body>
 </html>
