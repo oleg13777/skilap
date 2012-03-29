@@ -10,7 +10,6 @@ module.exports = function (ctx, app, api, prefix) {
 	})
 
 	app.get("/", function(req, res, next) {
-		console.log(req.cookies);
 		async.waterfall([
 			async.apply(ctx.getModulesInfo),
 			function render (modules) {

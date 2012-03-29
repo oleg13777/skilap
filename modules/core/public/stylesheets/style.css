@@ -31,7 +31,7 @@ tr { height: 24px;}
 
 #header{
 	padding: 10px 50px;
-	background: #86abd9;
+	border-bottom: solid;
 	height: 76px;
 }
 
@@ -99,7 +99,7 @@ html, body {height: 100%;}
 
 #footer h2 {
 	text-align: center;
-	background: #86abd9;
+	border-top: solid;
 	line-height: 80px;
 }
 /********************/
