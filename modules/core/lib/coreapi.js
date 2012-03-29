@@ -247,8 +247,7 @@ this.loginByPass = function (token, login, password, cb ) {
 }
 
 this.logOut = function (token, cb) {
-	console.log(sessions);
-//	sessions[token].user = {type:"guest"};
+	sessions[token].user = {type:"guest"};
 	cb();
 }
 

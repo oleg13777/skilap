@@ -10,6 +10,7 @@ module.exports = function (ctx, app, api, prefix) {
 	})
 
 	app.get("/", function(req, res, next) {
+		console.log(req.cookies);
 		async.waterfall([
 			async.apply(ctx.getModulesInfo),
 			function render (modules) {
@@ -20,6 +21,9 @@ module.exports = function (ctx, app, api, prefix) {
 	});
 
 	app.get("/logout", function (req, res, next){
+		res.clearCookie("skilapid");
+		res.clearCookie("sguard");
+		res.clearCookie("connect.sid");
 		api.logOut(req.session.apiToken, function() { res.redirect(prefix)});
 	});
 }
