@@ -193,6 +193,8 @@ this.saveUser = function (token, newUser, cb) {
 				if (newUser.login) updUser.login=newUser.login;
 				if (newUser.newPass && newUser.oldPass && (updUser.password == newUser.oldPass))
 					updUser.password = newUser.newPass;
+				if (newUser.timeZone) updUser.timeZone = newUser.timeZone;
+				if (newUser.language) updUser.language = newUser.language;
 				core_users.put(updUser.id, updUser, cb1);
 			}
 		], cb);
