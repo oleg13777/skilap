@@ -177,13 +177,23 @@ this.getUser = function (token, cb) {
  * @returns {User} Updated or created user
  */
 this.saveUser = function (token, newUser, cb) {
-	if (newUser.id!=null) {
+	if (newUser.id) {
 		// update 
 		async.waterfall([
-			async.apply(self.checkPerms,token,['core.user.edit']),
-			async.apply(core_users.get, newUser.id),
+			async.apply(self.checkPerm,token,['core.user.edit']),
+			function (cb1){
+				core_users.get(newUser.id, function (err, user) {
+					if (err) cb1(err);
+					cb1(null, user);
+				});
+			},
 			function updateUser (updUser,cb1) {
-				core_users.put(updUser.id, upUser, cb1);
+				if (newUser.firstName) updUser.firstName=newUser.firstName;
+				if (newUser.lastName) updUser.lastName=newUser.lastName;
+				if (newUser.login) updUser.login=newUser.login;
+				if (newUser.newPass && newUser.oldPass && (updUser.password == newUser.oldPass))
+					updUser.password = newUser.newPass;
+				core_users.put(updUser.id, updUser, cb1);
 			}
 		], cb);
 	} else {

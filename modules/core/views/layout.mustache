@@ -5,18 +5,42 @@
 	<title>{{title}}</title>
 	<style type="text/css" title="currentStyle">
 		@import "{{prefix}}/stylesheets/style.css";
+		@import "{{prefix}}/stylesheets/demo_page.css";
+		@import "{{prefix}}/stylesheets/demo_table.css";
+		@import "{{prefix}}/stylesheets/jquery-ui/jquery-ui-1.8.17.custom.css";
 	</style>
 	{{>scripts}}
+
+<script type="text/javascript" src="{{prefix}}/javascripts/date.js"></script>
+<script type="text/javascript" src="{{prefix}}/javascripts/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="{{prefix}}/javascripts/jquery-ui-1.8.17.custom.min.js"></script>
+<script type="text/javascript" src="{{prefix}}/javascripts/jquery.skiGrid.js"></script>
+<script type="text/javascript" src="{{prefix}}/javascripts/jquery.ski.iframeContainer.js"></script>
+<script type="text/javascript" src="{{prefix}}/javascripts/jsonrpcjs-0.1.7.min.js"></script>
+
 </head>
 <body>
 	<div id="content">
+		{{#header}}
 		<div id="header">
 			<a href='/' id="logo"></a>
 			<div class="tittle">
 				<h2>{{tittle}}</h2>
+				<br />
+				{{#loginForm}}
+				<form id='login' method='post' action='/login'>
+					<input type='hidden' name='success' value='{{prefix}}'/>
+					login:<input type='text' name='name'/>
+					password:<input type='password' name='password'/>
+					<input type='submit' value='login'>
+				</form>
+				{{/loginForm}}
+				{{^loginForm}}
 				<a href="/logout">logout</a>
+				{{/loginForm}}
 			</div>
 		</div>
+		{{/header}}
 		<div id="workspace"/>
 			<content/>
 		</div>
@@ -24,5 +48,6 @@
 	<div id="footer">
 		<h2>Copyright by PushOk Software 2011-2012</h2>
 	</div>
+
 </body>
 </html>

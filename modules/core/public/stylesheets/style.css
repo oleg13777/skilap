@@ -102,6 +102,14 @@ html, body {height: 100%;}
 	border-top: solid;
 	line-height: 80px;
 }
+
+.dialog table {
+	width: 100%
+}
+
+.dialog td {
+	border: none;
+}
 /********************/
 
 .home.title{

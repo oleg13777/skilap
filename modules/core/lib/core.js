@@ -164,6 +164,16 @@ function Skilap() {
 							res.redirect(req.body.success);
 					});
 				});
+
+				app.get("/logout", function (req, res, next){
+					res.clearCookie("skilapid");
+					res.clearCookie("sguard");
+					res.clearCookie("connect.sid");
+					modules['core'].api.logOut(req.session.apiToken, function() { 
+						res.redirect("/core");
+					});
+				});
+				
 				function handleJsonRpc(jsonrpc, req, res, next) {
 					var id = null; var out = false;
 					try {
@@ -238,7 +248,7 @@ function Skilap() {
 			function end(err) {
 				console.timeEnd("startApp");
 				if (err) cb(err);
-				require("../pages/home")(self,webapp,modules['core'].api,"/core");
+				require("../pages/user")(self,webapp,modules['core'].api,"/core");
 				require("../pages/users")(self,webapp,modules['core'].api,"/core");
 				require("../pages/index")(self,webapp,modules['core'].api,"/core");
 

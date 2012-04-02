@@ -6,23 +6,16 @@ module.exports = function (ctx, app, api, prefix) {
 	app.use(skconnect.vstatic(__dirname + '/../public',{vpath:"/core"}));
 
 	app.get(prefix, function (req, res, next) {
-		res.redirect(prefix+"/home");
+		res.redirect(prefix+"/user");
 	})
 
 	app.get("/", function(req, res, next) {
 		async.waterfall([
 			async.apply(ctx.getModulesInfo),
 			function render (modules) {
-				res.render(__dirname+"/../views/index", {prefix:prefix, modules: modules, tittle:"Welcome to SkiLap!"});
+				res.render(__dirname+"/../views/index", {prefix:prefix, modules: modules});
 			}],
 			next
 		);
-	});
-
-	app.get("/logout", function (req, res, next){
-		res.clearCookie("skilapid");
-		res.clearCookie("sguard");
-		res.clearCookie("connect.sid");
-		api.logOut(req.session.apiToken, function() { res.redirect(prefix)});
 	});
 }
