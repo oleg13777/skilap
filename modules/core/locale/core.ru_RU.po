@@ -2,24 +2,160 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-13 10:49-0700\n"
+"POT-Creation-Date: 2012-04-03 19:36+0400\n"
 "PO-Revision-Date: \n"
-"Last-Translator: Sergey Korotkov <sergey@kleintech.com>\n"
+"Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../modules/core/lib/coreapi.js:91
-#: ../modules/core/lib/viewStrings.js:2
+#: ../modules/core/lib/coreapi.js:125
+#: ../modules/core/lib/viewStrings.js:12
 msgid "Access denied"
 msgstr "Доступ запрещен"
 
-#: ../modules/core/lib/coreapi.js:171
+#: ../modules/core/lib/coreapi.js:255
 msgid "Log-in failed"
 msgstr "Нельзя войти"
 
+#: ../modules/core/lib/coreapi.js:280
+msgid "View personal data"
+msgstr "Видеть свой профиль"
+
+#: ../modules/core/lib/coreapi.js:281
+msgid "Edit personal data"
+msgstr "Редактировать свой профиль"
+
+#: ../modules/core/lib/coreapi.js:282
+msgid "View system users"
+msgstr "Видеть системных пользователей"
+
+#: ../modules/core/lib/coreapi.js:283
+msgid "Edit system users"
+msgstr "Редактировать системных пользователей"
+
+#: ../modules/core/lib/coreapi.js:289
+msgid "Core module"
+msgstr "Базовый модуль"
+
+#: ../modules/core/lib/coreapi.js:290
+msgid "Primary system module. Provides system with common functionality and allows to administer it"
+msgstr "Главный системный модуль. Обеспечивает базовую функциональность системы и ее администрирование."
+
 #: ../modules/core/lib/viewStrings.js:1
+#: ../modules/core/lib/viewStrings.js:14
+msgid "Please login"
+msgstr "Пожалуйста укажите логин"
+
+#: ../modules/core/lib/viewStrings.js:2
+#: ../modules/core/lib/viewStrings.js:4
+#: ../modules/core/lib/viewStrings.js:7
+#: ../modules/core/lib/viewStrings.js:15
+#: ../modules/core/lib/viewStrings.js:17
+#: ../modules/core/lib/viewStrings.js:22
+#: ../modules/core/lib/viewStrings.js:30
+msgid "Login"
+msgstr "Логин"
+
+#: ../modules/core/lib/viewStrings.js:3
+#: ../modules/core/lib/viewStrings.js:16
+msgid "Password"
+msgstr "Пароль"
+
+#: ../modules/core/lib/viewStrings.js:5
+msgid "Hi Stranger, this is protected area."
+msgstr "Привет странник, этот частный сайт."
+
+#: ../modules/core/lib/viewStrings.js:6
+msgid "Please contact site owner for account if you need it."
+msgstr "Пожалуйста свяжитесь с владельцем сайта чтобы получить доступ если нужно."
+
+#: ../modules/core/lib/viewStrings.js:8
+msgid "if you have it already"
+msgstr "если вы уже имеете это"
+
+#: ../modules/core/lib/viewStrings.js:9
+msgid "Hi"
+msgstr "Привет"
+
+#: ../modules/core/lib/viewStrings.js:10
+msgid "Logout"
+msgstr "Выйти"
+
+#: ../modules/core/lib/viewStrings.js:11
+msgid "Copyright by PushOk Software"
+msgstr "Авторские права ООО \"Пушок Сотфваре\""
+
+#: ../modules/core/lib/viewStrings.js:13
+msgid "You do not have permission."
+msgstr "У вас недостаточно прав."
+
+#: ../modules/core/lib/viewStrings.js:18
+msgid "Your prefferences"
+msgstr "Ваши настройки"
+
+#: ../modules/core/lib/viewStrings.js:19
+#: ../modules/core/lib/viewStrings.js:26
+msgid "edit"
+msgstr "изменить"
+
+#: ../modules/core/lib/viewStrings.js:20
+#: ../modules/core/lib/viewStrings.js:28
+msgid "First name"
+msgstr "Имя"
+
+#: ../modules/core/lib/viewStrings.js:21
+#: ../modules/core/lib/viewStrings.js:29
+msgid "Last name"
+msgstr "Фамилия"
+
+#: ../modules/core/lib/viewStrings.js:23
+#: ../modules/core/lib/viewStrings.js:35
+msgid "Gui language"
+msgstr "Язык интерфейса"
+
+#: ../modules/core/lib/viewStrings.js:24
+#: ../modules/core/lib/viewStrings.js:36
+msgid "Timezone"
+msgstr "Времменая зона"
+
+#: ../modules/core/lib/viewStrings.js:25
+msgid "Your permissions"
+msgstr "Ваши права"
+
+#: ../modules/core/lib/viewStrings.js:27
+msgid "Account prefferences"
+msgstr "Настройки профиля"
+
+#: ../modules/core/lib/viewStrings.js:31
+msgid "Change password"
+msgstr "Сменить пароль"
+
+#: ../modules/core/lib/viewStrings.js:32
+msgid "Old password"
+msgstr "Старый пароль"
+
+#: ../modules/core/lib/viewStrings.js:33
+msgid "New password"
+msgstr "Новый пароль"
+
+#: ../modules/core/lib/viewStrings.js:34
+msgid "Retype new password"
+msgstr "Повтор нового пароля"
+
+#: ../modules/core/lib/viewStrings.js:37
 msgid "Welcome to SkiLap!"
 msgstr "Добро пожаловать в СкайЛап!"
+
+#: ../modules/core/lib/viewStrings.js:38
+msgid "Following modules are available:"
+msgstr "Следующие модули доступны:"
+
+#: ../modules/core/lib/viewStrings.js:39
+msgid "Please note, you might need to log-in to get access to some modules."
+msgstr "Обратите внимание, доступ к некоторым модулям ограничен для ряда пользователей."
+
+#~ msgid "Core"
+#~ msgstr "База"
 

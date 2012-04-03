@@ -20,7 +20,7 @@ var core_clients = null;
 this.getLanguageSync = function(token) {
 	var s = sessions[token];
 	if (s!=null)
-		return 'ru_RU';
+		return s.user.language;
 }
 
 this.loadData = function (cb) {
@@ -165,7 +165,7 @@ this.getUser = function (token, cb) {
 	var session = sessions[token];
 	if (!session) 
 		return cb(new SkilapError('Wrong access token','InvalidToken'));
-	cb(null, session.user);
+	cb(null, _(session.user).clone());
 }
 
 /**
@@ -177,7 +177,18 @@ this.getUser = function (token, cb) {
  * @returns {User} Updated or created user
  */
 this.saveUser = function (token, newUser, cb) {
-	if (newUser.id) {
+	var session = sessions[token];
+	if (!session) 
+		return cb(new SkilapError('Wrong access token','InvalidToken'));
+	
+	if (session.user.type=='guest') {
+		// special case for guest user, changes are temporary
+		// allow update only certain fields
+		var user = session.user;
+		if (newUser.language) user.language = newUser.language;				
+		if (newUser.timezone) user.timezone = newUser.timezone;				
+		cb();
+	} else if (newUser.id) {
 		// update 
 		async.waterfall([
 			async.apply(self.checkPerm,token,['core.user.edit']),
@@ -273,7 +284,29 @@ module.exports.init = function (ctx, cb) {
 	var api = new CoreApi(ctx);
 	api.loadData(function (err) {
 		if (err) return cb(err);
-		cb(null, {api:api,localePath:__dirname+'/../locale'});
+		var m = {api:api,localePath:__dirname+'/../locale'};
+		
+		m.getPermissionsList = function (token, cb) {
+			var res = [];
+			res.push({id:'core.me.view', desc:ctx.i18n(token, 'core', 'View personal data')});
+			res.push({id:'core.me.edit', desc:ctx.i18n(token, 'core', 'Edit personal data')});
+			res.push({id:'core.users.view', desc:ctx.i18n(token, 'core', 'View system users')});
+			res.push({id:'cash.users.edit', desc:ctx.i18n(token, 'core', 'Edit system users')});
+			cb(null,res);
+		}
+		
+		m.getModuleInfo = function (token, cb) {
+			var i = {};
+			i.name = ctx.i18n(token, 'core', 'Core module')
+			i.desc = ctx.i18n(token, 'core', 'Primary system module. Provides system with common functionality and allows to administer it')
+			i.url = '/core/';
+			i.id = 'core';
+			cb(null,i);
+		}		
+		
+		cb(null, m);
 	})
 }
+
+
 

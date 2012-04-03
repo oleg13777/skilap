@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-06 17:52+0400\n"
+"POT-Creation-Date: 2012-04-03 19:36+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,183 +16,203 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../modules/cash/lib/cashapi.js:907
+#: ../modules/cash/lib/cashapi.js:746
 msgid "Cash"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:907
+#: ../modules/cash/lib/cashapi.js:746
 msgid "My wallet"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:908
+#: ../modules/cash/lib/cashapi.js:747
 msgid "Bank"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:909
+#: ../modules/cash/lib/cashapi.js:747
+msgid "My account"
+msgstr ""
+
+#: ../modules/cash/lib/cashapi.js:748
 msgid "Credit Cards"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:909
+#: ../modules/cash/lib/cashapi.js:748
 msgid "My card"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:910
+#: ../modules/cash/lib/cashapi.js:749
 msgid "Income"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:910
+#: ../modules/cash/lib/cashapi.js:749
 msgid "Salary"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:910
+#: ../modules/cash/lib/cashapi.js:749
 msgid "Interest"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:910
+#: ../modules/cash/lib/cashapi.js:749
 msgid "Assets sale"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:910 ../modules/cash/lib/cashapi.js:911
-#: ../modules/cash/lib/cashapi.js:912 ../modules/cash/lib/cashapi.js:913
-#: ../modules/cash/lib/cashapi.js:914 ../modules/cash/lib/cashapi.js:915
-#: ../modules/cash/lib/cashapi.js:916 ../modules/cash/lib/cashapi.js:917
+#: ../modules/cash/lib/cashapi.js:749 ../modules/cash/lib/cashapi.js:750
+#: ../modules/cash/lib/cashapi.js:751 ../modules/cash/lib/cashapi.js:752
+#: ../modules/cash/lib/cashapi.js:753 ../modules/cash/lib/cashapi.js:754
+#: ../modules/cash/lib/cashapi.js:755 ../modules/cash/lib/cashapi.js:756
 msgid "Other"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:911
+#: ../modules/cash/lib/cashapi.js:750
 msgid "Car"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:911
+#: ../modules/cash/lib/cashapi.js:750
 msgid "Fuel"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:911 ../modules/cash/lib/cashapi.js:915
+#: ../modules/cash/lib/cashapi.js:750 ../modules/cash/lib/cashapi.js:754
 msgid "Insurance"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:911
+#: ../modules/cash/lib/cashapi.js:750
 msgid "Service"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:911
+#: ../modules/cash/lib/cashapi.js:750
 msgid "Repair"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:912
+#: ../modules/cash/lib/cashapi.js:751
 msgid "Life"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:912
+#: ../modules/cash/lib/cashapi.js:751
 msgid "Food"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:912
+#: ../modules/cash/lib/cashapi.js:751
 msgid "Drugs"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:912 ../modules/cash/lib/cashapi.js:915
+#: ../modules/cash/lib/cashapi.js:751 ../modules/cash/lib/cashapi.js:754
 msgid "Transport"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:913
+#: ../modules/cash/lib/cashapi.js:752
 msgid "Utilities"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:913
+#: ../modules/cash/lib/cashapi.js:752
 msgid "Mobile links"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:913
+#: ../modules/cash/lib/cashapi.js:752
 msgid "Fixed links"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:913
+#: ../modules/cash/lib/cashapi.js:752
 msgid "House"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:913
+#: ../modules/cash/lib/cashapi.js:752
 msgid "Education"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:914
+#: ../modules/cash/lib/cashapi.js:753
 msgid "Hobby"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:914
+#: ../modules/cash/lib/cashapi.js:753
 msgid "Sport"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:914
+#: ../modules/cash/lib/cashapi.js:753
 msgid "Garden"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:914
+#: ../modules/cash/lib/cashapi.js:753
 msgid "Charuty"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:915
+#: ../modules/cash/lib/cashapi.js:754
 msgid "Real assets"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:915
+#: ../modules/cash/lib/cashapi.js:754
 msgid "Furniture"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:915
+#: ../modules/cash/lib/cashapi.js:754
 msgid "Estate"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:915
+#: ../modules/cash/lib/cashapi.js:754
 msgid "Goods"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:916
+#: ../modules/cash/lib/cashapi.js:755
 msgid "Recreation"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:916
+#: ../modules/cash/lib/cashapi.js:755
 msgid "Travel"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:916
+#: ../modules/cash/lib/cashapi.js:755
 msgid "Pleasures"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:916
+#: ../modules/cash/lib/cashapi.js:755
 msgid "Food & drinks"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:916
+#: ../modules/cash/lib/cashapi.js:755
 msgid "Events"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:917
+#: ../modules/cash/lib/cashapi.js:756
 msgid "Accidental"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:917
+#: ../modules/cash/lib/cashapi.js:756
 msgid "Stolen"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:917
+#: ../modules/cash/lib/cashapi.js:756
 msgid "Gifts"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:917
+#: ../modules/cash/lib/cashapi.js:756
 msgid "Bad debts"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:918
+#: ../modules/cash/lib/cashapi.js:757
 msgid "Debts"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:918
+#: ../modules/cash/lib/cashapi.js:757
 msgid "Friends"
 msgstr ""
 
-#: ../modules/cash/lib/cashapi.js:908
-msgid "My account"
+#: ../modules/cash/lib/webapp.js:236
+msgid "View cash data"
+msgstr ""
+
+#: ../modules/cash/lib/webapp.js:237
+msgid "Append new data"
+msgstr ""
+
+#: ../modules/cash/lib/webapp.js:238
+msgid "Edit cash data"
+msgstr ""
+
+#: ../modules/cash/lib/webapp.js:244
+msgid "Cash module"
+msgstr ""
+
+#: ../modules/cash/lib/webapp.js:245
+msgid "Personal and familty finances. Inspired by gnucash."
 msgstr ""
 
 #: ../modules/cash/lib/viewStrings.js:1

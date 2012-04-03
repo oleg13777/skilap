@@ -1,10 +1,12 @@
-{{#i18n_domain}}core{{/i18n_domain}}
-<h1>{{#i18n}}Access denied{{/i18n}}!</h1>
-{{#i18n}}You do not have permission.{{/i18n}}
+<br/><br/>
 <h2>{{#i18n}}Please login{{/i18n}}</h2>
 <form id='login' method='post' action='/login'>
 <input type='hidden' name='success' value='{{success}}'/>
+<br/>
 {{#i18n}}Login{{/i18n}}:<input type='text' name='name'/><br>
+<br/>
 {{#i18n}}Password{{/i18n}}:<input type='password' name='password'/><br>
+<br/>
 <input type='submit' value='{{#i18n}}Login{{/i18n}}'>
 </form>
+<br/><br/>

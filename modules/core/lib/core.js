@@ -47,20 +47,16 @@ function Skilap() {
 	var sessions = {};
 	var i18l = {};
 	var _adb = null;
-	var tmodules = [{
-		name:"core",require:"./coreapi",
-		description:"Primary system module. Provides system with common functionality and allows to administer it."
-		},{
-		name:"cash",require:"skilap-cash",
-		description:"Cash. Personal and familty finances. Inspired by gnucash."
-		}];
+	var tmodules = [
+		{name:"core",require:"./coreapi"},
+		{name:"cash",require:"skilap-cash"}
+		];
 	var self = this;
 	var modules = {};
 	var webapp = null;
 	var core_users = null;
 	var core_clients = null;
 	var storepath;
-	var dummyGT = new Gettext();
 	this.webapp;
 
 	this.startApp = function (storepath_, cb) {
@@ -107,6 +103,26 @@ function Skilap() {
 							}
 						)
 					});
+					// common data grabber
+					app.use(function (req, res, next) {
+						modules['core'].api.getUser(req.session.apiToken, function (err, user) {
+							if (err) next(err);
+							if (!user.language) {
+								// guess language 
+								var al = req.headers['accept-language'];
+								var re = al.match(/\w\w-\w\w/i);
+								var guesslang = null;
+								if (re.length>0) {
+									user.language = re[0][0]+re[0][1]+'_'+re[0][3].toUpperCase()+re[0][4].toUpperCase();
+									modules['core'].api.saveUser(req.session.apiToken,user, function () {});
+								}
+							}
+							if (user.password) delete user.password;
+							user.loggedin = user.type!='guest';
+							req.skilap = {user:user};
+							next();
+						});
+					});					
 					app.use(app.router);
 					app.use(function (err,req,res,next) {
 						if (err.skilap) {
@@ -116,7 +132,7 @@ function Skilap() {
 									res.redirect('https://'+req.headers.host+req.url);
 								} else { 
 									console.log(err);
-									res.render(__dirname+'/../views/accessDenied', {prefix:'',success:req.url});
+									res.render(__dirname+'/../views/accessDenied', {layout:false, prefix:'',success:req.url});
 								}
 							} else next(err);
 						} else
@@ -127,9 +143,26 @@ function Skilap() {
 							var domain, re = req.url.match(/\/(\w+)[/?#]?/i);
 							domain = re?re[1]:"core";
 							return function () { return function (text, render) {
-								return self.i18n(req.session.apiToken, domain, text);
+								return self.i18n(req.session.apiToken, req.skilap.ldomain || domain, text);
 							}};
-						}});
+						},
+						i18n_domain: function(req, res){
+							return function () { return function (text, render) {
+								req.skilap.ldomain = text;
+								return '';
+							}};
+						},						
+						apiToken: function (req,res) {
+							return req.session.apiToken;
+						},
+						user: function (req, res) {
+							return req.skilap.user;
+						},
+						url: function (req, res) {
+							return req.url;
+						}
+
+					})
 				});
 
 				app.configure('development', function(){
@@ -153,13 +186,24 @@ function Skilap() {
 						cb1();
 					}
 				);
+				
+				app.get("/login", function (req, res, next) {
+					if (req.cookies['sguard']==null) {
+						console.log('Log-in should be secure');
+						res.redirect('https://'+req.headers.host+req.url);
+					} else { 
+						res.render(__dirname+'/../views/login', {prefix:'/core',success:req.params.success || '/'});
+					}
+				})
 
 				app.post("/login", function (req,res,next) {
 					async.series([
 						async.apply(modules['core'].api.loginByPass,req.session.apiToken, req.body.name, req.body.password)
 					], function (err, user) {
-						if (err)
+						if (err) {
+							console.log(err);
 							res.redirect(req.body.success);
+						}
 						else
 							res.redirect(req.body.success);
 					});
@@ -170,7 +214,8 @@ function Skilap() {
 					res.clearCookie("sguard");
 					res.clearCookie("connect.sid");
 					modules['core'].api.logOut(req.session.apiToken, function() { 
-						res.redirect("/core");
+						var r = req.param.success || '/';
+						res.redirect(r);
 					});
 				});
 				
@@ -278,12 +323,18 @@ function Skilap() {
 		cb(null, modules[name]);
 	}
 
-	this.getModulesInfo = function (cb) {
+	this.getModulesInfo = function (langtoken, cb) {
 		var ret = [];
-		_.forEach(tmodules, function (minfo) {
-			ret.push({name:minfo.name, description:minfo.description, url:"/"+minfo.name+"/"});
-		});
-		cb(null, ret);
+		async.forEachSeries(_(modules).values(), function (module,cb) {
+			module.getModuleInfo(langtoken, function (err, mi) {
+				module.getPermissionsList(langtoken, function (err, perm) {
+					ret.push({id:mi.id, name:mi.name, desc:mi.desc, url:mi.url, permissions:perm});
+					cb();
+				})
+			})
+		}, function () {
+			cb(null, ret);
+		})
 	}
 
 	this.getWebApp = function (cb) {
@@ -319,12 +370,13 @@ function Skilap() {
 				gt = i18l[lc];
 		}
 		// 3nd guess, system default
-		if (gt==null)
-			gt = i18l['ru_RU']; // TODO: we need to have system default language
+//		if (gt==null)
+//			gt = i18l['ru_RU']; // TODO: we need to have system default language
 		// final guess, fallback to empty one (dummy)
-		if (gt==null)
-			gt = dummyGT;
-		return gt.dgettext(domain, text1);
+		if (gt!=null)
+			return gt.dgettext(domain, text1);
+		else 
+			return text1;
 	}
 	
 	this.i18n_cytext = function(langtoken,curId,value) {
