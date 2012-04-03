@@ -14,6 +14,7 @@ $(document).ready(function() {
 		position: ["center","center"],
 		buttons: {
 			"apply": function() {
+				var self = $(this);
 				var updUser = {
 					id: $("#uid").val(),
 					firstName: $("#firstName").val(),
@@ -22,24 +23,23 @@ $(document).ready(function() {
 					timeZone: $("#timezone option:selected").val(),
 					language: $("#language option:selected").val()
 				};
-				if ($("#newPass").val() == $("#reNewPass").val()) {
-					if ($("#changePass").is(":checked")) {
-						updUser.oldPass = $("#oldPass").val();
-						updUser.newPass = $("#newPass").val();
-					}
-					var rpc = new jsonrpc.JsonRpc('/jsonrpc');
-					rpc.call('core.saveUser', $("#token").val(), updUser, {
-						success: function (data) {
-							location.reload(true);
-						},
-						failure: function (reason) {
-							location.reload(true);
-						}
-					});
-					$(this).dialog("close");
-				} else {
-					alert("new passwords don't match");
+				if ($("#changePass").is(":checked")) {
+					updUser.oldPass = $("#oldPass").val();
+					updUser.newPass = $("#newPass").val();
+					updUser.reNewPass = $("#reNewPass").val();
 				}
+				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
+				rpc.call('core.saveUser', $("#token").val(), updUser, {
+					success: function (data) {
+						$("#caption").text("");
+						self.dialog("close");
+						location.reload(true);
+					},
+					failure: function (reason) {
+						console.log(reason);
+						$("#caption").text(reason);
+					}
+				});
 			},
 			"close": function() {
 				$(this).dialog("close");
@@ -91,6 +91,7 @@ $(document).ready(function() {
 	<input id="token" type="hidden" value="{{token}}">
 	<input id="uid" type="hidden" value="{{id}}">
 	<table>
+		<caption id="caption"></caption> 
 		<tr>
 			<td>First name</td><td><input id="firstName" type="text" value="{{firstName}}"></td>
 		</tr>

@@ -191,8 +191,14 @@ this.saveUser = function (token, newUser, cb) {
 				if (newUser.firstName) updUser.firstName=newUser.firstName;
 				if (newUser.lastName) updUser.lastName=newUser.lastName;
 				if (newUser.login) updUser.login=newUser.login;
-				if (newUser.newPass && newUser.oldPass && (updUser.password == newUser.oldPass))
-					updUser.password = newUser.newPass;
+				if (newUser.oldPass && newUser.newPass && newUser.reNewPass){
+					if (updUser.password != newUser.oldPass)
+						return cb(new SkilapError("Wrong old password"))
+					else if (newUser.newPass != newUser.reNewPass)
+						return cb(new SkilapError("New passwords do not match"));
+					else 
+						updUser.password = newUser.newPass;
+				}
 				if (newUser.timeZone) updUser.timeZone = newUser.timeZone;
 				if (newUser.language) updUser.language = newUser.language;
 				core_users.put(updUser.id, updUser, cb1);
