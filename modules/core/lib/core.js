@@ -210,7 +210,6 @@ function Skilap() {
 				app.post("/jsonrpc", function (req,res,next) {
 					handleJsonRpc(req.body, req, res, next);
 				})
-
 			},
 			function initModules(cb1) {
 				async.forEachSeries(tmodules, function (minfo, cb2) {

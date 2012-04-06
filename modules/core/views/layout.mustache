@@ -20,6 +20,7 @@
 
 </head>
 <body>
+	{{^mainLayoutHide}}
 	<div id="content">
 		{{#header}}
 		<div id="header">
@@ -48,6 +49,12 @@
 	<div id="footer">
 		<h2>Copyright by PushOk Software 2011-2012</h2>
 	</div>
+	{{/mainLayoutHide}}
+	{{#mainLayoutHide}}
+		<div id="workspace"/>
+			<content/>
+		</div>
+	{{/mainLayoutHide}}
 
 </body>
 </html>

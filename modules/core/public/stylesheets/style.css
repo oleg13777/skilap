@@ -110,7 +110,36 @@ html, body {height: 100%;}
 .dialog td {
 	border: none;
 }
+
+.iframeContainer{
+	position:absolute;
+	top:0;
+	left:0;
+}
+
+.iframeContainer iframe{
+	border:1px solid transparent;
+	overflow:hidden;
+}
 /********************/
+
+#users td {
+	border: solid;
+}
+
+#users th {
+	border: solid;
+}
+
+#users .left {
+	text-align: center;
+	width: 80px;
+}
+
+#users .right {
+	text-align: center;
+	width: 50px;
+}
 
 .home.title{
 	text-align: center;

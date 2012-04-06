@@ -1,18 +1,62 @@
-<h2>System users</h2>
+<script type="text/javascript">
+$(document).ready(function() {
+	$("#newUserDialog").dialog({
+		position: ["center","center"],
+		buttons: {
+			"apply": function() {
+				var self = $(this);
+				var updUser = {
+					id: $("#uid").val(),
+					firstName: $("#firstName").val(),
+					lastName: $("#lastName").val(),
+					login: $("#login").val(),
+					timeZone: $("#timezone option:selected").val(),
+					language: $("#language option:selected").val()
+				};
+				if ($("#changePass").is(":checked")) {
+					updUser.oldPass = $("#oldPass").val();
+					updUser.newPass = $("#newPass").val();
+					updUser.reNewPass = $("#reNewPass").val();
+				}
+				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
+				rpc.call('core.saveUser', $("#token").val(), updUser, {
+					success: function (data) {
+						$("#caption").text("");
+						self.dialog("close");
+						location.reload(true);
+					},
+					failure: function (reason) {
+						console.log(reason);
+						$("#caption").text(reason);
+					}
+				});
+			},
+			"close": function() {
+				$(this).dialog("close");
+			}
+		},
+		autoOpen: false,
+		resizable: false,
+		height: 200,
+		width: 300,
+		modal: true,
+		draggable: false
+	});
+	$("#addNewUser").click(function(){
+		$("#newUserDialog").dialog("open");
+	});
+});
+</script>
+
+<input id="addNewUser" type="submit" value="Add new user">
+<br />
+<br />
 <table id="users">
-<thead><th>#</th><th>Name</th><thead>
+<thead><th class="left">#</th><th>First name</th><th>Last name</th><th>Log-in</th><th class="right"></th><thead>
 <tbody>
 {{#users}}
-	<TR><TD>{{id}}</TD><TD>{{screenName}}</TD></TR>
+	<tr><td class="left">{{id}}</td><td>{{firstName}}</td><td>{{lastName}}</td><td>{{login}}</td><td class="right">[[]]</td></tr>
 {{/users}}
 <tbody>
 </table>
-<br>
-<h2>Create new</h2>
-<form id='newuser' method='post' action='{{prefix}}/users/new'>
-<input type='hidden' name='success' value='{{prefix}}/users/new'/>
-name:<input type='text' name='name'/><br>
-login:<input type='text' name='login'/><br>
-password:<input type='password' name='password'/><br>
-<input type='submit' value='login'>
-</form>
+
