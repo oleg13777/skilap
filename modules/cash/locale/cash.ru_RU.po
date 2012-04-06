@@ -2,198 +2,218 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-06 17:52+0400\n"
+"POT-Creation-Date: 2012-04-03 17:14+0400\n"
 "PO-Revision-Date: \n"
-"Last-Translator: \n"
+"Last-Translator: Sergey Korotkov <sergey@pushok.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../modules/cash/lib/cashapi.js:907
+#: ../modules/cash/lib/cashapi.js:746
 msgid "Cash"
 msgstr "Наличность"
 
-#: ../modules/cash/lib/cashapi.js:907
+#: ../modules/cash/lib/cashapi.js:746
 msgid "My wallet"
 msgstr "Мой кошелек"
 
-#: ../modules/cash/lib/cashapi.js:908
+#: ../modules/cash/lib/cashapi.js:747
 msgid "Bank"
 msgstr "Банк"
 
-#: ../modules/cash/lib/cashapi.js:909
+#: ../modules/cash/lib/cashapi.js:747
+msgid "My account"
+msgstr "Мой счет"
+
+#: ../modules/cash/lib/cashapi.js:748
 msgid "Credit Cards"
 msgstr "Кредитные карты"
 
-#: ../modules/cash/lib/cashapi.js:909
+#: ../modules/cash/lib/cashapi.js:748
 msgid "My card"
 msgstr "Моя карта"
 
-#: ../modules/cash/lib/cashapi.js:910
+#: ../modules/cash/lib/cashapi.js:749
 msgid "Income"
 msgstr "Доход"
 
-#: ../modules/cash/lib/cashapi.js:910
+#: ../modules/cash/lib/cashapi.js:749
 msgid "Salary"
 msgstr "Зарплата"
 
-#: ../modules/cash/lib/cashapi.js:910
+#: ../modules/cash/lib/cashapi.js:749
 msgid "Interest"
 msgstr "Интерес"
 
-#: ../modules/cash/lib/cashapi.js:910
+#: ../modules/cash/lib/cashapi.js:749
 msgid "Assets sale"
 msgstr "Продажа вещей"
 
-#: ../modules/cash/lib/cashapi.js:910
-#: ../modules/cash/lib/cashapi.js:911
-#: ../modules/cash/lib/cashapi.js:912
-#: ../modules/cash/lib/cashapi.js:913
-#: ../modules/cash/lib/cashapi.js:914
-#: ../modules/cash/lib/cashapi.js:915
-#: ../modules/cash/lib/cashapi.js:916
-#: ../modules/cash/lib/cashapi.js:917
+#: ../modules/cash/lib/cashapi.js:749
+#: ../modules/cash/lib/cashapi.js:750
+#: ../modules/cash/lib/cashapi.js:751
+#: ../modules/cash/lib/cashapi.js:752
+#: ../modules/cash/lib/cashapi.js:753
+#: ../modules/cash/lib/cashapi.js:754
+#: ../modules/cash/lib/cashapi.js:755
+#: ../modules/cash/lib/cashapi.js:756
 msgid "Other"
 msgstr "Другое"
 
-#: ../modules/cash/lib/cashapi.js:911
+#: ../modules/cash/lib/cashapi.js:750
 msgid "Car"
 msgstr "Авто"
 
-#: ../modules/cash/lib/cashapi.js:911
+#: ../modules/cash/lib/cashapi.js:750
 msgid "Fuel"
 msgstr "Топливо"
 
-#: ../modules/cash/lib/cashapi.js:911
-#: ../modules/cash/lib/cashapi.js:915
+#: ../modules/cash/lib/cashapi.js:750
+#: ../modules/cash/lib/cashapi.js:754
 msgid "Insurance"
 msgstr "Страховка"
 
-#: ../modules/cash/lib/cashapi.js:911
+#: ../modules/cash/lib/cashapi.js:750
 msgid "Service"
 msgstr "Обслуживание"
 
-#: ../modules/cash/lib/cashapi.js:911
+#: ../modules/cash/lib/cashapi.js:750
 msgid "Repair"
 msgstr "Ремонт"
 
-#: ../modules/cash/lib/cashapi.js:912
+#: ../modules/cash/lib/cashapi.js:751
 msgid "Life"
 msgstr "Жизнь"
 
-#: ../modules/cash/lib/cashapi.js:912
+#: ../modules/cash/lib/cashapi.js:751
 msgid "Food"
 msgstr "Пища"
 
-#: ../modules/cash/lib/cashapi.js:912
+#: ../modules/cash/lib/cashapi.js:751
 msgid "Drugs"
 msgstr "Лекарства"
 
-#: ../modules/cash/lib/cashapi.js:912
-#: ../modules/cash/lib/cashapi.js:915
+#: ../modules/cash/lib/cashapi.js:751
+#: ../modules/cash/lib/cashapi.js:754
 msgid "Transport"
 msgstr "Транспорт"
 
-#: ../modules/cash/lib/cashapi.js:913
+#: ../modules/cash/lib/cashapi.js:752
 msgid "Utilities"
 msgstr "Регулярные услуги"
 
-#: ../modules/cash/lib/cashapi.js:913
+#: ../modules/cash/lib/cashapi.js:752
 msgid "Mobile links"
 msgstr "Мобильная связь"
 
-#: ../modules/cash/lib/cashapi.js:913
+#: ../modules/cash/lib/cashapi.js:752
 msgid "Fixed links"
 msgstr "Стационарная связь"
 
-#: ../modules/cash/lib/cashapi.js:913
+#: ../modules/cash/lib/cashapi.js:752
 msgid "House"
 msgstr "Жилье"
 
-#: ../modules/cash/lib/cashapi.js:913
+#: ../modules/cash/lib/cashapi.js:752
 msgid "Education"
 msgstr "Образование"
 
-#: ../modules/cash/lib/cashapi.js:914
+#: ../modules/cash/lib/cashapi.js:753
 msgid "Hobby"
 msgstr "Хобби"
 
-#: ../modules/cash/lib/cashapi.js:914
+#: ../modules/cash/lib/cashapi.js:753
 msgid "Sport"
 msgstr "Спорт"
 
-#: ../modules/cash/lib/cashapi.js:914
+#: ../modules/cash/lib/cashapi.js:753
 msgid "Garden"
 msgstr "Сад"
 
-#: ../modules/cash/lib/cashapi.js:914
+#: ../modules/cash/lib/cashapi.js:753
 msgid "Charuty"
 msgstr "Благотворительность"
 
-#: ../modules/cash/lib/cashapi.js:915
+#: ../modules/cash/lib/cashapi.js:754
 msgid "Real assets"
 msgstr "Реальные вещи"
 
-#: ../modules/cash/lib/cashapi.js:915
+#: ../modules/cash/lib/cashapi.js:754
 msgid "Furniture"
 msgstr "Мебель"
 
-#: ../modules/cash/lib/cashapi.js:915
+#: ../modules/cash/lib/cashapi.js:754
 msgid "Estate"
 msgstr "Недвижимость"
 
-#: ../modules/cash/lib/cashapi.js:915
+#: ../modules/cash/lib/cashapi.js:754
 msgid "Goods"
 msgstr "Товары"
 
-#: ../modules/cash/lib/cashapi.js:916
+#: ../modules/cash/lib/cashapi.js:755
 msgid "Recreation"
 msgstr "Отдых"
 
-#: ../modules/cash/lib/cashapi.js:916
+#: ../modules/cash/lib/cashapi.js:755
 msgid "Travel"
 msgstr "Путешествия"
 
-#: ../modules/cash/lib/cashapi.js:916
+#: ../modules/cash/lib/cashapi.js:755
 msgid "Pleasures"
 msgstr "Удовольствия"
 
-#: ../modules/cash/lib/cashapi.js:916
+#: ../modules/cash/lib/cashapi.js:755
 msgid "Food & drinks"
 msgstr "Еда и выпивка"
 
-#: ../modules/cash/lib/cashapi.js:916
+#: ../modules/cash/lib/cashapi.js:755
 msgid "Events"
 msgstr "События"
 
-#: ../modules/cash/lib/cashapi.js:917
+#: ../modules/cash/lib/cashapi.js:756
 msgid "Accidental"
 msgstr "Вне плана"
 
-#: ../modules/cash/lib/cashapi.js:917
+#: ../modules/cash/lib/cashapi.js:756
 msgid "Stolen"
 msgstr "Украли"
 
-#: ../modules/cash/lib/cashapi.js:917
+#: ../modules/cash/lib/cashapi.js:756
 msgid "Gifts"
 msgstr "Подарки"
 
-#: ../modules/cash/lib/cashapi.js:917
+#: ../modules/cash/lib/cashapi.js:756
 msgid "Bad debts"
 msgstr "Плохие долги"
 
-#: ../modules/cash/lib/cashapi.js:918
+#: ../modules/cash/lib/cashapi.js:757
 msgid "Debts"
 msgstr "Долги"
 
-#: ../modules/cash/lib/cashapi.js:918
+#: ../modules/cash/lib/cashapi.js:757
 msgid "Friends"
 msgstr "Друзья"
 
-#: ../modules/cash/lib/cashapi.js:908
-msgid "My account"
-msgstr "Мой счет"
+#: ../modules/cash/lib/webapp.js:236
+msgid "View cash data"
+msgstr "Просмотр данных"
+
+#: ../modules/cash/lib/webapp.js:237
+msgid "Append new data"
+msgstr "Добавление данных"
+
+#: ../modules/cash/lib/webapp.js:238
+msgid "Edit cash data"
+msgstr "Редактирование данных"
+
+#: ../modules/cash/lib/webapp.js:244
+msgid "Cash module"
+msgstr "Управление финансами"
+
+#: ../modules/cash/lib/webapp.js:245
+msgid "Personal and familty finances. Inspired by gnucash."
+msgstr "Персональные и семейные финансы. По мотивам GnuCash."
 
 #: ../modules/cash/lib/viewStrings.js:1
 msgid "Skilap"

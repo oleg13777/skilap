@@ -97,7 +97,7 @@ html, body {height: 100%;}
    margin-top: -80px;
 }
 
-#footer h2 {
+#footer .copyright {
 	text-align: center;
 	border-top: solid;
 	line-height: 80px;

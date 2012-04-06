@@ -5,17 +5,6 @@ $(document).ready(function() {
 			$(".pass").show();
 		else
 			$(".pass").hide();
-		{{#user}}
-		var user = {
-			id: {{id}},
-			firstName: "{{firstName}}",
-			lastName: "{{lastName}}",
-			login: "{{login}}",
-			timeZone: {{timeZone}},
-			language: "{{language}}"
-		};
-		{{/user}}
-		$("#ski_editUser").iframeContainer("triggerEvent",{name:'setAccountEditDialogData', data:user});
 		$("#ski_editUser").iframeContainer("open");
 	});
 	$("#ski_editUser").iframeContainer({src:"{{prefix}}/userprefferences", host:"{{host}}"});
@@ -26,32 +15,32 @@ $(document).ready(function() {
 </script>
 
 <div class="user">
-	<h2>Your prefferences</h2><a href="#" id="openEditPref">edit</a>
+	<h2>{{#i18n}}Your prefferences{{/i18n}}</h2><a href="#" id="openEditPref">{{#i18n}}edit{{/i18n}}</a>
 	<hr size="2" noshade />
 	{{#user}}
 	<table>
-		{{^loginForm}}
+		{{#user.loggedin}}		
 		<tr>
-			<td>First name</td><td>{{firstName}}</td>
+			<td>{{#i18n}}First name{{/i18n}}</td><td>{{firstName}}</td>
 		</tr>
 		<tr>
-			<td>Last name</td><td>{{lastName}}</td>
+			<td>{{#i18n}}Last name{{/i18n}}</td><td>{{lastName}}</td>
 		</tr>
 		<tr>
-			<td>Login</td><td>{{login}}</td>
+			<td>{{#i18n}}Login{{/i18n}}</td><td>{{login}}</td>
 		</tr>
-		{{/loginForm}}
+		{{/user.loggedin}}
 		<tr>
-			<td>Gui language</td><td>{{language}}</td>
+			<td>{{#i18n}}Gui language{{/i18n}}</td><td>{{language}}</td>
 		</tr>
 		<tr>
-			<td>Timezone</td><td>{{timeZone}}</td>
+			<td>{{#i18n}}Timezone{{/i18n}}</td><td>{{timeZone}}</td>
 		</tr>
 	</table>
 	{{/user}}
 </div>
 <div class="user">
-	<h2>Your permissions</h2><a href="#">edit</a>
+	<h2>{{#i18n}}Your permissions{{/i18n}}</h2><a href="#">{{#i18n}}edit{{/i18n}}</a>
 	<hr size="2" noshade />
 </div>
 <div id="ski_editUser"></div>

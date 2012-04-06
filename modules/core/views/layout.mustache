@@ -14,7 +14,6 @@
 <script type="text/javascript" src="{{prefix}}/javascripts/date.js"></script>
 <script type="text/javascript" src="{{prefix}}/javascripts/jquery-1.7.1.min.js"></script>
 <script type="text/javascript" src="{{prefix}}/javascripts/jquery-ui-1.8.17.custom.min.js"></script>
-<script type="text/javascript" src="{{prefix}}/javascripts/jquery.skiGrid.js"></script>
 <script type="text/javascript" src="{{prefix}}/javascripts/jquery.ski.iframeContainer.js"></script>
 <script type="text/javascript" src="{{prefix}}/javascripts/jsonrpcjs-0.1.7.min.js"></script>
 
@@ -22,32 +21,26 @@
 <body>
 	{{^mainLayoutHide}}
 	<div id="content">
-		{{#header}}
 		<div id="header">
 			<a href='/' id="logo"></a>
 			<div class="tittle">
-				<h2>{{tittle}}</h2>
-				<br />
-				{{#loginForm}}
-				<form id='login' method='post' action='/login'>
-					<input type='hidden' name='success' value='{{prefix}}'/>
-					login:<input type='text' name='name'/>
-					password:<input type='password' name='password'/>
-					<input type='submit' value='login'>
-				</form>
-				{{/loginForm}}
-				{{^loginForm}}
-				<a href="/logout">logout</a>
-				{{/loginForm}}
+				{{^user.loggedin}}
+				<h2>{{#i18n}}Hi Stranger, this is protected area.{{/i18n}}</h2>
+				<BR>{{#i18n}}Please contact site owner for account if you need it.{{/i18n}}
+				<BR><a href="/login?success={{url}}">{{#i18n}}Login{{/i18n}}</a> {{#i18n}}if you have it already{{/i18n}}.
+				{{/user.loggedin}}
+				{{#user.loggedin}}
+				<h2>{{#i18n}}Hi{{/i18n}} {{user.screenName}}!</h2>
+				<br /><a href="/logout?success={{url}}">{{#i18n}}Logout{{/i18n}}</a>
+				{{/user.loggedin}}
 			</div>
 		</div>
-		{{/header}}
 		<div id="workspace"/>
 			<content/>
 		</div>
 	</div>
 	<div id="footer">
-		<h2>Copyright by PushOk Software 2011-2012</h2>
+		<div class='copyright'>{{#i18n}}Copyright by PushOk Software{{/i18n}} 2011-2012</div>
 	</div>
 	{{/mainLayoutHide}}
 	{{#mainLayoutHide}}

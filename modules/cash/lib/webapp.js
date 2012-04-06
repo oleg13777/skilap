@@ -230,6 +230,24 @@ module.exports.init = function (ctx,cb) {
 			var m = results[1];
 			m.api = results[0];
 			m.localePath = __dirname+'/../locale';
+			
+			m.getPermissionsList = function (token, cb) {
+				var res = [];
+				res.push({id:'cash.view', desc:ctx.i18n(token, 'cash', 'View cash data')});
+				res.push({id:'cash.add', desc:ctx.i18n(token, 'cash', 'Append new data')});
+				res.push({id:'cash.edit', desc:ctx.i18n(token, 'cash', 'Edit cash data')});
+				cb(null,res);
+			}
+			
+			m.getModuleInfo = function (token, cb) {
+				var i = {};
+				i.name = ctx.i18n(token, 'cash', 'Cash module')
+				i.desc = ctx.i18n(token, 'cash', 'Personal and familty finances. Inspired by gnucash.')
+				i.url = "/cash/";
+				i.id = 'cash';
+				cb(null,i);
+			}
+
 			cb(null, m);
 		}
 	)

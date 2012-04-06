@@ -59,55 +59,39 @@ $(document).ready(function() {
 		modal: true,
 		draggable: false
 	});	
-	
-	function displayMessage(event){			
-		if(event.data.name == 'setAccountEditDialogData'){
-			var acc = event.data.data;
-			console.log(acc);
-			$("#uid").val(acc.id);
-			$("#firstName").val(acc.firstName);
-			$("#lastName").val(acc.lastName);
-			$("#login").val(acc.login);
-		}
-	}
-	
-	if (window.addEventListener) {	
-		window.addEventListener("message", displayMessage, false);
-	}
-	else {
-		window.attachEvent("onmessage", displayMessage);
-	}
 });
 </script>
-<div id="editPrefferences" title="Account prefferences" class="dialog" style="width: 600; height: 200px;">
+<div id="editPrefferences" title="{{#i18n}}Account prefferences{{/i18n}}" class="dialog" style="width: 600; height: 200px;">
+	{{#user}}
 	<form>
 	<input id="token" type="hidden" value="{{token}}">
 	<input id="uid" type="hidden" value="{{id}}">
 	<table>
-		<caption id="caption"></caption> 
+		{{#user.loggedin}}	
 		<tr>
-			<td>First name</td><td><input id="firstName" type="text" value="{{#user}}{{firstName}}{{/user}}"></td>
+			<td>{{#i18n}}First name{{/i18n}}</td><td><input id="firstName" type="text" value="{{firstName}}"></td>
 		</tr>
 		<tr>
-			<td>Last name</td><td><input id="lastName" type="text" value="{{#user}}{{lastName}}{{/user}}"></td>
+			<td>{{#i18n}}Last name{{/i18n}}</td><td><input id="lastName" type="text" value="{{lastName}}"></td>
 		</tr>
 		<tr>
-			<td>Login</td><td><input id="login" type="text" value="{{#user}}{{login}}{{/user}}"></td>
+			<td>{{#i18n}}Login{{/i18n}}</td><td><input id="login" type="text" value="{{login}}"></td>
 		</tr>
 		<tr>
-			<td>Change password</td><td><input type="checkbox" id="changePass"></td>
+			<td>{{#i18n}}Change password{{/i18n}}</td><td><input type="checkbox" id="changePass"></td>
 		</tr>
 		<tr class="pass">
-			<td>Old password</td><td><input id="oldPass" type="password"></td>
+			<td>{{#i18n}}Old password{{/i18n}}</td><td><input id="oldPass" type="password"></td>
 		</tr>
 		<tr class="pass">
-			<td>New password</td><td><input id="newPass" type="password"></td>
+			<td>{{#i18n}}New password{{/i18n}}</td><td><input id="newPass" type="password"></td>
 		</tr>
 		<tr class="pass">
-			<td>Retype new password</td><td><input id="reNewPass" type="password"></td>
+			<td>{{#i18n}}Retype new password{{/i18n}}</td><td><input id="reNewPass" type="password"></td>
 		</tr>
+		{{/user.loggedin}}				
 		<tr>
-			<td>Gui language</td>
+			<td>{{#i18n}}Gui language{{/i18n}}</td>
 			<td>
 				<select id="language">
 					<option value="ru_RU">Russian</option>
@@ -116,7 +100,7 @@ $(document).ready(function() {
 			</td>
 		</tr>
 		<tr>
-			<td>Timezone</td>
+			<td>{{#i18n}}Timezone{{/i18n}}</td>
 			<td>
 				<select id="timezone">
 					  <option value="-12.0">(GMT -12:00) Eniwetok, Kwajalein</option>
@@ -155,4 +139,5 @@ $(document).ready(function() {
 		</tr>
 	</table>
 	</form>
+	{{/user}}
 </div>
