@@ -11,7 +11,6 @@ var sax = require("sax");
 var util = require("util");
 var zlib = require("zlib");
 var extend = require('node.extend');
-var v8 = require('v8-profiler');
 
 function CashApi (ctx) {
 	var self = this;
@@ -284,65 +283,6 @@ function CashApi (ctx) {
 		})
 	}
 
-	function saveTransaction (token,tr,cb) {		
-		var trUpd;
-		async.series ([
-			function (cb1) {
-				async.parallel([
-					async.apply(coreapi.checkPerm,token,["cash.edit"]),
-					async.apply(waitForData)
-				],cb1);
-			}, 
-			function (cb1) {
-				cash_transactions.get(tr.id,function (err, tr_) {
-					trUpd = tr_;
-					cb1(err);
-				});
-			}, 
-			function (cb1) {
-				// update branch
-				console.log('tr.splits = ');
-				console.log(tr.splits);
-				console.log('trUpd.splits =');
-				console.log(trUpd.splits);
-				if (tr.splits !=null) {
-					// ammount is changed
-					_.forEach(tr.splits, function (newSplit) {
-							if (newSplit.id !=null) {
-								// modify existing split
-								_.forEach(trUpd.splits, function (updSplit) {
-									if (updSplit.id == newSplit.id) {
-										if (newSplit.value != null) {
-											updSplit.value = newSplit.value;
-										}
-										if (newSplit.accountId!=null) {
-											updSplit.accountId = newSplit.accountId;
-										}
-									}
-								});
-							} else {
-								// add new split
-							}
-					});
-				} 
-				if (tr.description != null) {
-					trUpd.description = tr.description;
-				} 
-				if (tr.datePosted != null) {
-					trUpd.datePosted = tr.datePosted;
-				} 
-				if (tr.dateEntered != null) {
-					trUpd.dateEntered = tr.dateEntered;
-				}				
-				cash_transactions.put(trUpd.id, trUpd, cb1);
-			}
-		], function (err) {
-			if (err) return cb(err);
-			calcStats(function () {});
-			cb(null);
-		})
-	}
-	
 	function saveAccount(token, account, cb) {
 		async.waterfall ([
 			function start(cb1) {
@@ -368,43 +308,56 @@ function CashApi (ctx) {
 		)
 	}
 	
-	function updateTransaction (token,modifiedTr,cb) {		
-		var updatedTr={};
+	function saveTransaction (token,tr,cb) {		
+		var trn={};
 		async.series ([
-			function (cb1) {
+			// wait for data lock
+			function (cb) {
 				async.parallel([
 					async.apply(coreapi.checkPerm,token,["cash.edit"]),
 					async.apply(waitForData)
-				],cb1);
+				],cb);
 			}, 
-			function (cb1) {				
-				cash_transactions.get(modifiedTr.id,function (err, tr_) {
-					updatedTr = tr_;									
-					extend(updatedTr,modifiedTr);					
-					cb1(err);
-				});				
+			// fix current user id
+			function (cb) {
+				coreapi.getUser(token,function (err, user) {
+					if (err) return cb(err);
+					tr.uid = user.id;
+					cb()
+				})
+			},				
+			// update existing or just get new id
+			function (cb) {				
+				if (tr.id) {
+					cash_transactions.get(tr.id,function (err, tr_) {
+						if (err) return cb(err);
+						trn = tr_;									
+						extend(trn,tr);					
+						cb()
+					});		
+				} else {
+					ctx.getUniqueId(function (err, id) {
+						if (err) return cb(err);
+						trn=tr;
+						trn.id = id;
+						cb()
+					})
+				}
 			}, 
-			function (cb1) {
-				async.forEachSeries(updatedTr.splits,function(split,cb2){
-					if(split.id){
-						cb2();
-					}
-					else{
-						ctx.getUniqueId(function (err, id) {
-							if (err){
-								return cb1(err);
-							}
-							split.id = id;
-							cb2();
-						});
-					}
-					
-				},cb1);
+			// obtain ids for new splits
+			function (cb) {
+				async.forEachSeries(trn.splits,function(split,cb){
+					if(split.id) return cb();
+					ctx.getUniqueId(function (err, id) {
+						if (err) return cb(err);
+						split.id = id;
+						cb();
+					});
+				},cb);
 			},
-			function(cb1){
-				console.log('updated tr = ');	
-				console.log(updatedTr);	
-				cash_transactions.put(updatedTr.id, updatedTr, cb1);
+			// finally save or update
+			function(cb){
+				cash_transactions.put(trn.id, trn, cb);
 			}			
 		], function (err) {
 			if (err) return cb(err);
@@ -413,47 +366,6 @@ function CashApi (ctx) {
 		})
 	}
 	
-	function addTransaction(token,newTr,cb){		
-		async.series ([
-			function (cb1) {
-				async.parallel([
-					async.apply(coreapi.checkPerm,token,["cash.edit"]),
-					async.apply(waitForData)
-				],cb1);
-			}, 			
-			function (cb1) {
-				async.forEachSeries(newTr.splits,function(split,cb2){					
-					ctx.getUniqueId(function (err, id) {
-						if (err){
-							return cb1(err);
-						}
-						split.id = id;
-						cb2();
-					});					
-				},cb1);				
-			},
-			function(cb1){				
-				ctx.getUniqueId(function (err, id) {
-					if (err){
-						return cb1(err);
-					}
-					newTr.id = id;
-					cb1();
-				});	
-			
-			},
-			function(cb1){
-				console.log('newTr = ');
-				console.log(newTr);
-				cash_transactions.put(newTr.id, newTr, cb1);
-			}
-		], function (err) {
-			if (err) return cb(err);
-			calcStats(function () {})
-			cb(null);
-		})
-	}
-
 	function clearAccaunts (token, ids, cb) {
 		if (ids == null) {
 			async.series ([
@@ -561,6 +473,7 @@ function CashApi (ctx) {
 	}
 
 	function importTransactions (token, transactions, cb) {
+		var uid = null;
 		async.series ([
 			function (cb1) {
 				async.parallel([
@@ -568,8 +481,16 @@ function CashApi (ctx) {
 					async.apply(waitForData)
 				],cb1);
 			},
+			function (cb) {
+				coreapi.getUser(token,function (err, user) {
+					if (err) return cb(err);
+					uid = user.id;
+					cb()
+				})
+			},					
 			function (cb1) {
 				async.forEach(transactions, function (e,cb) {
+					e.uid = uid;
 					cash_transactions.put(e.id,e,cb);
 				},cb1);
 			}, 
@@ -937,8 +858,6 @@ this.getAccountInfo = getAccountInfo;
 this.getAccountRegister = getAccountRegister;
 this.getTransaction = getTransaction;
 this.saveTransaction = saveTransaction;
-this.updateTransaction = updateTransaction;
-this.addTransaction = addTransaction;
 this.getAccountByPath = getAccountByPath;
 this.getChildAccounts = getChildAccounts;
 this.importTransactions = importTransactions;

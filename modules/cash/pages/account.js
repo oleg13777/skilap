@@ -192,7 +192,7 @@ module.exports = function account(webapp) {
 						}										
 					}					
 				}						
-				cashapi.updateTransaction(req.session.apiToken, modifiedTr, cb1);
+				cashapi.saveTransaction(req.session.apiToken, modifiedTr, cb1);
 				res.send(req.body.id);				
 			}
 		], function (err) {
@@ -271,7 +271,7 @@ module.exports = function account(webapp) {
 					}										
 				}
 				console.log(newTr);				
-				cashapi.addTransaction(req.session.apiToken, newTr, function(err){
+				cashapi.saveTransaction(req.session.apiToken, newTr, function(err){
 					var result = {result:"1"};
 					if(err){
 						console.log('err=');
