@@ -19,9 +19,11 @@ function CashApi (ctx) {
 	this._stats = {};
 	this._coreapi;
 	
+	// set index cleanup 
 	setInterval(function () {
+		if (self._dataReady==false) return; // already sleep
 		var d = new Date();
-		if ((d.valueOf()-lastAccess.valueOf())>60*1000) {
+		if ((d.valueOf()-self._lastAccess.valueOf())>60*1000) {
 			self._stats = {};
 			console.log("dataCleared");
 			self._dataActive = self._dataReady = false;
@@ -35,8 +37,8 @@ CashApi.prototype.getChildAccounts = require('./accapi.js').getChildAccounts;
 CashApi.prototype.getAccountByPath = require('./accapi.js').getAccountByPath;
 CashApi.prototype.getAccountInfo = require('./accapi.js').getAccountInfo;
 CashApi.prototype.deleteAccount = require('./accapi.js').deleteAccount;
-CashApi.prototype.importAccounts = require('./accapi.js').importAccaunts;
-CashApi.prototype.clearAccounts = require('./accapi.js').clearAccaunts;
+CashApi.prototype.importAccounts = require('./accapi.js').importAccounts;
+CashApi.prototype.clearAccounts = require('./accapi.js').clearAccounts;
 CashApi.prototype.restoreToDefaults = require('./accapi.js').restoreToDefaults;
 CashApi.prototype.getAssetsTypes = require('./accapi.js').getAssetsTypes;
 CashApi.prototype.getDefaultAccounts = require('./accapi.js').getDefaultAccounts;
@@ -49,7 +51,7 @@ CashApi.prototype.getAccountRegister = require('./trnapi.js').getAccountRegister
 CashApi.prototype.getTransaction = require('./trnapi.js').getTransaction;
 CashApi.prototype.saveTransaction = require('./trnapi.js').saveTransaction;
 CashApi.prototype.importTransactions = require('./trnapi.js').importTransactions;
-CashApi.prototype.clearTransactions = require('./trnapi.js').clearTransaction;
+CashApi.prototype.clearTransactions = require('./trnapi.js').clearTransactions;
 CashApi.prototype.getTransactionsInDateRange = require('./trnapi.js').getTransactionInDateRange;
 
 CashApi.prototype._waitForData = function (cb) {
@@ -267,4 +269,3 @@ module.exports.init = function (ctx,cb) {
 		cb(null, api);
 	})
 }
-

@@ -138,7 +138,7 @@ module.exports = function (fileName, callback){
 		async.series([
 			function transpondAccounts(cb) {
 				async.forEachSeries(accounts, function (acc,cb) {
-					self.ctx.getUniqueId(function (err, id) {
+					self._ctx.getUniqueId(function (err, id) {
 						if (err) return cb(err);
 						aidMap[acc.id]=id;
 						acc.id = id;
@@ -157,14 +157,14 @@ module.exports = function (fileName, callback){
 				async.forEachSeries(transactions, function (trn,cb) {
 					async.forEachSeries(trn.splits, function (split,cb) {
 						split.accountId = aidMap[split.accountId];
-						self.ctx.getUniqueId(function (err, id) {
+						self._ctx.getUniqueId(function (err, id) {
 							if (err) return cb(err);
 							split.id = id;
 							cb();
 						})
 					}, function (err) {
 						if (err) return cb(err);
-						self.ctx.getUniqueId(function (err, id) {
+						self._ctx.getUniqueId(function (err, id) {
 							if (err) return cb(err);
 							trn.id = id;
 							cb();

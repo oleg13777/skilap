@@ -7,10 +7,10 @@ module.exports.getAccount = function (token, id, cb) {
 	async.series ([
 		function start(cb) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.view"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb);
-		}, 
+		},
 		function get(cb) {
 			self._cash_accounts.get(id, function (err, acc) {
 				if (err) cb(err);
@@ -29,8 +29,8 @@ module.exports.getAllAccounts = function (token, cb) {
 	async.series ([
 		function start(cb) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.view"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb);
 		}, 
 		function get(cb) {
@@ -53,8 +53,8 @@ module.exports.getChildAccounts = function(token, parentId, cb) {
 	async.series ([
 		function start(cb) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.view"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb);
 		}, 
 		function get(cb) {
@@ -75,8 +75,8 @@ module.exports.getAccountByPath = function (path,cb) {
 	async.series ([
 		function start(cb) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.view"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb);
 		}, 
 		function get(cb) {
@@ -102,8 +102,8 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 	async.series ([
 		function (cb) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.view"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb);
 		}, 
 		function (cb) {
@@ -133,8 +133,8 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 	async.series([
 		function start(cb) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.edit"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb);
 		}, 
 		function processTransactions(cb) {
@@ -219,7 +219,7 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 module.exports._getAllChildsId = function (token, parentId, buffer, cb) {
 	var self = this;
 	async.waterfall([
-		async.apply(self.getChildAccounts, token, parentId),
+		function (cb) { self.getChildAccounts(token, parentId,cb) },
 		function(childs, cb){
 			async.forEach(childs, function (ch, cb) {
 				buffer.push(ch.id);
@@ -234,8 +234,8 @@ module.exports.clearAccounts = function (token, ids, cb) {
 	async.series ([
 		function (cb) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.edit"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb);
 		},
 		function (cb) {
@@ -253,8 +253,8 @@ module.exports.importAccounts = function  (token, accounts, cb) {
 	async.series ([
 		function (cb) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.edit"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb);
 		},
 		function (cb) {
@@ -310,8 +310,8 @@ module.exports.restoreToDefaults = function (token, cb){
 	async.waterfall([
 		function start(cb) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.edit"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb);
 		}, 
 		function (results ,cb) {
@@ -362,8 +362,8 @@ module.exports.saveAccount = function (token, account, cb) {
 	async.waterfall ([
 		function start(cb) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.edit"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb);
 		},
 		function (t, cb) {

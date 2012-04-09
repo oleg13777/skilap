@@ -7,8 +7,8 @@ module.exports.getAccountRegister = function (token,accId, offset, limit, cb ) {
 	async.series ([
 		function (cb1) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.view"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb1);
 		}, 
 		function (cb1) {
@@ -32,8 +32,8 @@ module.exports.getTransaction = function (token, trId, cb) {
 	async.series ([
 		function (cb1) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.view"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb1);
 		}, 
 		function (cb1) {
@@ -52,8 +52,8 @@ module.exports.saveTransaction = function (token,tr,cb) {
 		// wait for data lock
 		function (cb) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.edit"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb);
 		}, 
 		// fix current user id
@@ -110,8 +110,8 @@ module.exports.getTransactionInDateRange = function (token, range, cb) {
 	async.series([
 		function start(cb1) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.view"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb1);
 		}, 
 		function (cb1) {
@@ -131,14 +131,14 @@ module.exports.getTransactionInDateRange = function (token, range, cb) {
 	);
 }
 
-module.exports.clearTransaction = function (token, ids, cb) {
+module.exports.clearTransactions = function (token, ids, cb) {
 	var self = this;
 	if (ids == null) {
 		async.series ([
 			function (cb1) {
 				async.parallel([
-					async.apply(self._coreapi.checkPerm,token,["cash.edit"]),
-					function (cb) {self._waitForData(cb)}
+					function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
+					function (cb) { self._waitForData(cb) }
 				],cb1);
 			},
 			function (cb1) {
@@ -160,8 +160,8 @@ module.exports.importTransactions = function (token, transactions, cb) {
 	async.series ([
 		function (cb1) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.edit"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb1);
 		},
 		function (cb) {

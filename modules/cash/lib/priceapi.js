@@ -9,8 +9,8 @@ module.exports.getCmdtyPrice = function (token,cmdty,currency,date,method,cb) {
 	async.series ([
 		function start(cb) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.view"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb);
 		}, 
 		function get(cb) {
@@ -31,8 +31,8 @@ module.exports.clearPrices = function (token, ids, cb) {
 		async.series ([
 			function (cb) {
 				async.parallel([
-					async.apply(self._coreapi.checkPerm,token,["cash.edit"]),
-					function (cb) {self._waitForData(cb)}
+					function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
+					function (cb) { self._waitForData(cb) }
 				],cb);
 			},
 			function (cb) {
@@ -53,8 +53,8 @@ module.exports.importPrices = function  (token, prices, cb) {
 	async.series ([
 		function (cb) {
 			async.parallel([
-				async.apply(self._coreapi.checkPerm,token,["cash.edit"]),
-				function (cb) {self._waitForData(cb)}
+				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
+				function (cb) { self._waitForData(cb) }
 			],cb);
 		},
 		function (cb) {
