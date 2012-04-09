@@ -244,6 +244,7 @@ function Skilap() {
 						fn.apply(this, params);
 						out = true;
 					} catch (err) {
+						console.log(err);
 						if (!out) 
 							res.send({error:err, result:null, id:id});
 					}

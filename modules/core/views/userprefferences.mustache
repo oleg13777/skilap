@@ -46,6 +46,9 @@ $(document).ready(function() {
 			var w = $(this).parent().width();
 			var h = $(this).parent().height();
 			var p = $(this).parent().position();
+			console.log(w);
+			console.log(h);
+			console.log(p);
 			$(this).parent().css({"top":0,"left":0,"padding":0,"border":0});
 			window.parent.$("body .iframeContainer-ski_editUser").trigger('openDialog',[w,h,p]);						
 		},
@@ -59,23 +62,39 @@ $(document).ready(function() {
 		modal: true,
 		draggable: false
 	});	
+	
+	function displayMessage(event){		
+		console.log("event");
+		if(event.data.name == 'setEditUserDialogData') {
+			var user = event.data.data;
+			$('#uid').val(user.id);
+			$('#firstName').val(user.firstName);
+			$('#lastName').val(user.lastName);
+			$('#login').val(user.login);
+		}
+	}
+	if (window.addEventListener) {	
+		window.addEventListener("message", displayMessage, false);
+	}
+	else {
+		window.attachEvent("onmessage", displayMessage);
+	}
 });
 </script>
 <div id="editPrefferences" title="{{#i18n}}Account prefferences{{/i18n}}" class="dialog" style="width: 600; height: 200px;">
-	{{#user}}
 	<form>
-	<input id="token" type="hidden" value="{{token}}">
+	<input id="token" type="hidden" value="{{apiToken}}">
 	<input id="uid" type="hidden" value="{{id}}">
 	<table>
 		{{#user.loggedin}}	
 		<tr>
-			<td>{{#i18n}}First name{{/i18n}}</td><td><input id="firstName" type="text" value="{{firstName}}"></td>
+			<td>{{#i18n}}First name{{/i18n}}</td><td><input id="firstName" type="text"></td>
 		</tr>
 		<tr>
-			<td>{{#i18n}}Last name{{/i18n}}</td><td><input id="lastName" type="text" value="{{lastName}}"></td>
+			<td>{{#i18n}}Last name{{/i18n}}</td><td><input id="lastName" type="text"></td>
 		</tr>
 		<tr>
-			<td>{{#i18n}}Login{{/i18n}}</td><td><input id="login" type="text" value="{{login}}"></td>
+			<td>{{#i18n}}Login{{/i18n}}</td><td><input id="login" type="text"></td>
 		</tr>
 		<tr>
 			<td>{{#i18n}}Change password{{/i18n}}</td><td><input type="checkbox" id="changePass"></td>
@@ -139,5 +158,4 @@ $(document).ready(function() {
 		</tr>
 	</table>
 	</form>
-	{{/user}}
 </div>

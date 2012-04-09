@@ -5,9 +5,12 @@ $(document).ready(function() {
 			$(".pass").show();
 		else
 			$(".pass").hide();
+		$("#ski_editUser").iframeContainer({src:"{{prefix}}/userprefferences", host:"{{host}}"});
+		{{#user}}
+		$("#ski_editUser").iframeContainer("triggerEvent",{name:'setEditUserDialogData',data:{id:{{id}}, firstName:"{{firstName}}", lastName:"{{lastName}}", login:"{{login}}"}});
+		{{/user}}
 		$("#ski_editUser").iframeContainer("open");
 	});
-	$("#ski_editUser").iframeContainer({src:"{{prefix}}/userprefferences", host:"{{host}}"});
 	$("body").on('accountEditSuccess',function(e,id){
 		location.reload(true);
 	});	
