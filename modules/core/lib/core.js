@@ -244,6 +244,7 @@ function Skilap() {
 						fn.apply(this, params);
 						out = true;
 					} catch (err) {
+						console.log(err);
 						if (!out) 
 							res.send({error:err, result:null, id:id});
 					}
@@ -255,7 +256,6 @@ function Skilap() {
 				app.post("/jsonrpc", function (req,res,next) {
 					handleJsonRpc(req.body, req, res, next);
 				})
-
 			},
 			function initModules(cb1) {
 				async.forEachSeries(tmodules, function (minfo, cb2) {

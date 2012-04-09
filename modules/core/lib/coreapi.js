@@ -168,6 +168,25 @@ this.getUser = function (token, cb) {
 	cb(null, _(session.user).clone());
 }
 
+this.getUserById = function(token, userId, cb) {
+	async.series ([
+		function start(cb1) {
+			async.parallel([
+				async.apply(self.checkPerm,token,['core.user.view'])
+			],cb1);
+		}, 
+		function get(cb1) {
+			core_users.get(userId, function (err, user) {
+				if (err) cb1(err);
+				cb1(null, user);
+			});
+		}], function end(err, results) {
+			if (err) return cb(err);
+			cb(null, results[1]);
+		}
+	)
+}
+
 /**
  * Save user or create new if id is absent
  * 
@@ -202,8 +221,14 @@ this.saveUser = function (token, newUser, cb) {
 				if (newUser.firstName) updUser.firstName=newUser.firstName;
 				if (newUser.lastName) updUser.lastName=newUser.lastName;
 				if (newUser.login) updUser.login=newUser.login;
-				if (newUser.newPass && newUser.oldPass && (updUser.password == newUser.oldPass))
-					updUser.password = newUser.newPass;
+				if (newUser.oldPass && newUser.newPass && newUser.reNewPass){
+					if (updUser.password != newUser.oldPass)
+						return cb(new SkilapError("Wrong old password"))
+					else if (newUser.newPass != newUser.reNewPass)
+						return cb(new SkilapError("New passwords do not match"));
+					else 
+						updUser.password = newUser.newPass;
+				}
 				if (newUser.timeZone) updUser.timeZone = newUser.timeZone;
 				if (newUser.language) updUser.language = newUser.language;
 				core_users.put(updUser.id, updUser, cb1);
@@ -226,8 +251,27 @@ this.saveUser = function (token, newUser, cb) {
 			},
 			async.apply(ctx.getUniqueId),
 			function save(newId, cb1) {
-				newUser.id = newId;
-				core_users.put(newId, newUser, cb1);
+				var user = {id:newId};
+				if (newUser.firstName) 
+					user.firstName=newUser.firstName;
+				else
+					return cb(new SkilapError("First name is empty"));
+				if (newUser.lastName) 
+					user.lastName=newUser.lastName;
+				else
+					return cb(new SkilapError("Last name is enpty"));
+				if (newUser.login) 
+					user.login=newUser.login;
+				else
+					return cb(new SkilapError("Login is empty"));
+				if (newUser.pass != newUser.rePass)
+					return cb(new SkilapError("Passwords do not match"));
+				else 
+					user.password = newUser.newPass;
+				if (newUser.timeZone) user.timeZone = newUser.timeZone;
+				if (newUser.language) user.language = newUser.language;
+
+				core_users.put(newId, user, cb1);
 			}
 		], cb)
 	}
@@ -272,6 +316,24 @@ this.loginByPass = function (token, login, password, cb ) {
 this.logOut = function (token, cb) {
 	sessions[token].user = {type:"guest"};
 	cb();
+}
+
+this.deleteUser = function(token, userId, cb) {
+	console.log("delete");
+	async.series ([
+		function start(cb1) {
+			async.parallel([
+				async.apply(self.checkPerm,token,['core.user.edit'])
+			],cb1);
+		}, 
+		function get(cb1) {
+			core_users.put(userId, null, cb1);
+		}], function end(err, results) {
+			console.log(results);
+			if (err) return cb(err);
+			cb(null, true);
+		}
+	)
 }
 
 }

@@ -67,10 +67,6 @@ tr { height: 24px;}
 	width: 100%;
 }
 
-#workspace td {
-	border: none;
-}
-
 * {
    margin: 0;
    padding: 0;
@@ -89,6 +85,9 @@ html, body {height: 100%;}
 
 #workspace {
    padding-bottom: 100px;
+}
+#workspace td{
+   border: none;
 }
 
 #footer {
@@ -110,7 +109,36 @@ html, body {height: 100%;}
 .dialog td {
 	border: none;
 }
+
+.iframeContainer{
+	position: absolute;
+	top: 0px;
+	left: 0px;
+}
+
+.iframeContainer iframe{
+	border: none;
+	overflow: hidden;
+}
 /********************/
+
+#users th {
+	border: solid;
+}
+
+#users td {
+	border: 1px solid;
+}
+
+#users .left {
+	text-align: center;
+	width: 80px;
+}
+
+#users .right {
+	text-align: center;
+	width: 50px;
+}
 
 .home.title{
 	text-align: center;

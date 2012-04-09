@@ -19,6 +19,7 @@
 
 </head>
 <body>
+	{{^mainLayoutHide}}
 	<div id="content">
 		<div id="header">
 			<a href='/' id="logo"></a>
@@ -41,6 +42,12 @@
 	<div id="footer">
 		<div class='copyright'>{{#i18n}}Copyright by PushOk Software{{/i18n}} 2011-2012</div>
 	</div>
+	{{/mainLayoutHide}}
+	{{#mainLayoutHide}}
+		<div id="workspace"/>
+			<content/>
+		</div>
+	{{/mainLayoutHide}}
 
 </body>
 </html>

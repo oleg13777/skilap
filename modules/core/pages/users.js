@@ -7,7 +7,7 @@ module.exports = function account(ctx, app, api, prefix) {
 		async.waterfall([
 			async.apply(api.getAllUsers,req.session.apiToken),
 			function render (users) {
-				res.render(__dirname+"/../views/users", {prefix:prefix, users: users});
+				res.render(__dirname+"/../views/users", {prefix:prefix, users: users, header:true, tittle: "Sistem users", host:req.headers.host});
 			}],
 			next
 		);
