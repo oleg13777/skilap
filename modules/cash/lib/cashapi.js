@@ -54,6 +54,7 @@ function CashApi (ctx) {
 			function openCollections(cb) {
 				async.parallel([
 					function accounts (cb) {
+						console.log("open collections")						
 						adb.ensure("cash_accounts",{type:'cached_key_map',buffered:false},cb);
 					},
 					function transactions (cb) {
@@ -124,7 +125,6 @@ function CashApi (ctx) {
 			}
 		)
 	}
-
 
 	function getCmdtyPrice(token,cmdty,currency,date,method,cb) {
 		if (_(cmdty).isEqual(currency)) return cb(null,1);
@@ -223,6 +223,8 @@ function CashApi (ctx) {
 			function (cb1) {
 				var res = {};
 				var accStats = stats[accId];
+				if (accStats==null)
+					return cb(new Error("Invalid account Id: "+accId));
 				res.id = accId;
 				_.forEach(details, function (val) {
 					if (val == "value")
@@ -281,65 +283,6 @@ function CashApi (ctx) {
 		})
 	}
 
-	function saveTransaction (token,tr,cb) {		
-		var trUpd;
-		async.series ([
-			function (cb1) {
-				async.parallel([
-					async.apply(coreapi.checkPerm,token,["cash.edit"]),
-					async.apply(waitForData)
-				],cb1);
-			}, 
-			function (cb1) {
-				cash_transactions.get(tr.id,function (err, tr_) {
-					trUpd = tr_;
-					cb1(err);
-				});
-			}, 
-			function (cb1) {
-				// update branch
-				console.log('tr.splits = ');
-				console.log(tr.splits);
-				console.log('trUpd.splits =');
-				console.log(trUpd.splits);
-				if (tr.splits !=null) {
-					// ammount is changed
-					_.forEach(tr.splits, function (newSplit) {
-							if (newSplit.id !=null) {
-								// modify existing split
-								_.forEach(trUpd.splits, function (updSplit) {
-									if (updSplit.id == newSplit.id) {
-										if (newSplit.value != null) {
-											updSplit.value = newSplit.value;
-										}
-										if (newSplit.accountId!=null) {
-											updSplit.accountId = newSplit.accountId;
-										}
-									}
-								});
-							} else {
-								// add new split
-							}
-					});
-				} 
-				if (tr.description != null) {
-					trUpd.description = tr.description;
-				} 
-				if (tr.datePosted != null) {
-					trUpd.datePosted = tr.datePosted;
-				} 
-				if (tr.dateEntered != null) {
-					trUpd.dateEntered = tr.dateEntered;
-				}				
-				cash_transactions.put(trUpd.id, trUpd, cb1);
-			}
-		], function (err) {
-			if (err) return cb(err);
-			process.nextTick(function () { calcStats(function () {})});
-			cb(null);
-		})
-	}
-	
 	function saveAccount(token, account, cb) {
 		async.waterfall ([
 			function start(cb1) {
@@ -359,98 +302,70 @@ function CashApi (ctx) {
 				cash_accounts.put(account.id, account, cb1);
 			}], function end(err, result) {
 				if (err) return cb(err);
-				process.nextTick(function () { calcStats(function () {})});
+				calcStats(function () {})
 				cb(null, account);
 			}
 		)
 	}
 	
-	function updateTransaction (token,modifiedTr,cb) {		
-		var updatedTr={};
+	function saveTransaction (token,tr,cb) {		
+		var trn={};
 		async.series ([
-			function (cb1) {
+			// wait for data lock
+			function (cb) {
 				async.parallel([
 					async.apply(coreapi.checkPerm,token,["cash.edit"]),
 					async.apply(waitForData)
-				],cb1);
+				],cb);
 			}, 
-			function (cb1) {				
-				cash_transactions.get(modifiedTr.id,function (err, tr_) {
-					updatedTr = tr_;									
-					extend(updatedTr,modifiedTr);					
-					cb1(err);
-				});				
+			// fix current user id
+			function (cb) {
+				coreapi.getUser(token,function (err, user) {
+					if (err) return cb(err);
+					tr.uid = user.id;
+					cb()
+				})
+			},				
+			// update existing or just get new id
+			function (cb) {				
+				if (tr.id) {
+					cash_transactions.get(tr.id,function (err, tr_) {
+						if (err) return cb(err);
+						trn = tr_;									
+						extend(trn,tr);					
+						cb()
+					});		
+				} else {
+					ctx.getUniqueId(function (err, id) {
+						if (err) return cb(err);
+						trn=tr;
+						trn.id = id;
+						cb()
+					})
+				}
 			}, 
-			function (cb1) {
-				async.forEachSeries(updatedTr.splits,function(split,cb2){
-					if(split.id){
-						cb2();
-					}
-					else{
-						ctx.getUniqueId(function (err, id) {
-							if (err){
-								return cb1(err);
-							}
-							split.id = id;
-							cb2();
-						});
-					}
-					
-				},cb1);
+			// obtain ids for new splits
+			function (cb) {
+				async.forEachSeries(trn.splits,function(split,cb){
+					if(split.id) return cb();
+					ctx.getUniqueId(function (err, id) {
+						if (err) return cb(err);
+						split.id = id;
+						cb();
+					});
+				},cb);
 			},
-			function(cb1){
-				console.log('updated tr = ');	
-				console.log(updatedTr);	
-				cash_transactions.put(updatedTr.id, updatedTr, cb1);
+			// finally save or update
+			function(cb){
+				cash_transactions.put(trn.id, trn, cb);
 			}			
 		], function (err) {
 			if (err) return cb(err);
-			process.nextTick(function () { calcStats(function () {})});
+			calcStats(function () {});
 			cb(null);
 		})
 	}
 	
-	function addTransaction(token,newTr,cb){		
-		async.series ([
-			function (cb1) {
-				async.parallel([
-					async.apply(coreapi.checkPerm,token,["cash.edit"]),
-					async.apply(waitForData)
-				],cb1);
-			}, 			
-			function (cb1) {
-				async.forEachSeries(newTr.splits,function(split,cb2){					
-					ctx.getUniqueId(function (err, id) {
-						if (err){
-							return cb1(err);
-						}
-						split.id = id;
-						cb2();
-					});					
-				},cb1);				
-			},
-			function(cb1){				
-				ctx.getUniqueId(function (err, id) {
-					if (err){
-						return cb1(err);
-					}
-					newTr.id = id;
-					cb1();
-				});	
-			
-			},
-			function(cb1){
-				console.log('newTr = ');
-				console.log(newTr);
-				cash_transactions.put(newTr.id, newTr, cb1);
-			}
-		], function (err) {
-			if (err) return cb(err);
-			process.nextTick(function () { calcStats(function () {})});
-			cb(null);
-		})
-	}
-
 	function clearAccaunts (token, ids, cb) {
 		if (ids == null) {
 			async.series ([
@@ -465,7 +380,7 @@ function CashApi (ctx) {
 				} 
 			], function (err) {
 				if (err) return cb(err);
-				process.nextTick(function () { calcStats(function () {})});
+				calcStats(function () {})
 				cb(null);
 			});
 		} else {
@@ -482,14 +397,13 @@ function CashApi (ctx) {
 				],cb1);
 			},
 			function (cb1) {
-				accounts.forEach(function (e) {
-					cash_accounts.put(e.id,e,function (err) {if (err) { throw err; }});
-				});
-				cb1();
+				async.forEachSeries(accounts, function (e, cb) {
+					cash_accounts.put(e.id,e,cb);
+				},cb1);
 			}, 
 		], function (err) {
 			if (err) return cb(err);
-			process.nextTick(function () { calcStats(function () {})});
+			calcStats(function () {})
 			cb(null);
 		})
 	}
@@ -508,7 +422,7 @@ function CashApi (ctx) {
 				} 
 			], function (err) {
 				if (err) return cb(err);
-				process.nextTick(function () { calcStats(function () {})});
+				calcStats(function () {})
 				cb(null);
 			});
 		} else {
@@ -525,14 +439,13 @@ function CashApi (ctx) {
 				],cb1);
 			},
 			function (cb1) {
-				prices.forEach(function (e) {
-					cash_prices.put(e.id,e,function (err) {if (err) { throw err; }});
-				});
-				cb1();
+				async.forEach(prices, function (e, cb) {
+					cash_prices.put(e.id,e,cb);
+				},cb1);
 			}, 
 		], function (err) {
 			if (err) return cb(err);
-			process.nextTick(function () { calcStats(function () {})});
+			calcStats(function () {})
 			cb(null);
 		})
 	}	
@@ -551,7 +464,7 @@ function CashApi (ctx) {
 				} 
 			], function (err) {
 				if (err) return cb(err);
-				process.nextTick(function () { calcStats(function () {})});
+				calcStats(function () {})
 				cb(null);
 			});
 		} else {
@@ -560,6 +473,7 @@ function CashApi (ctx) {
 	}
 
 	function importTransactions (token, transactions, cb) {
+		var uid = null;
 		async.series ([
 			function (cb1) {
 				async.parallel([
@@ -567,15 +481,22 @@ function CashApi (ctx) {
 					async.apply(waitForData)
 				],cb1);
 			},
+			function (cb) {
+				coreapi.getUser(token,function (err, user) {
+					if (err) return cb(err);
+					uid = user.id;
+					cb()
+				})
+			},					
 			function (cb1) {
-				transactions.forEach(function (e) {
-					cash_transactions.put(e.id,e,function (err) {if (err) { throw err; }});
-				});
-				cb1();
+				async.forEach(transactions, function (e,cb) {
+					e.uid = uid;
+					cash_transactions.put(e.id,e,cb);
+				},cb1);
 			}, 
 		], function (err) {
 			if (err) return cb(err);
-			process.nextTick(function () { calcStats(function () {})});
+			calcStats(function () {})
 			cb(null);
 		})
 	}
@@ -597,7 +518,14 @@ function CashApi (ctx) {
 		} 
 	}
 
+	// default behavior is true async
 	function calcStats(cb) {
+		process.nextTick(function () {
+			_calcStats(cb);
+		})
+	}
+	
+	function _calcStats(cb) {
 		console.time("Stats");
 		dataReady = false;
 		stats = {};
@@ -796,14 +724,13 @@ function CashApi (ctx) {
 				getDefaultsAccounts(token, cb1);
 			},
 			function (accounts, cb1) {
-				accounts.forEach(function (e) {
-					cash_accounts.put(e.id,e,function (err) {if (err) { throw err; }});
-				});
-				cb1();
+				async.forEachSeries(accounts, function (e, cb) {
+					cash_accounts.put(e.id,e,cb);
+				},cb1);
 			}
 		], function (err) {
 			if (err) return cb(err);
-			process.nextTick(function () { calcStats(function () {})});
+			calcStats(function () {});
 			cb(null);
 		});
 	}
@@ -836,27 +763,36 @@ function CashApi (ctx) {
 				],cb1);
 			}, 
 			function processTransactions(cb1) {
+				var updates = [];
 				cash_transactions.scan(function (err, key, tr) {
-					if (err) cb1(err);
-					_(tr.splits).forEach(function (split) {							
-						if ((split.accountId == accId) && options.newParent){
-							split.accountId = options.newParent;
-							cash_transactions.put(key, tr, function(err){if (err) throw err;});
-						} else if (split.accountId == accId) {
-							cash_transactions.put(key, null, function(err){if (err) throw err;});
-						}
-					});
-				});
-				cb1();
+					if (err) return cb1(err);
+					if (key==null) {
+						// scan done, propagate changes
+						async.forEach(updates, function (u, cb) {
+							cash_transactions.put(u.key, u.tr, cb);
+						}, cb1)
+					} else {
+						// collecte transactions that need to be altered
+						_(tr.splits).forEach(function (split) {							
+							if (split.accountId == accId) {
+								if (options.newParent) {
+									split.accountId = options.newParent;
+									updates.push({key:key,tr:tr});
+								} else
+									updates.push({key:key,tr:null});
+							}
+						});
+					}
+				},true);
 			},
 			function processSubAccounts(cb1){
 				if (options.newSubParent) {
 					getChildAccounts(token, accId, function(err, childs){
-						_(childs).forEach(function(ch){
+						if (err) return cb1(err);
+						async.forEach(childs, function(ch,cb) {
 							ch.parentId = options.newSubParent;
-							console.log(ch);
-							cash_accounts.put(ch.id, ch, function(err){if (err) throw err;});
-						});
+							cash_accounts.put(ch.id, ch, cb);
+						},cb1);
 					});
 				} else {
 					var childs = [];
@@ -865,38 +801,42 @@ function CashApi (ctx) {
 							getAllChildsId(token, accId, childs, cb2);
 						},
 						function (cb2){
+							var updates = [];
 							cash_transactions.scan(function (err, key, tr) {
-								_(tr.splits).forEach(function (split) {
-									if (_(childs).indexOf(split.accountId) > -1){
-										if (options.newSubAccTrnParent) {
-											process.nextTick(function(){ cash_transactions.put(key, tr, function(err){ if (err) throw err; }); });
-										} else {
-											split.accountId = options.newSubAccTrnParent;
-											process.nextTick(function() { cash_transactions.put(key, null, function(err){ if (err) throw err; });
-											});
+								if (err) return cb2(err);
+								if (key==null) {
+									// scan done, propagate changes
+									async.forEach(updates, function (u, cb) {
+										cash_transactions.put(u.key, u.tr, cb);
+									}, cb2)
+								} else {								
+									// collect transactions to alter
+									_(tr.splits).forEach(function (split) {
+										if (_(childs).indexOf(split.accountId) > -1){
+											if (options.newSubAccTrnParent) {
+												split.accountId = options.newSubAccTrnParent;
+												updates.push({key:key,tr:tr});											
+											} else
+												updates.push({key:key,tr:null});
 										}
-									}
-								});
-							});
-							cb2();
+									})
+								};
+							},true);
 						},
-						function (cb2) {
-							childs.forEach(function (ch){
-								process.nextTick(function() { cash_accounts.put(ch, null, function(err){if (err) throw err;}); });
-							});
-							cb2();
+						function (cb) {
+							async.forEach(childs, function (ch, cb) {
+								cash_accounts.put(ch, null, cb);
+							},cb);
 						}
 					],cb1);
 				}
-				cb1();
 			},
-			function deleteAcc(cb1) {
-				process.nextTick( function () { cash_accounts.put(accId, null, function (err) {if (err) throw err; }); });
-				cb1();
+			function deleteAcc(cb) {
+				cash_accounts.put(accId, null, cb);
 			}
 		], function (err) {
-			if (err) { console.log(err); cb(err);}
-			process.nextTick(function () { calcStats(function () {})});
+			if (err) return cb(err);
+			calcStats(function () {})
 			cb(null);
 		});
 	}
@@ -904,11 +844,11 @@ function CashApi (ctx) {
 	function getAllChildsId(token, parentId, buffer, cb) {
 		async.waterfall([
 			async.apply(getChildAccounts, token, parentId),
-			function(childs, cb1){
-				_(childs).forEach(function(ch){
+			function(childs, cb){
+				async.forEach(childs, function (ch, cb) {
 					buffer.push(ch.id);
-					getAllChildsId(token, ch.id, buffer, cb1);
-				});
+					getAllChildsId(token, ch.id, buffer, cb);
+				}, cb);
 			}
 		],cb);
 	}
@@ -918,8 +858,6 @@ this.getAccountInfo = getAccountInfo;
 this.getAccountRegister = getAccountRegister;
 this.getTransaction = getTransaction;
 this.saveTransaction = saveTransaction;
-this.updateTransaction = updateTransaction;
-this.addTransaction = addTransaction;
 this.getAccountByPath = getAccountByPath;
 this.getChildAccounts = getChildAccounts;
 this.importTransactions = importTransactions;
