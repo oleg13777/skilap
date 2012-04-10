@@ -70,7 +70,7 @@ tr { height: 24px;}
 	width: 100%;
 }
 
-#workspace td{
+#workspace .user td{
    border: none;
 }
 
@@ -110,14 +110,14 @@ tr { height: 24px;}
 	overflow: hidden;
 }
 
-#workspace #users th {
+#users th {
 	text-align: left;
 	border: solid;
 }
 
-#workspace #users td {
+#users td {
 	text-align: left;
-	border: solid black;
+	border: solid ;
 }
 
 #users .left {
