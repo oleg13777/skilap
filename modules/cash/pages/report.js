@@ -88,7 +88,7 @@ module.exports = function account(webapp) {
 		var periods = getPeriods(params.startDate, params.endDate);
 		var categories = _(periods).map(function (p) { return (p.start.getMonth()+1)+"."+p.start.getFullYear();});
 		async.waterfall([
-			async.apply(cashapi.getAllAccounts, token),
+			function (cb) { cashapi.getAllAccounts(token, cb) },
 			function (accounts, cb1) {
 				calcAccStatsByPerriod(token, accounts, params.accType, params.startDate, params.endDate, periods, params.maxAcc, cb1);
 			}
