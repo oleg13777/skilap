@@ -1,0 +1,1 @@
+module.exports.SkilapError = require('./SkilapError')

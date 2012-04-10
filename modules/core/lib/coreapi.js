@@ -4,7 +4,7 @@
  */
 var _ = require('underscore');
 var async = require('async');
-var SkilapError = require("./SkilapError");
+var SkilapError = require("skilap-utils").SklapError;
 
 /**
  * Private helper class to store context
@@ -146,7 +146,7 @@ CoreApi.prototype.getAllUsers = 	function (token, cb) {
 	async.series ([
 		function start(cb1) {
 			async.parallel([
-				async.apply(self.checkPerm,token,['core.user.view'])
+				function (cb) { self.checkPerm(token,['core.user.view'],cb) }
 			],cb1);
 		}, 
 		function get(cb1) {
@@ -387,6 +387,3 @@ module.exports.init = function (ctx, cb) {
 		cb(null, m);
 	})
 }
-
-
-
