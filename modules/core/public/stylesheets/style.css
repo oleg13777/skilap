@@ -117,7 +117,7 @@ tr { height: 24px;}
 
 #users td {
 	text-align: left;
-	border: solid ;
+	border: 1px solid ;
 }
 
 #users .left {
@@ -125,6 +125,7 @@ tr { height: 24px;}
 }
 
 #users .right {
+	text-align: center;
 	width: 50px;
 }
 
