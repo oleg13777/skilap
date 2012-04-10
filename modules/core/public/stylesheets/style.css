@@ -6,14 +6,16 @@
 	color: #3F4142;
 }
 
-img { 
-	border:none; 
-}
+html, body {height: 100%;}
 
 body {
   font: 14px Arial, Helvetica, "Lucida Grande", sans-serif;
   min-width: 1024px;
   background-color: #f6f6f6;
+}
+
+img { 
+	border:none; 
 }
 
 a {
@@ -40,11 +42,6 @@ tr { height: 24px;}
 	height: 100%;
 }
 
-#workspace{
-	padding: 20px 50px;
-}
-
-/********************/
 #header #logo{
 	background: url("../images/logo.png") no-repeat scroll center center #fff;
     border: 2px solid #0A8ABF;
@@ -57,6 +54,12 @@ tr { height: 24px;}
     height: 66px;
     width: 65px;
 }
+
+#workspace{
+	padding: 20px 50px;
+	padding-bottom: 100px;
+}
+
 #workspace .user{
 	float: left;
 	width: 40%;
@@ -67,27 +70,13 @@ tr { height: 24px;}
 	width: 100%;
 }
 
-* {
-   margin: 0;
-   padding: 0;
+#workspace td{
+   border: none;
 }
-
-html, body {height: 100%;}
 
 #content {
    position: relative;
    min-height: 100%;
-}
-
-* html #content {
-   height: 100%;
-}
-
-#workspace {
-   padding-bottom: 100px;
-}
-#workspace td{
-   border: none;
 }
 
 #footer {
@@ -120,23 +109,22 @@ html, body {height: 100%;}
 	border: none;
 	overflow: hidden;
 }
-/********************/
 
-#users th {
+#workspace #users th {
+	text-align: left;
 	border: solid;
 }
 
-#users td {
-	border: 1px solid;
+#workspace #users td {
+	text-align: left;
+	border: solid black;
 }
 
 #users .left {
-	text-align: center;
 	width: 80px;
 }
 
 #users .right {
-	text-align: center;
 	width: 50px;
 }
 
@@ -166,7 +154,7 @@ html, body {height: 100%;}
 	list-style-type: disc;
 }
 
-.modulesList li:last-child{border-bottom: none;}
+.modulesList { li:last-child{border-bottom: none;}
 
 .modulName{
 	font-size: 16px;

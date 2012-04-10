@@ -15,12 +15,14 @@ $(document).ready(function() {
 		});		
 		$("#ski_editUser").iframeContainer("open");
 	});
-	$(".delteUser").click(function(){
+	$(".deleteUser").click(function(){
 		var uid = $(this).attr('uid');
 		var secret = $('#token').val();
 		var rpc = new jsonrpc.JsonRpc('/jsonrpc');
 		rpc.call('core.deleteUser', secret, uid, {
 			success: function (data) {
+				console.log("success");
+				console.log(data);
 				location.reload(true);
 			},
 			failure: function (reason) {
@@ -74,7 +76,45 @@ $(document).ready(function() {
 	$("#addNewUser").click(function(){
 		$("#addUserDialog").dialog("open");
 	});
+	
+	$("span").css({
+		 'padding' : '5px 20px',
+		 'font-size' : '14px'
+	});
+	
+	$("span.dummyDrop").styledButton({
+		'orientation' : 'alone',
+		'dropdown' : { 'element' : 'ul' },
+		'role' : 'select',
+		'defaultValue' : 'default value',
+		'name' : 'dummy',
+		'clear' : true
+	});
+	
+	$.beautyOfCode.init('js/clipboard.swf');
+	$("pre").beautifyCode('javascript');
 });
+</script>
+<script type="text/javascript">
+	var timeout         = 200;
+	var closetimer		= 0;
+	var ddmenuitem      = 0;
+
+	function mopen(id) {	
+		mcancelclosetime();
+		if(ddmenuitem) ddmenuitem.style.visibility = 'hidden';
+		ddmenuitem = document.getElementById(id);
+		ddmenuitem.style.visibility = 'visible';
+	};
+
+	function mclose() { if(ddmenuitem) ddmenuitem.style.visibility = 'hidden'; };
+	function mclosetime() { closetimer = window.setTimeout(mclose, timeout); };
+	function mcancelclosetime() {
+		if(closetimer) {
+			window.clearTimeout(closetimer);
+			closetimer = null;
+		}
+	};
 </script>
 
 <input id="addNewUser" type="submit" value="Add new user">
@@ -91,16 +131,19 @@ $(document).ready(function() {
 		<td>{{lastName}}</td>
 		<td>{{login}}</td>
 		<td>
-			<ul>
-				<li><a href="#" class="editUser" uid='{{id}}'>Edit</a></li>
-				<li><a href="#" class="delteUser" uid='{{id}}'>Delete</a></li>
+			<ul class="sddm">
+				<li><a href="#" onmouseover="mopen('{{id}}')" onmouseout="mclosetime()">Action</a>
+					<div id="{{id}}" onmouseover="mcancelclosetime()" onmouseout="mclosetime()">
+					<a href="#" uid="{{id}}" class="editUser">Edit</a>
+					<a href="#" uid="{{id}}" class="deleteUser">Delete</a>
+					</div>
+				</li>
 			</ul>
 		</td>
 	</tr>
 {{/users}}
 <tbody>
 </table>
-
 <div id="ski_editUser"></div>
 
 
