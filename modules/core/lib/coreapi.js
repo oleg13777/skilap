@@ -11,22 +11,24 @@ var SkilapError = require("./SkilapError");
  * @ignore
  */
 function CoreApi(ctx) {
+	this._ctx = ctx;
+	this._sessions = {};
+	this._core_users = null;
+	this._core_clients = null;
+}
 
-var sessions = {};
-var self = this;
-var core_users = null;
-var core_clients = null;
-
-this.getLanguageSync = function(token) {
-	var s = sessions[token];
+CoreApi.prototype.getLanguageSync = function(token) {
+	var self = this;
+	var s = self._sessions[token];
 	if (s!=null)
 		return s.user.language;
 }
 
-this.loadData = function (cb) {
+CoreApi.prototype.loadData = function (cb) {
+	var self = this;
 	async.waterfall([
 		function (cb1) {
-			ctx.getDB(cb1);
+			self._ctx.getDB(cb1);
 		},
 		function (adb,cb1) {
 			async.parallel([
@@ -36,8 +38,8 @@ this.loadData = function (cb) {
 					{type:'cached_key_map',buffered:true})
 			], function (err, results) {
 				if (err) return cb1(err);
-				core_users = results[0];
-				core_clients = results[1];
+				self._core_users = results[0];
+				self._core_clients = results[1];
 				cb1();
 			});
 		}
@@ -54,7 +56,9 @@ this.loadData = function (cb) {
  *
  * @returns {String} some temporary valid identity to call other API functions
  */
-this.getApiToken = function (appId, clientId, signature, cb) {
+CoreApi.prototype.getApiToken = function (appId, clientId, signature, cb) {
+	var self = this;
+
 	// 1st steep, check that appId+clientId are correct (signature matches)
 	// this will later also check that app is known and so on
 	
@@ -65,9 +69,9 @@ this.getApiToken = function (appId, clientId, signature, cb) {
 		// generate unique id
 		function (cb1) {
 			async.whilst(function () { 
-					return apiToken==null || sessions[apiToken]!=null;
+					return apiToken==null || self._sessions[apiToken]!=null;
 				}, function (cb2) {
-					ctx.getRandomString(64, function (err, rnd) {
+					self._ctx.getRandomString(64, function (err, rnd) {
 						apiToken = rnd;
 						cb2();
 					})
@@ -76,11 +80,11 @@ this.getApiToken = function (appId, clientId, signature, cb) {
 				})
 		},
 		function (cb1) {
-			core_clients.get(clientId,cb1);
+			self._core_clients.get(clientId,cb1);
 		},
 		function (client,cb1) {
 			if (client==null) return cb1(new Error());
-			core_users.get(client.uid,cb1);
+			self._core_users.get(client.uid,cb1);
 		},
 		function (user_, cb1) {
 			if (user_==null) return cb1(new Error());
@@ -93,7 +97,7 @@ this.getApiToken = function (appId, clientId, signature, cb) {
 			user = {type:'guest'};
 		}
 		var session = {user:user,clientId:clientId,appId:appId};
-		sessions[apiToken] = session;
+		self._sessions[apiToken] = session;
 		cb(null, apiToken);
 	});
 }
@@ -108,9 +112,11 @@ this.getApiToken = function (appId, clientId, signature, cb) {
  * 
  * @throws {AccessDenied} when permission is not meet
  */ 
-this.checkPerm = function (token, opts, cb) {
+CoreApi.prototype.checkPerm = function (token, opts, cb) {
+	var self = this;
+
 	var perm = opts[0];
-	var session = sessions[token];
+	var session = self._sessions[token];
 	if (!session) 
 		return cb(new SkilapError('Wrong access token','InvalidToken'));
 	if (session.user.type=='admin') {
@@ -122,7 +128,7 @@ this.checkPerm = function (token, opts, cb) {
 				,'AccessDenied'));
 	}
 	else if (session.user.type=="guest")
-		cb(new SkilapError(ctx.i18n(token, 'core', 'Access denied')
+		cb(new SkilapError(self._ctx.i18n(token, 'core', 'Access denied')
 			,'AccessDenied'));
 	else 
 		cb();
@@ -134,7 +140,9 @@ this.checkPerm = function (token, opts, cb) {
  * @param {String} token api token
  * @returns {Array} list of all users
  */
-this.getAllUsers = 	function (token, cb) {
+CoreApi.prototype.getAllUsers = 	function (token, cb) {
+	var self = this;
+
 	async.series ([
 		function start(cb1) {
 			async.parallel([
@@ -143,7 +151,7 @@ this.getAllUsers = 	function (token, cb) {
 		}, 
 		function get(cb1) {
 			var users = [];
-			core_users.scan(function (err, key, acc) {
+			self._core_users.scan(function (err, key, acc) {
 				if (err) cb1(err);
 				if (key) users.push(acc);
 					else cb1(null, users);
@@ -161,14 +169,18 @@ this.getAllUsers = 	function (token, cb) {
  * 
  * @param {String} token api token
  */
-this.getUser = function (token, cb) {
-	var session = sessions[token];
+CoreApi.prototype.getUser = function (token, cb) {
+	var self = this;
+
+	var session = self._sessions[token];
 	if (!session) 
 		return cb(new SkilapError('Wrong access token','InvalidToken'));
 	cb(null, _(session.user).clone());
 }
 
-this.getUserById = function(token, userId, cb) {
+CoreApi.prototype.getUserById = function(token, userId, cb) {
+	var self = this;
+
 	async.series ([
 		function start(cb1) {
 			async.parallel([
@@ -176,7 +188,7 @@ this.getUserById = function(token, userId, cb) {
 			],cb1);
 		}, 
 		function get(cb1) {
-			core_users.get(userId, function (err, user) {
+			self._core_users.get(userId, function (err, user) {
 				if (err) cb1(err);
 				cb1(null, user);
 			});
@@ -195,8 +207,10 @@ this.getUserById = function(token, userId, cb) {
  * 
  * @returns {User} Updated or created user
  */
-this.saveUser = function (token, newUser, cb) {
-	var session = sessions[token];
+CoreApi.prototype.saveUser = function (token, newUser, cb) {
+	var self = this;
+
+	var session = self._sessions[token];
 	if (!session) 
 		return cb(new SkilapError('Wrong access token','InvalidToken'));
 	
@@ -212,7 +226,7 @@ this.saveUser = function (token, newUser, cb) {
 		async.waterfall([
 			async.apply(self.checkPerm,token,['core.user.edit']),
 			function (cb1){
-				core_users.get(newUser.id, function (err, user) {
+				self._core_users.get(newUser.id, function (err, user) {
 					if (err) cb1(err);
 					cb1(null, user);
 				});
@@ -231,7 +245,7 @@ this.saveUser = function (token, newUser, cb) {
 				}
 				if (newUser.timeZone) updUser.timeZone = newUser.timeZone;
 				if (newUser.language) updUser.language = newUser.language;
-				core_users.put(updUser.id, updUser, cb1);
+				self._core_users.put(updUser.id, updUser, cb1);
 			}
 		], cb);
 	} else {
@@ -240,7 +254,7 @@ this.saveUser = function (token, newUser, cb) {
 			async.apply(self.checkPerm,token,['core.user.edit']),
 			function checkUserUniq (cb1) {
 				var unique = true;
-				core_users.scan(function (err, key, user) {
+				self._core_users.scan(function (err, key, user) {
 					if (key==null)
 						unique?cb1():cb1(new Error('User log-in is not unique'));
 					else {
@@ -249,7 +263,7 @@ this.saveUser = function (token, newUser, cb) {
 					}
 				},true)
 			},
-			async.apply(ctx.getUniqueId),
+			function (cb) {self.ctx.getUniqueId(cb) },
 			function save(newId, cb1) {
 				var user = {id:newId};
 				if (newUser.firstName) 
@@ -271,7 +285,7 @@ this.saveUser = function (token, newUser, cb) {
 				if (newUser.timeZone) user.timeZone = newUser.timeZone;
 				if (newUser.language) user.language = newUser.language;
 
-				core_users.put(newId, user, cb1);
+				self._core_users.put(newId, user, cb1);
 			}
 		], cb)
 	}
@@ -287,16 +301,18 @@ this.saveUser = function (token, newUser, cb) {
  * 
  * @throws {InvalidData} when login or pass is wrong
  */	
-this.loginByPass = function (token, login, password, cb ) {
+CoreApi.prototype.loginByPass = function (token, login, password, cb ) {
+	var self = this;
+
 	var won = false;
-	core_users.scan(function (err, key, user) {
+	self._core_users.scan(function (err, key, user) {
 		if (err) cb1(err);
 		if (key) {
 			if (user.login == login && user.password == password) {
 				user.type = 'user';
-				var s = sessions[token];
+				var s = self._sessions[token];
 				s.user = user;
-				core_clients.put(s.clientId,
+				self._core_clients.put(s.clientId,
 					{uid:s.user.id,date:new Date(),appId:s.appId}, function () {});
 				cb(null, user);
 				won = true;
@@ -304,21 +320,25 @@ this.loginByPass = function (token, login, password, cb ) {
 		} else {
 			// special case, hardcoded admin user
 			if (login == 'admin' && password == 'skilap') {
-				sessions[token].user = {type:'admin',screenName:'Server Owner'};
-				cb(null, sessions[token].user);
+				self._sessions[token].user = {type:'admin',screenName:'Server Owner'};
+				cb(null, self._sessions[token].user);
 			} else if (!won)
-				cb(new SkilapError(ctx.i18n(token,'core','Log-in failed')
+				cb(new SkilapError(self._ctx.i18n(token,'core','Log-in failed')
 					,'InvalidData'));
 		}
 	},true);
 }
 
-this.logOut = function (token, cb) {
-	sessions[token].user = {type:"guest"};
+CoreApi.prototype.logOut = function (token, cb) {
+	var self = this;
+
+	self._sessions[token].user = {type:"guest"};
 	cb();
 }
 
-this.deleteUser = function(token, userId, cb) {
+CoreApi.prototype.deleteUser = function(token, userId, cb) {
+	var self = this;
+
 	console.log("delete");
 	async.series ([
 		function start(cb1) {
@@ -327,15 +347,13 @@ this.deleteUser = function(token, userId, cb) {
 			],cb1);
 		}, 
 		function get(cb1) {
-			core_users.put(userId, null, cb1);
+			self._core_users.put(userId, null, cb1);
 		}], function end(err, results) {
 			console.log(results);
 			if (err) return cb(err);
 			cb(null, true);
 		}
 	)
-}
-
 }
 
 /**
