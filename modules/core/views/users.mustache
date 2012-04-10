@@ -123,17 +123,16 @@ $(document).ready(function() {
 <br />
 <br />
 <table id="users">
-<thead><th class="left">#</th><th>First name</th><th>Last name</th><th>Log-in</th><th class="right"></th><thead>
-<tbody>
+<th class="left">#</th><th>First name</th><th>Last name</th><th>Log-in</th><th class="right"><img width="20px" src="{{prefix}}/images/cog_alt.png"></th>
 {{#users}}
 	<tr>
 		<td class="left">{{id}}</td>
 		<td>{{firstName}}</td>
 		<td>{{lastName}}</td>
 		<td>{{login}}</td>
-		<td>
+		<td class="right">
 			<ul class="sddm">
-				<li><a href="#" onmouseover="mopen('{{id}}')" onmouseout="mclosetime()">Action</a>
+				<li><a href="#" onmouseover="mopen('{{id}}')" onmouseout="mclosetime()"><img width="20px" src="{{prefix}}/images/cog_alt.png"></a>
 					<div id="{{id}}" onmouseover="mcancelclosetime()" onmouseout="mclosetime()">
 					<a href="#" uid="{{id}}" class="editUser">Edit</a>
 					<a href="#" uid="{{id}}" class="deleteUser">Delete</a>
@@ -143,7 +142,6 @@ $(document).ready(function() {
 		</td>
 	</tr>
 {{/users}}
-<tbody>
 </table>
 
 </div>
