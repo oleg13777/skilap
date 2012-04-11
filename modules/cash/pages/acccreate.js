@@ -69,10 +69,8 @@ module.exports = function account(webapp) {
 		var curencies = [];
 		var assetsTypes = [];
 		async.waterfall([
-			async.apply(getAccWithChild, req.session.apiToken, 0, assets),
-			function (cb1) {
-				ctx.i18n_getCurrencies("rus", cb1);
-			},
+			function (cb) { getAccWithChild(req.session.apiToken, 0, assets, cb) },
+			function (cb) {	ctx.i18n_getCurrencies("rus", cb) },
 			function(_curencies, cb1){
 				cashapi.getAssetsTypes(function(err, types){
 					curencies = _curencies

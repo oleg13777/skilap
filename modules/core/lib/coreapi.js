@@ -4,7 +4,7 @@
  */
 var _ = require('underscore');
 var async = require('async');
-var SkilapError = require("skilap-utils").SklapError;
+var SkilapError = require("skilap-utils").SkilapError;
 
 /**
  * Private helper class to store context

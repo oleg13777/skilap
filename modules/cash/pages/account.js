@@ -290,7 +290,7 @@ module.exports = function account(webapp) {
 	app.get(webapp.prefix+'/account/:id/getaccounts', function(req, res, next) {
 		var tmp = [];		
 		async.waterfall([
-			async.apply(cashapi.getAllAccounts, req.session.apiToken),
+			function (cb) { cashapi.getAllAccounts(req.session.apiToken, cb) },
 			function (accounts,cb1) {
 				var tmp = [];
 				async.forEach(accounts, function (acc, cb2) {

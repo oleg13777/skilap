@@ -198,7 +198,7 @@ function Skilap() {
 
 				app.post("/login", function (req,res,next) {
 					async.series([
-						async.apply(modules['core'].api.loginByPass,req.session.apiToken, req.body.name, req.body.password)
+						function (cb) { modules['core'].api.loginByPass(req.session.apiToken, req.body.name, req.body.password, cb) }
 					], function (err, user) {
 						if (err) {
 							console.log(err);

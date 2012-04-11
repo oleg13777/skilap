@@ -144,7 +144,7 @@ module.exports = function account(webapp) {
 	
 	app.post(prefix+"/report", function(req, res, next) {
 		async.waterfall([
-			async.apply(webapp.removeTabs, req.session.apiToken, [req.query.name]),
+			function (cb) { webapp.removeTabs(req.session.apiToken, [req.query.name], cb) },
 			function (cb1) {
 				var settings = getDefaultSettings();
 				if (req.body.reportType == "INCOME"){
