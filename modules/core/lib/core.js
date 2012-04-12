@@ -241,7 +241,7 @@ function Skilap() {
 							jsonres.id = jsonrpc.id;
 							res.send(jsonres);
 						})
-						fn.apply(this, params);
+						fn.apply(api, params);
 						out = true;
 					} catch (err) {
 						console.log(err);
