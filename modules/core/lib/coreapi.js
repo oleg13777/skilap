@@ -114,7 +114,7 @@ CoreApi.prototype.getApiToken = function (appId, clientId, signature, cb) {
  */ 
 CoreApi.prototype.checkPerm = function (token, opts, cb) {
 	var self = this;
-
+	console.log(self._sessions);
 	var perm = opts[0];
 	var session = self._sessions[token];
 	if (!session) 

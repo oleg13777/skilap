@@ -22,7 +22,10 @@ module.exports = function account(ctx, app, api, prefix) {
 	app.get(prefix+"/user", function(req, res, next) {
 		async.waterfall([
 			function (cb1) {
-				var rdata = {prefix:prefix, header:true, token:req.session.apiToken, host:req.headers.host};
+				ctx.getModulesInfo(req.session.apiToken, cb1);
+			},
+			function (mInfo, cb1) {
+				var rdata = {prefix:prefix, header:true, token:req.session.apiToken, host:req.headers.host, mInfo:mInfo};
 				cb1(null, rdata);
 			},
 			function render (data) {

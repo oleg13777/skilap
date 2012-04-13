@@ -45,5 +45,12 @@ $(document).ready(function() {
 <div class="user">
 	<h2>{{#i18n}}Your permissions{{/i18n}}</h2><a href="#">{{#i18n}}edit{{/i18n}}</a>
 	<hr size="2" noshade />
+	{{#mInfo}}
+		<p><b>{{name}}</b><br />
+		{{#permissions}}
+			&nbsp;&nbsp;&nbsp;{{desc}}<br />
+		{{/permissions}}
+		</p>
+	{{/mInfo}}
 </div>
 <div id="ski_editUser"></div>
