@@ -13,6 +13,7 @@ var SkilapError = require("skilap-utils").SkilapError;
 function CoreApi(ctx) {
 	this._ctx = ctx;
 	this._sessions = {};
+	console.log("core api constructor");
 	this._core_users = null;
 	this._core_clients = null;
 }
@@ -114,7 +115,6 @@ CoreApi.prototype.getApiToken = function (appId, clientId, signature, cb) {
  */ 
 CoreApi.prototype.checkPerm = function (token, opts, cb) {
 	var self = this;
-	console.log(self._sessions);
 	var perm = opts[0];
 	var session = self._sessions[token];
 	if (!session) 
@@ -184,7 +184,7 @@ CoreApi.prototype.getUserById = function(token, userId, cb) {
 	async.series ([
 		function start(cb1) {
 			async.parallel([
-				async.apply(self.checkPerm,token,['core.user.view'])
+				function(cb1) { self.checkPerm(token, ['core.user.view'], cb1) }
 			],cb1);
 		}, 
 		function get(cb1) {
@@ -224,7 +224,7 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 	} else if (newUser.id) {
 		// update 
 		async.waterfall([
-			async.apply(self.checkPerm,token,['core.user.edit']),
+			function (cb1) { self.checkPerm(token, ['core.user.edit'], cb1) },
 			function (cb1){
 				self._core_users.get(newUser.id, function (err, user) {
 					if (err) cb1(err);
@@ -251,7 +251,7 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 	} else {
 		// create new
 		async.waterfall([
-			async.apply(self.checkPerm,token,['core.user.edit']),
+			function (cb1) { self.checkPerm(token, ['core.user.edit'], cb1)},
 			function checkUserUniq (cb1) {
 				var unique = true;
 				self._core_users.scan(function (err, key, user) {
@@ -343,7 +343,7 @@ CoreApi.prototype.deleteUser = function(token, userId, cb) {
 	async.series ([
 		function start(cb1) {
 			async.parallel([
-				async.apply(self.checkPerm,token,['core.user.edit'])
+				function (cb2) { self.checkPerm(token, ['core.user.edit'], cb2)}
 			],cb1);
 		}, 
 		function get(cb1) {
