@@ -22,5 +22,6 @@
     , "mime": ">= 0.0.1"  
 	, "temp" : ""
 	, "node.extend" : ""
+	, "v8-profiler" : ""
     }
 }

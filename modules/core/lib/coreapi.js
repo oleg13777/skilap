@@ -263,7 +263,7 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 					}
 				},true)
 			},
-			function (cb) {self.ctx.getUniqueId(cb) },
+			function (cb) {self._ctx.getUniqueId(cb) },
 			function save(newId, cb1) {
 				var user = {id:newId};
 				if (newUser.firstName) 
