@@ -245,6 +245,7 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 				}
 				if (newUser.timeZone) updUser.timeZone = newUser.timeZone;
 				if (newUser.language) updUser.language = newUser.language;
+				if (newUser.permissions) updUser.permissions = newUser.permissions;
 				self._core_users.put(updUser.id, updUser, cb1);
 			}
 		], cb);
@@ -265,7 +266,7 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 			},
 			function (cb) {self._ctx.getUniqueId(cb) },
 			function save(newId, cb1) {
-				var user = {id:newId};
+				var user = {id:newId, permissions: []};
 				if (newUser.firstName) 
 					user.firstName=newUser.firstName;
 				else
@@ -284,6 +285,7 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 					user.password = newUser.newPass;
 				if (newUser.timeZone) user.timeZone = newUser.timeZone;
 				if (newUser.language) user.language = newUser.language;
+				if (newUser.permissions) user.permissions = newUser.permissions;
 
 				self._core_users.put(newId, user, cb1);
 			}

@@ -13,7 +13,50 @@ $(document).ready(function() {
 	});
 	$("body").on('accountEditSuccess',function(e,id){
 		location.reload(true);
-	});	
+	});
+	$("#editPerm").click(function(){
+		{{#user}}
+		{{#permissions}}
+			$(".perm[value='{{id}}']").attr("checked", "checked");
+		{{/permissions}}
+		{{/user}}
+		$("#editPermDialog").dialog("open");
+	});
+	$("#editPermDialog").dialog({
+		position: ["center","center"],
+		buttons: {
+			"apply": function() {
+				var self = $(this);
+				var newUser = { id: {{#user}}{{id}}{{/user}} };
+				var perms = [];
+				$('.perm').filter(":checkbox:checked").each(function(index, checkbox) {
+					perms.push({id: $(checkbox).attr("value"), desc: $(checkbox).attr("desc")});
+				});
+				newUser.permissions = perms;
+				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
+				rpc.call('core.saveUser', $("#token").val(), newUser, {
+					success: function (data) {
+						$("#caption").text("");
+						self.dialog("close");
+						location.reload(true);
+					},
+					failure: function (reason) {
+						console.log(reason);
+						$("#caption").text(reason);
+					}
+				});
+			},
+			"close": function() {
+				$(this).dialog("close");
+			}
+		},
+		autoOpen: false,
+		resizable: false,
+		height: 400,
+		width: 400,
+		modal: true,
+		draggable: false
+	});
 });
 </script>
 
@@ -43,14 +86,28 @@ $(document).ready(function() {
 	{{/user}}
 </div>
 <div class="user">
-	<h2>{{#i18n}}Your permissions{{/i18n}}</h2><a href="#">{{#i18n}}edit{{/i18n}}</a>
+	<h2>{{#i18n}}Your permissions{{/i18n}}</h2><a href="#" id="editPerm">{{#i18n}}edit{{/i18n}}</a>
 	<hr size="2" noshade />
-	{{#mInfo}}
-		<p><b>{{name}}</b><br />
+	{{#user}}
+		<ul>
 		{{#permissions}}
-			&nbsp;&nbsp;&nbsp;{{desc}}<br />
+			<li>{{desc}}</li>
 		{{/permissions}}
-		</p>
-	{{/mInfo}}
+		</ul>
+	{{/user}}
 </div>
 <div id="ski_editUser"></div>
+
+<div id="editPermDialog" title="{{#i18n}}Edit permissions{{/i18n}}" class="editPermDialog" style="width: 600; height: 200px;">
+	<form>
+	<input id="token" type="hidden" value="{{apiToken}}">
+	<table>
+	{{#mInfo}}
+		<tr><td><b>{{name}}</b></td><td></td></tr>
+		{{#permissions}}
+			<tr><td>&nbsp;&nbsp;&nbsp;{{desc}}</td><td><input type="checkbox" class="perm" value="{{id}}" desc="{{desc}}"/></td></tr>
+		{{/permissions}}
+	{{/mInfo}}
+	</table>
+	</form>
+</div>
