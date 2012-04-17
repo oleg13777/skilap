@@ -17,7 +17,7 @@ $(document).ready(function() {
 	$("#editPerm").click(function(){
 		{{#user}}
 		{{#permissions}}
-			$(".perm[value='{{id}}']").attr("checked", "checked");
+			$(".perm[value='{{.}}']").attr("checked", "checked");
 		{{/permissions}}
 		{{/user}}
 		$("#editPermDialog").dialog("open");
@@ -30,7 +30,7 @@ $(document).ready(function() {
 				var newUser = { id: {{#user}}{{id}}{{/user}} };
 				var perms = [];
 				$('.perm').filter(":checkbox:checked").each(function(index, checkbox) {
-					perms.push({id: $(checkbox).attr("value"), desc: $(checkbox).attr("desc")});
+					perms.push($(checkbox).attr("value"));
 				});
 				newUser.permissions = perms;
 				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
@@ -88,13 +88,12 @@ $(document).ready(function() {
 <div class="user">
 	<h2>{{#i18n}}Your permissions{{/i18n}}</h2><a href="#" id="editPerm">{{#i18n}}edit{{/i18n}}</a>
 	<hr size="2" noshade />
-	{{#user}}
-		<ul>
-		{{#permissions}}
-			<li>{{desc}}</li>
-		{{/permissions}}
-		</ul>
-	{{/user}}
+	{{#permissions}}
+		<h4>{{module}}:</h4>
+		{{#perm}}
+			&nbsp;&nbsp;&nbsp;{{.}}<br />
+		{{/perm}}
+	{{/permissions}}
 </div>
 <div id="ski_editUser"></div>
 
@@ -105,7 +104,7 @@ $(document).ready(function() {
 	{{#mInfo}}
 		<tr><td><b>{{name}}</b></td><td></td></tr>
 		{{#permissions}}
-			<tr><td>&nbsp;&nbsp;&nbsp;{{desc}}</td><td><input type="checkbox" class="perm" value="{{id}}" desc="{{desc}}"/></td></tr>
+			<tr><td>&nbsp;&nbsp;&nbsp;{{desc}}</td><td><input type="checkbox" class="perm" value="{{id}}"/></td></tr>
 		{{/permissions}}
 	{{/mInfo}}
 	</table>
