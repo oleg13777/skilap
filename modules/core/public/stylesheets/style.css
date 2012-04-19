@@ -91,6 +91,14 @@ tr { height: 24px;}
 	line-height: 80px;
 }
 
+#editPermDialog table {
+	width: 100%;
+}
+
+#editPermDialog td {
+	border: none;
+}
+
 .dialog table {
 	width: 100%
 }

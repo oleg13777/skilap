@@ -38,7 +38,8 @@ self.ctx.once("WebStarted", function (err) {
 function loadData (cb) {
 	var adb;
 	async.series([
-			async.apply(self.ctx.getDB)
+			//async.apply(self.ctx.getDB)
+			function(cb1) {self.ctx.getDB(cb1)}
 		], function (err, results) {
 			if (err) return cb(err);
 			var adb = results[0];
