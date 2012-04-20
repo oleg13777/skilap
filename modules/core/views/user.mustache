@@ -61,7 +61,7 @@ $(document).ready(function() {
 </script>
 
 <div class="user">
-	<h2>{{#i18n}}Your prefferences{{/i18n}}</h2><a href="#" id="openEditPref">{{#i18n}}edit{{/i18n}}</a>
+	<h2>{{#i18n}}Your prefferences{{/i18n}}</h2>{{#user.perm.core_me_edit}}<a href="#" id="openEditPref">{{#i18n}}edit{{/i18n}}</a>{{/user.perm.core_me_edit}}
 	<hr size="2" noshade />
 	{{#user}}
 	<table>
@@ -86,7 +86,7 @@ $(document).ready(function() {
 	{{/user}}
 </div>
 <div class="user">
-	<h2>{{#i18n}}Your permissions{{/i18n}}</h2><a href="#" id="editPerm">{{#i18n}}edit{{/i18n}}</a>
+	<h2>{{#i18n}}Your permissions{{/i18n}}</h2>{{#user.perm.core_user_edit}}<a href="#" id="editPerm">{{#i18n}}edit{{/i18n}}</a>{{/user.perm.core_user_edit}}
 	<hr size="2" noshade />
 	{{#permissions}}
 		<h4>{{module}}:</h4>

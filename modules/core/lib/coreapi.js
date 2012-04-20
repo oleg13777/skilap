@@ -95,7 +95,7 @@ CoreApi.prototype.getApiToken = function (appId, clientId, signature, cb) {
 		}
 	], function (err) {
 		if (err) {
-			user = {type:'guest'};
+			user = {type:'guest',permissions:['core.me.view', 'core.me.edit']};
 		}
 		var session = {user:user,clientId:clientId,appId:appId};
 		self._sessions[apiToken] = session;
@@ -322,8 +322,14 @@ CoreApi.prototype.loginByPass = function (token, login, password, cb ) {
 		} else {
 			// special case, hardcoded admin user
 			if (login == 'admin' && password == 'skilap') {
-				self._sessions[token].user = {type:'admin',screenName:'Server Owner'};
-				cb(null, self._sessions[token].user);
+				self._sessions[token].user = {type:'admin',permissions:[],screenName:self._ctx.i18n(token,'core','Ski Master')};
+				self._ctx.getModule('core',function (err, core) {
+					core.getPermissionsList(token, function (err, perm) {
+						console.log(perm);
+						self._sessions[token].user.permissions = _(perm).pluck("id");
+						cb(null, self._sessions[token].user);
+					})
+				})
 			} else if (!won)
 				cb(new SkilapError(self._ctx.i18n(token,'core','Log-in failed')
 					,'InvalidData'));
@@ -334,7 +340,7 @@ CoreApi.prototype.loginByPass = function (token, login, password, cb ) {
 CoreApi.prototype.logOut = function (token, cb) {
 	var self = this;
 
-	self._sessions[token].user = {type:"guest"};
+	self._sessions[token].user = {type:'guest',permissions:['core.me.view', 'core.me.edit']};
 	cb();
 }
 
@@ -372,8 +378,8 @@ module.exports.init = function (ctx, cb) {
 			var res = [];
 			res.push({id:'core.me.view', desc:ctx.i18n(token, 'core', 'View personal data')});
 			res.push({id:'core.me.edit', desc:ctx.i18n(token, 'core', 'Edit personal data')});
-			res.push({id:'core.users.view', desc:ctx.i18n(token, 'core', 'View system users')});
-			res.push({id:'cash.users.edit', desc:ctx.i18n(token, 'core', 'Edit system users')});
+			res.push({id:'core.user.view', desc:ctx.i18n(token, 'core', 'View system users')});
+			res.push({id:'core.user.edit', desc:ctx.i18n(token, 'core', 'Edit system users')});
 			cb(null,res);
 		}
 		

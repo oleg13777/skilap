@@ -156,7 +156,18 @@ function Skilap() {
 							return req.session.apiToken;
 						},
 						user: function (req, res) {
-							return req.skilap.user;
+							var user = _(req.skilap.user).clone();
+							user.perm = {};
+							if (!user.permissions)
+								user.permissions = ['core.me.view'];
+							_(user.permissions).reduce(function (ctx,val) {
+								var fname=val.replace(/\./g,'_');
+								ctx[fname]=1;
+								return ctx;
+							},user.perm);
+							delete user.permissions;
+							console.log(user);
+							return user;
 						},
 						url: function (req, res) {
 							return req.url;
