@@ -10,6 +10,7 @@
 		y_title = "Total Income";
 	}
 	$(document).ready(function() {
+		{{#expense}}
 		chart = new Highcharts.Chart({
 			chart: {
 				renderTo: 'container',
@@ -56,7 +57,42 @@
 			},
 			series: {{{series}}}
 		});
+		{{/expense}}
 		
+		{{#pie}}
+		chart = new Highcharts.Chart({
+			chart: {
+				renderTo: 'container',
+				plotBackgroundColor: null,
+				plotBorderWidth: null,
+				plotShadow: false
+			},
+			title: {
+				text: 'Expense Accounts'
+			},
+			tooltip: {
+				formatter: function() {
+					return '<b>'+ this.point.name +'</b>: '+ this.percentage.toFixed(2) +' %';
+				}
+			},
+			plotOptions: {
+				pie: {
+					allowPointSelect: true,
+					cursor: 'pointer',
+					dataLabels: {
+						enabled: true,
+						color: '#000000',
+						connectorColor: '#000000',
+						formatter: function() {
+							return '<b>'+ this.point.name +'</b>: '+ this.percentage.toFixed(2) +' %';
+						}
+					}
+				}
+			},
+			series: [{{{series}}}]
+		});
+		{{/pie}}
+
 		var form = document.forms.properties;
 		form.elements.maxAcc.value=params.maxAcc;
 		if (params.accType == "EXPENSE") {
