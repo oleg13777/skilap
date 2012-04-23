@@ -93,7 +93,7 @@ module.exports = function account(webapp) {
 			}, [])
 			
 			if (!periods)
-				report = {type:'pie', name:'TEST PIE', data: report};
+				report = {type:'pie', data: report};
 			
 			cb(null, report);
 		})
@@ -123,13 +123,13 @@ module.exports = function account(webapp) {
 		});
 	};
 	
-	function getDefaultSettings() {
+	function getDefaultSettings(reportName) {
 		var defaultSettings = {
 				startDate:new Date(new Date().getFullYear()-1, 0, 1),
 				endDate:new Date(new Date().getFullYear()-1, 11, 31),
 				accType:"EXPENSE",
 				maxAcc:10,
-				reportName:"expense",
+				reportName:reportName,
 				version: 1
 			};
 		return defaultSettings;
@@ -157,7 +157,7 @@ module.exports = function account(webapp) {
 			},
 			function (vtabs, settings, cb1) {
 				if (_.isEmpty(settings) || !settings.version || (settings.version != 1)) {
-					settings = getDefaultSettings();
+					settings = getDefaultSettings(req.query.name);
 				}
 				if (req.query.name == 'expense')
 					calculateDataForChart(req.session.apiToken, settings, vtabs, cb1);
