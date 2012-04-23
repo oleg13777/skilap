@@ -23,5 +23,6 @@
 	, "temp" : ""
 	, "node.extend" : ""
 	, "v8-profiler" : ""
+	, "validator" : ""
     }
 }

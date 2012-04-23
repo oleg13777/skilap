@@ -1,10 +1,11 @@
 <div id="ski_createAccount"></div>
 <table id="acc" cellspacing="0" cellpadding="5" width="100%">	
 <thead>
-		<th class="number">#</th>
 		<th class="value">Date</th>
+		<th class="number">Num</th>
 		<th class="description">Description</th>
 		<th class="account">Path</th>
+		<th class="transfer">R</th>
 		<th class="value">Recieved</th>
 		<th class="value">Spend</th>
 		<th class="value">Ballance</th>
@@ -12,13 +13,14 @@
 	<tbody>
 		
 		<tr>
-			<td class="number">{{num}}</td>
-			<td class="value">{{date}}</td>
-			<td class="description">{{description}}</td>
-			<td class="account">{{accpath}}</td>
-			<td class="value">{{value}}</td>
-			<td class="value"></td>
-			<td class="value"></td>
+			<td class="value" name="date" ></td>
+			<td class="number" name="num" ></td>
+			<td class="description" name="description" ></td>
+			<td class="account" name="path" ></td>
+			<td class="transfer" name="transfer" ></td>
+			<td class="value" name="deposit" ></td>
+			<td class="value" name="withdrawal" ></td>
+			<td class="value" name="total" ></td>
 		</tr>
 		
 	</tbody>
@@ -38,23 +40,15 @@
 $(document).ready(function(){	
 	$('#acc').skiGrid({
 		"sAjaxSource": "{{prefix}}/account/{{accountId}}/getgrid",		
-		"columns":[
-			{"attr":{"name":"id"}},
-			{"attr":{"name":"date"}},
-			{"attr":{"name":"description"}},
-			{"attr":{"name":"path"}},
-			{"attr":{"name":"deposit"}},
-			{"attr":{"name":"withdrawal"}},
-			{"attr":{"name":"total"}}
-		],
 		"editable":{
 			"sUpdateURL":"{{prefix}}/account/{{accountId}}/updaterow",	
 			"sAddURL":"{{prefix}}/account/{{accountId}}/addrow",		
 			"columns": [
-				null,
 				{"type":"datepicker","icon":"{{prefix}}/images/calendar.gif"},
+				{"type":"input","format":"number"},			
 				{"type":"autocomplete","source":"{{prefix}}/account/{{accountId}}/getdesc","placeholder":""},
 				{"type":"select","source":"{{prefix}}/account/{{accountId}}/getaccounts"},
+				{"type":"span"},
 				{"type":"input","format":"number"},
 				{"type":"input","format":"number"},
 				null

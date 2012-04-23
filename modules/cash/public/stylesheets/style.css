@@ -36,7 +36,12 @@ td {
 }
 .number{ 
 	text-align: left; 
-	width:10%;
+	width:8%;
+}
+.transfer{
+	text-align: left; 
+	width:2%;
+	cursor:pointer;
 }
 
 .ski_gridWrapper{
@@ -50,6 +55,10 @@ td {
 
 .ski_gridHeaderWrapper table{
 	background-color:#96b183;
+}
+
+.ski_gridHeaderWrapper table th{
+	text-align:left;
 }
 
 .ski_gridHeaderWrapper{
