@@ -26,13 +26,16 @@ module.exports = function account(webapp) {
 	function calcAccStatsByPerriod (token, accounts, accType, startDate, endDate, periods, maxAcc, cb) {
 		// prepare the matrix for single pass calculation
 		var accKeys = _(accounts).reduce( function (memo, acc) {
-			if (acc.type == accType)
+			if ((acc.type == accType) && periods)
 				memo[acc.id] = {name:acc.name, id:acc.id,summ:0,periods:_(periods).map(function (p) { return _(p).clone(); })};
+			else if (acc.type == accType)
+				memo[acc.id] = {name:acc.name, id:acc.id,summ:0};
 			return memo;
 		}, {})
 		// do a single pass calcs
 		cashapi.getTransactionsInDateRange(token,[startDate,endDate,true,false],function (err,trns) {
 			if (err) return cb1(err);
+			var total = 0;
 			_(trns).forEach(function (tr) {
 				_(tr.splits).forEach( function(split) {
 					var acs = accKeys[split.accountId];
@@ -40,13 +43,14 @@ module.exports = function account(webapp) {
 						var val = split.quantity;
 						if (accType == "INCOME")
 							val *= -1;
-
 						acs.summ+=val;
-						var d = (new Date(tr.datePosted)).valueOf();
-						_(acs.periods).forEach(function (p) {
-							if (d>p.start.valueOf() && d<=p.end.valueOf())
-								p.summ+=val;
-						})
+						if (periods) {
+							var d = (new Date(tr.datePosted)).valueOf();
+							_(acs.periods).forEach(function (p) {
+								if (d>p.start.valueOf() && d<=p.end.valueOf())
+									p.summ+=val;
+							})
+						}
 					}
 				})
 			})
@@ -56,6 +60,7 @@ module.exports = function account(webapp) {
 				.reduce(function (memo, acs) { memo[acs.id]=1; return memo; }, {}).value();
 			// colapse non important
 			var final = _(accKeys).reduce( function (memo, accKey) {
+				total += accKey.summ;
 				if (_(iacs).has(accKey.id))
 					memo[accKey.id] = accKey;
 				else {
@@ -66,25 +71,46 @@ module.exports = function account(webapp) {
 						memo['other'] = accKey;
 					} else {
 						other.summ+=accKey.summ;
-						for(var i =0; i<other.periods.length; i++) {
-							other.periods[i].summ+=accKey.periods[i].summ;
-						}
+						if (periods)
+							for(var i =0; i<other.periods.length; i++) {
+								other.periods[i].summ+=accKey.periods[i].summ;
+							}
 					}
 				}
 				return memo;
 			}, {});
 			// transform into report form
 			var report = _(final).reduce( function (memo,accKey) {
-				var obj = {name:accKey.name, data:_(accKey.periods).pluck('summ')}
+				var obj = {};
+				if (periods){
+					var obj = {name:accKey.name, data:_(accKey.periods).pluck('summ')}
+				} else {
+					var percent = (accKey.summ / total) * 100
+					obj = [accKey.name, percent];
+				}
 				memo.push(obj);
 				return memo;
 			}, [])
+			
+			if (!periods)
+				report = {type:'pie', data: report};
 			
 			cb(null, report);
 		})
 	}
 	
-	function calculateData(token, params, vtabs, cb){
+	function calculateDataForPie(token, params, vtabs, cb){
+		async.waterfall([
+			function (cb) { cashapi.getAllAccounts(token, cb) },
+			function (accounts, cb1) {
+				calcAccStatsByPerriod(token, accounts, params.accType, params.startDate, params.endDate, null, params.maxAcc, cb1);
+			}
+		], function (err, series) {
+			cb(null, {settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, series:JSON.stringify(series), params:JSON.stringify(params)});
+		});
+	};
+
+	function calculateDataForChart(token, params, vtabs, cb){
 		var periods = getPeriods(params.startDate, params.endDate);
 		var categories = _(periods).map(function (p) { return (p.start.getMonth()+1)+"."+p.start.getFullYear();});
 		async.waterfall([
@@ -97,13 +123,13 @@ module.exports = function account(webapp) {
 		});
 	};
 	
-	function getDefaultSettings() {
+	function getDefaultSettings(reportName) {
 		var defaultSettings = {
 				startDate:new Date(new Date().getFullYear()-1, 0, 1),
 				endDate:new Date(new Date().getFullYear()-1, 11, 31),
 				accType:"EXPENSE",
 				maxAcc:10,
-				reportName:"expense",
+				reportName:reportName,
 				version: 1
 			};
 		return defaultSettings;
@@ -131,17 +157,24 @@ module.exports = function account(webapp) {
 			},
 			function (vtabs, settings, cb1) {
 				if (_.isEmpty(settings) || !settings.version || (settings.version != 1)) {
-					settings = getDefaultSettings();
+					settings = getDefaultSettings(req.query.name);
 				}
-				calculateData(req.session.apiToken, settings, vtabs, cb1);
+				if (req.query.name == 'expense')
+					calculateDataForChart(req.session.apiToken, settings, vtabs, cb1);
+				else if (req.query.name == 'pie_chart')
+					calculateDataForPie(req.session.apiToken, settings, vtabs, cb1);
 			},
 			function (data) {
+				if (req.query.name == 'pie_chart')
+					data.pie=true;
+				else if (req.query.name == 'expense')
+					data.expense = true;
 				res.render(__dirname+"/../views/report", data);
 			}],
 			next
 		);
 	});
-	
+
 	app.post(prefix+"/report", function(req, res, next) {
 		async.waterfall([
 			function (cb) { webapp.removeTabs(req.session.apiToken, [req.query.name], cb) },

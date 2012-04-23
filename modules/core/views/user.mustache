@@ -7,18 +7,61 @@ $(document).ready(function() {
 			$(".pass").hide();
 		$("#ski_editUser").iframeContainer({src:"{{prefix}}/userprefferences", host:"{{host}}"});
 		{{#user}}
-		$("#ski_editUser").iframeContainer("triggerEvent",{name:'setEditUserDialogData',data:{id:{{id}}, firstName:"{{firstName}}", lastName:"{{lastName}}", login:"{{login}}"}});
+		$("#ski_editUser").iframeContainer("triggerEvent",{name:'setEditUserDialogData',data:{id:"{{id}}", firstName:"{{firstName}}", lastName:"{{lastName}}", login:"{{login}}"}});
 		{{/user}}
 		$("#ski_editUser").iframeContainer("open");
 	});
 	$("body").on('accountEditSuccess',function(e,id){
 		location.reload(true);
-	});	
+	});
+	$("#editPerm").click(function(){
+		{{#user}}
+		{{#permissions}}
+			$(".perm[value='{{.}}']").attr("checked", "checked");
+		{{/permissions}}
+		{{/user}}
+		$("#editPermDialog").dialog("open");
+	});
+	$("#editPermDialog").dialog({
+		position: ["center","center"],
+		buttons: {
+			"apply": function() {
+				var self = $(this);
+				var newUser = { id: "{{#user}}{{id}}{{/user}}" };
+				var perms = [];
+				$('.perm').filter(":checkbox:checked").each(function(index, checkbox) {
+					perms.push($(checkbox).attr("value"));
+				});
+				newUser.permissions = perms;
+				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
+				rpc.call('core.saveUser', $("#token").val(), newUser, {
+					success: function (data) {
+						$("#caption").text("");
+						self.dialog("close");
+						location.reload(true);
+					},
+					failure: function (reason) {
+						console.log(reason);
+						$("#caption").text(reason);
+					}
+				});
+			},
+			"close": function() {
+				$(this).dialog("close");
+			}
+		},
+		autoOpen: false,
+		resizable: false,
+		height: 400,
+		width: 400,
+		modal: true,
+		draggable: false
+	});
 });
 </script>
 
 <div class="user">
-	<h2>{{#i18n}}Your prefferences{{/i18n}}</h2><a href="#" id="openEditPref">{{#i18n}}edit{{/i18n}}</a>
+	<h2>{{#i18n}}Your prefferences{{/i18n}}</h2>{{#user.perm.core_me_edit}}<a href="#" id="openEditPref">{{#i18n}}edit{{/i18n}}</a>{{/user.perm.core_me_edit}}
 	<hr size="2" noshade />
 	{{#user}}
 	<table>
@@ -43,14 +86,27 @@ $(document).ready(function() {
 	{{/user}}
 </div>
 <div class="user">
-	<h2>{{#i18n}}Your permissions{{/i18n}}</h2><a href="#">{{#i18n}}edit{{/i18n}}</a>
+	<h2>{{#i18n}}Your permissions{{/i18n}}</h2>{{#user.perm.core_user_edit}}<a href="#" id="editPerm">{{#i18n}}edit{{/i18n}}</a>{{/user.perm.core_user_edit}}
 	<hr size="2" noshade />
-	{{#mInfo}}
-		<p><b>{{name}}</b><br />
-		{{#permissions}}
-			&nbsp;&nbsp;&nbsp;{{desc}}<br />
-		{{/permissions}}
-		</p>
-	{{/mInfo}}
+	{{#permissions}}
+		<h4>{{module}}:</h4>
+		{{#perm}}
+			&nbsp;&nbsp;&nbsp;{{.}}<br />
+		{{/perm}}
+	{{/permissions}}
 </div>
 <div id="ski_editUser"></div>
+
+<div id="editPermDialog" title="{{#i18n}}Edit permissions{{/i18n}}" class="editPermDialog" style="width: 600; height: 200px;">
+	<form>
+	<input id="token" type="hidden" value="{{apiToken}}">
+	<table>
+	{{#mInfo}}
+		<tr><td><b>{{name}}</b></td><td></td></tr>
+		{{#permissions}}
+			<tr><td>&nbsp;&nbsp;&nbsp;{{desc}}</td><td><input type="checkbox" class="perm" value="{{id}}"/></td></tr>
+		{{/permissions}}
+	{{/mInfo}}
+	</table>
+	</form>
+</div>
