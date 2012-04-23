@@ -47,18 +47,15 @@ $(document).ready(function() {
 					timeZone: $("#timezone option:selected").val(),
 					language: $("#language option:selected").val()
 				};
-				newUser.pass = $("#pass").val();
-				newUser.rePass = $("#rePass").val();
+				newUser.password = $("#password").val();
 				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
 				rpc.call('core.saveUser', $("#token").val(), newUser, {
 					success: function (data) {
-						$("#caption").text("");
 						self.dialog("close");
 						location.reload(true);
 					},
 					failure: function (reason) {
-						console.log(reason);
-						$("#caption").text(reason);
+						alert(reason);
 					}
 				});
 			},
@@ -163,10 +160,7 @@ $(document).ready(function() {
 			<td>{{#i18n}}Login{{/i18n}}</td><td><input id="login" type="text"></td>
 		</tr>
 		<tr class="pass">
-			<td>{{#i18n}}Password{{/i18n}}</td><td><input id="pass" type="password"></td>
-		</tr>
-		<tr class="pass">
-			<td>{{#i18n}}Retype password{{/i18n}}</td><td><input id="rePass" type="password"></td>
+			<td>{{#i18n}}Password{{/i18n}}</td><td><input id="password" type="password"></td>
 		</tr>
 		<tr>
 			<td>{{#i18n}}Gui language{{/i18n}}</td>
