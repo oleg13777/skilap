@@ -161,11 +161,11 @@ module.exports = function account(webapp) {
 				}
 				if (req.query.name == 'expense')
 					calculateDataForChart(req.session.apiToken, settings, vtabs, cb1);
-				else if (req.query.name == 'pie')
+				else if (req.query.name == 'pie_chart')
 					calculateDataForPie(req.session.apiToken, settings, vtabs, cb1);
 			},
 			function (data) {
-				if (req.query.name == 'pie')
+				if (req.query.name == 'pie_chart')
 					data.pie=true;
 				else if (req.query.name == 'expense')
 					data.expense = true;
