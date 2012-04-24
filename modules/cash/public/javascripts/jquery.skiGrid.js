@@ -287,7 +287,7 @@
 		}
 		var colName = 'date';
 		if($col.parent().hasClass('splitRow') && $col.parent().next().hasClass('splitRow')){
-			colName = 'path';
+			colName = 'description';
 		}
 		var targetColumn = $($col.parent().find('td[name="'+colName+'"]')[0]);
 		if(nextRow.length > 0){
@@ -356,7 +356,16 @@
 					var accountId = -1;
 					if(j < splitsLength){	
 						splitId = splits[j].id;
-						accountId = splits[j].accountId;									
+						accountId = splits[j].accountId;
+						var td = $tr.find('td[name="description"]')[0];
+						var $tdContent = objSettings.colContainerRef.clone();
+						if(splits[j].description && splits[j].description != ''){							
+							$tdContent.text(splits[j]['description']);							
+						}	
+						else{
+							$tdContent.html('&nbsp;');	
+						}
+						$(td).append($tdContent);								
 						var td = $tr.find('td[name="path"]')[0];
 						var $tdContent = objSettings.colContainerRef.clone();
 						$tdContent.text(splits[j]['path']);
@@ -587,31 +596,37 @@
 						$($splitRow.find('td[name="'+oldSelectedName+'"]')[0]).find('.tdContent').text('');	
 						$($splitRow.find('td[name="'+splitColumnName+'"]')[0]).find('.tdContent').text(newColumnVal);
 					}
-					else{
+					else if(oldSelectedName != 'description'){
 						$($splitRow.find('td[name="'+oldSelectedName+'"]')[0]).find('.tdContent').text(newColumnVal);
 					}					
 				}
 				switch(oldSelectedName){
 					case 'date':
-					case 'num':
-					case 'description':	
+					case 'num':						
 					case 'transfer':					
 						rowData[oldSelectedName] = newColumnVal;
-					break;
+					break;					
 					case 'path':
 					case 'deposit':
-					case 'withdrawal':						
-						rowData['splits']=[];						
-						rowsContainer.find('tr.splitRow[recordid="'+recordId+'"]').each(function(index,splitRow){
-							var path = $(splitRow).find('td[name="path"] .tdContent').text();
-							if(path != ""){
-								var splitId = $(splitRow).attr('splitid');								
-								var deposit = $(splitRow).find('td[name="deposit"] .tdContent').text();
-								var withdrawal = $(splitRow).find('td[name="withdrawal"] .tdContent').text();
-								var split = {'id':splitId,'path':path, 'deposit':deposit, 'withdrawal':withdrawal};
-								rowData['splits'].push(split);
-							}
-						});						
+					case 'withdrawal':
+					case 'description':	
+						if(oldSelectedName == 'description' && $oldSelectedTD.parent().hasClass('mainRow')){
+							rowData[oldSelectedName] = newColumnVal;
+						}	
+						else{				
+							rowData['splits']=[];						
+							rowsContainer.find('tr.splitRow[recordid="'+recordId+'"]').each(function(index,splitRow){
+								var path = $(splitRow).find('td[name="path"] .tdContent').text();
+								if(path != ""){
+									var splitId = $(splitRow).attr('splitid');
+									var description = $(splitRow).find('td[name="description"] .tdContent').text();							
+									var deposit = $(splitRow).find('td[name="deposit"] .tdContent').text();
+									var withdrawal = $(splitRow).find('td[name="withdrawal"] .tdContent').text();
+									var split = {'id':splitId,'path':path, 'deposit':deposit, 'withdrawal':withdrawal,'description':description};
+									rowData['splits'].push(split);
+								}
+							});	
+						}					
 					break;
 				}	
 				if($oldSelectedTD.parent().hasClass('splitRow') && !$oldSelectedTD.parent().next('.splitRow[recordid="'+recordId+'"]').length){
@@ -948,7 +963,7 @@
 			var elemName = $(element).attr('name');
 			$(element).css('height',options.rowHeight)
 				.attr('num',index)
-				.append((elemName == 'path' || elemName == 'deposit' || elemName == 'withdrawal') && !$(element).is(':has(.tdContent)') ? objSettings.colContainerRef.clone() : '');
+				.append((elemName == 'description' || elemName == 'path' || elemName == 'deposit' || elemName == 'withdrawal') && !$(element).is(':has(.tdContent)') ? objSettings.colContainerRef.clone() : '');
 		});
 	};
 	

@@ -111,7 +111,8 @@ module.exports = function account(webapp) {
 							id:split.id,							
 							value: depositVal - withdrawalVal,
 							quantity:depositVal - withdrawalVal,
-							accountId: modifiedSplits[split.id].accountId							
+							accountId: modifiedSplits[split.id].accountId,
+							description: modifiedSplits[split.id].description							
 						};
 						modifiedTr['splits'].push(modifiedSplit);
 						delete modifiedSplits[split.id];
@@ -207,7 +208,8 @@ module.exports = function account(webapp) {
 						var modifiedSplit = {													
 							value: depositVal - withdrawalVal,
 							quantity:depositVal - withdrawalVal,
-							accountId: split.accountId							
+							accountId: split.accountId,
+							description: split.description					
 						};
 						newTr['splits'].push(modifiedSplit);
 					}					
