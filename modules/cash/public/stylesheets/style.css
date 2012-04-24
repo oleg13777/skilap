@@ -76,8 +76,7 @@ td {
 	height:400px;
 	overflow-y:scroll;
 }
-.ski_gridWrapper .tdContent{
-	display:block;
+.ski_gridWrapper .tdContent{	
 	position:relative;
 	height:100%;	
 	padding:0 5px;
