@@ -111,7 +111,8 @@ module.exports = function account(webapp) {
 							id:split.id,							
 							value: depositVal - withdrawalVal,
 							quantity:depositVal - withdrawalVal,
-							accountId: modifiedSplits[split.id].accountId							
+							accountId: modifiedSplits[split.id].accountId,
+							description: modifiedSplits[split.id].description							
 						};
 						modifiedTr['splits'].push(modifiedSplit);
 						delete modifiedSplits[split.id];
@@ -207,7 +208,8 @@ module.exports = function account(webapp) {
 						var modifiedSplit = {													
 							value: depositVal - withdrawalVal,
 							quantity:depositVal - withdrawalVal,
-							accountId: split.accountId							
+							accountId: split.accountId,
+							description: split.description					
 						};
 						newTr['splits'].push(modifiedSplit);
 					}					
@@ -254,6 +256,28 @@ module.exports = function account(webapp) {
 			if (err) return next(err);
 		});		
 	});
+	
+	app.post(webapp.prefix+'/account/:id/delrow', function(req, res, next) {		
+		async.waterfall([			
+			function (cb1) {							
+				cashapi.clearTransactions(req.session.apiToken, [req.body.recordId], function(err){
+					result = {"recordId":req.body.recordId};
+					if(err){						
+						result.error = "1";
+					}
+					res.send(result);
+				});					
+			}
+		], function (err) {
+			if (err) return next(err);
+		});		
+	});
+	
+	app.post(webapp.prefix+'/account/:id/delsplit', function(req, res, next) {	
+		res.send(req.body.splitId);
+		
+	});
+
 
 	app.get(webapp.prefix+'/account/:id/getaccounts', function(req, res, next) {
 		var tmp = [];		

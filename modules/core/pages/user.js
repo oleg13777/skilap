@@ -33,16 +33,18 @@ module.exports = function account(ctx, app, api, prefix) {
 				_(modulesInfo).each(function(info){
 					var tmp = {module:info.name, perm:[]};
 					_(info.permissions).each(function(perm){
+						console.log(perm);
 						if (_(user.permissions).indexOf(perm.id) >= 0) {
 							tmp.perm.push(perm.desc);
 						}
 					});
 					permissions.push(tmp);
 				});
-				cb1(null, permissions, modulesInfo);
+				console.log(permissions);
+				cb1(null, permissions, modulesInfo, user.permissions);
 			},
-			function (permissions, mInfo, cb1) {
-				var rdata = {prefix:prefix, header:true, token:req.session.apiToken, host:req.headers.host, permissions:permissions, mInfo:mInfo};
+			function (permissions, mInfo, userPerm, cb1) {
+				var rdata = {prefix:prefix, header:true, token:req.session.apiToken, host:req.headers.host, permissions:permissions, mInfo:mInfo, userPerm:userPerm};
 				cb1(null, rdata);
 			},
 			function render (data) {

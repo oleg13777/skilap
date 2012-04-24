@@ -28,7 +28,7 @@ td {
 }
 .description{
 	text-align: left; 
-	width:20%; 
+	width:18%; 
 }
 .account{
 	text-align: left; 
@@ -36,11 +36,16 @@ td {
 }
 .number{ 
 	text-align: left; 
-	width:8%;
+	width:6%;
 }
 .transfer{
 	text-align: left; 
 	width:2%;
+	cursor:pointer;
+}
+.settings{
+	text-align: left; 
+	width:4%;
 	cursor:pointer;
 }
 
@@ -71,7 +76,7 @@ td {
 	height:400px;
 	overflow-y:scroll;
 }
-.ski_gridWrapper .tdContent{
+.ski_gridWrapper .tdContent{	
 	position:relative;
 	height:100%;	
 	padding:0 5px;
@@ -289,6 +294,47 @@ padding-left:25px;
 .ski_newRow{
 height:30px;
 }
+
+.ski_gridWrapper .settings .tdContent{
+overflow:visible;
+}
+
+.ski_settingsMenu{
+display:none;
+position:absolute;
+top:20px;
+right:10px;
+background-color:#fff;
+border:1px solid #ccc;
+z-index:3;
+}
+
+.ski_settingsMenu.active{
+display:block;
+}
+
+.ski_settingsMenu .menuItem{
+padding:5px ;
+}
+
+.ski_settingsMenu .menuItem a{
+display:block;
+color:#333;
+text-decoration:none;
+}
+.ski_settingsMenu .menuItem a:hover{
+text-decoration:underline;
+}
+
+.ski_settingsMenu .menuItem.delete a{
+background:url('../images/cancel-icon.png')no-repeat 0 5px;
+padding-left:20px;
+}
+
+.ski_settingsMenu .menuItem.split.delete a{
+background:url('../images/clear-icon.png')no-repeat 0 5px;
+}
+
 
 #ski_addForm label, #ski_addForm input { display:block; }
 #ski_addForm input.text,#ski_addForm select.text { margin-bottom:12px; width:95%; height:25px;}

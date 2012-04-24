@@ -9,6 +9,7 @@
 		<th class="value">Recieved</th>
 		<th class="value">Spend</th>
 		<th class="value">Ballance</th>
+		<th class="settings"></th>
 	</thead>
 	<tbody>
 		
@@ -21,6 +22,7 @@
 			<td class="value" name="deposit" ></td>
 			<td class="value" name="withdrawal" ></td>
 			<td class="value" name="total" ></td>
+			<td class="settings" name="settings" ></td>
 		</tr>
 		
 	</tbody>
@@ -39,10 +41,13 @@
 <script type="text/javascript">
 $(document).ready(function(){	
 	$('#acc').skiGrid({
-		"sAjaxSource": "{{prefix}}/account/{{accountId}}/getgrid",		
+		"sAjaxSource": "{{prefix}}/account/{{accountId}}/getgrid",	
+		"urlPrefix":"{{prefix}}",		
 		"editable":{
 			"sUpdateURL":"{{prefix}}/account/{{accountId}}/updaterow",	
-			"sAddURL":"{{prefix}}/account/{{accountId}}/addrow",		
+			"sAddURL":"{{prefix}}/account/{{accountId}}/addrow",
+			"sDeleteURL":"{{prefix}}/account/{{accountId}}/delrow",	
+			"sDeleteSplitURL":"{{prefix}}/account/{{accountId}}/delsplit",		
 			"columns": [
 				{"type":"datepicker","icon":"{{prefix}}/images/calendar.gif"},
 				{"type":"input","format":"number"},			
@@ -51,6 +56,7 @@ $(document).ready(function(){
 				{"type":"span"},
 				{"type":"input","format":"number"},
 				{"type":"input","format":"number"},
+				null,
 				null
 			]
 		}		

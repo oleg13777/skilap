@@ -121,7 +121,9 @@
 		$newTrContainer.append($newTrGrid);
 		objSettings.newTrContainer = $newTrContainer;						
 		$obj.parents('.ski_gridWrapper').append($newTrContainer);
-		createRowForNewTransaction(objSettings);		
+		createRowForNewTransaction(objSettings);
+		createRowSettingsMenu(objSettings);
+		createSplitSettingsMenu(objSettings);		
 	};
 	
 	function bindEvents($obj,objSettings){
@@ -154,8 +156,57 @@
 			showGrid($obj,objSettings,offset);			
 		});				
 		/* column select event */		
-		objSettings.gridWrapper.find('tbody').on('click','td',function(){
+		objSettings.gridWrapper.find('tbody').on('click','td',function(){			
 			handleColumnClick($(this),objSettings);			
+		});
+		
+		objSettings.gridWrapper.find('tbody').on('click','.ski_settingsLink',function(){
+			if($(this).parents('.mainRow').length > 0){
+				var recordId = $($(this).parents('.mainRow')[0]).attr('recordid');						
+				objSettings.gridWrapper.find('tr.mainRow[recordid != "'+recordId+'"] .ski_settingsMenu').removeClass('active');
+				objSettings.gridWrapper.find('tr.splitRow[recordid = "'+recordId+'"] .ski_settingsMenu').removeClass('active');
+			
+			}
+			else if($(this).parents('.splitRow').length > 0){
+				var splitId = $($(this).parents('.splitRow')[0]).attr('splitid');
+				var recordId = $($(this).parents('.splitRow')[0]).attr('recordid');			
+				objSettings.gridWrapper.find('tr.splitRow[splitid != "'+splitId+'"] .ski_settingsMenu').removeClass('active');
+				objSettings.gridWrapper.find('tr.mainRow[recordid = "'+recordId+'"] .ski_settingsMenu').removeClass('active');
+				
+			}
+			$(this).parent().find('.ski_settingsMenu').toggleClass('active');			
+		});	
+		
+		objSettings.gridWrapper.find('tbody').on('click','.ski_settingsMenu .menuItem',function(){					
+			if($(this).hasClass('delete') && $(this).hasClass('split')){
+				var recordId = $($(this).parents('.splitRow')[0]).attr('recordid');
+				var splitId = $($(this).parents('.splitRow')[0]).attr('splitid');
+				processSplitDelete(splitId, recordId, objSettings,function(err){
+					objSettings.splitButton.removeClass('ski_selected');
+					handleSplitRowsShow(objSettings);		
+					if(!err){								
+						objSettings.bodyWrapperRef.scroll();												
+					}
+				});
+			}	
+			else if($(this).hasClass('delete')){
+				var recordId = $($(this).parents('.mainRow')[0]).attr('recordid');
+				processRowDelete(recordId, objSettings,function(err){
+					objSettings.splitButton.removeClass('ski_selected');
+					handleSplitRowsShow(objSettings);		
+					if(!err){								
+						objSettings.bodyWrapperRef.scroll();												
+					}
+				});
+			}	
+		});	
+		
+		$(document).on('click',function(e){
+			if($(".ski_settingsMenu").hasClass('active') 
+					&& $(e.target).closest('.ski_settingsMenu').length == 0
+					&& $(e.target).closest('.settings').length == 0){				
+				$(".ski_settingsMenu").removeClass('active');
+			}
 		});		
 		
 		/* handle tab key */
@@ -243,6 +294,16 @@
 		});
 	};
 	
+	function createRowSettingsMenu(objSettings){
+		objSettings.rowSettingsMenu = $('<img class="ski_settingsLink" src= "'+options.urlPrefix+'/images/settings-icon.png" height="22px"/><div class="ski_settingsMenu"><div class="menuItem delete"><a href="javascript:void(0);">Delete Transaction</a></div></div>');
+				
+	};
+	
+	function createSplitSettingsMenu(objSettings){
+		objSettings.splitSettingsMenu = $('<img class="ski_settingsLink" src= "'+options.urlPrefix+'/images/settings-icon.png" height="22px"/><div class="ski_settingsMenu"><div class="menuItem split delete"><a href="javascript:void(0);">Remove Split</a></div></div>');
+				
+	};
+	
 	function getTargetColumnForNextRow($col,objSettings){
 		var nextRow = [];
 		var hiddenRows = $col.parent().nextUntil(':visible');		
@@ -254,7 +315,7 @@
 		}
 		var colName = 'date';
 		if($col.parent().hasClass('splitRow') && $col.parent().next().hasClass('splitRow')){
-			colName = 'path';
+			colName = 'description';
 		}
 		var targetColumn = $($col.parent().find('td[name="'+colName+'"]')[0]);
 		if(nextRow.length > 0){
@@ -297,7 +358,12 @@
 					var name = $td.attr('name');
 					var tdVal = data.aaData[i][name];	
 					var $tdContent = objSettings.colContainerRef.clone();
-					$tdContent.html(tdVal ? tdVal : '&nbsp;');				
+					if(name == 'settings'){
+						$tdContent.append(objSettings.rowSettingsMenu.clone());
+					}
+					else{						
+						$tdContent.html(tdVal ? tdVal : '&nbsp;');	
+					}			
 					$td.css('height',options.rowHeight).attr('num',j).append($tdContent);
 					if(tdVal == "-- Multiple --" && name == 'path'){
 						$td.addClass('multiple');
@@ -318,7 +384,16 @@
 					var accountId = -1;
 					if(j < splitsLength){	
 						splitId = splits[j].id;
-						accountId = splits[j].accountId;									
+						accountId = splits[j].accountId;
+						var td = $tr.find('td[name="description"]')[0];
+						var $tdContent = objSettings.colContainerRef.clone();
+						if(splits[j].description && splits[j].description != ''){							
+							$tdContent.text(splits[j]['description']);							
+						}	
+						else{
+							$tdContent.html('&nbsp;');	
+						}
+						$(td).append($tdContent);								
 						var td = $tr.find('td[name="path"]')[0];
 						var $tdContent = objSettings.colContainerRef.clone();
 						$tdContent.text(splits[j]['path']);
@@ -332,6 +407,11 @@
 						var td = $tr.find('td[name="'+columnName+'"]')[0];
 						var $tdContent = objSettings.colContainerRef.clone();
 						$tdContent.text(val);
+						$(td).append($tdContent);
+						
+						var td = $tr.find('td[name="settings"]')[0];
+						var $tdContent = objSettings.colContainerRef.clone();
+						$tdContent.append(objSettings.splitSettingsMenu.clone());
 						$(td).append($tdContent);
 					}						
 					applyColumnAttrsForSplitRow($tr,splitId,accountId,objSettings);
@@ -549,42 +629,42 @@
 						$($splitRow.find('td[name="'+oldSelectedName+'"]')[0]).find('.tdContent').text('');	
 						$($splitRow.find('td[name="'+splitColumnName+'"]')[0]).find('.tdContent').text(newColumnVal);
 					}
-					else{
+					else if(oldSelectedName != 'description'){
 						$($splitRow.find('td[name="'+oldSelectedName+'"]')[0]).find('.tdContent').text(newColumnVal);
 					}					
 				}
 				switch(oldSelectedName){
 					case 'date':
-					case 'num':
-					case 'description':	
+					case 'num':						
 					case 'transfer':					
 						rowData[oldSelectedName] = newColumnVal;
-					break;
+					break;					
 					case 'path':
 					case 'deposit':
-					case 'withdrawal':						
-						rowData['splits']=[];						
-						rowsContainer.find('tr.splitRow[recordid="'+recordId+'"]').each(function(index,splitRow){
-							var path = $(splitRow).find('td[name="path"] .tdContent').text();
-							if(path != ""){
-								var splitId = $(splitRow).attr('splitid');								
-								var deposit = $(splitRow).find('td[name="deposit"] .tdContent').text();
-								var withdrawal = $(splitRow).find('td[name="withdrawal"] .tdContent').text();
-								var split = {'id':splitId,'path':path, 'deposit':deposit, 'withdrawal':withdrawal};
-								rowData['splits'].push(split);
-							}
-						});						
+					case 'withdrawal':
+					case 'description':	
+						if(oldSelectedName == 'description' && $oldSelectedTD.parent().hasClass('mainRow')){
+							rowData[oldSelectedName] = newColumnVal;
+						}	
+						else{				
+							rowData['splits']=[];						
+							rowsContainer.find('tr.splitRow[recordid="'+recordId+'"]').each(function(index,splitRow){
+								var path = $(splitRow).find('td[name="path"] .tdContent').text();
+								if(path != ""){
+									var splitId = $(splitRow).attr('splitid');
+									var description = $(splitRow).find('td[name="description"] .tdContent').text();							
+									var deposit = $(splitRow).find('td[name="deposit"] .tdContent').text();
+									var withdrawal = $(splitRow).find('td[name="withdrawal"] .tdContent').text();
+									var split = {'id':splitId,'path':path, 'deposit':deposit, 'withdrawal':withdrawal,'description':description};
+									rowData['splits'].push(split);
+								}
+							});	
+						}					
 					break;
 				}	
 				if($oldSelectedTD.parent().hasClass('splitRow') && !$oldSelectedTD.parent().next('.splitRow[recordid="'+recordId+'"]').length){
 					var $tr = objSettings.tableRowRef.clone();
 					applyColumnAttrsForSplitRow($tr,parseInt($oldSelectedTD.parent().attr('splitid'))-1,null,objSettings);
-					/*$tr.find('td').each(function(index,element){
-						var elemName = $(element).attr('name');
-						$(element).css('height',options.rowHeight)
-							.attr('num',index)
-							.append((elemName == 'path' || elemName == 'deposit' || elemName == 'withdrawal') && !$(element).is(':has(.tdContent)') ? objSettings.colContainerRef.clone() : '');
-					});*/
 					$oldSelectedTD.parent().after($tr.addClass('splitRow').attr('recordId',$oldSelectedTD.parent().attr('recordId')));
 				}
 				console.log(rowData);			
@@ -671,6 +751,32 @@
 		
 	};
 	
+	function processRowDelete(recordId, objSettings,cb){		
+		deleteRow(recordId,objSettings,function(err){
+			if(err){
+				showError(err.error,objSettings);					
+				cb(err);
+				return false;
+			}					
+			cb();
+			
+		});			
+		
+	};
+	
+	function processSplitDelete(splitId, recordId, objSettings,cb){		
+		deleteSplit(splitId,recordId,objSettings,function(err){
+			if(err){
+				showError(err.error,objSettings);				
+				cb(err);
+				return false;
+			}					
+			cb();
+			
+		});			
+		
+	};
+	
 	function addRow(rowNewData,objSettings,cb){		
 		var jqXHR = $.ajax({
 			"url": options.editable.sAddURL,
@@ -725,6 +831,52 @@
 				cb(error);								
 			});
 		}
+	};
+	
+	function deleteRow(recordId,objSettings,cb){		
+		var jqXHR = $.ajax({
+			"url": options.editable.sDeleteURL,
+			"data":{recordId:recordId},
+			"type":"POST",
+			"dataType": "json",
+			"cache": false				
+		});
+		jqXHR.done(function(data){
+			if(data.error){
+				cb(data);
+			}
+			else{
+				cb();
+			}			
+		});
+		jqXHR.fail(function(data){
+			var error={error:'invalidResponse'};
+			cb(error);			
+		});
+		
+	};
+	
+	function deleteSplit(splitId, recordId,objSettings,cb){		
+		var jqXHR = $.ajax({
+			"url": options.editable.sDeleteSplitURL,
+			"data":{splitId:splitId,recordId:recordId},
+			"type":"POST",
+			"dataType": "json",
+			"cache": false				
+		});
+		jqXHR.done(function(data){
+			if(data.error){
+				cb(data);
+			}
+			else{
+				cb();
+			}			
+		});
+		jqXHR.fail(function(data){
+			var error={error:'invalidResponse'};
+			cb(error);			
+		});
+		
 	};
 	
 	function processColumnEditable($col,objSettings){
@@ -865,7 +1017,7 @@
 				$wrapElement.append($element);
 				$wrapElement.append($secondaryElement);				
 				$element = $wrapElement;
-			break;
+			break;			
 		}
 		if($element){
 			$element.css({'width':$col.width()+'px','height':$col.height()+'px'});				
@@ -880,7 +1032,7 @@
 			var elemName = $(element).attr('name');
 			$(element).css('height',options.rowHeight)
 				.attr('num',index)
-				.append((elemName == 'path' || elemName == 'deposit' || elemName == 'withdrawal') && !$(element).is(':has(.tdContent)') ? objSettings.colContainerRef.clone() : '');
+				.append((elemName == 'description' || elemName == 'path' || elemName == 'deposit' || elemName == 'withdrawal') && !$(element).is(':has(.tdContent)') ? objSettings.colContainerRef.clone() : '');
 		});
 	};
 	
