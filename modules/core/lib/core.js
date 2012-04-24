@@ -166,7 +166,6 @@ function Skilap() {
 								return ctx;
 							},user.perm);
 							delete user.permissions;
-							console.log(user);
 							return user;
 						},
 						url: function (req, res) {
@@ -243,7 +242,8 @@ function Skilap() {
 						params.push(function () {
 							var jsonres = {};
 							if (arguments[0]) {
-								jsonres.error = arguments[0];
+								var err = arguments[0];
+								jsonres.error = {message:err.message,subject:err.skilap?err.skilap.subject:"GenericError"}
 								jsonres.result = null;
 							} else {
 								jsonres.error = null;
@@ -257,7 +257,7 @@ function Skilap() {
 					} catch (err) {
 						console.log(err);
 						if (!out) 
-							res.send({error:err, result:null, id:id});
+							res.send({error:{message:err.message,subject:err.skilap?err.skilap.subject:"GenericError"}, result:null, id:id});
 					}
 				};
 

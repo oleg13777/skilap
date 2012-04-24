@@ -209,87 +209,79 @@ CoreApi.prototype.getUserById = function(token, userId, cb) {
  */
 CoreApi.prototype.saveUser = function (token, newUser, cb) {
 	var self = this;
-
+	var cUser = null;
+	
+	if (!_(newUser).isObject())
+		return cb(new SkilapError("User must be object","GenericError"));
+	
 	var session = self._sessions[token];
 	if (!session) 
 		return cb(new SkilapError('Wrong access token','InvalidToken'));
 	
-	if (session.user.type=='guest') {
+	if (newUser.type=='guest' || newUser.type=='admin') {
 		// special case for guest user, changes are temporary
 		// allow update only certain fields
 		var user = session.user;
 		if (newUser.language) user.language = newUser.language;				
 		if (newUser.timezone) user.timezone = newUser.timezone;				
 		cb();
-	} else if (newUser.id) {
-		// update 
-		async.waterfall([
-			function (cb1) { self.checkPerm(token, ['core.user.edit'], cb1) },
-			function (cb1){
+	} else {
+		async.series([
+			function checkPermision(cb) { self.checkPerm(token, ['core.user.edit'], cb) },
+			function fetchUser(cb) {
+				if (!newUser.id) return cb();
 				self._core_users.get(newUser.id, function (err, user) {
-					if (err) cb1(err);
-					cb1(null, user);
+					if (err) return cb(err);
+					if (user) {
+						cUser = _(user).clone();
+						cb()
+					} else
+						cb(new SkilapError("Invalid user", "GenericError"));
 				});
 			},
-			function updateUser (updUser,cb1) {
-				if (newUser.firstName) updUser.firstName=newUser.firstName;
-				if (newUser.lastName) updUser.lastName=newUser.lastName;
-				if (newUser.login) updUser.login=newUser.login;
-				if (newUser.oldPass && newUser.newPass && newUser.reNewPass){
-					if (updUser.password != newUser.oldPass)
-						return cb(new SkilapError("Wrong old password"))
-					else if (newUser.newPass != newUser.reNewPass)
-						return cb(new SkilapError("New passwords do not match"));
-					else 
-						updUser.password = newUser.newPass;
+			function makeUser(cb) {
+				if (cUser==null) {
+					self._ctx.getUniqueId(function (err, id) {
+						if (err) return cb(err);
+						cUser = _(newUser).clone();
+						cUser.id = id;
+						cb();
+					})
+				} else {
+					_(cUser).extend(newUser);					
+					cb();
 				}
-				if (newUser.timeZone) updUser.timeZone = newUser.timeZone;
-				if (newUser.language) updUser.language = newUser.language;
-				if (newUser.permissions) updUser.permissions = newUser.permissions;
-				self._core_users.put(updUser.id, updUser, cb1);
-			}
-		], cb);
-	} else {
-		// create new
-		async.waterfall([
-			function (cb1) { self.checkPerm(token, ['core.user.edit'], cb1)},
+			},
+			function validateUser(cb) {
+				if (_(cUser.password).isUndefined())
+					return cb(new SkilapError(self._ctx.i18n(token,'core','User must have non empty password'),'InvalidData'));
+				if (cUser.password.length<6)
+					return cb(new SkilapError(self._ctx.i18n(token,'core','Password too short, at least 6 characters required'),'InvalidData'));
+				if (_(cUser.login).isUndefined())
+					return cb(new SkilapError(self._ctx.i18n(token,'core','User must have non empty password'),'InvalidData'));
+				if (_(cUser.firstName).isUndefined()) 
+					return cb(new SkilapError(self._ctx.i18n(token,'core','First name is required'),'InvalidData'));
+				if (_(cUser.lastName).isUndefined()) 
+					return cb(new SkilapError(self._ctx.i18n(token,'core','Last name is required'),'InvalidData'));
+				cb()
+			},
 			function checkUserUniq (cb1) {
 				var unique = true;
 				self._core_users.scan(function (err, key, user) {
 					if (key==null)
-						unique?cb1():cb1(new Error('User log-in is not unique'));
+						unique?cb1():cb1(new SkilapError(self._ctx.i18n(token,'core','User log-in is not unique'),'InvalidData'));
 					else {
-						if (user.login == newUser.login)
+						if (user.login == cUser.login && cUser.id!=user.id)
 							unique = false;
 					}
 				},true)
 			},
-			function (cb) {self._ctx.getUniqueId(cb) },
-			function save(newId, cb1) {
-				var user = {id:newId, permissions: []};
-				if (newUser.firstName) 
-					user.firstName=newUser.firstName;
-				else
-					return cb(new SkilapError("First name is empty"));
-				if (newUser.lastName) 
-					user.lastName=newUser.lastName;
-				else
-					return cb(new SkilapError("Last name is enpty"));
-				if (newUser.login) 
-					user.login=newUser.login;
-				else
-					return cb(new SkilapError("Login is empty"));
-				if (newUser.pass != newUser.rePass)
-					return cb(new SkilapError("Passwords do not match"));
-				else 
-					user.password = newUser.newPass;
-				if (newUser.timeZone) user.timeZone = newUser.timeZone;
-				if (newUser.language) user.language = newUser.language;
-				if (newUser.permissions) user.permissions = newUser.permissions;
-
-				self._core_users.put(newId, user, cb1);
+			function updateUser (cb) {
+				self._core_users.put(cUser.id, cUser, cb);
 			}
-		], cb)
+		], function (err,res) {
+			cb(err);
+		});
 	}
 }
 
@@ -325,7 +317,6 @@ CoreApi.prototype.loginByPass = function (token, login, password, cb ) {
 				self._sessions[token].user = {type:'admin',permissions:[],screenName:self._ctx.i18n(token,'core','Ski Master')};
 				self._ctx.getModule('core',function (err, core) {
 					core.getPermissionsList(token, function (err, perm) {
-						console.log(perm);
 						self._sessions[token].user.permissions = _(perm).pluck("id");
 						cb(null, self._sessions[token].user);
 					})
