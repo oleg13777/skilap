@@ -272,6 +272,11 @@ module.exports = function account(webapp) {
 			if (err) return next(err);
 		});		
 	});
+	
+	app.post(webapp.prefix+'/account/:id/delsplit', function(req, res, next) {	
+		res.send(req.body.splitId);
+		
+	});
 
 
 	app.get(webapp.prefix+'/account/:id/getaccounts', function(req, res, next) {

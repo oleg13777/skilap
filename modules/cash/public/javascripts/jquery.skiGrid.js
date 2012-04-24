@@ -122,7 +122,8 @@
 		objSettings.newTrContainer = $newTrContainer;						
 		$obj.parents('.ski_gridWrapper').append($newTrContainer);
 		createRowForNewTransaction(objSettings);
-		createRowSettingsMenu(objSettings);		
+		createRowSettingsMenu(objSettings);
+		createSplitSettingsMenu(objSettings);		
 	};
 	
 	function bindEvents($obj,objSettings){
@@ -159,15 +160,37 @@
 			handleColumnClick($(this),objSettings);			
 		});
 		
-		objSettings.gridWrapper.find('tbody').on('click','.ski_trSettingsLink',function(){
-			var recordId = $($(this).parents('.mainRow')[0]).attr('recordid');		
-			objSettings.gridWrapper.find('tr.mainRow[recordid != "'+recordId+'"] .ski_trSettingsMenu').removeClass('active');
-			$(this).parent().find('.ski_trSettingsMenu').toggleClass('active');			
+		objSettings.gridWrapper.find('tbody').on('click','.ski_settingsLink',function(){
+			if($(this).parents('.mainRow').length > 0){
+				var recordId = $($(this).parents('.mainRow')[0]).attr('recordid');						
+				objSettings.gridWrapper.find('tr.mainRow[recordid != "'+recordId+'"] .ski_settingsMenu').removeClass('active');
+				objSettings.gridWrapper.find('tr.splitRow[recordid = "'+recordId+'"] .ski_settingsMenu').removeClass('active');
+			
+			}
+			else if($(this).parents('.splitRow').length > 0){
+				var splitId = $($(this).parents('.splitRow')[0]).attr('splitid');
+				var recordId = $($(this).parents('.splitRow')[0]).attr('recordid');			
+				objSettings.gridWrapper.find('tr.splitRow[splitid != "'+splitId+'"] .ski_settingsMenu').removeClass('active');
+				objSettings.gridWrapper.find('tr.mainRow[recordid = "'+recordId+'"] .ski_settingsMenu').removeClass('active');
+				
+			}
+			$(this).parent().find('.ski_settingsMenu').toggleClass('active');			
 		});	
 		
-		objSettings.gridWrapper.find('tbody').on('click','.ski_trSettingsMenu .menuItem',function(){
-			var recordId = $($(this).parents('.mainRow')[0]).attr('recordid');		
-			if($(this).hasClass('delete')){
+		objSettings.gridWrapper.find('tbody').on('click','.ski_settingsMenu .menuItem',function(){					
+			if($(this).hasClass('delete') && $(this).hasClass('split')){
+				var recordId = $($(this).parents('.splitRow')[0]).attr('recordid');
+				var splitId = $($(this).parents('.splitRow')[0]).attr('splitid');
+				processSplitDelete(splitId, recordId, objSettings,function(err){
+					objSettings.splitButton.removeClass('ski_selected');
+					handleSplitRowsShow(objSettings);		
+					if(!err){								
+						objSettings.bodyWrapperRef.scroll();												
+					}
+				});
+			}	
+			else if($(this).hasClass('delete')){
+				var recordId = $($(this).parents('.mainRow')[0]).attr('recordid');
 				processRowDelete(recordId, objSettings,function(err){
 					objSettings.splitButton.removeClass('ski_selected');
 					handleSplitRowsShow(objSettings);		
@@ -179,10 +202,10 @@
 		});	
 		
 		$(document).on('click',function(e){
-			if($(".ski_trSettingsMenu").hasClass('active') 
-					&& $(e.target).closest('.ski_trSettingsMenu').length == 0
+			if($(".ski_settingsMenu").hasClass('active') 
+					&& $(e.target).closest('.ski_settingsMenu').length == 0
 					&& $(e.target).closest('.settings').length == 0){				
-				$(".ski_trSettingsMenu").removeClass('active');
+				$(".ski_settingsMenu").removeClass('active');
 			}
 		});		
 		
@@ -272,7 +295,12 @@
 	};
 	
 	function createRowSettingsMenu(objSettings){
-		objSettings.rowSettingsMenu = $('<img class="ski_trSettingsLink" src= "'+options.urlPrefix+'/images/settings-icon.png" height="22px"/><div class="ski_trSettingsMenu"><div class="menuItem delete"><a href="javascript:void(0);">Delete Transaction</a></div></div>');
+		objSettings.rowSettingsMenu = $('<img class="ski_settingsLink" src= "'+options.urlPrefix+'/images/settings-icon.png" height="22px"/><div class="ski_settingsMenu"><div class="menuItem delete"><a href="javascript:void(0);">Delete Transaction</a></div></div>');
+				
+	};
+	
+	function createSplitSettingsMenu(objSettings){
+		objSettings.splitSettingsMenu = $('<img class="ski_settingsLink" src= "'+options.urlPrefix+'/images/settings-icon.png" height="22px"/><div class="ski_settingsMenu"><div class="menuItem split delete"><a href="javascript:void(0);">Remove Split</a></div></div>');
 				
 	};
 	
@@ -379,6 +407,11 @@
 						var td = $tr.find('td[name="'+columnName+'"]')[0];
 						var $tdContent = objSettings.colContainerRef.clone();
 						$tdContent.text(val);
+						$(td).append($tdContent);
+						
+						var td = $tr.find('td[name="settings"]')[0];
+						var $tdContent = objSettings.colContainerRef.clone();
+						$tdContent.append(objSettings.splitSettingsMenu.clone());
 						$(td).append($tdContent);
 					}						
 					applyColumnAttrsForSplitRow($tr,splitId,accountId,objSettings);
@@ -721,7 +754,20 @@
 	function processRowDelete(recordId, objSettings,cb){		
 		deleteRow(recordId,objSettings,function(err){
 			if(err){
-				showUpdTrValidateError(err,objSettings);				
+				showError(err.error,objSettings);					
+				cb(err);
+				return false;
+			}					
+			cb();
+			
+		});			
+		
+	};
+	
+	function processSplitDelete(splitId, recordId, objSettings,cb){		
+		deleteSplit(splitId,recordId,objSettings,function(err){
+			if(err){
+				showError(err.error,objSettings);				
 				cb(err);
 				return false;
 			}					
@@ -791,6 +837,29 @@
 		var jqXHR = $.ajax({
 			"url": options.editable.sDeleteURL,
 			"data":{recordId:recordId},
+			"type":"POST",
+			"dataType": "json",
+			"cache": false				
+		});
+		jqXHR.done(function(data){
+			if(data.error){
+				cb(data);
+			}
+			else{
+				cb();
+			}			
+		});
+		jqXHR.fail(function(data){
+			var error={error:'invalidResponse'};
+			cb(error);			
+		});
+		
+	};
+	
+	function deleteSplit(splitId, recordId,objSettings,cb){		
+		var jqXHR = $.ajax({
+			"url": options.editable.sDeleteSplitURL,
+			"data":{splitId:splitId,recordId:recordId},
 			"type":"POST",
 			"dataType": "json",
 			"cache": false				

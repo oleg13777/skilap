@@ -299,7 +299,7 @@ height:30px;
 overflow:visible;
 }
 
-.ski_trSettingsMenu{
+.ski_settingsMenu{
 display:none;
 position:absolute;
 top:20px;
@@ -309,26 +309,30 @@ border:1px solid #ccc;
 z-index:3;
 }
 
-.ski_trSettingsMenu.active{
+.ski_settingsMenu.active{
 display:block;
 }
 
-.ski_trSettingsMenu .menuItem{
+.ski_settingsMenu .menuItem{
 padding:5px ;
 }
 
-.ski_trSettingsMenu .menuItem a{
+.ski_settingsMenu .menuItem a{
 display:block;
 color:#333;
 text-decoration:none;
 }
-.ski_trSettingsMenu .menuItem a:hover{
+.ski_settingsMenu .menuItem a:hover{
 text-decoration:underline;
 }
 
-.ski_trSettingsMenu .menuItem.delete a{
+.ski_settingsMenu .menuItem.delete a{
 background:url('../images/cancel-icon.png')no-repeat 0 5px;
 padding-left:20px;
+}
+
+.ski_settingsMenu .menuItem.split.delete a{
+background:url('../images/clear-icon.png')no-repeat 0 5px;
 }
 
 
