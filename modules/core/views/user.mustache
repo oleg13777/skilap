@@ -15,11 +15,9 @@ $(document).ready(function() {
 		location.reload(true);
 	});
 	$("#editPerm").click(function(){
-		{{#user}}
-		{{#permissions}}
+		{{#userPerm}}
 			$(".perm[value='{{.}}']").attr("checked", "checked");
-		{{/permissions}}
-		{{/user}}
+		{{/userPerm}}
 		$("#editPermDialog").dialog("open");
 	});
 	$("#editPermDialog").dialog({

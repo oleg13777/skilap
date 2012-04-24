@@ -166,7 +166,7 @@ function Skilap() {
 								return ctx;
 							},user.perm);
 							delete user.permissions;
-							console.log(user);
+//							console.log(user);
 							return user;
 						},
 						url: function (req, res) {
