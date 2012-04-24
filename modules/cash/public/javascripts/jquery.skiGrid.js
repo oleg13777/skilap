@@ -121,7 +121,8 @@
 		$newTrContainer.append($newTrGrid);
 		objSettings.newTrContainer = $newTrContainer;						
 		$obj.parents('.ski_gridWrapper').append($newTrContainer);
-		createRowForNewTransaction(objSettings);		
+		createRowForNewTransaction(objSettings);
+		createRowSettingsMenu(objSettings);		
 	};
 	
 	function bindEvents($obj,objSettings){
@@ -154,8 +155,35 @@
 			showGrid($obj,objSettings,offset);			
 		});				
 		/* column select event */		
-		objSettings.gridWrapper.find('tbody').on('click','td',function(){
+		objSettings.gridWrapper.find('tbody').on('click','td',function(){			
 			handleColumnClick($(this),objSettings);			
+		});
+		
+		objSettings.gridWrapper.find('tbody').on('click','.ski_trSettingsLink',function(){
+			var recordId = $($(this).parents('.mainRow')[0]).attr('recordid');		
+			objSettings.gridWrapper.find('tr.mainRow[recordid != "'+recordId+'"] .ski_trSettingsMenu').removeClass('active');
+			$(this).parent().find('.ski_trSettingsMenu').toggleClass('active');			
+		});	
+		
+		objSettings.gridWrapper.find('tbody').on('click','.ski_trSettingsMenu .menuItem',function(){
+			var recordId = $($(this).parents('.mainRow')[0]).attr('recordid');		
+			if($(this).hasClass('delete')){
+				processRowDelete(recordId, objSettings,function(err){
+					objSettings.splitButton.removeClass('ski_selected');
+					handleSplitRowsShow(objSettings);		
+					if(!err){								
+						objSettings.bodyWrapperRef.scroll();												
+					}
+				});
+			}	
+		});	
+		
+		$(document).on('click',function(e){
+			if($(".ski_trSettingsMenu").hasClass('active') 
+					&& $(e.target).closest('.ski_trSettingsMenu').length == 0
+					&& $(e.target).closest('.settings').length == 0){				
+				$(".ski_trSettingsMenu").removeClass('active');
+			}
 		});		
 		
 		/* handle tab key */
@@ -243,6 +271,11 @@
 		});
 	};
 	
+	function createRowSettingsMenu(objSettings){
+		objSettings.rowSettingsMenu = $('<img class="ski_trSettingsLink" src= "'+options.urlPrefix+'/images/settings-icon.png" height="22px"/><div class="ski_trSettingsMenu"><div class="menuItem delete"><a href="javascript:void(0);">Delete Transaction</a></div></div>');
+				
+	};
+	
 	function getTargetColumnForNextRow($col,objSettings){
 		var nextRow = [];
 		var hiddenRows = $col.parent().nextUntil(':visible');		
@@ -297,7 +330,12 @@
 					var name = $td.attr('name');
 					var tdVal = data.aaData[i][name];	
 					var $tdContent = objSettings.colContainerRef.clone();
-					$tdContent.html(tdVal ? tdVal : '&nbsp;');				
+					if(name == 'settings'){
+						$tdContent.append(objSettings.rowSettingsMenu.clone());
+					}
+					else{						
+						$tdContent.html(tdVal ? tdVal : '&nbsp;');	
+					}			
 					$td.css('height',options.rowHeight).attr('num',j).append($tdContent);
 					if(tdVal == "-- Multiple --" && name == 'path'){
 						$td.addClass('multiple');
@@ -579,12 +617,6 @@
 				if($oldSelectedTD.parent().hasClass('splitRow') && !$oldSelectedTD.parent().next('.splitRow[recordid="'+recordId+'"]').length){
 					var $tr = objSettings.tableRowRef.clone();
 					applyColumnAttrsForSplitRow($tr,parseInt($oldSelectedTD.parent().attr('splitid'))-1,null,objSettings);
-					/*$tr.find('td').each(function(index,element){
-						var elemName = $(element).attr('name');
-						$(element).css('height',options.rowHeight)
-							.attr('num',index)
-							.append((elemName == 'path' || elemName == 'deposit' || elemName == 'withdrawal') && !$(element).is(':has(.tdContent)') ? objSettings.colContainerRef.clone() : '');
-					});*/
 					$oldSelectedTD.parent().after($tr.addClass('splitRow').attr('recordId',$oldSelectedTD.parent().attr('recordId')));
 				}
 				console.log(rowData);			
@@ -671,6 +703,19 @@
 		
 	};
 	
+	function processRowDelete(recordId, objSettings,cb){		
+		deleteRow(recordId,objSettings,function(err){
+			if(err){
+				showUpdTrValidateError(err,objSettings);				
+				cb(err);
+				return false;
+			}					
+			cb();
+			
+		});			
+		
+	};
+	
 	function addRow(rowNewData,objSettings,cb){		
 		var jqXHR = $.ajax({
 			"url": options.editable.sAddURL,
@@ -725,6 +770,29 @@
 				cb(error);								
 			});
 		}
+	};
+	
+	function deleteRow(recordId,objSettings,cb){		
+		var jqXHR = $.ajax({
+			"url": options.editable.sDeleteURL,
+			"data":{recordId:recordId},
+			"type":"POST",
+			"dataType": "json",
+			"cache": false				
+		});
+		jqXHR.done(function(data){
+			if(data.error){
+				cb(data);
+			}
+			else{
+				cb();
+			}			
+		});
+		jqXHR.fail(function(data){
+			var error={error:'invalidResponse'};
+			cb(error);			
+		});
+		
 	};
 	
 	function processColumnEditable($col,objSettings){
@@ -865,7 +933,7 @@
 				$wrapElement.append($element);
 				$wrapElement.append($secondaryElement);				
 				$element = $wrapElement;
-			break;
+			break;			
 		}
 		if($element){
 			$element.css({'width':$col.width()+'px','height':$col.height()+'px'});				

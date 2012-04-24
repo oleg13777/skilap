@@ -150,7 +150,33 @@ module.exports.clearTransactions = function (token, ids, cb) {
 			cb(null);
 		});
 	} else {
-		cb(null);
+		var trs = [];
+		async.series ([
+			function (cb1) {
+				async.parallel([
+					function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
+					function (cb) { self._waitForData(cb) }
+				],cb1);
+			},
+			function (cb1) {				
+				async.forEach(ids,function(id,cb2){
+					self._cash_transactions.get(id,function (err, tr) {
+						if (err) return cb2(err);
+						trs.push(tr);				
+						process.nextTick(cb2);
+					});		
+				},cb1);				
+			},
+			function(cb1){
+				async.forEach(trs, function (e,cb2) {					
+					self._cash_transactions.put(e.id,null,cb2);
+				},cb1);
+			} 
+		], function (err) {
+			if (err) return cb(err);
+			self._calcStats(function () {})
+			cb(null);
+		});
 	}
 }
 
