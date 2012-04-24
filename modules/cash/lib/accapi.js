@@ -70,7 +70,7 @@ module.exports.getChildAccounts = function(token, parentId, cb) {
 	)
 }
 
-module.exports.getAccountByPath = function (path,cb) {		
+module.exports.getAccountByPath = function (token,path,cb) {		
 	var self = this;
 	async.series ([
 		function start(cb) {
@@ -81,7 +81,7 @@ module.exports.getAccountByPath = function (path,cb) {
 		}, 
 		function get(cb) {
 			var newAccId = null;
-			_.forEach(stats, function (accStat,key) {
+			_.forEach(self._stats, function (accStat,key) {
 				if (accStat.path == path)
 					newAccId = key;
 			});				

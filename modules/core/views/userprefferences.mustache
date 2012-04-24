@@ -17,19 +17,15 @@ $(document).ready(function() {
 					language: $("#language option:selected").val()
 				};
 				if ($("#changePass").is(":checked")) {
-					updUser.oldPass = $("#oldPass").val();
-					updUser.newPass = $("#newPass").val();
-					updUser.reNewPass = $("#reNewPass").val();
+					updUser.password = $("#password").val();
 				}
 				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
 				rpc.call('core.saveUser', $("#token").val(), updUser, {
 					success: function (data) {
-						$("#caption").text("");
 						window.parent.$("body").trigger('accountEditSuccess');
 					},
 					failure: function (reason) {
-						console.log(reason);
-						$("#caption").text(reason);
+						alert(reason);
 					}
 				});
 				window.parent.$("body .iframeContainer").trigger('closeDialog');
@@ -100,13 +96,7 @@ $(document).ready(function() {
 			<td>{{#i18n}}Change password{{/i18n}}</td><td><input type="checkbox" id="changePass"></td>
 		</tr>
 		<tr class="pass">
-			<td>{{#i18n}}Old password{{/i18n}}</td><td><input id="oldPass" type="password"></td>
-		</tr>
-		<tr class="pass">
-			<td>{{#i18n}}New password{{/i18n}}</td><td><input id="newPass" type="password"></td>
-		</tr>
-		<tr class="pass">
-			<td>{{#i18n}}Retype new password{{/i18n}}</td><td><input id="reNewPass" type="password"></td>
+			<td>{{#i18n}}Password{{/i18n}}</td><td><input id="password" type="password"></td>
 		</tr>
 		{{/user.loggedin}}				
 		<tr>

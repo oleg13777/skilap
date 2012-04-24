@@ -4,6 +4,7 @@ var sprintf = require('sprintf').sprintf;
 var _ = require('underscore');
 var async = require('async');
 var safe = require('safe');
+var sanitize = require('validator').sanitize
 
 module.exports = function account(webapp) {
 	var app = webapp.web;
@@ -42,62 +43,7 @@ module.exports = function account(webapp) {
 		], function (err) {
 			if (err) return next(err);
 		});
-	});
-
-	app.post(webapp.prefix+'/account/:id/updatecell', function(req, res, next) {
-		var newTr = null;
-		async.waterfall([
-			function (cb1) {
-				async.parallel([
-					function (cb2) {
-						cashapi.getTransaction(req.session.apiToken, req.body.id, cb2);
-					},
-					function (cb2) {
-						if (req.body.columnId==3){						
-							cashapi.getAccountByPath(req.body.value, cb2);
-						}
-						else{ 							
-							cb2(null,null);
-						}
-					}
-				], function (err, results) {					
-					cb1(err, results[0],results[1]);
-				});
-			},			
-			function (tr, newAccId,cb1) {				
-				if (req.body.columnId == 4 || req.body.columnId == 5) {
-					var newVal = eval(req.body.value);
-					if (req.body.columnId == 5)
-						newVal *= -1;
-					newTr = {id:tr.id,splits:[]};
-					tr.splits.forEach(function(split) {
-					if (split.accountId == req.params.id)
-						newTr.splits.push({id:split.id,value:newVal})
-					else
-						newTr.splits.push({id:split.id,value:newVal*-1})
-					});
-				} else if (req.body.columnId == 3 ) {
-					if (newAccId!=null) {
-						newTr = {id:tr.id,splits:[]};
-						tr.splits.forEach(function(split) {
-							if (split.accountId != req.params.id)
-								newTr.splits.push({id:split.id,accountId:newAccId})
-						});
-					}
-				} else if (req.body.columnId == 2 ) {
-					newTr = {id:tr.id,description:req.body.value};
-				} else if (req.body.columnId == 1 ) {										
-					var dateFormat = new DateFormat(DateFormat.W3C);
-					var newDate = dateFormat.format(new Date(req.body.value));					
-					newTr = {id:tr.id,dateEntered:newDate,datePosted:newDate};					
-				}
-				cashapi.saveTransaction(req.session.apiToken, newTr, cb1);
-				res.send(req.body.value);
-			}
-		], function (err) {
-			if (err) return next(err);
-		});
-	});
+	});	
 	
 	app.post(webapp.prefix+'/account/:id/updaterow', function(req, res, next) {		
 		var result = validateTrData(req.body);
@@ -116,7 +62,7 @@ module.exports = function account(webapp) {
 							var splitsById = {};																
 							async.forEach(req.body.splits, function(split,cb3){								
 								if(split.path && split.path != ''){									
-									cashapi.getAccountByPath(split.path, function(err,accId){
+									cashapi.getAccountByPath(req.session.apiToken,split.path, function(err,accId){
 										splitsById[split.id] = split;
 										splitsById[split.id].accountId = accId;										
 										cb3();
@@ -143,10 +89,16 @@ module.exports = function account(webapp) {
 				if (req.body.date) {				
 					var dateEntered = dateFormat.format(new Date(req.body.date));										
 					modifiedTr['dateEntered'] = dateEntered;
+				}
+				if(req.body.num){
+					modifiedTr['num'] = req.body.num;
 				}				
 				if (req.body.description) {
 					modifiedTr['description'] = req.body.description;
 				}	
+				if(req.body.transfer){
+					modifiedTr['transfer'] = req.body.transfer;
+				}
 				if(modifiedSplits){
 					modifiedTr['splits'] = [];
 					var imbalance = 0;					
@@ -159,7 +111,8 @@ module.exports = function account(webapp) {
 							id:split.id,							
 							value: depositVal - withdrawalVal,
 							quantity:depositVal - withdrawalVal,
-							accountId: modifiedSplits[split.id].accountId							
+							accountId: modifiedSplits[split.id].accountId,
+							description: modifiedSplits[split.id].description							
 						};
 						modifiedTr['splits'].push(modifiedSplit);
 						delete modifiedSplits[split.id];
@@ -204,25 +157,29 @@ module.exports = function account(webapp) {
 	app.post(webapp.prefix+'/account/:id/addrow', function(req, res, next) {		
 		var result = validateTrData(req.body,true);
 		if(result.error){
-			res.send(result)
+			res.send(result);
 			return false;
 		}		
 		async.waterfall([		
 			function (cb1) {
-				var newSplits = [];																			
-				async.forEach(req.body.splits, function(split,cb2){								
-					if(split.path && split.path != ''){									
-						cashapi.getAccountByPath(split.path, function(err,accId){
-							split.accountId = accId;
-							newSplits.push(split);																
+				var newSplits = [];
+				if(req.body.splits){																			
+					async.forEach(req.body.splits, function(split,cb2){								
+						if(split.path && sanitize(split.path).trim() != ''){									
+							cashapi.getAccountByPath(req.session.apiToken,split.path, function(err,accId){
+								split.accountId = accId;
+								newSplits.push(split);																
+								cb2();
+							});	
+						}
+						else{
 							cb2();
-						});	
-					}
-					else{
-						cb2();
-					}													
-				},function(){cb1(null,newSplits);});						
-				
+						}													
+					},function(){cb1(null,newSplits);});						
+				}
+				else{
+					cb1(null,newSplits);
+				}
 			},
 			function (newSplits,cb1) {
 				var newTr = {};
@@ -231,22 +188,35 @@ module.exports = function account(webapp) {
 				newTr['datePosted'] = datePosted;	
 				var dateEntered = dateFormat.format(new Date(req.body.date));										
 				newTr['dateEntered'] = dateEntered;	
-				newTr['description'] = req.body.description;	
+				if(req.body.num){
+					newTr['num'] = req.body.num;
+				}				
+				if (req.body.description) {
+					newTr['description'] = req.body.description;
+				}	
+				if(req.body.transfer){
+					newTr['transfer'] = req.body.transfer;
+				}
 				newTr['splits'] = [];
 				var imbalance = 0;					
 				newSplits.forEach(function(split) {
-					var depositVal  = split.deposit != "" ? parseFloat(split.deposit) : 0;
-					var withdrawalVal  = split.withdrawal != "" ? parseFloat(split.withdrawal) : 0;
-					var splitVal = depositVal - withdrawalVal;
-					imbalance += splitVal;
-					var modifiedSplit = {													
-						value: depositVal - withdrawalVal,
-						quantity:depositVal - withdrawalVal,
-						accountId: split.accountId							
-					};
-					newTr['splits'].push(modifiedSplit);					
-				});				
-				if(imbalance != 0){
+					if(split.deposit || split.withdrawal || split.accountId){						
+						var depositVal  = (split.deposit && split.deposit != "") ? parseFloat(split.deposit) : 0;
+						var withdrawalVal  = (split.withdrawal && split.withdrawal != "") ? parseFloat(split.withdrawal) : 0;
+						var splitVal = depositVal - withdrawalVal;
+						imbalance += splitVal;
+						var modifiedSplit = {													
+							value: depositVal - withdrawalVal,
+							quantity:depositVal - withdrawalVal,
+							accountId: split.accountId,
+							description: split.description					
+						};
+						newTr['splits'].push(modifiedSplit);
+					}					
+				});	
+				console.log('imbalance = '+imbalance);
+				console.log(newTr['splits']);				
+				if(imbalance != 0 || newTr['splits'].length == 1){
 					/* for classic transaction with two splits made automatic correct */
 					if(newTr['splits'].length == 1 && newTr['splits'][0].accountId != req.params.id){
 						newTr['splits'].push({
@@ -286,6 +256,28 @@ module.exports = function account(webapp) {
 			if (err) return next(err);
 		});		
 	});
+	
+	app.post(webapp.prefix+'/account/:id/delrow', function(req, res, next) {		
+		async.waterfall([			
+			function (cb1) {							
+				cashapi.clearTransactions(req.session.apiToken, [req.body.recordId], function(err){
+					result = {"recordId":req.body.recordId};
+					if(err){						
+						result.error = "1";
+					}
+					res.send(result);
+				});					
+			}
+		], function (err) {
+			if (err) return next(err);
+		});		
+	});
+	
+	app.post(webapp.prefix+'/account/:id/delsplit', function(req, res, next) {	
+		res.send(req.body.splitId);
+		
+	});
+
 
 	app.get(webapp.prefix+'/account/:id/getaccounts', function(req, res, next) {
 		var tmp = [];		
@@ -322,7 +314,7 @@ module.exports = function account(webapp) {
 				var tmp = [];
 				async.forEach(register, function (trs,cb2) {
 					cashapi.getTransaction(req.session.apiToken,trs.id, safe.trap_sure_result(cb2,function(tr) {
-						if (tr.description.search(req.query.term)!=-1)
+						if (tr.description && tr.description.search(req.query.term)!=-1)
 							tmp.push(tr.description);
 						cb2();
 					}));
@@ -400,11 +392,18 @@ module.exports = function account(webapp) {
 						split.path = accInfo[split.accountId].path;
 						splitsInfo.push(split);
 					});								
-					data.aaData.push([tr.id,df.format(dp),tr.description,
-						recv.length==1?accInfo[recv[0].accountId].path:"-- Multiple --",
-						send.value>0?sprintf("%.2f",send.value):null,
-						send.value<=0?sprintf("%.2f",send.value*-1):null,
-						sprintf("%.2f",trs.ballance),splitsInfo]);
+					data.aaData.push({
+						id:tr.id,
+						date:df.format(dp),
+						num:tr.num ? tr.num : '',
+						description:tr.description,
+						path:(recv.length==1?accInfo[recv[0].accountId].path:"-- Multiple --"),
+						transfer: tr.transfer ? tr.transfer : 'n',
+						deposit:(send.value>0?sprintf("%.2f",send.value):''),
+						withdrawal:(send.value<=0?sprintf("%.2f",send.value*-1):''),
+						total:sprintf("%.2f",trs.ballance),
+						splits:splitsInfo
+					});
 				}				
 				data.iTotalRecords = count;
 				data.iTotalDisplayRecords = count;
@@ -418,48 +417,25 @@ module.exports = function account(webapp) {
 	});
 	
 	var validateTrData = function(data,fullValidate){
-		var result = {};
-		result.fields = [];
-		if(fullValidate){
-			if(!data.date || data.date == ""){
-				result.fields.push({name:'date',message:'is empty'});
-			}
-			if(!data.description || data.description == ""){
-				result.fields.push({name:'description',message:'is empty'});
-			}
-			if(!data.splits || data.splits.length == 0)
-				result.fields.push({name:'splits',message:'is empty'});
-		}
-		else{
-			if(data.description && data.description == ""){
-				result.fields.push({name:'description',message:'is empty'});
-			}
-		}
+		var result = {};		
 		/* verify path, deposit and withdrawal values of splits */
 		result.splits = {};
-		var regex = /^\d+\.?\d+?$/;
+		var regex = /^\d+(\.\d+)?$/;
 		if(data.splits){
 			data.splits.forEach(function(split){
-				var invalidFields ={};
-				if(split.deposit != "" && !regex.test(split.deposit)){
+				var invalidFields ={};				
+				if(sanitize(split.deposit).trim() != "" && !regex.test(split.deposit)){					
 					invalidFields.deposit = 1;
 				}
-				if(split.withdrawal != "" && !regex.test(split.withdrawal)){
+				if(sanitize(split.withdrawal).trim() != "" && !regex.test(split.withdrawal)){
 					invalidFields.withdrawal = 1;
-				}
-				if(split.path == ""){
-					invalidFields.path = 1;
-				}
-				if(split.deposit == "" && split.withdrawal == ""){
-					invalidFields.deposit = 1;
-					invalidFields.withdrawal = 1;
-				}
+				}				
 				if(_.size(invalidFields)){
 					result.splits[split.id] = invalidFields;
 				}
 			});
 		}
-		if(_.size(result.splits) || result.fields.length > 0){
+		if(_.size(result.splits)){
 			result.error = 'validateError';
 		}			
 		return result;

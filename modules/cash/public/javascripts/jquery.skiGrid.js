@@ -5,7 +5,7 @@
 		sAjaxSource : '',
 		tableHeight : 400,
 		rowHeight:25,
-		columnsCount:7,
+		columnsCount:8,
 		columns:[],
 		editable:{}	
 	}, options);
@@ -36,6 +36,7 @@
 		this.currentDate = null;
 		this.currentAccountId = 0;
 		this.isRowAdded = false;
+		this.needSaveNewTr = false;
 		this.accounts = null;
 	};
 	
@@ -120,7 +121,9 @@
 		$newTrContainer.append($newTrGrid);
 		objSettings.newTrContainer = $newTrContainer;						
 		$obj.parents('.ski_gridWrapper').append($newTrContainer);
-		createRowForNewTransaction(objSettings);		
+		createRowForNewTransaction(objSettings);
+		createRowSettingsMenu(objSettings);
+		createSplitSettingsMenu(objSettings);		
 	};
 	
 	function bindEvents($obj,objSettings){
@@ -132,7 +135,15 @@
 		
 		/* show block for adding new transaction */
 		objSettings.gridWrapper.on('GridLoad',function(){
-			objSettings.newTrContainer.find('tr td[name="date"] .tdContent').text(objSettings.currentDate);
+			var dateField = objSettings.newTrContainer.find('tr.mainRow td[name="date"] .tdContent').html();
+			var transferField = objSettings.newTrContainer.find('tr.mainRow td[name="transfer"] .tdContent').html();
+			if(dateField == '&nbsp;'){
+				objSettings.newTrContainer.find('tr.mainRow td[name="date"] .tdContent').text(objSettings.currentDate);
+			}			
+			if(transferField == '&nbsp;'){
+				objSettings.newTrContainer.find('tr.mainRow td[name="transfer"] .tdContent').text('n');
+			}
+			objSettings.rowNewData={date:objSettings.currentDate,transfer:'n'};
 			handleSplitRowsShow(objSettings);						
 		});		
 		
@@ -145,38 +156,92 @@
 			showGrid($obj,objSettings,offset);			
 		});				
 		/* column select event */		
-		objSettings.bodyWrapperRef.find('tbody').on('click','td',function(){				
-			handleColumnClick($(this),objSettings);
+		objSettings.gridWrapper.find('tbody').on('click','td',function(){			
+			handleColumnClick($(this),objSettings);			
 		});
 		
-		/* new transaction column select event */		
-		objSettings.newTrContainer.find('tbody').on('click','td',function(){							
-			handleColumnClick($(this),objSettings);
-		});
+		objSettings.gridWrapper.find('tbody').on('click','.ski_settingsLink',function(){
+			if($(this).parents('.mainRow').length > 0){
+				var recordId = $($(this).parents('.mainRow')[0]).attr('recordid');						
+				objSettings.gridWrapper.find('tr.mainRow[recordid != "'+recordId+'"] .ski_settingsMenu').removeClass('active');
+				objSettings.gridWrapper.find('tr.splitRow[recordid = "'+recordId+'"] .ski_settingsMenu').removeClass('active');
+			
+			}
+			else if($(this).parents('.splitRow').length > 0){
+				var splitId = $($(this).parents('.splitRow')[0]).attr('splitid');
+				var recordId = $($(this).parents('.splitRow')[0]).attr('recordid');			
+				objSettings.gridWrapper.find('tr.splitRow[splitid != "'+splitId+'"] .ski_settingsMenu').removeClass('active');
+				objSettings.gridWrapper.find('tr.mainRow[recordid = "'+recordId+'"] .ski_settingsMenu').removeClass('active');
+				
+			}
+			$(this).parent().find('.ski_settingsMenu').toggleClass('active');			
+		});	
+		
+		objSettings.gridWrapper.find('tbody').on('click','.ski_settingsMenu .menuItem',function(){					
+			if($(this).hasClass('delete') && $(this).hasClass('split')){
+				var recordId = $($(this).parents('.splitRow')[0]).attr('recordid');
+				var splitId = $($(this).parents('.splitRow')[0]).attr('splitid');
+				processSplitDelete(splitId, recordId, objSettings,function(err){
+					objSettings.splitButton.removeClass('ski_selected');
+					handleSplitRowsShow(objSettings);		
+					if(!err){								
+						objSettings.bodyWrapperRef.scroll();												
+					}
+				});
+			}	
+			else if($(this).hasClass('delete')){
+				var recordId = $($(this).parents('.mainRow')[0]).attr('recordid');
+				processRowDelete(recordId, objSettings,function(err){
+					objSettings.splitButton.removeClass('ski_selected');
+					handleSplitRowsShow(objSettings);		
+					if(!err){								
+						objSettings.bodyWrapperRef.scroll();												
+					}
+				});
+			}	
+		});	
+		
+		$(document).on('click',function(e){
+			if($(".ski_settingsMenu").hasClass('active') 
+					&& $(e.target).closest('.ski_settingsMenu').length == 0
+					&& $(e.target).closest('.settings').length == 0){				
+				$(".ski_settingsMenu").removeClass('active');
+			}
+		});		
+		
 		/* handle tab key */
-		objSettings.gridWrapper.find('tbody').on('keypress','td',function(e){
+		objSettings.gridWrapper.find('tbody').on('keypress','td',function(e){			
 			if(e.keyCode == 9){
-				$(this).find('input').blur();				
-				handleColumnClick($(this).next(),objSettings);
-				if($(this).next().attr('name') == 'total'){					
-					triggerModifyData($(this).next(),objSettings);					
+				$(this).find('input').blur();	
+				var $nextCol = $(this).next();
+				if($nextCol.attr('name') == 'transfer'){
+					$nextCol = $nextCol.next();
 				}
+				var $targetColumn	= $nextCol;			
+				if($nextCol.attr('name') == 'total'){
+					checkToNeedSaveNewTr($(this),objSettings);
+					var $targetColumn = getTargetColumnForNextRow($(this),objSettings);																
+				}
+				handleColumnClick($targetColumn,objSettings);				
 				return false;
 			}
-			if(e.keyCode == 13 && ($(this).attr('name') == 'deposit' || $(this).attr('name') == 'withdrawal')){
-				handleColumnClick($(this).next(),objSettings);				
-				triggerModifyData($(this).next(),objSettings);	
+			if(e.which == 13){				
+				var $targetColumn = getTargetColumnForNextRow($(this),objSettings);	
+				checkToNeedSaveNewTr($(this),objSettings);
+				handleColumnClick($targetColumn,objSettings);					
 				return false;
 			}			
 		});
 		/* handle modify data */
-		objSettings.gridWrapper.on('AddRowData',function(){				
+		objSettings.gridWrapper.on('AddRowData',function(){					
 			processRowAdd(objSettings,function(err){
-				if(!err){
-					objSettings.rowNewData={};
+				objSettings.splitButton.removeClass('ski_selected');
+				handleSplitRowsShow(objSettings);		
+				if(!err){					
 					clearDataForNewTransaction(objSettings);
 					objSettings.isRowAdded = true;			
-					objSettings.bodyWrapperRef.scroll();					
+					objSettings.bodyWrapperRef.scroll();
+					$(objSettings.newTrContainer.find('tr.mainRow td')[0]).click();							
 				}
 			});
 		});
@@ -185,9 +250,11 @@
 			clearDataForNewTransaction(objSettings);
 		});
 		
-		objSettings.gridWrapper.on('UpdateRowData',function(e,$col){			
+		objSettings.gridWrapper.on('UpdateRowData',function(e,$col){					
 			processRowUpdate(objSettings,function(err){
 				if(!err){
+					objSettings.splitButton.removeClass('ski_selected');
+					handleSplitRowsShow(objSettings);	
 					objSettings.bodyWrapperRef.find('tr.mainRow').removeClass('ski_selected');
 					if($col){												
 						objSettings.selectedRowId = $col.parent().attr('recordid');	
@@ -205,6 +272,10 @@
 					else{							
 						objSettings.selectedRowId = 0;	
 						objSettings.rowEditedData={};
+					}
+					if(objSettings.isNeedReload){							
+						objSettings.isNeedReload = false;
+						objSettings.bodyWrapperRef.scroll();
 					}					
 				}
 			});				
@@ -221,6 +292,45 @@
 		$(window).on('resize',function(){			
 			drawGridBorders($obj,objSettings);
 		});
+	};
+	
+	function createRowSettingsMenu(objSettings){
+		objSettings.rowSettingsMenu = $('<img class="ski_settingsLink" src= "'+options.urlPrefix+'/images/settings-icon.png" height="22px"/><div class="ski_settingsMenu"><div class="menuItem delete"><a href="javascript:void(0);">Delete Transaction</a></div></div>');
+				
+	};
+	
+	function createSplitSettingsMenu(objSettings){
+		objSettings.splitSettingsMenu = $('<img class="ski_settingsLink" src= "'+options.urlPrefix+'/images/settings-icon.png" height="22px"/><div class="ski_settingsMenu"><div class="menuItem split delete"><a href="javascript:void(0);">Remove Split</a></div></div>');
+				
+	};
+	
+	function getTargetColumnForNextRow($col,objSettings){
+		var nextRow = [];
+		var hiddenRows = $col.parent().nextUntil(':visible');		
+		if(hiddenRows.length == 0){
+			nextRow = $col.parent().next();
+		}
+		else{
+			nextRow = $(hiddenRows[hiddenRows.length-1]).next();
+		}
+		var colName = 'date';
+		if($col.parent().hasClass('splitRow') && $col.parent().next().hasClass('splitRow')){
+			colName = 'description';
+		}
+		var targetColumn = $($col.parent().find('td[name="'+colName+'"]')[0]);
+		if(nextRow.length > 0){
+			targetColumn = $(nextRow.find('td[name="'+colName+'"]')[0]);
+		}
+		else if($col.parents('.ski_gridBodyWrapper').length > 0){
+			targetColumn = $(objSettings.newTrContainer.find('tr.mainRow td')[0]);			
+		}
+		return targetColumn;				
+	};
+	
+	function checkToNeedSaveNewTr($col,objSettings){
+		if($col.parents('.ski_newTrContainer').length > 0){					
+			objSettings.needSaveNewTr = true;
+		}		
 	};
 	
 	function showGrid($obj,objSettings,offset){			
@@ -241,58 +351,73 @@
 			clearGrid(objSettings);
 			updateGridSettings(data,objSettings);
 			for(var i=0;i<data.aaData.length;i++){
-				var tr = objSettings.tableRowRef.clone();						
-				for(var j=0;j<options.columnsCount;j++){
-					var td = tr.find('td')[j];
-					/* set additional attributes from options */
-					if(options.columns[j] && options.columns[j].attr){
-						for(key in options.columns[j].attr){
-							$(td).attr(key,options.columns[j].attr[key]);
-						}
-					}
-					var tdVal = data.aaData[i][j];	
+				var tr = objSettings.tableRowRef.clone();
+				var tdList = tr.find('td');
+				for(var j=0;j<tdList.length;j++){
+					var $td = $(tdList[j]);
+					var name = $td.attr('name');
+					var tdVal = data.aaData[i][name];	
 					var $tdContent = objSettings.colContainerRef.clone();
-					$tdContent.html(tdVal ? tdVal : '&nbsp;');				
-					$(td).css('height',options.rowHeight).attr('num',j).append($tdContent);
-					if(tdVal == "-- Multiple --" && $(td).attr('name') == 'path'){
-						$(td).addClass('multiple');
+					if(name == 'settings'){
+						$tdContent.append(objSettings.rowSettingsMenu.clone());
 					}
-				}
-				objSettings.tableBodyRef.append(tr.addClass('mainRow').attr('recordid',data.aaData[i][0]));
+					else{						
+						$tdContent.html(tdVal ? tdVal : '&nbsp;');	
+					}			
+					$td.css('height',options.rowHeight).attr('num',j).append($tdContent);
+					if(tdVal == "-- Multiple --" && name == 'path'){
+						$td.addClass('multiple');
+					}
+					
+				}			
+				objSettings.tableBodyRef.append(tr.addClass('mainRow').attr('recordid',data.aaData[i]['id']));
 				/* Add splits rows 
 				 * we should add one empty row at the end
-				 */
-				if(data.aaData[i][options.columnsCount]){
-					var splits = data.aaData[i][options.columnsCount];					
-					var splitsLength = splits.length;
-					var firstRow =true;
-					for(var j=0;j<=splitsLength;j++){
-						var $tr = objSettings.tableRowRef.clone();
-						/* fill splits rows */
-						var splitId = -1;
-						var accountId = -1;
-						if(j < splitsLength){	
-							splitId = splits[j].id;
-							accountId = splits[j].accountId;									
-							var td = $tr.find('td')[3];
-							var $tdContent = objSettings.colContainerRef.clone();
-							$tdContent.text(splits[j]['path']);
-							$(td).append($tdContent);
-							var columnIndex = 4;
-							var val = splits[j]['value']
-							if( val < 0){
-								columnIndex = 5;
-								val*=-1;
-							}
-							var td = $tr.find('td')[columnIndex];
-							var $tdContent = objSettings.colContainerRef.clone();
-							$tdContent.text(val);
-							$(td).append($tdContent);
-						}						
-						applyColumnAttrsForSplitRow($tr,splitId,accountId,objSettings);
-						objSettings.tableBodyRef.append($tr.addClass('splitRow invisible').attr('recordId',data.aaData[i][0]));
-					}								
-				}				
+				 */				
+				var splits = data.aaData[i]['splits'];					
+				var splitsLength = splits.length;
+				var firstRow =true;
+				for(var j=0;j<=splitsLength;j++){
+					var $tr = objSettings.tableRowRef.clone();
+					/* fill splits rows */
+					var splitId = -1;
+					var accountId = -1;
+					if(j < splitsLength){	
+						splitId = splits[j].id;
+						accountId = splits[j].accountId;
+						var td = $tr.find('td[name="description"]')[0];
+						var $tdContent = objSettings.colContainerRef.clone();
+						if(splits[j].description && splits[j].description != ''){							
+							$tdContent.text(splits[j]['description']);							
+						}	
+						else{
+							$tdContent.html('&nbsp;');	
+						}
+						$(td).append($tdContent);								
+						var td = $tr.find('td[name="path"]')[0];
+						var $tdContent = objSettings.colContainerRef.clone();
+						$tdContent.text(splits[j]['path']);
+						$(td).append($tdContent);
+						var columnName = 'deposit';
+						var val = splits[j]['value']
+						if( val < 0){
+							columnName = 'withdrawal';
+							val*=-1;
+						}
+						var td = $tr.find('td[name="'+columnName+'"]')[0];
+						var $tdContent = objSettings.colContainerRef.clone();
+						$tdContent.text(val);
+						$(td).append($tdContent);
+						
+						var td = $tr.find('td[name="settings"]')[0];
+						var $tdContent = objSettings.colContainerRef.clone();
+						$tdContent.append(objSettings.splitSettingsMenu.clone());
+						$(td).append($tdContent);
+					}						
+					applyColumnAttrsForSplitRow($tr,splitId,accountId,objSettings);
+					objSettings.tableBodyRef.append($tr.addClass('splitRow invisible').attr('recordId',data.aaData[i]['id']));
+				}								
+							
 			}			
 			objSettings.tableBodyRef.find('tr.mainRow:odd').addClass('odd');
 			objSettings.tableBodyRef.find('tr.mainRow:even').addClass('even');
@@ -438,13 +563,13 @@
 	};
 	
 	function processHandleColumnClick($col,objSettings){
-		if($col.parents('.ski_newTrContainer').length > 0){
-			handleNewTrColumnClick($col,objSettings);
+		if($col.parents('.ski_newTrContainer').length > 0){						
 			handleUpdTrColumnClick(null,objSettings);
+			handleNewTrColumnClick($col,objSettings);
 		}
-		else{
-			handleUpdTrColumnClick($col,objSettings);
+		else{			
 			handleNewTrColumnClick(null,objSettings);
+			handleUpdTrColumnClick($col,objSettings);			
 		}
 	};
 	
@@ -452,63 +577,8 @@
 		if($col != null && ($col.hasClass('ski_selected') || $col.hasClass('ski_disabled'))){
 			return false;
 		}
-		var oldSelecteds = $(objSettings.tableBodyRef.find('td.ski_selected'));		
-		$oldSelectedTD = null;
-		if(oldSelecteds[0]){			
-			$oldSelectedTD = $(oldSelecteds[0]);
-			$oldSelectedTD.removeClass('ski_selected');
-			$firstChild = $($oldSelectedTD.find('.tdContent :first-child')[0]);			
-			var newColumnVal = getColumnValFromControl($firstChild,objSettings);
-			$firstChild.remove();
-			var oldColumnVal = getColumnVal($oldSelectedTD);
-			if(newColumnVal != oldColumnVal){				
-				$oldSelectedTD.find('.tdContent').text(newColumnVal);
-				if($oldSelectedTD.parent().hasClass('mainRow')){
-					/* sync split rows with main row data */
-					var recordId = $oldSelectedTD.parent().attr('recordid');
-					$splitRow = $(objSettings.tableBodyRef.find('tr.splitRow[recordid="'+recordId+'"][accountid!="'+objSettings.currentAccountId+'"]')[0]);
-					if(objSettings.colNum == 5 || objSettings.colNum == 4){
-						var columnNum = objSettings.colNum  == 4 ? objSettings.colNum+1 : objSettings.colNum-1;
-						$($splitRow.find('td')[objSettings.colNum]).find('.tdContent').text('');	
-						$($splitRow.find('td')[columnNum]).find('.tdContent').text(newColumnVal);
-					}
-					else{
-						$($splitRow.find('td')[objSettings.colNum]).find('.tdContent').text(newColumnVal);
-					}					
-					//$($oldSelectedTD.parent().next('.splitRow[accountid!="'+objSettings.currentAccountId+'"]').find('td')[objSettings.colNum]).find('.tdContent').text(newColumnVal);						
-				}
-				switch(objSettings.colNum){
-					case 1:
-					case 2:						
-						objSettings.rowEditedData[$oldSelectedTD.attr('name')] = newColumnVal;
-					break;
-					case 3:
-					case 4:
-					case 5:						
-						objSettings.rowEditedData['splits']=[];
-						objSettings.tableBodyRef.find('tr.splitRow[recordid="'+objSettings.selectedRowId+'"]').each(function(index,splitRow){
-							var path = $(splitRow).find('td[name="path"] .tdContent').text();
-							if(path != ""){
-								var splitId = $(splitRow).attr('splitid');								
-								var deposit = $(splitRow).find('td[name="deposit"] .tdContent').text();
-								var withdrawal = $(splitRow).find('td[name="withdrawal"] .tdContent').text();
-								var split = {'id':splitId,'path':path, 'deposit':deposit, 'withdrawal':withdrawal};
-								objSettings.rowEditedData['splits'].push(split);
-							}
-						});						
-					break;
-				}	
-				if($oldSelectedTD.parent().hasClass('splitRow') && !$oldSelectedTD.parent().next('.splitRow[recordid="'+objSettings.selectedRowId+'"]').length){
-					var $tr = objSettings.tableRowRef.clone();
-					$tr.find('td').each(function(index,element){
-						$(element).css('height',options.rowHeight)
-							.attr('num',index).attr('name',options.columns[index].attr['name'])
-							.append((index > 2 && index < 6 && !$(element).is(':has(.tdContent)') ? objSettings.colContainerRef.clone() : ''));
-					});
-					$oldSelectedTD.parent().after($tr.addClass('splitRow').attr('splitid',parseInt($oldSelectedTD.parent().attr('splitid'))-1).attr('recordId',$oldSelectedTD.parent().attr('recordId')));
-				}			
-			}			
-		}
+		processOldSelectedColumn(objSettings,false);		
+		
 		if($col == null || !$col.parent().hasClass('ski_selected') && $col.parent().hasClass('mainRow')){
 			objSettings.gridWrapper.trigger('UpdateRowData',[$col]);			
 		}
@@ -518,69 +588,88 @@
 		
 	};
 	
-	function handleNewTrColumnClick($col,objSettings){			
-		if($col != null && ($col.hasClass('ski_selected') || $col.hasClass('ski_disabled'))){			
+	function handleNewTrColumnClick($col,objSettings){				
+		if($col != null && ($col.hasClass('ski_selected') || $col.hasClass('ski_disabled')) && !objSettings.needSaveNewTr){			
 			return false;
 		}
-		var oldSelecteds = $(objSettings.newTrContainer.find('td.ski_selected'));		
-		$oldSelectedTD = null;
-		if(oldSelecteds[0]){			
-			$oldSelectedTD = $(oldSelecteds[0]);			
-			$oldSelectedTD.removeClass('ski_selected');
-			$firstChild = $($oldSelectedTD.find('.tdContent :first-child')[0]);			
-			var newColumnVal = getColumnValFromControl($firstChild,objSettings);
-			$firstChild.remove();
-			var oldColumnVal = getColumnVal($oldSelectedTD);
-			if(newColumnVal != oldColumnVal){				
-				$oldSelectedTD.find('.tdContent').text(newColumnVal);
-				if($oldSelectedTD.parent().hasClass('mainRow')){
-					/* sync split rows with main row data */
-					var splitRowColNum = objSettings.colNum;
-					if(objSettings.colNum == 4)
-						splitRowColNum = 5;
-					else if(objSettings.colNum == 5)
-						splitRowColNum = 4;
-					$($oldSelectedTD.parent().next('.splitRow').find('td')[splitRowColNum]).find('.tdContent').text(newColumnVal);						
-				}
-				switch(objSettings.colNum){
-					case 1:
-					case 2:						
-						objSettings.rowNewData[$oldSelectedTD.attr('name')] = newColumnVal;
-					break;
-					case 3:
-					case 4:
-					case 5:						
-						objSettings.rowNewData['splits']=[];
-						objSettings.newTrContainer.find('tr.splitRow').each(function(index,splitRow){
-							var path = $(splitRow).find('td[name="path"] .tdContent').text();
-							if(path != ""){
-								var splitId = $(splitRow).attr('splitid');								
-								var deposit = $(splitRow).find('td[name="deposit"] .tdContent').text();
-								var withdrawal = $(splitRow).find('td[name="withdrawal"] .tdContent').text();
-								var split = {'id':splitId,'path':path, 'deposit':deposit, 'withdrawal':withdrawal};
-								objSettings.rowNewData['splits'].push(split);
-							}
-						});						
-					break;
-				}	
-				if($oldSelectedTD.parent().hasClass('splitRow') && !$oldSelectedTD.parent().next('.splitRow').length){
-					var $tr = objSettings.tableRowRef.clone();
-					$tr.find('td').each(function(index,element){
-						$(element).css('height',options.rowHeight)
-							.attr('num',index).attr('name',options.columns[index].attr['name'])
-							.append((index > 2 && index < 6 && !$(element).is(':has(.tdContent)') ? objSettings.colContainerRef.clone() : ''));
-					});
-					$oldSelectedTD.parent().after($tr.addClass('splitRow').attr('splitid',parseInt($oldSelectedTD.parent().attr('splitid'))-1).attr('recordId',$oldSelectedTD.parent().attr('recordId')));
-					
-				}			
-			}			
-		}
-		if($col == null){
-			objSettings.newTrContainer.find('tr.mainRow').removeClass('ski_selected');
+		
+		processOldSelectedColumn(objSettings,true);		
+		if($col == null || objSettings.needSaveNewTr){
+			if(!objSettings.needSaveNewTr){
+				objSettings.newTrContainer.find('tr.mainRow').removeClass('ski_selected');
+			}
+			objSettings.needSaveNewTr = false;			
 			objSettings.gridWrapper.trigger('AddRowData');
 			return false;
 		}		
 		processColumnEditable($col,objSettings);		
+	};
+	
+	function processOldSelectedColumn(objSettings,newRowMode){		
+		var rowsContainer = newRowMode ? objSettings.newTrContainer : objSettings.tableBodyRef;
+		var oldSelecteds = rowsContainer.find('td.ski_selected');		
+		$oldSelectedTD = null;		
+		if(oldSelecteds[0]){			
+			var rowData = newRowMode ? objSettings.rowNewData : objSettings.rowEditedData;					
+			$oldSelectedTD = $(oldSelecteds[0]);
+			$oldSelectedTD.removeClass('ski_selected');
+			$firstChild = $($oldSelectedTD.find('.tdContent :first-child')[0]);			
+			var newColumnVal = getColumnValFromControl($firstChild,objSettings);			
+			$firstChild.remove();
+			var oldColumnVal = getColumnVal($oldSelectedTD);
+			if(newColumnVal != oldColumnVal){				
+				$oldSelectedTD.find('.tdContent').text(newColumnVal);
+				var oldSelectedName = $oldSelectedTD.attr('name');
+				var recordId = $oldSelectedTD.parent().attr('recordid');
+				if($oldSelectedTD.parent().hasClass('mainRow')){
+					/* sync split rows with main row data */					
+					$splitRow = $(rowsContainer.find('tr.splitRow[recordid="'+recordId+'"][accountid!="'+objSettings.currentAccountId+'"]')[0]);
+					if(oldSelectedName == 'deposit' || oldSelectedName == 'withdrawal'){					
+						var splitColumnName = oldSelectedName == 'deposit' ? 'withdrawal' : 'deposit';						
+						$($splitRow.find('td[name="'+oldSelectedName+'"]')[0]).find('.tdContent').text('');	
+						$($splitRow.find('td[name="'+splitColumnName+'"]')[0]).find('.tdContent').text(newColumnVal);
+					}
+					else if(oldSelectedName != 'description'){
+						$($splitRow.find('td[name="'+oldSelectedName+'"]')[0]).find('.tdContent').text(newColumnVal);
+					}					
+				}
+				switch(oldSelectedName){
+					case 'date':
+					case 'num':						
+					case 'transfer':					
+						rowData[oldSelectedName] = newColumnVal;
+					break;					
+					case 'path':
+					case 'deposit':
+					case 'withdrawal':
+					case 'description':	
+						if(oldSelectedName == 'description' && $oldSelectedTD.parent().hasClass('mainRow')){
+							rowData[oldSelectedName] = newColumnVal;
+						}	
+						else{				
+							rowData['splits']=[];						
+							rowsContainer.find('tr.splitRow[recordid="'+recordId+'"]').each(function(index,splitRow){
+								var path = $(splitRow).find('td[name="path"] .tdContent').text();
+								if(path != ""){
+									var splitId = $(splitRow).attr('splitid');
+									var description = $(splitRow).find('td[name="description"] .tdContent').text();							
+									var deposit = $(splitRow).find('td[name="deposit"] .tdContent').text();
+									var withdrawal = $(splitRow).find('td[name="withdrawal"] .tdContent').text();
+									var split = {'id':splitId,'path':path, 'deposit':deposit, 'withdrawal':withdrawal,'description':description};
+									rowData['splits'].push(split);
+								}
+							});	
+						}					
+					break;
+				}	
+				if($oldSelectedTD.parent().hasClass('splitRow') && !$oldSelectedTD.parent().next('.splitRow[recordid="'+recordId+'"]').length){
+					var $tr = objSettings.tableRowRef.clone();
+					applyColumnAttrsForSplitRow($tr,parseInt($oldSelectedTD.parent().attr('splitid'))-1,null,objSettings);
+					$oldSelectedTD.parent().after($tr.addClass('splitRow').attr('recordId',$oldSelectedTD.parent().attr('recordId')));
+				}
+				console.log(rowData);			
+			}						
+		}
 	};
 	
 	function processRowChange($col,$oldCol,objSettings,cb){
@@ -589,9 +678,7 @@
 			var rowEditedData = $.extend({},objSettings.rowEditedData);
 			updateRow(rowEditedData,objSettings,function(err){
 				if(err){
-					if(err.error == 'validateError'){
-						showUpdTrValidateError($oldCol,err,objSettings);
-					}
+					showUpdTrValidateError(err,objSettings);					
 					cb(err);
 					return false;
 				}				
@@ -619,18 +706,19 @@
 	function processRowAdd(objSettings,cb){
 		/* selected row changing */		
 		var rowNewData = $.extend({},objSettings.rowNewData);
+		if(!rowNewData.date){
+			rowNewData.date = objSettings.currentDate;
+		}
 		var fieldsCount = 0;
 		for(i in rowNewData){
 			fieldsCount++;
 		}
-		if(fieldsCount == 0){
+		if(fieldsCount == 2){
 			return false;
 		}				
 		addRow(rowNewData,objSettings,function(err){
 			if(err){
-				if(err.error == 'validateError'){
-					showNewTrValidateError(err,objSettings);
-				}
+				showNewTrValidateError(err,objSettings);				
 				cb(err);
 				return false;
 			}									
@@ -640,12 +728,20 @@
 	};
 	
 	function processRowUpdate(objSettings,cb){		
-		var rowEditedData = $.extend({},objSettings.rowEditedData);		
+		var rowEditedData = $.extend({},objSettings.rowEditedData);
+		var isNotNeededUpdate = true;
+		for(key in rowEditedData){
+			if(key != 'id'){
+				isNotNeededUpdate = false;
+			}
+		}
+		if(isNotNeededUpdate){
+			cb();
+			return false;
+		}		
 		updateRow(rowEditedData,objSettings,function(err){
 			if(err){
-				if(err.error == 'validateError'){
-					showUpdTrValidateError(err,objSettings);
-				}
+				showUpdTrValidateError(err,objSettings);				
 				cb(err);
 				return false;
 			}					
@@ -655,32 +751,33 @@
 		
 	};
 	
-	function addRow(rowNewData,objSettings,cb){
-		var errorsCount = 0;		
-		var error={error:'validateError'};
-		if(!rowNewData['date'] || rowNewData['date'] == ""){
-			/* check date field */
-			var dateColVal = objSettings.newTrContainer.find('td[name="date"] .tdContent').text();
-			if(dateColVal != ''){
-				rowNewData['date'] = dateColVal;
-			}else{
-				error.date = 1;
-				errorsCount++;
-			}
-		}
-		if(!rowNewData['description'] || rowNewData['description'] == ""){
-			error.description = 1;
-			errorsCount++;
-		}
-		if(!rowNewData['splits']){
-			error.splits = {};
-			error.splits.split = {path:1,deposit:1,withdrawal:1};			
-			errorsCount++;
-		}			
-		if(errorsCount){
-			cb(error);
-			return false;
-		}				
+	function processRowDelete(recordId, objSettings,cb){		
+		deleteRow(recordId,objSettings,function(err){
+			if(err){
+				showError(err.error,objSettings);					
+				cb(err);
+				return false;
+			}					
+			cb();
+			
+		});			
+		
+	};
+	
+	function processSplitDelete(splitId, recordId, objSettings,cb){		
+		deleteSplit(splitId,recordId,objSettings,function(err){
+			if(err){
+				showError(err.error,objSettings);				
+				cb(err);
+				return false;
+			}					
+			cb();
+			
+		});			
+		
+	};
+	
+	function addRow(rowNewData,objSettings,cb){		
 		var jqXHR = $.ajax({
 			"url": options.editable.sAddURL,
 			"data":rowNewData,
@@ -708,7 +805,7 @@
 		for(key in rowEditedData){
 			editedDataSize++;
 		}		
-		if(editedDataSize < 2){
+		if(editedDataSize == 0){
 			showPathInUpdMainRow(objSettings,true);
 			cb();
 		}
@@ -736,6 +833,52 @@
 		}
 	};
 	
+	function deleteRow(recordId,objSettings,cb){		
+		var jqXHR = $.ajax({
+			"url": options.editable.sDeleteURL,
+			"data":{recordId:recordId},
+			"type":"POST",
+			"dataType": "json",
+			"cache": false				
+		});
+		jqXHR.done(function(data){
+			if(data.error){
+				cb(data);
+			}
+			else{
+				cb();
+			}			
+		});
+		jqXHR.fail(function(data){
+			var error={error:'invalidResponse'};
+			cb(error);			
+		});
+		
+	};
+	
+	function deleteSplit(splitId, recordId,objSettings,cb){		
+		var jqXHR = $.ajax({
+			"url": options.editable.sDeleteSplitURL,
+			"data":{splitId:splitId,recordId:recordId},
+			"type":"POST",
+			"dataType": "json",
+			"cache": false				
+		});
+		jqXHR.done(function(data){
+			if(data.error){
+				cb(data);
+			}
+			else{
+				cb();
+			}			
+		});
+		jqXHR.fail(function(data){
+			var error={error:'invalidResponse'};
+			cb(error);			
+		});
+		
+	};
+	
 	function processColumnEditable($col,objSettings){
 		$col.parent().addClass('ski_selected');
 		var colNum = $col.attr('num');
@@ -745,6 +888,12 @@
 		$col.addClass('ski_selected');				
 		makeColumnEditable($col,colNum,objSettings);
 		handleSplitRowsShow(objSettings);	
+	};
+	
+	function disableEnter(e){		
+		if(e.which == 13){
+			e.stopPropagation();
+		}
 	};
 	
 	function makeColumnEditable($col,colNum,objSettings){
@@ -759,14 +908,27 @@
 			case 'input':				
 				$element = $('<input class= "ski_editable" type="text" value="'+val+'" />');
 				
-			break;			
+			break;	
+			case 'span':				
+				var newVal = val == 'n' ? 'c' : 'n';				
+				$element = $('<span class= "ski_editable" style="text-align:center;cursor:pointer;background-color:#fff;" >'+newVal+'</span>');
+				$element.on('click',function(){					
+					var newVal1 = $(this).text() == 'n' ? 'c' : 'n';
+					$(this).text(newVal1);
+				});
+			break;		
 			case 'select':
 				/* delete previous autocomplete popup */
 				objSettings.gridWrapper.find('.ski_select_popup').remove();
 				/* calculate position of autocomplete popup */
 				var autocompletePos = getAutocompletePos($col,objSettings);
 				$element1 = $('<input style="display:block;width:100%;height:100%" type="text" value="'+val+'" />');
-				$element1.autocomplete({position:autocompletePos});
+				$element1.autocomplete({
+					position:autocompletePos,					
+					close: function(e){
+						setTimeout(function(){$element1.off('keypress',disableEnter);},300);						
+					}		
+				});
 				var jqXHR = $.ajax({
 					"url": options.editable.columns[colNum].source,					
 					"dataType": "json",
@@ -788,6 +950,7 @@
 				
 				$element1.autocomplete('option','appendTo','#'+popupId);
 				$element1.on('autocompleteopen',function(e,ui){
+					$element1.on('keypress',disableEnter);
 					e.target.focus();
 					$('#'+popupId).find('li:first a').mouseover();
 					e.preventDefault();
@@ -826,14 +989,18 @@
 						});
 					},
 					appendTo:'#'+popupId,
-					position: autocompletePos
-				});				
+					position: autocompletePos,
+					open: function(e){
+						$element.on('keypress',disableEnter);							
+						e.target.focus();
+						$('#'+popupId).find('li:first a').mouseover();
+						e.preventDefault();
+					},
+					close: function(e){
+						setTimeout(function(){$element.off('keypress',disableEnter);},300);						
+					}					
+				});			
 				
-				$element.on('autocompleteopen',function(e,ui){					
-					e.target.focus();
-					$('#'+popupId).find('li:first a').mouseover();
-					e.preventDefault();
-				});				
 			break;
 			case 'datepicker':
 				$element = $('<input style="display:block;width:100%;height:100%" type="text" value="'+val+'" readonly />');
@@ -850,20 +1017,22 @@
 				$wrapElement.append($element);
 				$wrapElement.append($secondaryElement);				
 				$element = $wrapElement;
-			break;
+			break;			
 		}
 		if($element){
 			$element.css({'width':$col.width()+'px','height':$col.height()+'px'});				
 			$($col.find('.tdContent')[0]).prepend($element);			
 		}		
 		$col.find('input').focus();		
-	};
+	};	
+	
 	
 	function applyColumnAttrsForSplitRow($tr,splitId,accountId,objSettings){
 		$tr.attr('splitid',splitId).attr('accountid',accountId).find('td').each(function(index,element){
+			var elemName = $(element).attr('name');
 			$(element).css('height',options.rowHeight)
-				.attr('num',index).attr('name',options.columns[index].attr['name'])
-				.append((index > 2 && index < 6 && !$(element).is(':has(.tdContent)') ? objSettings.colContainerRef.clone() : ''));
+				.attr('num',index)
+				.append((elemName == 'description' || elemName == 'path' || elemName == 'deposit' || elemName == 'withdrawal') && !$(element).is(':has(.tdContent)') ? objSettings.colContainerRef.clone() : '');
 		});
 	};
 	
@@ -881,14 +1050,15 @@
 			var $tdContent = objSettings.colContainerRef.clone();
 			$tdContent.html('&nbsp;');				
 			$(td).css('height',options.rowHeight).attr('num',j).append($tdContent);				
-		}				
-		objSettings.newTrContainer.find('tbody').append(tr.addClass('mainRow').attr('recordid',-1));
+		}
+		var recordId = -1;				
+		objSettings.newTrContainer.find('tbody').append(tr.addClass('mainRow').attr('recordid',recordId));
 		/*for split rows */			
 		for(var i=0;i<3;i++){
 			var splitId = -1 - i;
 			var $tr = objSettings.tableRowRef.clone();
 			applyColumnAttrsForSplitRow($tr,splitId,splitId,objSettings);				
-			objSettings.newTrContainer.find('tbody').append($tr.addClass('splitRow invisible').attr('recordId','new'));
+			objSettings.newTrContainer.find('tbody').append($tr.addClass('splitRow invisible').attr('recordId',recordId));
 		}
 	};
 	
@@ -897,26 +1067,9 @@
 		objSettings.rowNewData = {};		
 	};
 	
-	function showUpdTrValidateError(data,objSettings){
-		for(key in data){
-			if(key == 'splits'){
-				for(id in data[key]){
-					var split = data[key][id];
-					for(field in split){
-						var $tdContent;
-						if(objSettings.splitButton.hasClass('ski_selected')){
-							$tdContent = $(objSettings.tableBodyRef.find('tr.splitRow[recordid="'+objSettings.selectedRowId+'"][splitid="'+id+'"] td[name="'+field+'"] .tdContent')[0]);
-						}
-						else{
-							$tdContent = $(objSettings.tableBodyRef.find('tr.mainRow[recordid="'+objSettings.selectedRowId+'"] td[name="'+field+'"] .tdContent')[0]);
-						
-						}
-						$tdContent.addClass('ski_validate-error');						
-					}
-				}
-			}
-		}
+	function showUpdTrValidateError(error,objSettings){		
 		$("#ski_dialog-confirm" ).dialog({
+			title: error.error,
 			resizable: false,
 			height:180,
 			modal: true,
@@ -933,34 +1086,10 @@
 		});		
 	};
 	
-	function showNewTrValidateError(data,objSettings){		
-		for(key in data){			
-			if(key == 'splits'){				
-				for(id in data[key]){					
-					var split = data[key][id];
-					for(field in split){						
-						var $tdContent;
-						if(objSettings.splitButton.hasClass('ski_selected')){
-							$tdContent = $(objSettings.newTrContainer.find('tr.splitRow[splitid="'+id+'"] td[name="'+field+'"] .tdContent')[0]);
-						}
-						else{
-							if(field == "deposit")
-								field = "withdrawal";
-							else if(field == "withdrawal")
-								field = "deposit";
-							$tdContent = $(objSettings.newTrContainer.find('tr.mainRow td[name="'+field+'"] .tdContent')[0]);
-						
-						}
-						$tdContent.addClass('ski_validate-error');						
-					}
-				}
-			}
-			else{
-				$tdContent = $(objSettings.newTrContainer.find('tr.mainRow td[name="'+key+'"] .tdContent')[0]);
-				$tdContent.addClass('ski_validate-error');	
-			}
-		}
+	function showNewTrValidateError(error,objSettings){	
+		
 		$("#ski_dialog-confirm" ).dialog({
+			title: error.error,
 			resizable: false,
 			height:180,
 			modal: true,
@@ -989,6 +1118,9 @@
 			case 'input':							
 			case 'autocomplete':
 				val = $firstChild.val();
+			break;
+			case 'span':
+				val = $firstChild.text();
 			break;
 			case 'datepicker':
 			case 'select':
