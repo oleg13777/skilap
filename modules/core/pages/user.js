@@ -33,14 +33,12 @@ module.exports = function account(ctx, app, api, prefix) {
 				_(modulesInfo).each(function(info){
 					var tmp = {module:info.name, perm:[]};
 					_(info.permissions).each(function(perm){
-						console.log(perm);
 						if (_(user.permissions).indexOf(perm.id) >= 0) {
 							tmp.perm.push(perm.desc);
 						}
 					});
 					permissions.push(tmp);
 				});
-				console.log(permissions);
 				cb1(null, permissions, modulesInfo, user.permissions);
 			},
 			function (permissions, mInfo, userPerm, cb1) {
