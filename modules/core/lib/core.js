@@ -309,8 +309,8 @@ function Skilap() {
 				require("../pages/index")(self,webapp,modules['core'].api,"/core");
 
 				var options = {
-					key: fs.readFileSync('/home/pushok/work/skilap/privatekey.pem'),
-					cert: fs.readFileSync('/home/pushok/work/skilap/certificate.pem')
+					key: fs.readFileSync(path.resolve('./privatekey.pem')),
+					cert: fs.readFileSync(path.resolve('./certificate.pem'))
 				};
 				var https = express.createServer(options);
 				var http = express.createServer();
