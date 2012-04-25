@@ -1,0 +1,58 @@
+<script type="text/javascript">
+$(document).ready(function() {
+	$("#editPerm").click(function(){
+		{{#userPerm}}
+			$(".perm[value='{{.}}']").attr("checked", "checked");
+		{{/userPerm}}
+		$("#editPermDialog").dialog("open");
+	});
+	$("#editPermDialog").dialog({
+		position: ["center","center"],
+		buttons: {
+			"apply": function() {
+				var self = $(this);
+				var newUser = { id: "{{#user}}{{id}}{{/user}}" };
+				var perms = [];
+				$('.perm').filter(":checkbox:checked").each(function(index, checkbox) {
+					perms.push($(checkbox).attr("value"));
+				});
+				newUser.permissions = perms;
+				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
+				rpc.call('core.saveUser', $("#token").val(), newUser, {
+					success: function (data) {
+						$("#caption").text("");
+						self.dialog("close");
+						location.reload(true);
+					},
+					failure: function (reason) {
+						console.log(reason);
+						$("#caption").text(reason);
+					}
+				});
+			},
+			"close": function() {
+				$(this).dialog("close");
+			}
+		},
+		autoOpen: true,
+		resizable: false,
+		height: 400,
+		width: 400,
+		modal: true,
+		draggable: false
+	});
+});
+</script>
+<div id="editPermDialog" title="{{#i18n}}Edit permissions{{/i18n}}" class="editPermDialog" style="width: 600; height: 200px;">
+	<form>
+	<input id="token" type="hidden" value="{{apiToken}}">
+	<table>
+	{{#mInfo}}
+		<tr><td><b>{{name}}</b></td><td></td></tr>
+		{{#permissions}}
+			<tr><td>&nbsp;&nbsp;&nbsp;{{desc}}</td><td><input type="checkbox" class="perm" value="{{id}}"/></td></tr>
+		{{/permissions}}
+	{{/mInfo}}
+	</table>
+	</form>
+</div>
