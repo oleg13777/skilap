@@ -331,7 +331,7 @@ text-decoration:underline;
 }
 
 .ski_settingsMenu .menuItem.delete a{
-background:url('../images/cancel-icon.png')no-repeat 0 5px;
+background:url('../images/cancel-icon.png')no-repeat 0 2px;
 padding-left:20px;
 }
 
