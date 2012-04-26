@@ -17,6 +17,8 @@ $(document).ready(function() {
 
 	$("#editPerm").click(function(){
 		$("#ski_editPermissions").iframeContainer({src:"{{prefix}}/userpermisions", host:"{{host}}"});
+		var permissions = {{{userPermissions}}};
+		$("#ski_editPermissions").iframeContainer("triggerEvent",{name:'setEditPermDialogData',data:permissions});
 		$("#ski_editPermissions").iframeContainer("open");
 	})
 

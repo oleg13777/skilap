@@ -29,9 +29,6 @@ $(document).ready(function() {
 			}
 		},
 		open:function(e,ui){			
-			{{#userPerm}}
-				$(".perm[value='{{.}}']").attr("checked", "checked");
-			{{/userPerm}}
 			var w = $(this).parent().width();
 			var h = $(this).parent().height();
 			var p = $(this).parent().position();
@@ -51,6 +48,21 @@ $(document).ready(function() {
 		modal: true,
 		draggable: false
 	});
+	function displayMessage(event){		
+		console.log("event perm");
+		if(event.data.name == 'setEditPermDialogData') {
+			var permissions = event.data.data;
+			permissions.forEach(function(perm) {
+				$(".perm[value='"+perm+"']").attr("checked", "checked");
+			});
+		}
+	}
+	if (window.addEventListener) {	
+		window.addEventListener("message", displayMessage, false);
+	}
+	else {
+		window.attachEvent("onmessage", displayMessage);
+	}
 });
 </script>
 <div id="editPermDialog" title="{{#i18n}}Edit permissions{{/i18n}}" class="editPermDialog" style="width: 600; height: 200px;">

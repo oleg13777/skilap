@@ -15,6 +15,21 @@ $(document).ready(function() {
 		});		
 		$("#ski_editUser").iframeContainer("open");
 	});
+	$(".editPerm").click(function(){
+		$("#ski_editPermissions").iframeContainer({src:"{{prefix}}/userpermisions", host:"{{host}}"});
+		var uid = $(this).attr('uid');
+		var secret = $('#token').val();
+		var rpc = new jsonrpc.JsonRpc('/jsonrpc');
+		rpc.call('core.getUserById', secret, uid, {
+			success: function (data) {
+				var user = data[0];								
+				$("#ski_editPermissions").iframeContainer("triggerEvent",{name:'setEditPermDialogData',data:user.permissions});
+			},
+			failure: function (reason) {
+			},
+		});		
+		$("#ski_editPermissions").iframeContainer("open");
+	})
 	$(".deleteUser").click(function(){
 		var uid = $(this).attr('uid');
 		var secret = $('#token').val();
@@ -132,6 +147,7 @@ $(document).ready(function() {
 				<li><a href="#" onmouseover="mopen('{{id}}')" onmouseout="mclosetime()"><img width="20px" src="{{prefix}}/images/cog_alt.png"></a>
 					<div id="{{id}}" onmouseover="mcancelclosetime()" onmouseout="mclosetime()">
 					<a href="#" uid="{{id}}" class="editUser">Edit</a>
+					<a href="#" uid="{{id}}" class="editPerm">EditPerm</a>
 					<a href="#" uid="{{id}}" class="deleteUser">Delete</a>
 					</div>
 				</li>
@@ -144,7 +160,7 @@ $(document).ready(function() {
 </div>
 
 <div id="ski_editUser"></div>
-
+<div id="ski_editPermissions"></div>
 
 <div id="addUserDialog" title="{{#i18n}}Add new user{{/i18n}}" class="dialog" style="width: 600; height: 200px;">
 	<form>
