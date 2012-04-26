@@ -198,7 +198,12 @@
 				objSettings.gridWrapper.find('tr.mainRow[recordid = "'+recordId+'"] .ski_settingsMenu').removeClass('active');
 				
 			}
-			$(this).parent().find('.ski_settingsMenu').toggleClass('active');			
+			var pos = getAutocompletePos($(this).parent(),objSettings);
+			var menuPos = {top:'5px'};
+			if(pos.my == "right bottom"){
+				menuPos = {bottom:'5px'};
+			}
+			$(this).parent().find('.ski_settingsMenu').css(menuPos).toggleClass('active');			
 		});	
 		
 		$(document).on('click',function(e){

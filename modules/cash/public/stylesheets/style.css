@@ -307,8 +307,7 @@ overflow:visible;
 .ski_settingsMenu{
 display:none;
 position:absolute;
-top:20px;
-right:10px;
+right:35px;
 background-color:#fff;
 border:1px solid #ccc;
 z-index:3;
