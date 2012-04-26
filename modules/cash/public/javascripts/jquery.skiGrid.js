@@ -33,8 +33,8 @@
 		this.rowNewData = null;
 		this.isNotDrawBorders = true;
 		this.newTrContainer = null;		
-		this.currentDate = null;
-		this.currentAccountId = 0;
+		this.currentDate = null;		
+		this.currentAccount = null;
 		this.isRowAdded = false;
 		this.needSaveNewTr = false;
 		this.accounts = null;
@@ -72,8 +72,8 @@
 	};
 	
 	function updateGridSettings(data,objSettings){
-		objSettings.currentDate = data.currentDate;
-		objSettings.currentAccountId = data.currentAccountId;
+		objSettings.currentDate = data.currentDate;		
+		objSettings.currentAccount = data.currentAccount;
 		objSettings.totalRowsCount = data.iTotalRecords+1;			
 		objSettings.totalHeight = objSettings.totalRowsCount*options.rowHeight;
 		objSettings.bodyScrollerRef.css('height',objSettings.totalHeight+'px');
@@ -154,12 +154,36 @@
 			objSettings.tablePosition = tablePosition;				
 			var offset = objSettings.totalRowsCount - objSettings.rowsLimit - Math.round((objSettings.totalHeight-scrollPosition - options.tableHeight)/options.rowHeight);
 			showGrid($obj,objSettings,offset);			
-		});				
+		});	
+		/* event handler for switching currency in multiple currency transactions */	
+		objSettings.gridWrapper.find('tbody').on('click','.ski_currencyFlag',function(){
+			handleColumnClick($($(this).parents('tr').find('td[name="total"]')[0]),objSettings);	
+			var activeCurrency = $(this).text();			
+			var path_currency = $($(this).parents('td')[0]).data('path_curr');
+			var $depositCol = $($(this).parents('tr').find('td[name="deposit"]')[0]);
+			var $withdrawalCol = $($(this).parents('tr').find('td[name="withdrawal"]')[0]);
+			var activeDepositVal = '';
+			var activeWithdrawalVal = '';
+			if(path_currency == activeCurrency){
+				console.log(activeCurrency);
+				$(this).text(objSettings.currentAccount.currency);
+				activeDepositVal = $depositCol.attr('data-value');
+				activeWithdrawalVal = $withdrawalCol.attr('data-value');				
+			}
+			else{				
+				$(this).text(path_currency);
+				activeDepositVal = $depositCol.attr('data-quantity');
+				activeWithdrawalVal = $withdrawalCol.attr('data-quantity');				
+			}
+			$depositCol.find('.tdContent').text(activeDepositVal);
+			$withdrawalCol.find('.tdContent').text(activeWithdrawalVal);	
+			return false;
+		});		
 		/* column select event */		
 		objSettings.gridWrapper.find('tbody').on('click','td',function(){			
 			handleColumnClick($(this),objSettings);			
 		});
-		
+		/* event handler for show/hide row settings menu */
 		objSettings.gridWrapper.find('tbody').on('click','.ski_settingsLink',function(){
 			if($(this).parents('.mainRow').length > 0){
 				var recordId = $($(this).parents('.mainRow')[0]).attr('recordid');						
@@ -177,7 +201,16 @@
 			$(this).parent().find('.ski_settingsMenu').toggleClass('active');			
 		});	
 		
-		objSettings.gridWrapper.find('tbody').on('click','.ski_settingsMenu .menuItem',function(){					
+		$(document).on('click',function(e){
+			if($(".ski_settingsMenu").hasClass('active') 
+					&& $(e.target).closest('.ski_settingsMenu').length == 0
+					&& $(e.target).closest('.settings').length == 0){				
+				$(".ski_settingsMenu").removeClass('active');
+			}
+		});	
+		
+		/* event handler for click on settings menu item */
+		objSettings.gridWrapper.find('tbody').on('click','.ski_settingsMenu .menuItem',function(){						
 			if($(this).hasClass('delete') && $(this).hasClass('split')){
 				var recordId = $($(this).parents('.splitRow')[0]).attr('recordid');
 				var splitId = $($(this).parents('.splitRow')[0]).attr('splitid');
@@ -199,15 +232,7 @@
 					}
 				});
 			}	
-		});	
-		
-		$(document).on('click',function(e){
-			if($(".ski_settingsMenu").hasClass('active') 
-					&& $(e.target).closest('.ski_settingsMenu').length == 0
-					&& $(e.target).closest('.settings').length == 0){				
-				$(".ski_settingsMenu").removeClass('active');
-			}
-		});		
+		});				
 		
 		/* handle tab key */
 		objSettings.gridWrapper.find('tbody').on('keypress','td',function(e){			
@@ -233,9 +258,9 @@
 			}			
 		});
 		/* handle modify data */
-		objSettings.gridWrapper.on('AddRowData',function(){					
+		objSettings.gridWrapper.on('AddRowData',function(){								
 			processRowAdd(objSettings,function(err){
-				objSettings.splitButton.removeClass('ski_selected');
+				//objSettings.splitButton.removeClass('ski_selected');
 				handleSplitRowsShow(objSettings);		
 				if(!err){					
 					clearDataForNewTransaction(objSettings);
@@ -250,10 +275,10 @@
 			clearDataForNewTransaction(objSettings);
 		});
 		
-		objSettings.gridWrapper.on('UpdateRowData',function(e,$col){					
+		objSettings.gridWrapper.on('UpdateRowData',function(e,$col){							
 			processRowUpdate(objSettings,function(err){
 				if(!err){
-					objSettings.splitButton.removeClass('ski_selected');
+					//objSettings.splitButton.removeClass('ski_selected');
 					handleSplitRowsShow(objSettings);	
 					objSettings.bodyWrapperRef.find('tr.mainRow').removeClass('ski_selected');
 					if($col){												
@@ -283,54 +308,15 @@
 		
 		$("body").on('accountUpdatedSuccess',function(e,data){			
 			if(objSettings.accounts){				
-				objSettings.accounts.push(data.name);
+				objSettings.accounts[data.name] = {currency:data.cmdty.id};
 			}
 		});
 		
 		
-		/* fix grid when window change */
+		/* event handler for fix grid borders size when window change */
 		$(window).on('resize',function(){			
 			drawGridBorders($obj,objSettings);
 		});
-	};
-	
-	function createRowSettingsMenu(objSettings){
-		objSettings.rowSettingsMenu = $('<img class="ski_settingsLink" src= "'+options.urlPrefix+'/images/settings-icon.png" height="22px"/><div class="ski_settingsMenu"><div class="menuItem delete"><a href="javascript:void(0);">Delete Transaction</a></div></div>');
-				
-	};
-	
-	function createSplitSettingsMenu(objSettings){
-		objSettings.splitSettingsMenu = $('<img class="ski_settingsLink" src= "'+options.urlPrefix+'/images/settings-icon.png" height="22px"/><div class="ski_settingsMenu"><div class="menuItem split delete"><a href="javascript:void(0);">Remove Split</a></div></div>');
-				
-	};
-	
-	function getTargetColumnForNextRow($col,objSettings){
-		var nextRow = [];
-		var hiddenRows = $col.parent().nextUntil(':visible');		
-		if(hiddenRows.length == 0){
-			nextRow = $col.parent().next();
-		}
-		else{
-			nextRow = $(hiddenRows[hiddenRows.length-1]).next();
-		}
-		var colName = 'date';
-		if($col.parent().hasClass('splitRow') && $col.parent().next().hasClass('splitRow')){
-			colName = 'description';
-		}
-		var targetColumn = $($col.parent().find('td[name="'+colName+'"]')[0]);
-		if(nextRow.length > 0){
-			targetColumn = $(nextRow.find('td[name="'+colName+'"]')[0]);
-		}
-		else if($col.parents('.ski_gridBodyWrapper').length > 0){
-			targetColumn = $(objSettings.newTrContainer.find('tr.mainRow td')[0]);			
-		}
-		return targetColumn;				
-	};
-	
-	function checkToNeedSaveNewTr($col,objSettings){
-		if($col.parents('.ski_newTrContainer').length > 0){					
-			objSettings.needSaveNewTr = true;
-		}		
 	};
 	
 	function showGrid($obj,objSettings,offset){			
@@ -351,12 +337,16 @@
 			clearGrid(objSettings);
 			updateGridSettings(data,objSettings);
 			for(var i=0;i<data.aaData.length;i++){
-				var tr = objSettings.tableRowRef.clone();
+				var tr = objSettings.tableRowRef.clone();				
 				var tdList = tr.find('td');
 				for(var j=0;j<tdList.length;j++){
 					var $td = $(tdList[j]);
 					var name = $td.attr('name');
-					var tdVal = data.aaData[i][name];	
+					var tdVal = data.aaData[i][name];
+					if(name == 'deposit' || name == 'withdrawal'){
+						var tdQuantity = data.aaData[i][name+'_quantity'];						
+						$td.attr('data-quantity',tdQuantity).attr('data-value',tdVal);	
+					}
 					var $tdContent = objSettings.colContainerRef.clone();
 					if(name == 'settings'){
 						$tdContent.append(objSettings.rowSettingsMenu.clone());
@@ -365,12 +355,19 @@
 						$tdContent.html(tdVal ? tdVal : '&nbsp;');	
 					}			
 					$td.css('height',options.rowHeight).attr('num',j).append($tdContent);
-					if(tdVal == "-- Multiple --" && name == 'path'){
-						$td.addClass('multiple');
+					if(name == 'path'){
+						if(tdVal == "-- Multiple --" ){
+							$td.addClass('multiple');
+						}
+						else if(data.aaData[i]['path_curr']){
+							$td.attr('data-path_curr',data.aaData[i]['path_curr']);
+							appendCurrencySelector($td,objSettings);
+						}
 					}
 					
+					
 				}			
-				objSettings.tableBodyRef.append(tr.addClass('mainRow').attr('recordid',data.aaData[i]['id']));
+				objSettings.tableBodyRef.append(tr.addClass('mainRow').attr('recordid',data.aaData[i]['id']).attr('data-multicurr',data.aaData[i]['multicurr']));
 				/* Add splits rows 
 				 * we should add one empty row at the end
 				 */				
@@ -398,16 +395,23 @@
 						var $tdContent = objSettings.colContainerRef.clone();
 						$tdContent.text(splits[j]['path']);
 						$(td).append($tdContent);
+						if(splits[j].currency != objSettings.currentAccount.currency){
+							appendCurrencySelector($(td),objSettings);
+							$(td).attr('data-path_curr',splits[j].currency);
+						}
 						var columnName = 'deposit';
-						var val = splits[j]['value']
+						var val = splits[j]['value'];
+						var quantity = splits[j]['quantity']
 						if( val < 0){
 							columnName = 'withdrawal';
 							val*=-1;
+							quantity*=-1;
 						}
 						var td = $tr.find('td[name="'+columnName+'"]')[0];
 						var $tdContent = objSettings.colContainerRef.clone();
 						$tdContent.text(val);
 						$(td).append($tdContent);
+						$(td).attr('data-quantity',quantity).attr('data-value',val);
 						
 						var td = $tr.find('td[name="settings"]')[0];
 						var $tdContent = objSettings.colContainerRef.clone();
@@ -416,8 +420,7 @@
 					}						
 					applyColumnAttrsForSplitRow($tr,splitId,accountId,objSettings);
 					objSettings.tableBodyRef.append($tr.addClass('splitRow invisible').attr('recordId',data.aaData[i]['id']));
-				}								
-							
+				}			
 			}			
 			objSettings.tableBodyRef.find('tr.mainRow:odd').addClass('odd');
 			objSettings.tableBodyRef.find('tr.mainRow:even').addClass('even');
@@ -469,7 +472,7 @@
 		objSettings.isNotDrawBorders = false;
 	};	
 	
-	function handleSplitRowsShow(objSettings){
+	function handleSplitRowsShow(objSettings){		
 		handleUpdTrSplitRowsShow(objSettings);
 		handleNewTrSplitRowsShow(objSettings);
 		drawGridBorders(objSettings.obj,objSettings);
@@ -536,7 +539,7 @@
 		if($prevInput && $prevInput.parents('td.account').length > 0 && !$col.hasClass('ski_selected')){
 			if(objSettings.accounts){				
 				var currentAcc = $prevInput.val();				
-				if(currentAcc != "" && $.inArray(currentAcc,objSettings.accounts) == -1){									
+				if(currentAcc != "" && !objSettings.accounts[currentAcc]){									
 					$("#ski_dialog-confirm-create-account p.text").text('The account "'+currentAcc+'" does not exist. Would you like to create it?');
 					$("#ski_dialog-confirm-create-account").dialog({
 						resizable: false,
@@ -621,17 +624,67 @@
 				$oldSelectedTD.find('.tdContent').text(newColumnVal);
 				var oldSelectedName = $oldSelectedTD.attr('name');
 				var recordId = $oldSelectedTD.parent().attr('recordid');
-				if($oldSelectedTD.parent().hasClass('mainRow')){
-					/* sync split rows with main row data */					
-					$splitRow = $(rowsContainer.find('tr.splitRow[recordid="'+recordId+'"][accountid!="'+objSettings.currentAccountId+'"]')[0]);
+				if(oldSelectedName == 'path'){										
+					if(objSettings.accounts[newColumnVal].currency != objSettings.currentAccount.currency){
+						$oldSelectedTD.attr('data-path_curr',objSettings.accounts[newColumnVal].currency);
+						appendCurrencySelector($oldSelectedTD,objSettings);											
+					}	
+					console.log(rowsContainer.find('tr[recordid="'+recordId+'"] td[data-quantity]'));			
+					rowsContainer.find('tr[recordid="'+recordId+'"] td[data-quantity]').attr('data-quantity','');											
+				}
+				else if(oldSelectedName == 'deposit' || oldSelectedName == 'withdrawal'){
+					var selectedCurrency = getSelectedCurrency($oldSelectedTD);
+					if(selectedCurrency != '' && selectedCurrency != objSettings.currentAccount.currency){
+						$oldSelectedTD.attr('data-quantity',newColumnVal);						
+					}
+					else{
+						$oldSelectedTD.attr('data-value',newColumnVal);
+					}
+				}
+				
+				/* sync split rows with main row data */
+				if($oldSelectedTD.parent().hasClass('mainRow')){										
+					$splitRow = $(rowsContainer.find('tr.splitRow[recordid="'+recordId+'"][accountid!="'+objSettings.currentAccount.id+'"]')[0]);
+					
 					if(oldSelectedName == 'deposit' || oldSelectedName == 'withdrawal'){					
-						var splitColumnName = oldSelectedName == 'deposit' ? 'withdrawal' : 'deposit';						
+						var splitColumnName = oldSelectedName == 'deposit' ? 'withdrawal' : 'deposit';
+						var val = $oldSelectedTD.attr('data-value');
+						var quantity = $oldSelectedTD.attr('data-quantity');
+						if(!quantity){
+							quantity = "";
+						}
 						$($splitRow.find('td[name="'+oldSelectedName+'"]')[0]).find('.tdContent').text('');	
-						$($splitRow.find('td[name="'+splitColumnName+'"]')[0]).find('.tdContent').text(newColumnVal);
+						//console.log($splitRow.find('td[name="'+splitColumnName+'"]')[0]);
+						$($splitRow.find('td[name="'+splitColumnName+'"]')[0]).attr('data-value',val).attr('data-quantity',quantity).find('.tdContent').text(val);
 					}
 					else if(oldSelectedName != 'description'){
 						$($splitRow.find('td[name="'+oldSelectedName+'"]')[0]).find('.tdContent').text(newColumnVal);
+						if(oldSelectedName == 'path'){
+							if(objSettings.accounts[newColumnVal].currency != objSettings.currentAccount.currency){
+								$pathCol = $($splitRow.find('td[name="path"]')[0]);
+								$pathCol.attr('data-path_curr',objSettings.accounts[newColumnVal].currency);
+								appendCurrencySelector($pathCol,objSettings);
+							}	
+						}
 					}					
+				}
+				/* sync main row  with split rows  data */
+				else if($oldSelectedTD.parent().hasClass('splitRow')){
+					if(rowsContainer.find('tr.splitRow[recordid="'+recordId+'"]').length-1 > 2){
+						rowsContainer.find('tr.mainRow[recordid="'+recordId+'"] td[name="path"] .tdContent').text('--Multiple--');
+					}
+					else{
+						if(oldSelectedName == 'path'){
+							var $mainRowCol = $(rowsContainer.find('tr.mainRow[recordid="'+recordId+'"] td[name="path"]')[0]);
+							$mainRowCol.find('.tdContent').text(newColumnVal);
+							if(objSettings.accounts[newColumnVal].currency != objSettings.currentAccount.currency){
+								$mainRowCol.attr('data-path_curr',objSettings.accounts[newColumnVal].currency);
+								appendCurrencySelector($mainRowCol,objSettings);
+							}	
+					
+						}
+						/* add code for sync deposit and withdrawal */
+					}
 				}
 				switch(oldSelectedName){
 					case 'date':
@@ -649,13 +702,23 @@
 						else{				
 							rowData['splits']=[];						
 							rowsContainer.find('tr.splitRow[recordid="'+recordId+'"]').each(function(index,splitRow){
-								var path = $(splitRow).find('td[name="path"] .tdContent').text();
-								if(path != ""){
+								var path = getColumnVal($(splitRow).find('td[name="path"]'));
+								if(path != ""){									
 									var splitId = $(splitRow).attr('splitid');
 									var description = $(splitRow).find('td[name="description"] .tdContent').text();							
-									var deposit = $(splitRow).find('td[name="deposit"] .tdContent').text();
-									var withdrawal = $(splitRow).find('td[name="withdrawal"] .tdContent').text();
-									var split = {'id':splitId,'path':path, 'deposit':deposit, 'withdrawal':withdrawal,'description':description};
+									var deposit = $(splitRow).find('td[name="deposit"]').attr('data-value');
+									var deposit_quantity = $(splitRow).find('td[name="deposit"]').attr('data-quantity');
+									var	withdrawal = $(splitRow).find('td[name="withdrawal"]').attr('data-value');
+									var	withdrawal_quantity = $(splitRow).find('td[name="withdrawal"]').attr('data-quantity');
+									var split = {
+										id:splitId,
+										path:path, 
+										deposit:(deposit ? deposit : ""), 
+										deposit_quantity:(deposit_quantity ? deposit_quantity : ""), 
+										withdrawal:(withdrawal ? withdrawal : ""),
+										withdrawal_quantity:(withdrawal_quantity ? withdrawal_quantity : ""),
+										description:description
+									};
 									rowData['splits'].push(split);
 								}
 							});	
@@ -886,7 +949,7 @@
 			return false;
 		
 		$col.addClass('ski_selected');				
-		makeColumnEditable($col,colNum,objSettings);
+		makeColumnEditable($col,colNum,objSettings);		
 		handleSplitRowsShow(objSettings);	
 	};
 	
@@ -918,6 +981,7 @@
 				});
 			break;		
 			case 'select':
+				//$col.find('.tdContent').children().remove();
 				/* delete previous autocomplete popup */
 				objSettings.gridWrapper.find('.ski_select_popup').remove();
 				/* calculate position of autocomplete popup */
@@ -936,7 +1000,11 @@
 				});
 				jqXHR.done(function(data){					
 					objSettings.accounts = data;
-					$element1.autocomplete('option','source',objSettings.accounts);
+					var src = [];
+					for(key in objSettings.accounts){
+						src.push(key);
+					}
+					$element1.autocomplete('option','source',src);
 				});
 				$element2 = $('<div class="ski_select_btn"></div>');
 				var popupId = 'ski_path_popup';
@@ -1036,6 +1104,10 @@
 		});
 	};
 	
+	function appendCurrencySelector($col,objSettings){
+		$col.find('.tdContent').append('<a class="ski_currencyFlag" href="javascript:void(0);">'+objSettings.currentAccount.currency+'</a>');
+	};
+	
 	function createRowForNewTransaction(objSettings){
 		var tr = objSettings.tableRowRef.clone();
 		/*refactoring it! */
@@ -1107,7 +1179,8 @@
 	};
 	
 	function getColumnVal($col){
-		var $tdContent = $($col.find('.tdContent')[0]);
+		var $tdContent = $($col.find('.tdContent')[0]).clone();
+		$tdContent.children().remove();
 		return $.trim($tdContent.text());
 	};
 	
@@ -1157,6 +1230,50 @@
 		else{
 			objSettings.gridWrapper.trigger('UpdateRowData',[$col]);
 		}
+	};
+	
+	function getSelectedCurrency($col){
+		console.log('currency= '+$col.parents('tr').find('td[name="path"] .ski_currencyFlag').text());
+		return $col.parents('tr').find('td[name="path"] .ski_currencyFlag').text();
+	};
+	
+	function createRowSettingsMenu(objSettings){
+		objSettings.rowSettingsMenu = $('<img class="ski_settingsLink" src= "'+options.urlPrefix+'/images/settings-icon.png" height="20px"/><div class="ski_settingsMenu"><div class="menuItem delete"><a href="javascript:void(0);">Delete Transaction</a></div></div>');
+				
+	};
+	
+	function createSplitSettingsMenu(objSettings){
+		objSettings.splitSettingsMenu = $('<img class="ski_settingsLink" src= "'+options.urlPrefix+'/images/settings-icon.png" height="20px"/><div class="ski_settingsMenu"><div class="menuItem split delete"><a href="javascript:void(0);">Remove Split</a></div></div>');
+				
+	};
+	
+	function getTargetColumnForNextRow($col,objSettings){
+		var nextRow = [];
+		var hiddenRows = $col.parent().nextUntil(':visible');		
+		if(hiddenRows.length == 0){
+			nextRow = $col.parent().next();
+		}
+		else{
+			nextRow = $(hiddenRows[hiddenRows.length-1]).next();
+		}
+		var colName = 'date';
+		if($col.parent().hasClass('splitRow') && $col.parent().next().hasClass('splitRow')){
+			colName = 'description';
+		}
+		var targetColumn = $($col.parent().find('td[name="'+colName+'"]')[0]);
+		if(nextRow.length > 0){
+			targetColumn = $(nextRow.find('td[name="'+colName+'"]')[0]);
+		}
+		else if($col.parents('.ski_gridBodyWrapper').length > 0){
+			targetColumn = $(objSettings.newTrContainer.find('tr.mainRow td')[0]);			
+		}
+		return targetColumn;				
+	};
+	
+	function checkToNeedSaveNewTr($col,objSettings){
+		if($col.parents('.ski_newTrContainer').length > 0){					
+			objSettings.needSaveNewTr = true;
+		}		
 	};
       
 	return this.each(function(){		

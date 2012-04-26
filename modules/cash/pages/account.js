@@ -5,6 +5,7 @@ var _ = require('underscore');
 var async = require('async');
 var safe = require('safe');
 var sanitize = require('validator').sanitize
+var SkilapError = require("skilap-utils").SkilapError;
 
 module.exports = function account(webapp) {
 	var app = webapp.web;
@@ -59,19 +60,19 @@ module.exports = function account(webapp) {
 					},
 					splits:function (cb2) {						
 						if (req.body.splits){							
-							var splitsById = {};																
+							var splits = [];																
 							async.forEach(req.body.splits, function(split,cb3){								
 								if(split.path && split.path != ''){									
-									cashapi.getAccountByPath(req.session.apiToken,split.path, function(err,accId){
-										splitsById[split.id] = split;
-										splitsById[split.id].accountId = accId;										
-										cb3();
+									cashapi.getAccountByPath(req.session.apiToken,split.path, function(err,accId){										
+										split.accountId = accId;	
+										splits.push(split);																		
+										cb3();										
 									});	
 								}
 								else{
 									cb3();
 								}													
-							},function(){cb2(null,splitsById);});						
+							},function(){cb2(null,splits);});						
 						}
 						else{ 							
 							cb2(null,null);
@@ -81,72 +82,22 @@ module.exports = function account(webapp) {
 					cb1(err, results.tr,results.splits);
 				});
 			},			
-			function (tr, modifiedSplits,cb1) {	
-				var modifiedTr = {id:tr.id};
-				var dateFormat = new DateFormat(DateFormat.W3C);
-				var datePosted = dateFormat.format(new Date());	
-				modifiedTr['datePosted'] = datePosted;		
-				if (req.body.date) {				
-					var dateEntered = dateFormat.format(new Date(req.body.date));										
-					modifiedTr['dateEntered'] = dateEntered;
-				}
-				if(req.body.num){
-					modifiedTr['num'] = req.body.num;
-				}				
-				if (req.body.description) {
-					modifiedTr['description'] = req.body.description;
-				}	
-				if(req.body.transfer){
-					modifiedTr['transfer'] = req.body.transfer;
-				}
-				if(modifiedSplits){
-					modifiedTr['splits'] = [];
-					var imbalance = 0;					
-					tr.splits.forEach(function(split) {
-						var depositVal  = modifiedSplits[split.id].deposit != "" ? parseFloat(modifiedSplits[split.id].deposit) : 0;
-						var withdrawalVal  = modifiedSplits[split.id].withdrawal != "" ? parseFloat(modifiedSplits[split.id].withdrawal) : 0;
-						var splitVal = depositVal - withdrawalVal;
-						imbalance += splitVal;
-						var modifiedSplit = {
-							id:split.id,							
-							value: depositVal - withdrawalVal,
-							quantity:depositVal - withdrawalVal,
-							accountId: modifiedSplits[split.id].accountId,
-							description: modifiedSplits[split.id].description							
-						};
-						modifiedTr['splits'].push(modifiedSplit);
-						delete modifiedSplits[split.id];
-					});
-					for(key in modifiedSplits){
-						split = modifiedSplits[key];
-						var depositVal  = split.deposit != "" ? parseFloat(split.deposit) : 0;
-						var withdrawalVal  = split.withdrawal != "" ? parseFloat(split.withdrawal) : 0;
-						var splitVal = depositVal - withdrawalVal;
-						if(splitVal != 0){
-							imbalance += splitVal;
-							modifiedTr['splits'].push({value:splitVal,quantity:splitVal,accountId:split.accountId});
-						}
-					}
-					if(imbalance != 0){
-						/* for classic transaction with two splits made automatic correct */						
-						if(modifiedTr['splits'].length == 2){
-							if(modifiedTr['splits'][1].accountId == req.params.id){
-								modifiedTr['splits'][1].value = -1*modifiedTr['splits'][0].value;
-								modifiedTr['splits'][1].quantity = -1*modifiedTr['splits'][0].quantity;
-							}
-							else{
-								modifiedTr['splits'][0].value = -1*modifiedTr['splits'][1].value;
-								modifiedTr['splits'][0].quantity = -1*modifiedTr['splits'][1].quantity;
-							}
+			function (tr, modifiedSplits,cb1) {
+				createTransactionFromData(req,tr,modifiedSplits,function(err,trans){					
+					if(err){
+						if(err.skilap){
+							res.send(err.message);
+							return cb1(null);
 						}
 						else{
-							res.send({error:'imbalanceError',value:imbalance});
-							return cb1(null);	
-						}										
-					}					
-				}						
-				cashapi.saveTransaction(req.session.apiToken, modifiedTr, cb1);
-				res.send(req.body.id);				
+							return cb1(err);
+						}						
+					}
+					else{						
+						cashapi.saveTransaction(req.session.apiToken, trans, cb1);
+						res.send(req.body.id);
+					}
+				});									
 			}
 		], function (err) {
 			if (err) return next(err);
@@ -182,80 +133,28 @@ module.exports = function account(webapp) {
 				}
 			},
 			function (newSplits,cb1) {
-				var newTr = {};
-				var dateFormat = new DateFormat(DateFormat.W3C);
-				var datePosted = dateFormat.format(new Date());	
-				newTr['datePosted'] = datePosted;	
-				var dateEntered = dateFormat.format(new Date(req.body.date));										
-				newTr['dateEntered'] = dateEntered;	
-				if(req.body.num){
-					newTr['num'] = req.body.num;
-				}				
-				if (req.body.description) {
-					newTr['description'] = req.body.description;
-				}	
-				if(req.body.transfer){
-					newTr['transfer'] = req.body.transfer;
-				}
-				newTr['splits'] = [];
-				var imbalance = 0;					
-				newSplits.forEach(function(split) {
-					if(split.deposit || split.withdrawal || split.accountId){						
-						var depositVal  = (split.deposit && split.deposit != "") ? parseFloat(split.deposit) : 0;
-						var withdrawalVal  = (split.withdrawal && split.withdrawal != "") ? parseFloat(split.withdrawal) : 0;
-						var splitVal = depositVal - withdrawalVal;
-						imbalance += splitVal;
-						var modifiedSplit = {													
-							value: depositVal - withdrawalVal,
-							quantity:depositVal - withdrawalVal,
-							accountId: split.accountId,
-							description: split.description					
-						};
-						newTr['splits'].push(modifiedSplit);
-					}					
-				});	
-				console.log('imbalance = '+imbalance);
-				console.log(newTr['splits']);				
-				if(imbalance != 0 || newTr['splits'].length == 1){
-					/* for classic transaction with two splits made automatic correct */
-					if(newTr['splits'].length == 1 && newTr['splits'][0].accountId != req.params.id){
-						newTr['splits'].push({
-							accountId:req.params.id,
-							value:-1*imbalance,
-							quantity:-1*imbalance
-						});
-					}
-					else if(newTr['splits'].length == 2){
-						if(newTr['splits'][1].accountId == req.params.id){
-							newTr['splits'][0].value = -1*newTr['splits'][1].value;
-							newTr['splits'][0].quantity = -1*newTr['splits'][1].quantity;
-						}
-						else{
-							newTr['splits'][1].value = -1*newTr['splits'][0].value;
-							newTr['splits'][1].quantity = -1*newTr['splits'][0].quantity;
-						}
+				createTransactionFromData(req,null,newSplits,function(err,trans){
+					if(err){
+						res.send(err);
+						cb1(null);
 					}
 					else{
-						res.send({error:'imbalanceError',value:imbalance});
-						return cb1(null);	
-					}										
-				}
-				console.log(newTr);				
-				cashapi.saveTransaction(req.session.apiToken, newTr, function(err){
-					var result = {result:"1"};
-					if(err){
-						console.log('err=');
-						console.log(err);
-						result.error = "1";
+						cashapi.saveTransaction(req.session.apiToken, trans, function(err){							
+							if(err){
+								cb1(err);								
+							}
+							else{
+								res.send({result:"1"});
+								cb1(null);
+							}
+						});
 					}
-					res.send(result);
-				});
-					
+				});					
 			}
 		], function (err) {
 			if (err) return next(err);
 		});		
-	});
+	});	
 	
 	app.post(webapp.prefix+'/account/:id/delrow', function(req, res, next) {		
 		async.waterfall([			
@@ -284,11 +183,11 @@ module.exports = function account(webapp) {
 		async.waterfall([
 			function (cb) { cashapi.getAllAccounts(req.session.apiToken, cb) },
 			function (accounts,cb1) {
-				var tmp = [];
-				async.forEach(accounts, function (acc, cb2) {
+				var tmp = {};
+				async.forEach(accounts, function (acc, cb2) {					
 					cashapi.getAccountInfo(req.session.apiToken, acc.id, ["path"], safe.trap_sure_result(cb2,function (info) {
 						if (info.path.search(req.query.term)!=-1)
-							tmp.push(info.path);
+							tmp[info.path] = {currency:acc.cmdty.id};
 						cb2();
 					}));
 				}, function (err) {
@@ -334,7 +233,7 @@ module.exports = function account(webapp) {
 	app.get(webapp.prefix+'/account/:id/getgrid', function(req, res, next) {
 		var data = {sEcho:req.query.sEcho,iTotalRecords:0,iTotalDisplayRecords:0,aaData:[]};
 		var idx=Math.max(req.query.iDisplayStart,0);
-		var count,register,currentAccountPath;
+		var count,register,currentAccountPath,accountCurrency;
 		async.waterfall([
 			function (cb1) {
 				cashapi.getAccountInfo(req.session.apiToken, req.params.id,["count","path"], cb1);
@@ -352,6 +251,7 @@ module.exports = function account(webapp) {
 						aids[recv.accountId] = recv.accountId;
 					});					
 				});
+				aids[req.params.id]	= currentAccountPath;
 				async.parallel([
 					function (cb2) {
 						var transactions = [];
@@ -362,13 +262,14 @@ module.exports = function account(webapp) {
 						}, function (err) {							
 							cb2(err, transactions);
 						});
-					},
+					},					
 					function (cb2) {
-						var accInfo = [];
-						accInfo.push({'id':req.params.id,'path':currentAccountPath});					
+						var accInfo = {};											
 						async.forEach(_.keys(aids), function (aid, cb3) {
-							cashapi.getAccountInfo(req.session.apiToken, aid,["path"],safe.trap_sure_result(cb3,function(info) {
-								accInfo.push(info);															
+							cashapi.getAccount(req.session.apiToken, aid,safe.trap_sure_result(cb3,function(acc) {
+								cashapi.getAccountInfo(req.session.apiToken,aid,['path'], safe.trap_sure_result(cb3,function(info) {
+									accInfo[acc.id] = {id:acc.id,path:info.path,currency:acc.cmdty.id};	
+								}));														
 							}));
 						}, function (err) {
 							cb2(err, accInfo);
@@ -378,37 +279,45 @@ module.exports = function account(webapp) {
 					cb1(err, register, results[0], results[1])
 				})
 			},
-			safe.trap(function (register, transactions, accInfo, cb1) {
-				var t={}; _.forEach(accInfo, function (e) { t[e.id]=e; }); accInfo = t;
+			safe.trap(function (register, transactions, accInfo, cb1) {				
 				var i;
 				for (i=0; i<_.size(register); i++) {
-					var tr = transactions[i]; 
+					var tr = transactions[i]; 					
 					var trs = register[i];
 					var recv = trs.recv;
 					var send = trs.send;
 					var dp = new Date(tr.dateEntered);
 					var splitsInfo=[];
+					var multicurr = 0;
 					_.forEach(tr.splits,function(split){
+						if(accInfo[split.accountId].currency != accInfo[req.params.id].currency){
+							multicurr = 1;
+						}						
 						split.path = accInfo[split.accountId].path;
+						split.currency = accInfo[split.accountId].currency;
 						splitsInfo.push(split);
-					});								
+					});		
 					data.aaData.push({
 						id:tr.id,
 						date:df.format(dp),
 						num:tr.num ? tr.num : '',
 						description:tr.description,
 						path:(recv.length==1?accInfo[recv[0].accountId].path:"-- Multiple --"),
+						path_curr: (recv.length==1 && accInfo[recv[0].accountId].currency != accInfo[req.params.id].currency ? accInfo[recv[0].accountId].currency :null),
 						transfer: tr.transfer ? tr.transfer : 'n',
 						deposit:(send.value>0?sprintf("%.2f",send.value):''),
+						deposit_quantity: (send.quantity>0?sprintf("%.2f",send.quantity):''),
 						withdrawal:(send.value<=0?sprintf("%.2f",send.value*-1):''),
+						withdrawal_quantity: (send.quantity<=0?sprintf("%.2f",send.quantity*-1):''),
 						total:sprintf("%.2f",trs.ballance),
-						splits:splitsInfo
+						splits:splitsInfo,
+						multicurr:multicurr
 					});
 				}				
 				data.iTotalRecords = count;
 				data.iTotalDisplayRecords = count;
 				data.currentDate = df.format(new Date());
-				data.currentAccountId = req.params.id;
+				data.currentAccount = {id:req.params.id,path:currentAccountPath,currency:accInfo[req.params.id].currency};
 				res.send(data);
 			})
 		], function (err) {
@@ -439,6 +348,155 @@ module.exports = function account(webapp) {
 			result.error = 'validateError';
 		}			
 		return result;
+	};
+	
+	var createTransactionFromData = function(req,oldTr,splits,cb){
+		var tr={};
+		if(oldTr){
+			tr.id = oldTr.id;
+		}
+		var dateFormat = new DateFormat(DateFormat.W3C);
+		var datePosted = dateFormat.format(new Date());	
+		tr['datePosted'] = datePosted;	
+		if(req.body.date){
+			var dateEntered = dateFormat.format(new Date(req.body.date));										
+			tr['dateEntered'] = dateEntered;	
+		}
+		if(req.body.num){
+			tr['num'] = req.body.num;
+		}				
+		if (req.body.description) {
+			tr['description'] = req.body.description;
+		}	
+		if(req.body.transfer){
+			tr['transfer'] = req.body.transfer;
+		}
+		tr['splits'] = [];		
+		if(splits){		
+			var imbalance = 0;
+			var imbalanceQuantity = 0;
+			var currentAccount;
+			async.series([
+				function(cb1){
+					cashapi.getAccount(req.session.apiToken,req.params.id,function(err,acc){
+						if(err)
+							cb1(err);
+						else{
+							currentAccount = acc;
+							cb1(null);
+						}						
+					});
+				},
+				function(cb1){
+					async.forEachSeries(splits,function(spl,cb2){
+						if(spl.accountId){							
+							var splitAccount,splitVal,splitQuantity;
+							async.series([
+								function(cb3){
+									cashapi.getAccount(req.session.apiToken,spl.accountId,function(err,acc){
+										if(err)
+											cb3(err);
+										else{
+											splitAccount = acc;
+											cb3(null);
+										}						
+									});
+								},
+								function(cb3){
+									var depositVal  = (spl.deposit && spl.deposit != "") ? parseFloat(spl.deposit) : 0;
+									var depositQuantity  = spl.deposit_quantity != "" ? parseFloat(spl.deposit_quantity) : 0;
+									var withdrawalVal  = spl.withdrawal != "" ? parseFloat(spl.withdrawal) : 0;
+									var withdrawalQuantity  = spl.withdrawal_quantity != "" ? parseFloat(spl.withdrawal_quantity) : 0;
+									splitVal = depositVal - withdrawalVal;
+									splitQuantity = depositQuantity - withdrawalQuantity;
+									cb3();
+								},
+								function(cb3){
+									if(splitQuantity == 0 && splitVal != 0){
+										cashapi.getCmdtyPrice(req.session.apiToken,currentAccount.cmdty,splitAccount.cmdty,null,null,function(err,rate){
+											if(err){
+												if(err.skilap && err.skilap.subject == "UnknownRate"){
+													console.log(err);
+													splitQuantity = splitVal*1;
+												}
+												else{
+													cb3(err);
+												}
+											}
+											else{
+												splitQuantity = splitVal*rate;
+											}											
+											cb3();
+										});									
+									}
+									else{
+										cb3();
+									}
+								},
+								function(cb3){
+									imbalance += splitVal;
+									imbalanceQuantity += splitQuantity;
+									var modifiedSplit = {													
+										value: splitVal,
+										quantity:splitQuantity,
+										accountId: spl.accountId,
+										description: spl.description					
+									};
+									if(spl.id){
+										modifiedSplit.id = spl.id;
+									}
+									tr['splits'].push(modifiedSplit);
+									cb3();
+								}
+							],function(err){
+								if (err) return cb1(err);				
+								cb2();
+							});							
+						}
+						else{
+							cb2();
+						}
+					},cb1);
+				},
+				function(cb1){					
+					if(imbalance != 0 || imbalanceQuantity != 0 || tr['splits'].length == 1){
+						/* for classic transaction with two splits made automatic correct */
+						if(tr['splits'].length == 1 && tr['splits'][0].accountId != currentAccount.id){
+							tr['splits'].push({
+								accountId:currentAccount.id,
+								value:-1*imbalance,
+								quantity:-1*imbalanceQuantity
+							});
+						}
+						else if(tr['splits'].length == 2){
+							if(tr['splits'][1].accountId == currentAccount.id){
+								tr['splits'][1].value = -1*tr['splits'][0].value;
+								tr['splits'][1].quantity = -1*tr['splits'][0].quantity;
+							}
+							else{
+								tr['splits'][0].value = -1*tr['splits'][1].value;
+								tr['splits'][0].quantity = -1*tr['splits'][1].quantity;
+							}
+						}
+						else{
+							cb1(new SkilapError('Imbalance Error','ImbalanceError'));	
+						}
+					}
+					cb1();
+				}
+			], function (err) {
+				if (err) {					
+					return cb(err);	
+				}						
+				cb(null,tr);
+			});				
+		}
+		else if(oldTr){
+			tr['splits'] = oldTr.splits;
+		}
+		else{			
+			cb(null,tr);
+		}
 	};
 
 }
