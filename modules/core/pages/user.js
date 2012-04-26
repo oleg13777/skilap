@@ -18,7 +18,29 @@ module.exports = function account(ctx, app, api, prefix) {
 			}],
 			next
 		);
-	});		
+	});
+	
+	app.get(prefix+"/userpermisions", function(req, res, next) {
+		async.waterfall([
+			function (cb1) {
+				async.parallel([
+					function (cb2) { ctx.getModulesInfo(req.session.apiToken, cb2) },
+					function (cb2) { api.getUser(req.session.apiToken, cb2) }
+				], function (err, result) { cb1(err, result[0], result[1])});
+			},
+			function render (mInfo, user) {
+				var rdata = {
+						prefix:prefix,						
+						mainLayoutHide:1,
+						host:req.headers.host,
+						mInfo:mInfo,
+						userPerm:user.permissions
+					};
+				res.render(__dirname+"/../views/userpermisions", rdata);
+			}],
+			next
+		);
+	});
 	
 	app.get(prefix+"/user", function(req, res, next) {
 		async.waterfall([
@@ -39,10 +61,11 @@ module.exports = function account(ctx, app, api, prefix) {
 					});
 					permissions.push(tmp);
 				});
-				cb1(null, permissions, modulesInfo);
+				cb1(null, permissions, modulesInfo, user.permissions);
 			},
-			function (permissions, mInfo, cb1) {
-				var rdata = {prefix:prefix, header:true, token:req.session.apiToken, host:req.headers.host, permissions:permissions, mInfo:mInfo};
+			function (permissions, mInfo, userPerm, cb1) {
+				console.log(mInfo);
+				var rdata = {prefix:prefix, header:true, token:req.session.apiToken, host:req.headers.host, permissions:permissions, mInfo:mInfo, userPermissions:JSON.stringify(userPerm)};
 				cb1(null, rdata);
 			},
 			function render (data) {

@@ -14,48 +14,16 @@ $(document).ready(function() {
 	$("body").on('accountEditSuccess',function(e,id){
 		location.reload(true);
 	});
+
 	$("#editPerm").click(function(){
-		{{#user}}
-		{{#permissions}}
-			$(".perm[value='{{.}}']").attr("checked", "checked");
-		{{/permissions}}
-		{{/user}}
-		$("#editPermDialog").dialog("open");
-	});
-	$("#editPermDialog").dialog({
-		position: ["center","center"],
-		buttons: {
-			"apply": function() {
-				var self = $(this);
-				var newUser = { id: "{{#user}}{{id}}{{/user}}" };
-				var perms = [];
-				$('.perm').filter(":checkbox:checked").each(function(index, checkbox) {
-					perms.push($(checkbox).attr("value"));
-				});
-				newUser.permissions = perms;
-				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
-				rpc.call('core.saveUser', $("#token").val(), newUser, {
-					success: function (data) {
-						$("#caption").text("");
-						self.dialog("close");
-						location.reload(true);
-					},
-					failure: function (reason) {
-						console.log(reason);
-						$("#caption").text(reason);
-					}
-				});
-			},
-			"close": function() {
-				$(this).dialog("close");
-			}
-		},
-		autoOpen: false,
-		resizable: false,
-		height: 400,
-		width: 400,
-		modal: true,
-		draggable: false
+		$("#ski_editPermissions").iframeContainer({src:"{{prefix}}/userpermisions", host:"{{host}}"});
+		var permissions = {{{userPermissions}}};
+		$("#ski_editPermissions").iframeContainer("triggerEvent",{name:'setEditPermDialogData',data:permissions});
+		$("#ski_editPermissions").iframeContainer("open");
+	})
+
+	$("body").on('permisionsEditSuccess',function(e,id){
+		location.reload(true);
 	});
 });
 </script>
@@ -96,17 +64,4 @@ $(document).ready(function() {
 	{{/permissions}}
 </div>
 <div id="ski_editUser"></div>
-
-<div id="editPermDialog" title="{{#i18n}}Edit permissions{{/i18n}}" class="editPermDialog" style="width: 600; height: 200px;">
-	<form>
-	<input id="token" type="hidden" value="{{apiToken}}">
-	<table>
-	{{#mInfo}}
-		<tr><td><b>{{name}}</b></td><td></td></tr>
-		{{#permissions}}
-			<tr><td>&nbsp;&nbsp;&nbsp;{{desc}}</td><td><input type="checkbox" class="perm" value="{{id}}"/></td></tr>
-		{{/permissions}}
-	{{/mInfo}}
-	</table>
-	</form>
-</div>
+<div id="ski_editPermissions"></div>
