@@ -33,8 +33,7 @@ module.exports = function account(ctx, app, api, prefix) {
 						prefix:prefix,						
 						mainLayoutHide:1,
 						host:req.headers.host,
-						mInfo:mInfo,
-						userPerm:user.permissions
+						mInfo:mInfo
 					};
 				res.render(__dirname+"/../views/userpermisions", rdata);
 			}],

@@ -14,10 +14,14 @@
 	color: white;
 }
 
-.sddm div {	
+.sddm .prefmenu {	
+	display: none;
 	position: absolute;
-	visibility: hidden;
 	background: gray;
+}
+
+.sddm .prefmenu.active {
+	display: block;
 }
 
 .sddm div a	{ 
