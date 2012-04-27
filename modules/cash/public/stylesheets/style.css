@@ -83,11 +83,16 @@ td {
 	text-overflow:ellipsis;
 	overflow:hidden;
 }
+
+.ski_gridWrapper  td[name="settings"] .tdContent{
+line-height:20px !important;
+}
 .ski_gridWrapper .tdContent .ski_editable{
 	display:block;
 	position:absolute;
 	top:0;
 	left:0;	
+	z-index:2;
 }
 .ski_gridWrapper .tdContent .ski_datepicker_btn{
 	display:block;
@@ -302,8 +307,7 @@ overflow:visible;
 .ski_settingsMenu{
 display:none;
 position:absolute;
-top:20px;
-right:10px;
+right:35px;
 background-color:#fff;
 border:1px solid #ccc;
 z-index:3;
@@ -327,12 +331,21 @@ text-decoration:underline;
 }
 
 .ski_settingsMenu .menuItem.delete a{
-background:url('../images/cancel-icon.png')no-repeat 0 5px;
+background:url('../images/cancel-icon.png')no-repeat 0 2px;
 padding-left:20px;
 }
 
 .ski_settingsMenu .menuItem.split.delete a{
 background:url('../images/clear-icon.png')no-repeat 0 5px;
+}
+
+.ski_currencyFlag{
+display:block;
+position:absolute;
+right:5px;
+top:0;
+color:#3439ea;
+text-shadow: black 1px 1px 2px, red 0 0 1em;
 }
 
 

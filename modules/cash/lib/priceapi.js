@@ -1,5 +1,6 @@
 var async = require('async');
 var _ = require('underscore');
+var SkilapError = require("skilap-utils").SkilapError;
 
 module.exports.getCmdtyPrice = function (token,cmdty,currency,date,method,cb) {
 	var self = this;
@@ -16,7 +17,7 @@ module.exports.getCmdtyPrice = function (token,cmdty,currency,date,method,cb) {
 		function get(cb) {
 			var key = JSON.stringify({from:cmdty,to:currency});
 			var ptree = self._stats.priceTree[key];
-			if (ptree==null) return cb(new Error("Unknown price pair"));
+			if (ptree==null) return cb(new SkilapError("Unknown price pair","UnknownRate"));
 			cb(null,ptree.last);
 		}], function end(err, results) {
 			if (err) return cb(err);
