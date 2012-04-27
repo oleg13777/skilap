@@ -63,7 +63,6 @@ module.exports = function account(ctx, app, api, prefix) {
 				cb1(null, permissions, modulesInfo, user.permissions);
 			},
 			function (permissions, mInfo, userPerm, cb1) {
-				console.log(mInfo);
 				var rdata = {prefix:prefix, header:true, token:req.session.apiToken, host:req.headers.host, permissions:permissions, mInfo:mInfo, userPermissions:JSON.stringify(userPerm)};
 				cb1(null, rdata);
 			},
