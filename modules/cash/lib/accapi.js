@@ -52,18 +52,21 @@ module.exports.getChildAccounts = function(token, parentId, cb) {
 	var self = this;
 	async.series ([
 		function start(cb) {
+			console.log('start');
 			async.parallel([
 				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
 				function (cb) { self._waitForData(cb) }
 			],cb);
 		}, 
 		function get(cb) {
+			console.log('get');
 			self._cash_accounts.find({parentId: {$eq: parentId}}).all(function (err, accounts) {
 				if (err) return cb(err);
 				cb(null, _(accounts).map(function (e) {return e.value;}));
 			});
 		}
 		], function end(err, results) {
+			console.log('end');
 			if (err) return cb(err);
 			cb(null, results[1]);
 		}

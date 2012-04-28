@@ -311,10 +311,10 @@
 			});				
 		});
 		
-		$("body").on('accountUpdatedSuccess',function(e,data){			
-			if(objSettings.accounts){				
-				objSettings.accounts[data.name] = {currency:data.cmdty.id};
-			}
+		$("body").on('accountUpdatedSuccess',function(e,data){
+			getAccountsData(function(acc){
+				objSettings.accounts = acc;
+			});			
 		});
 		
 		
@@ -554,8 +554,11 @@
 						buttons: {
 							"Create account": function() {																							
 								$(this).dialog("close");
+								/* extract name from complex account name */
+								var accountParts = currentAcc.split('::');
+								var accName = accountParts[accountParts.length-1];
 								$("#ski_createAccount").iframeContainer("open");
-								$("#ski_createAccount").iframeContainer("triggerEvent",{name:'setAccountDialogData',data:{name:currentAcc}});	
+								$("#ski_createAccount").iframeContainer("triggerEvent",{name:'setAccountDialogData',data:{name:accName}});	
 							},
 							Cancel: function() {
 								$(this).dialog("close");
@@ -633,8 +636,7 @@
 					if(objSettings.accounts[newColumnVal].currency != objSettings.currentAccount.currency){
 						$oldSelectedTD.attr('data-path_curr',objSettings.accounts[newColumnVal].currency);
 						appendCurrencySelector($oldSelectedTD,objSettings);											
-					}	
-					console.log(rowsContainer.find('tr[recordid="'+recordId+'"] td[data-quantity]'));			
+					}							
 					rowsContainer.find('tr[recordid="'+recordId+'"] td[data-quantity]').attr('data-quantity','');											
 				}
 				else if(oldSelectedName == 'deposit' || oldSelectedName == 'withdrawal'){
@@ -986,7 +988,6 @@
 				});
 			break;		
 			case 'select':
-				//$col.find('.tdContent').children().remove();
 				/* delete previous autocomplete popup */
 				objSettings.gridWrapper.find('.ski_select_popup').remove();
 				/* calculate position of autocomplete popup */
@@ -998,22 +999,24 @@
 						setTimeout(function(){$element1.off('keypress',disableEnter);},300);						
 					}		
 				});
-				var jqXHR = $.ajax({
-					"url": options.editable.columns[colNum].source,					
-					"dataType": "json",
-					"cache": true				
-				});
-				jqXHR.done(function(data){					
-					objSettings.accounts = data;
+				var fillAutocomplete = function($elem,accounts){
 					var src = [];
-					for(key in objSettings.accounts){
+					for(key in accounts){
 						src.push(key);
 					}
-					$element1.autocomplete('option','source',src);
-				});
+					$elem.autocomplete('option','source',src);
+				};
+				if(objSettings.accounts){
+					fillAutocomplete($element1,objSettings.accounts);
+				}
+				else{
+					getAccountsData(function(data){
+						objSettings.accounts = data;
+						fillAutocomplete($element1,objSettings.accounts);
+					});					
+				}
 				$element2 = $('<div class="ski_select_btn"></div>');
-				var popupId = 'ski_path_popup';
-				//var randId = 'ski_select_popup_'+ getRandomId();				
+				var popupId = 'ski_path_popup';							
 				$element3 = $('<div id="'+popupId+'" class="ski_select_popup"></div>');					
 				$wrapElement = $('<div class= "ski_editable"></div>');
 				$wrapElement.append($element1);
@@ -1279,6 +1282,17 @@
 		if($col.parents('.ski_newTrContainer').length > 0){					
 			objSettings.needSaveNewTr = true;
 		}		
+	};
+	
+	function getAccountsData(cb){
+		var jqXHR = $.ajax({
+			"url": options.editable.columns[3].source,					
+			"dataType": "json",
+			"cache": true				
+		});
+		jqXHR.done(function(data){					
+			cb(data);			
+		});
 	};
       
 	return this.each(function(){		
