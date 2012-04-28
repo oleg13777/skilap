@@ -15,10 +15,9 @@ $(document).ready(function() {
 		location.reload(true);
 	});
 
+	$("#ski_editPermissions").iframeContainer({src:"{{prefix}}/userpermisions", host:"{{host}}"});
 	$("#editPerm").click(function(){
-		$("#ski_editPermissions").iframeContainer({src:"{{prefix}}/userpermisions", host:"{{host}}"});
-		var permissions = {{{userPermissions}}};
-		$("#ski_editPermissions").iframeContainer("triggerEvent",{name:'setEditPermDialogData',data:permissions});
+		$("#ski_editPermissions").iframeContainer("triggerEvent",{name:'setEditPermDialogData',data:{uid:{{user.id}}, permissions:{{{userPermissions}}} } });
 		$("#ski_editPermissions").iframeContainer("open");
 	})
 

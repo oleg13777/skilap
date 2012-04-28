@@ -1,7 +1,7 @@
 <script type="text/javascript">
 $(document).ready(function() {
-	$("#ski_editUser").iframeContainer({src:"{{prefix}}/userprefferences", host:"{{host}}"});
 	$(".editUser").click(function(){
+		$("#ski_editUser").iframeContainer({src:"{{prefix}}/userprefferences",host:"{{host}}"});
 		var uid = $(this).attr('uid');
 		var secret = $('#token').val();
 		var rpc = new jsonrpc.JsonRpc('/jsonrpc');
@@ -16,14 +16,15 @@ $(document).ready(function() {
 		$("#ski_editUser").iframeContainer("open");
 	});
 	$(".editPerm").click(function(){
-		$("#ski_editPermissions").iframeContainer({src:"{{prefix}}/userpermisions", host:"{{host}}"});
+		$("#ski_editPermissions").iframeContainer({src:"{{prefix}}/userpermisions",host:"{{host}}"});
 		var uid = $(this).attr('uid');
 		var secret = $('#token').val();
 		var rpc = new jsonrpc.JsonRpc('/jsonrpc');
 		rpc.call('core.getUserById', secret, uid, {
 			success: function (data) {
 				var user = data[0];								
-				$("#ski_editPermissions").iframeContainer("triggerEvent",{name:'setEditPermDialogData',data:user.permissions});
+				console.log(user);
+				$("#ski_editPermissions").iframeContainer("triggerEvent",{name:'setEditPermDialogData',data:{uid: uid, permissions: user.permissions}});
 			},
 			failure: function (reason) {
 			},
@@ -94,39 +95,16 @@ $(document).ready(function() {
 		 'font-size' : '14px'
 	});
 	
-	$("span.dummyDrop").styledButton({
-		'orientation' : 'alone',
-		'dropdown' : { 'element' : 'ul' },
-		'role' : 'select',
-		'defaultValue' : 'default value',
-		'name' : 'dummy',
-		'clear' : true
+	$(".preflink").on("click", function(){
+		$(this).parent().find(".prefmenu").toggleClass("active");
 	});
 	
-	$.beautyOfCode.init('js/clipboard.swf');
-	$("pre").beautifyCode('javascript');
-});
-</script>
-<script type="text/javascript">
-	var timeout         = 200;
-	var closetimer		= 0;
-	var ddmenuitem      = 0;
-
-	function mopen(id) {	
-		mcancelclosetime();
-		if(ddmenuitem) ddmenuitem.style.visibility = 'hidden';
-		ddmenuitem = document.getElementById(id);
-		ddmenuitem.style.visibility = 'visible';
-	};
-
-	function mclose() { if(ddmenuitem) ddmenuitem.style.visibility = 'hidden'; };
-	function mclosetime() { closetimer = window.setTimeout(mclose, timeout); };
-	function mcancelclosetime() {
-		if(closetimer) {
-			window.clearTimeout(closetimer);
-			closetimer = null;
+	$(document).on("click", function(e){
+		if (($(e.target).parents(".prefmenu.active").length == 0) && (($(e.target).parents(".preflink").length == 0))) {
+			$(".prefmenu").removeClass("active");
 		}
-	};
+	});
+});
 </script>
 
 <div id="users">
@@ -144,9 +122,9 @@ $(document).ready(function() {
 		<td>{{login}}</td>
 		<td class="right">
 			<ul class="sddm">
-				<li><a href="#" onmouseover="mopen('{{id}}')" onmouseout="mclosetime()"><img width="20px" src="{{prefix}}/images/cog_alt.png"></a>
-					<div id="{{id}}" onmouseover="mcancelclosetime()" onmouseout="mclosetime()">
-					<a href="#" uid="{{id}}" class="editUser">Edit</a>
+				<li class=""><a href="#" class="preflink" data-uid="{{id}}" ><img width="20px" src="{{prefix}}/images/cog_alt.png"></a>
+					<div class="prefmenu">
+					<a href="#" uid="{{}}" class="editUser">Edit</a>
 					<a href="#" uid="{{id}}" class="editPerm">EditPerm</a>
 					<a href="#" uid="{{id}}" class="deleteUser">Delete</a>
 					</div>
