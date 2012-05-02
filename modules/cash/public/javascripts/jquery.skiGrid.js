@@ -488,8 +488,7 @@
 		if(objSettings.selectedRowId){			
 			if(objSettings.splitButton.hasClass('ski_selected')){
 				objSettings.tableBodyRef.find('tr.splitRow[recordid="'+objSettings.selectedRowId+'"]').removeClass('invisible');
-				showPathInUpdMainRow(objSettings,false);
-				
+				showPathInUpdMainRow(objSettings,false);				
 			}
 			else{
 				objSettings.tableBodyRef.find('tr.splitRow[recordid="'+objSettings.selectedRowId+'"]').addClass('invisible');
@@ -513,8 +512,7 @@
 	 * Show or hide path field content in main row
 	 */
 	function showPathInUpdMainRow(objSettings,show){
-		var $mainRow = $(objSettings.tableBodyRef.find('tr.mainRow[recordid="'+objSettings.selectedRowId+'"]')[0]);
-		var $td = $mainRow.find('td[name="path"]');					
+		var $td = $(objSettings.tableBodyRef.find('tr.mainRow[recordid="'+objSettings.selectedRowId+'"] td[name="path"]')[0]);
 		if(show){
 			$td.find('.tdContent').removeClass('invisible');
 			$td.removeClass('ski_disabled');	
@@ -523,6 +521,7 @@
 			$td.find('.tdContent').addClass('invisible');
 			$td.addClass('ski_disabled');					
 		}
+		objSettings.tableBodyRef.find('tr.mainRow[recordid!="'+objSettings.selectedRowId+'"] td[name="path"]').removeClass('ski_disabled').find('.tdContent').removeClass('invisible');
 	};	
 	
 	
