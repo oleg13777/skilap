@@ -403,8 +403,8 @@ function Skilap() {
 
 	this.i18n_cyval = function(curId,value) {
 		var cur = i18n.currency(curId);
-		var res = cur.format(value);
-		res = res.replace(/[^0123456789.]/g,'');
+		var res = cur.format(value);		
+		res = res.replace(/[^0123456789.-]/g,'');
 		return res;
 	}
 	
