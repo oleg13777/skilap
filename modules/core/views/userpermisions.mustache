@@ -4,9 +4,7 @@ $(document).ready(function() {
 		position: ["center","center"],
 		buttons: {
 			"apply": function() {
-				var self = $(this);
 				var id = $("#userid").attr("value");
-				console.log("id: " + id);
 				var newUser = { id:id };
 				var perms = [];
 				$('.perm').filter(":checkbox:checked").each(function(index, checkbox) {

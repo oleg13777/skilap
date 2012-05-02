@@ -16,6 +16,7 @@ function CoreApi(ctx) {
 	console.log("core api constructor");
 	this._core_users = null;
 	this._core_clients = null;
+	this._core_systemSettings = null;
 }
 
 CoreApi.prototype.getLanguageSync = function(token) {
@@ -36,11 +37,14 @@ CoreApi.prototype.loadData = function (cb) {
 				async.apply(adb.ensure, 'core_users',
 					{type:'cached_key_map',buffered:true}),
 				async.apply(adb.ensure, 'core_clients',
+					{type:'cached_key_map',buffered:true}),
+				async.apply(adb.ensure, 'core_system_settings',
 					{type:'cached_key_map',buffered:true})
 			], function (err, results) {
 				if (err) return cb1(err);
 				self._core_users = results[0];
 				self._core_clients = results[1];
+				self._core_systemSettings = results[2];
 				cb1();
 			});
 		}
@@ -348,7 +352,52 @@ CoreApi.prototype.deleteUser = function(token, userId, cb) {
 		function get(cb1) {
 			self._core_users.put(userId, null, cb1);
 		}], function end(err, results) {
-			console.log(results);
+			if (err) return cb(err);
+			cb(null, true);
+		}
+	)
+}
+
+CoreApi.prototype.getSystemSettings = function(token, id, cb) {
+	var self = this;
+	if (!id) { id = 'guest'; }
+
+	async.series ([
+		function start(cb1) {
+			self.checkPerm(token, ['core.user.view'], cb1);
+		}, 
+		function get(cb1) {
+			self._core_systemSettings.get(id, cb1);
+		}], function end(err, results) {
+			if (err) return cb(err);
+			cb(null, results[1]);
+		}
+	)
+}
+
+CoreApi.prototype.saveSystemSettings = function(token, id, settings, cb) {
+	var self = this;
+	if (!id) { id = 'guest'; }
+
+	console.log(settings);
+	async.waterfall ([
+		function (cb1) {
+			self.checkPerm(token, ['core.user.edit'], cb1);
+		},
+		function (cb1) {
+			self._core_systemSettings.get(id, function (err, s) {
+				console.log(s);
+				cb1 (null, s);
+			});
+		},
+		function (oldSettings, cb1) {
+			if (oldSettings) {
+				if (settings.timezone) oldSettings.timezone = settings.timezone;
+				if (settings.language) oldSettings.language = settings.language;
+				if (settings.perm) oldSettings.perm = settings.perm;
+			}
+			self._core_systemSettings.put(id, oldSettings, cb1);
+		}], function end(err, results) {
 			if (err) return cb(err);
 			cb(null, true);
 		}

@@ -307,6 +307,7 @@ function Skilap() {
 				require("../pages/user")(self,webapp,modules['core'].api,"/core");
 				require("../pages/users")(self,webapp,modules['core'].api,"/core");
 				require("../pages/index")(self,webapp,modules['core'].api,"/core");
+				require("../pages/systemsettings")(self,webapp,modules['core'].api,"/core");
 
 				var options = {
 					key: fs.readFileSync(path.resolve('./privatekey.pem')),
