@@ -488,6 +488,11 @@
 		if(objSettings.selectedRowId){			
 			if(objSettings.splitButton.hasClass('ski_selected')){
 				objSettings.tableBodyRef.find('tr.splitRow[recordid="'+objSettings.selectedRowId+'"]').removeClass('invisible');
+				var pos = objSettings.tableBodyRef.find('tr.splitRow[recordid="'+objSettings.selectedRowId+'"]:last').position();
+				if(pos.top > options.tableHeight){					
+					var currScroll = objSettings.bodyWrapperRef.scrollTop();					
+					objSettings.bodyWrapperRef.scrollTop(currScroll + (pos.top - options.tableHeight + options.rowHeight));
+				}
 				showPathInUpdMainRow(objSettings,false);				
 			}
 			else{
