@@ -1187,7 +1187,12 @@
 		var val="";
 		var colNum = objSettings.colNum;
 		switch(options.editable.columns[colNum].type){
-			case 'input':							
+			case 'input':
+				val = $firstChild.val();
+				if($firstChild.parents('td[name="deposit"]').length > 0 || $firstChild.parents('td[name="withdrawal"]').length > 0 ){
+					val = eval(val);
+				}
+			break;							
 			case 'autocomplete':
 				val = $firstChild.val();
 			break;
