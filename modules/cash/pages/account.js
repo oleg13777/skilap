@@ -493,6 +493,7 @@ module.exports = function account(webapp) {
 		}
 		else if(oldTr){
 			tr['splits'] = oldTr.splits;
+			cb(null,tr);
 		}
 		else{			
 			cb(null,tr);

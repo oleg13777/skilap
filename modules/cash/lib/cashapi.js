@@ -12,11 +12,11 @@ function CashApi (ctx) {
 	this._cash_accounts = null;
 	this._cash_transactions = null;
 	this._cash_prices = null;
-	this._sema = new events.EventEmitter();
 	this._dataReady = false;
-	this._dataActive = false;
+	this._dataInCalc = false;
 	this._lastAccess = new Date();
 	this._stats = {};
+	this._waitQueue = [];
 	this._coreapi;
 	
 	// set index cleanup 
@@ -26,7 +26,7 @@ function CashApi (ctx) {
 		if ((d.valueOf()-self._lastAccess.valueOf())>60*1000) {
 			self._stats = {};
 			console.log("dataCleared");
-			self._dataActive = self._dataReady = false;
+			self._dataInCalc = self._dataReady = false;
 		}
 	}, 60*1000);
 }
@@ -56,12 +56,26 @@ CashApi.prototype.getTransactionsInDateRange = require('./trnapi.js').getTransac
 
 CashApi.prototype._waitForData = function (cb) {
 	this._lastAccess = new Date();
-	if (this._dataReady) return cb(null);
-		else this._sema.once("dataReady",cb);
-	if (!this._dataActive) {
+	if (this._dataReady) return cb(null)
+		else this._waitQueue.push(cb);
+	if (!this._dataInCalc) {
 		this._calcStats(function () {});
-		this._dataActive = true;
 	}
+}
+
+CashApi.prototype._lockData = function (cb) {
+	if (!this._dataReady)
+		return cb(new Error("Can't lock unready data"))
+	this._dataInCalc = true;
+	this._dataReady = false;
+	return cb();
+}
+
+CashApi.prototype._unLockData = function (cb) {
+	if (!this._dataInCalc) {
+		this._calcStats(function () {});
+	}
+	return cb();
 }
 
 CashApi.prototype._loadData = function (cb) {
@@ -151,6 +165,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 	
 	console.time("Stats");
 	self._dataReady = false;
+	self._dataInCalc = true;
 	self._stats = {};
 	
 	async.auto({
@@ -256,10 +271,26 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 			console.timeEnd("Stats");
 			if (err) console.log(err);
 			self._dataReady=true;
-			self._sema.emit("dataReady");
+			self._dataInCalc=false;
+			self._pumpWaitQueue();
 			cb();
 		}
 	);
+}
+
+CashApi.prototype._pumpWaitQueue = function () {
+	var self = this;
+	// peek the first worker
+	if (self._dataReady && self._waitQueue.length) {
+		var wcb = self._waitQueue.shift();
+		wcb(null);
+	}
+	// if we not get locked by first worker and still something in queue do it
+	if (self._dataReady && self._waitQueue.length) {
+		process.nextTick(function () {
+			self._pumpWaitQueue()
+		})
+	}
 }
 
 module.exports.init = function (ctx,cb) {
