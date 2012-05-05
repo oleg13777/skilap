@@ -127,6 +127,8 @@ module.exports = function (fileName, callback){
 			split.id = gluid; gluid++;
 		}  if (node.name == "SPLIT:ACCOUNT") {
 			split.accountId = gluMap[nodetext];
+		} if (node.name == "SPLIT:RECONCILED-STATE") {
+			split.rstate = nodetext;
 		} else if (node.name == "TRN:SPLIT") {
 			if (accMap[split.accountId]==null) {
 				exit(0);
