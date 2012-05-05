@@ -296,7 +296,8 @@ module.exports = function account(webapp) {
 						split.path = accInfo[split.accountId].path;
 						split.currency = accInfo[split.accountId].currency;
 						splitsInfo.push(split);
-					});		
+					});	
+					console.log(send);	
 					data.aaData.push({
 						id:tr.id,
 						date:df.format(dp),
@@ -306,9 +307,9 @@ module.exports = function account(webapp) {
 						path_curr: (recv.length==1 && accInfo[recv[0].accountId].currency != accInfo[req.params.id].currency ? accInfo[recv[0].accountId].currency :null),
 						transfer: tr.transfer ? tr.transfer : 'n',
 						deposit:(send.value>0?sprintf("%.2f",send.value):''),
-						deposit_quantity: (send.quantity>0?sprintf("%.2f",send.quantity):''),
+						deposit_quantity: (recv.length == 1 && recv[0].quantity<=0?sprintf("%.2f",recv[0].quantity*-1):''),
 						withdrawal:(send.value<=0?sprintf("%.2f",send.value*-1):''),
-						withdrawal_quantity: (send.quantity<=0?sprintf("%.2f",send.quantity*-1):''),
+						withdrawal_quantity: (recv.length == 1 && recv[0].quantity>0?sprintf("%.2f",recv[0].quantity):''),
 						total:sprintf("%.2f",trs.ballance),
 						splits:splitsInfo,
 						multicurr:multicurr
@@ -385,7 +386,7 @@ module.exports = function account(webapp) {
 					accountId: spl.accountId,
 					description: spl.description					
 				};
-				if (spl.deposit_quantity != "" && spl.withdrawal_quantity != "")
+				if (spl.deposit_quantity != "" || spl.withdrawal_quantity != "")
 					modifiedSplit.quantity = splitQuantity;
 				if(spl.id && spl.id!=-1){
 					modifiedSplit.id = spl.id;
