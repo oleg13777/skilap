@@ -186,7 +186,7 @@ module.exports = function account(webapp) {
 				var tmp = {};
 				async.forEach(accounts, function (acc, cb2) {					
 					cashapi.getAccountInfo(req.session.apiToken, acc.id, ["path"], safe.trap_sure_result(cb2,function (info) {
-						if ((info.path.search(req.query.term)!=-1) && !(acc.hidden))
+						if ((info.path.search(req.query.term)!=-1) && !(acc.hidden) && !(acc.placeholder))
 							tmp[info.path] = {currency:acc.cmdty.id};
 						cb2();
 					}));

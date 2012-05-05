@@ -23,6 +23,8 @@ module.exports = function account(webapp) {
 			det.fvalue='';
 			if (acc.hidden)
 				det.hidden = true;
+			if (acc.placeholder)
+				det.placeholder = true;
 			
 			// do the conversion
 			async.series ([
