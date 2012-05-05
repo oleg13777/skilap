@@ -67,6 +67,8 @@ module.exports = function (fileName, callback){
 			prices.push(price);
 		} else if (node.name == "TRN:DESCRIPTION") {
 			tr.description = nodetext;
+		} else if (node.name == "TRN:NUM") {
+			tr.num = nodetext;
 		} else if (node.name == "TRN:ID") {
 			gluMap[nodetext]=gluid;
 			tr.id = gluid; gluid++;
@@ -129,6 +131,8 @@ module.exports = function (fileName, callback){
 			split.accountId = gluMap[nodetext];
 		} if (node.name == "SPLIT:RECONCILED-STATE") {
 			split.rstate = nodetext;
+		} if (node.name == "SPLIT:ACTION") {
+			split.action = nodetext;
 		} else if (node.name == "TRN:SPLIT") {
 			if (accMap[split.accountId]==null) {
 				exit(0);
