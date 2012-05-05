@@ -43,6 +43,7 @@ CashApi.prototype.restoreToDefaults = require('./accapi.js').restoreToDefaults;
 CashApi.prototype.getAssetsTypes = require('./accapi.js').getAssetsTypes;
 CashApi.prototype.getDefaultAccounts = require('./accapi.js').getDefaultAccounts;
 CashApi.prototype.saveAccount = require('./accapi.js').saveAccount;
+CashApi.prototype.getSpecialAccount = require('./accapi.js').getSpecialAccount;
 CashApi.prototype.importPrices = require('./priceapi.js').importPrices;
 CashApi.prototype.clearPrices = require('./priceapi.js').clearPrices;
 CashApi.prototype.getCmdtyPrice = require('./priceapi.js').getCmdtyPrice;
@@ -181,7 +182,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 				var month = date.getMonth();
 				var dirs = [ 
 					{rate:price.value,key:JSON.stringify({from:price.cmdty,to:price.currency})},
-					{rate:1/price.value,key:JSON.stringify({to:price.currency,from:price.cmdty})}];
+					{rate:1/price.value,key:JSON.stringify({from:price.currency,to:price.cmdty})}];
 				_(dirs).forEach(function (dir) {
 					var dirTree = self._stats.priceTree[dir.key];
 					if (dirTree==null) self._stats.priceTree[dir.key]=dirTree={};
@@ -236,7 +237,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 					var accStats = getAccStats(split.accountId);
 					accStats.value+=split.quantity;
 					accStats.count++;
-					accStats.trDateIndex.push({id:tr.id,date:tr.dateEntered});
+					accStats.trDateIndex.push({id:tr.id,date:(new Date(tr.dateEntered))});
 				});
 			},true)
 		},
