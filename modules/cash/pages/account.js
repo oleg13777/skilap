@@ -297,7 +297,6 @@ module.exports = function account(webapp) {
 						split.currency = accInfo[split.accountId].currency;
 						splitsInfo.push(split);
 					});	
-					console.log(send);	
 					data.aaData.push({
 						id:tr.id,
 						date:df.format(dp),

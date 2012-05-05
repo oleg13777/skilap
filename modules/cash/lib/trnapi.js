@@ -109,7 +109,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 									delete split.quantity;
 							}
 							else {
-								split.quanitity = oldSplit.quantity/part;
+								split.quantity = oldSplit.quantity/part;
 							}
 						} else if (!_.isUndefined(split.quantity) && split.quantity != oldSplit.quantity) {
 							// changed quantity, adjust value
