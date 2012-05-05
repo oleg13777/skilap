@@ -57,7 +57,6 @@ module.exports = function account(webapp) {
 					var data = fs.readFileSync(req.body.fileName, 'ascii');
 					var obj = JSON.parse(data);
 					accounts = obj.acc;
-					console.log(accounts);
 					transactions = obj.tr;
 					prices = obj.prices;
 					cb1();

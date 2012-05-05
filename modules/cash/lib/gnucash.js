@@ -33,6 +33,9 @@ module.exports = function (fileName, callback){
 	var gluid = 1;
 	var gluMap = {};
 	var rootId = null;
+	var slot = {};
+	var slots = [];
+	var flags = ["hidden", "placeholder"];
 	saxStream.on("opentag", function (node) {
 		path.push(node.name);
 		if (node.name == "GNC:TRANSACTION") {
@@ -44,6 +47,10 @@ module.exports = function (fileName, callback){
 		} else if (node.name == "PRICE") {
 			price = {id:gluid,cmdty:{},currency:{}};
 			gluid++;
+		} else if (node.name == "SLOT") {
+			slot = {};
+		} else if (node.name == "ACT:SLOTS") {
+			slots = [];
 		}
 	})
 
@@ -120,6 +127,8 @@ module.exports = function (fileName, callback){
 			split.id = gluid; gluid++;
 		}  if (node.name == "SPLIT:ACCOUNT") {
 			split.accountId = gluMap[nodetext];
+		} if (node.name == "SPLIT:RECONCILED-STATE") {
+			split.rstate = nodetext;
 		} else if (node.name == "TRN:SPLIT") {
 			if (accMap[split.accountId]==null) {
 				exit(0);
@@ -129,6 +138,16 @@ module.exports = function (fileName, callback){
 			price.value = eval(nodetext);
 		} if (node.name == "SPLIT:MEMO") {
 			split.memo = nodetext;
+		} if (node.name == "SLOT:KEY") {
+			slot.key = nodetext;
+		} if (node.name == "SLOT:VALUE") {
+			slot.value = nodetext;
+		} if ((node.name == "SLOT") && (_(flags).indexOf(slot.key) > -1)) {
+			slots.push(slot);
+		} if ((node.name == "ACT:SLOTS") && !(_(slots).isEmpty())) {
+			_(slots).forEach(function (s) {
+				acc[s.key] = s.value;
+			});
 		}
 	})
 

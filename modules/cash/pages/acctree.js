@@ -20,7 +20,11 @@ module.exports = function account(webapp) {
 			det.id = acc.id;
 			det.value = d.value;
 			det.childs = childs;
-			det.fvalue='';			
+			det.fvalue='';
+			if (acc.hidden)
+				det.hidden = true;
+			if (acc.placeholder)
+				det.placeholder = true;
 			
 			// do the conversion
 			async.series ([
@@ -57,7 +61,7 @@ module.exports = function account(webapp) {
 					if(err){
 						return cb(err);
 					}
-					assets[acc.id] = det;						
+					assets[acc.id] = det;
 					cb1();
 				});							
 			}, function(){
@@ -73,7 +77,7 @@ module.exports = function account(webapp) {
 				}
 				var assets_=[];
 				for(key in assets){
-					if(assets[key].parentId == 0)
+					if((assets[key].parentId == 0) && !(assets[key].hidden))
 						assets_.push(assets[key]);
 				}				
 				cb(null,assets_);				
@@ -181,6 +185,9 @@ module.exports = function account(webapp) {
 				acc.parentId=req.body.parentId;
 				acc.type=req.body.type;
 				acc.cmdty={space:"ISO4217",id:req.body.curency};
+				_(req.body.slots).forEach(function(slot) {
+					acc[slot.key] = slot.value;
+				});
 				cashapi.saveAccount(req.session.apiToken, acc, cb1);
 			},
 			function(acc, cb1){

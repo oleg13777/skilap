@@ -4,12 +4,17 @@ $(function() {
 		position: ["left","top"],
 		buttons: {
 			"apply": function() {
+				var slots = [];
+ 				$('.slot:checked').each(function (i, input) {
+					slots.push({"key": $(input).attr("id"), "value": "true"});
+				});
 				var params = {
 						id: $('#acc_id').val(),
 						name: $('#acc_name').val(),
 						parentId: $('#acc_parent option:selected').val(),
 						curency: $('#acc_curency option:selected').val(),
-						type: $('#acc_type option:selected').val()
+						type: $('#acc_type option:selected').val(),
+						slots: slots
 					};
 				var jqXHR = $.ajax({
 					"type": "POST",
@@ -69,6 +74,12 @@ $(function() {
 				if(acc.cmdty){
 					$('#acc_curency option[value="'+acc.cmdty.id+'"]').attr('selected', 'selected');
 				}
+				if(acc.hidden){
+					$('#hidden').attr('checked', 'checked');
+				}
+				if(acc.placeholder){
+					$('#placeholder').attr('checked', 'checked');
+				}
 			}
 			else if(event.data.name == 'resetAccountDialogData'){				
 				$("#dialog form[name='properties']").get(0).reset();
@@ -124,6 +135,12 @@ $(function() {
 						{{/assetsTypes}}
 					</select>
 				</td>
+			</tr>
+			<tr>
+				<td>Hidden</td><td><input id="hidden" class="slot" type="checkbox" /></td>
+			</tr>
+			<tr>
+				<td>Placeholder</td><td><input id="placeholder" class="slot" type="checkbox"></td>
 			</tr>
 		</table>
 	</form>
