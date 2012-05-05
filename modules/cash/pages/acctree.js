@@ -181,7 +181,9 @@ module.exports = function account(webapp) {
 				acc.parentId=req.body.parentId;
 				acc.type=req.body.type;
 				acc.cmdty={space:"ISO4217",id:req.body.curency};
-				acc.slots=req.body.slots;
+				_(req.body.slots).forEach(function(slot) {
+					acc[slot.key] = slot.value;
+				});
 				cashapi.saveAccount(req.session.apiToken, acc, cb1);
 			},
 			function(acc, cb1){

@@ -74,12 +74,11 @@ $(function() {
 				if(acc.cmdty){
 					$('#acc_curency option[value="'+acc.cmdty.id+'"]').attr('selected', 'selected');
 				}
-				if(acc.slots){
-					acc.slots.forEach(function(slot) {
-						if (slot.value == "true"){
-							$('#'+slot.key).attr('checked', 'checked');
-						}
-					});
+				if(acc.hidden){
+					$('#hidden').attr('checked', 'checked');
+				}
+				if(acc.placeholder){
+					$('#placeholder').attr('checked', 'checked');
 				}
 			}
 			else if(event.data.name == 'resetAccountDialogData'){				

@@ -143,8 +143,9 @@ module.exports = function (fileName, callback){
 		} if ((node.name == "SLOT") && (_(flags).indexOf(slot.key) > -1)) {
 			slots.push(slot);
 		} if ((node.name == "ACT:SLOTS") && !(_(slots).isEmpty())) {
-			console.log(slots);
-			acc.slots = slots;
+			_(slots).forEach(function (s) {
+				acc[s.key] = s.value;
+			});
 		}
 	})
 
