@@ -1,6 +1,7 @@
 var async = require('async');
 var _ = require('underscore');
 var extend = require('node.extend');
+var SkilapError = require("skilap-utils").SkilapError;
 
 module.exports.getAccount = function (token, id, cb) {
 	var self = this;
@@ -52,21 +53,18 @@ module.exports.getChildAccounts = function(token, parentId, cb) {
 	var self = this;
 	async.series ([
 		function start(cb) {
-			console.log('start');
 			async.parallel([
 				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
 				function (cb) { self._waitForData(cb) }
 			],cb);
 		}, 
 		function get(cb) {
-			console.log('get');
 			self._cash_accounts.find({parentId: {$eq: parentId}}).all(function (err, accounts) {
 				if (err) return cb(err);
 				cb(null, _(accounts).map(function (e) {return e.value;}));
 			});
 		}
 		], function end(err, results) {
-			console.log('end');
 			if (err) return cb(err);
 			cb(null, results[1]);
 		}
@@ -89,15 +87,40 @@ module.exports.getAccountByPath = function (token,path,cb) {
 					newAccId = key;
 			});				
 			if (newAccId==null)
-				process.nextTick(function () { cb(new Error("No such account")); });
+				process.nextTick(function () { cb(new SkilapError("No such account","NO_SUCH_ACCOUNT")); });
 			else 
 				process.nextTick(function () { cb(null, newAccId); });
 		}
 		], function end(err, results) {
 			if (err) return cb(err);
-			cb(null, results[1]);
+			self.getAccount(token,results[1],cb);
 		}
 	)
+}
+
+module.exports.getSpecialAccount = function (token,type,cmdty,cb) {
+	var self = this;
+	var name = "";
+	if (type == "disballance")
+		name = self._ctx.i18n(token, 'cash', 'Disballance') + "_" + cmdty.id;
+	else
+		return cb(new Error("Unsupported type"));
+	
+	self.getAccountByPath(token,name, function (err, acc) {
+		if (err) {
+			if (err.skilap && err.skilap.subject == "NO_SUCH_ACCOUNT") {
+				// create one
+				var acc = {"parentId":0,"cmdty":cmdty,"name":name,"type":"EQUITY"}
+				return self.saveAccount(token,acc,cb);
+			} else
+				return cb(err); // unknown error
+		}
+		if (!_(acc.cmdty).isEqual(cmdty)) 
+			return cb(new Error("Special account exist, but has wrong currency"))
+		if (acc.type!="EQUITY") 
+			return cb(new Error("Special account exist, but has wrong type"))			
+		cb(null, acc)
+	})
 }
 
 module.exports.getAccountInfo = function (token, accId, details, cb) {

@@ -63,8 +63,8 @@ module.exports = function account(webapp) {
 							var splits = [];																
 							async.forEach(req.body.splits, function(split,cb3){								
 								if(split.path && split.path != ''){									
-									cashapi.getAccountByPath(req.session.apiToken,split.path, function(err,accId){										
-										split.accountId = accId;	
+									cashapi.getAccountByPath(req.session.apiToken,split.path, function(err,acc){										
+										split.accountId = acc.id;	
 										splits.push(split);																		
 										cb3();										
 									});	
@@ -94,7 +94,7 @@ module.exports = function account(webapp) {
 						}						
 					}
 					else{						
-						cashapi.saveTransaction(req.session.apiToken, trans, cb1);
+						cashapi.saveTransaction(req.session.apiToken, trans, req.params.id, cb1);
 						res.send(req.body.id);
 					}
 				});									
@@ -117,8 +117,8 @@ module.exports = function account(webapp) {
 				if(req.body.splits){																			
 					async.forEach(req.body.splits, function(split,cb2){								
 						if(split.path && sanitize(split.path).trim() != ''){									
-							cashapi.getAccountByPath(req.session.apiToken,split.path, function(err,accId){
-								split.accountId = accId;
+							cashapi.getAccountByPath(req.session.apiToken,split.path, function(err,acc){
+								split.accountId = acc.id;
 								newSplits.push(split);																
 								cb2();
 							});	
@@ -139,7 +139,7 @@ module.exports = function account(webapp) {
 						cb1(null);
 					}
 					else{
-						cashapi.saveTransaction(req.session.apiToken, trans, function(err){							
+						cashapi.saveTransaction(req.session.apiToken, trans, req.params.id, function(err){							
 							if(err){
 								cb1(err);								
 							}
@@ -372,124 +372,27 @@ module.exports = function account(webapp) {
 			tr['transfer'] = req.body.transfer;
 		}
 		tr['splits'] = [];		
-		if(splits){		
-			var imbalance = 0;
-			var imbalanceQuantity = 0;
-			var currentAccount;
-			async.series([
-				function(cb1){
-					cashapi.getAccount(req.session.apiToken,req.params.id,function(err,acc){
-						if(err)
-							cb1(err);
-						else{
-							currentAccount = acc;
-							cb1(null);
-						}						
-					});
-				},
-				function(cb1){
-					async.forEachSeries(splits,function(spl,cb2){
-						if(spl.accountId){							
-							var splitAccount,splitVal,splitQuantity;
-							async.series([
-								function(cb3){
-									cashapi.getAccount(req.session.apiToken,spl.accountId,function(err,acc){
-										if(err)
-											cb3(err);
-										else{
-											splitAccount = acc;
-											cb3(null);
-										}						
-									});
-								},
-								function(cb3){
-									var depositVal  = (spl.deposit && spl.deposit != "") ? parseFloat(spl.deposit) : 0;
-									var depositQuantity  = spl.deposit_quantity != "" ? parseFloat(spl.deposit_quantity) : 0;
-									var withdrawalVal  = spl.withdrawal != "" ? parseFloat(spl.withdrawal) : 0;
-									var withdrawalQuantity  = spl.withdrawal_quantity != "" ? parseFloat(spl.withdrawal_quantity) : 0;
-									splitVal = depositVal - withdrawalVal;
-									splitQuantity = depositQuantity - withdrawalQuantity;
-									cb3();
-								},
-								function(cb3){
-									if(splitQuantity == 0 && splitVal != 0){
-										cashapi.getCmdtyPrice(req.session.apiToken,currentAccount.cmdty,splitAccount.cmdty,null,null,function(err,rate){
-											if(err){
-												if(err.skilap && err.skilap.subject == "UnknownRate"){
-													console.log(err);
-													splitQuantity = splitVal*1;
-												}
-												else{
-													cb3(err);
-												}
-											}
-											else{
-												splitQuantity = splitVal*rate;
-											}											
-											cb3();
-										});									
-									}
-									else{
-										cb3();
-									}
-								},
-								function(cb3){
-									imbalance += splitVal;
-									imbalanceQuantity += splitQuantity;
-									var modifiedSplit = {													
-										value: splitVal,
-										quantity:splitQuantity,
-										accountId: spl.accountId,
-										description: spl.description					
-									};
-									if(spl.id){
-										modifiedSplit.id = spl.id;
-									}
-									tr['splits'].push(modifiedSplit);
-									cb3();
-								}
-							],function(err){
-								if (err) return cb1(err);				
-								cb2();
-							});							
-						}
-						else{
-							cb2();
-						}
-					},cb1);
-				},
-				function(cb1){					
-					if(imbalance != 0 || imbalanceQuantity != 0 || tr['splits'].length == 1){
-						/* for classic transaction with two splits made automatic correct */
-						if(tr['splits'].length == 1 && tr['splits'][0].accountId != currentAccount.id){
-							tr['splits'].push({
-								accountId:currentAccount.id,
-								value:-1*imbalance,
-								quantity:-1*imbalanceQuantity
-							});
-						}
-						else if(tr['splits'].length == 2){
-							if(tr['splits'][1].accountId == currentAccount.id){
-								tr['splits'][1].value = -1*tr['splits'][0].value;
-								tr['splits'][1].quantity = -1*tr['splits'][0].quantity;
-							}
-							else{
-								tr['splits'][0].value = -1*tr['splits'][1].value;
-								tr['splits'][0].quantity = -1*tr['splits'][1].quantity;
-							}
-						}
-						else{
-							cb1(new SkilapError('Imbalance Error','ImbalanceError'));	
-						}
-					}
-					cb1();
+		if(splits) {		
+			_.forEach(splits,function(spl){
+				var depositVal  = (spl.deposit && spl.deposit != "") ? parseFloat(spl.deposit) : 0;
+				var depositQuantity  = spl.deposit_quantity != "" ? parseFloat(spl.deposit_quantity) : 0;
+				var withdrawalVal  = spl.withdrawal != "" ? parseFloat(spl.withdrawal) : 0;
+				var withdrawalQuantity  = spl.withdrawal_quantity != "" ? parseFloat(spl.withdrawal_quantity) : 0;
+				splitVal = depositVal - withdrawalVal;
+				splitQuantity = depositQuantity - withdrawalQuantity;
+				var modifiedSplit = {													
+					value: splitVal,
+					accountId: spl.accountId,
+					description: spl.description					
+				};
+				if (spl.deposit_quantity != "" && spl.withdrawal_quantity != "")
+					modifiedSplit.quantity = splitQuantity;
+				if(spl.id && spl.id!=-1){
+					modifiedSplit.id = spl.id;
 				}
-			], function (err) {
-				if (err) {					
-					return cb(err);	
-				}						
-				cb(null,tr);
+				tr['splits'].push(modifiedSplit);
 			});				
+			cb(null,tr);
 		}
 		else if(oldTr){
 			tr['splits'] = oldTr.splits;
@@ -499,5 +402,4 @@ module.exports = function account(webapp) {
 			cb(null,tr);
 		}
 	};
-
 }
