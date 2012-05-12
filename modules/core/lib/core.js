@@ -239,6 +239,8 @@ function Skilap() {
 						var api = modules[module].api;
 						var fn = api[func];
 						var params = jsonrpc.params;
+						if (typeof(params) != 'object')
+							params = JSON.parse(params);
 						params.push(function () {
 							var jsonres = {};
 							if (arguments[0]) {
