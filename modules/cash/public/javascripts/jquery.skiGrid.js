@@ -387,6 +387,15 @@
 					if(j < splitsLength){	
 						splitId = splits[j].id;
 						accountId = splits[j].accountId;
+						var td = $tr.find('td[name="num"]')[0];
+						var $tdContent = objSettings.colContainerRef.clone();
+						if(splits[j].num && splits[j].num != ''){							
+							$tdContent.text(splits[j]['num']);							
+						}	
+						else{
+							$tdContent.html('&nbsp;');	
+						}
+						$(td).append($tdContent);	
 						var td = $tr.find('td[name="description"]')[0];
 						var $tdContent = objSettings.colContainerRef.clone();
 						if(splits[j].description && splits[j].description != ''){							
@@ -681,7 +690,7 @@
 						//console.log($splitRow.find('td[name="'+splitColumnName+'"]')[0]);
 						$($splitRow.find('td[name="'+splitColumnName+'"]')[0]).attr('data-value',val).attr('data-quantity',quantity).find('.tdContent').text(val);
 					}
-					else if(oldSelectedName != 'description'){
+					else if(oldSelectedName != 'description' && oldSelectedName != 'num'){
 						$($splitRow.find('td[name="'+oldSelectedName+'"]')[0]).find('.tdContent').text(newColumnVal);
 						if(oldSelectedName == 'path'){
 							if(objSettings.accounts[newColumnVal].currency != objSettings.currentAccount.currency){
@@ -711,8 +720,7 @@
 					}
 				}
 				switch(oldSelectedName){
-					case 'date':
-					case 'num':						
+					case 'date':										
 					case 'transfer':					
 						rowData[oldSelectedName] = newColumnVal;
 					break;					
@@ -720,7 +728,8 @@
 					case 'deposit':
 					case 'withdrawal':
 					case 'description':	
-						if(oldSelectedName == 'description' && $oldSelectedTD.parent().hasClass('mainRow')){
+					case 'num':	
+						if((oldSelectedName == 'description' || oldSelectedName == 'num') && $oldSelectedTD.parent().hasClass('mainRow')){
 							rowData[oldSelectedName] = newColumnVal;
 						}	
 						else{				
@@ -729,6 +738,7 @@
 								var path = getColumnVal($(splitRow).find('td[name="path"]'));
 								if(path != ""){									
 									var splitId = $(splitRow).attr('splitid');
+									var num = $(splitRow).find('td[name="num"] .tdContent').text();
 									var description = $(splitRow).find('td[name="description"] .tdContent').text();							
 									var deposit = $(splitRow).find('td[name="deposit"]').attr('data-value');
 									var deposit_quantity = $(splitRow).find('td[name="deposit"]').attr('data-quantity');
@@ -736,12 +746,13 @@
 									var	withdrawal_quantity = $(splitRow).find('td[name="withdrawal"]').attr('data-quantity');
 									var split = {
 										id:splitId,
+										num:num,
+										description:description,
 										path:path, 
 										deposit:(deposit ? deposit : ""), 
 										deposit_quantity:(deposit_quantity ? deposit_quantity : ""), 
 										withdrawal:(withdrawal ? withdrawal : ""),
-										withdrawal_quantity:(withdrawal_quantity ? withdrawal_quantity : ""),
-										description:description
+										withdrawal_quantity:(withdrawal_quantity ? withdrawal_quantity : "")										
 									};
 									rowData['splits'].push(split);
 								}
@@ -1095,7 +1106,7 @@
 			var elemName = $(element).attr('name');
 			$(element).css('height',options.rowHeight)
 				.attr('num',index)
-				.append((elemName == 'description' || elemName == 'path' || elemName == 'deposit' || elemName == 'withdrawal') && !$(element).is(':has(.tdContent)') ? objSettings.colContainerRef.clone() : '');
+				.append((elemName == 'num' || elemName == 'description' || elemName == 'path' || elemName == 'deposit' || elemName == 'withdrawal') && !$(element).is(':has(.tdContent)') ? objSettings.colContainerRef.clone() : '');
 		});
 	};
 	
@@ -1262,7 +1273,7 @@
 		}
 		var colName = 'date';
 		if($col.parent().hasClass('splitRow') && $col.parent().next().hasClass('splitRow')){
-			colName = 'description';
+			colName = 'num';
 		}
 		var targetColumn = $($col.parent().find('td[name="'+colName+'"]')[0]);
 		if(nextRow.length > 0){

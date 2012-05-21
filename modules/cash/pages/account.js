@@ -383,7 +383,8 @@ module.exports = function account(webapp) {
 				var modifiedSplit = {													
 					value: splitVal,
 					accountId: spl.accountId,
-					description: spl.description					
+					description: spl.description,
+					num:spl.num					
 				};
 				if (spl.deposit_quantity != "" || spl.withdrawal_quantity != "")
 					modifiedSplit.quantity = splitQuantity;
