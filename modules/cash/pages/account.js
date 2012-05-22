@@ -304,7 +304,7 @@ module.exports = function account(webapp) {
 						description:tr.description,
 						path:(recv.length==1?accInfo[recv[0].accountId].path:"-- Multiple --"),
 						path_curr: (recv.length==1 && accInfo[recv[0].accountId].currency != accInfo[req.params.id].currency ? accInfo[recv[0].accountId].currency :null),
-						transfer: tr.transfer ? tr.transfer : 'n',
+						rstate: (send.rstate ? send.rstate:"n"),
 						deposit:(send.value>0?sprintf("%.2f",send.value):''),
 						deposit_quantity: (recv.length == 1 && recv[0].quantity<=0?sprintf("%.2f",recv[0].quantity*-1):''),
 						withdrawal:(send.value<=0?sprintf("%.2f",send.value*-1):''),
@@ -367,10 +367,8 @@ module.exports = function account(webapp) {
 		}				
 		if (req.body.description) {
 			tr['description'] = req.body.description;
-		}	
-		if(req.body.transfer){
-			tr['transfer'] = req.body.transfer;
 		}
+		
 		tr['splits'] = [];		
 		if(splits) {		
 			_.forEach(splits,function(spl){
@@ -384,7 +382,8 @@ module.exports = function account(webapp) {
 					value: splitVal,
 					accountId: spl.accountId,
 					description: spl.description,
-					num:spl.num					
+					num:spl.num,
+					rstate:spl.rstate				
 				};
 				if (spl.deposit_quantity != "" || spl.withdrawal_quantity != "")
 					modifiedSplit.quantity = splitQuantity;

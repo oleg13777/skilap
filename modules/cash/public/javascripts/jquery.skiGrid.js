@@ -136,14 +136,14 @@
 		/* show block for adding new transaction */
 		objSettings.gridWrapper.on('GridLoad',function(){
 			var dateField = objSettings.newTrContainer.find('tr.mainRow td[name="date"] .tdContent').html();
-			var transferField = objSettings.newTrContainer.find('tr.mainRow td[name="transfer"] .tdContent').html();
+			var rstateField = objSettings.newTrContainer.find('tr.mainRow td[name="rstate"] .tdContent').html();
 			if(dateField == '&nbsp;'){
 				objSettings.newTrContainer.find('tr.mainRow td[name="date"] .tdContent').text(objSettings.currentDate);
 			}			
-			if(transferField == '&nbsp;'){
-				objSettings.newTrContainer.find('tr.mainRow td[name="transfer"] .tdContent').text('n');
+			if(rstateField == '&nbsp;'){
+				objSettings.newTrContainer.find('tr.mainRow td[name="rstate"] .tdContent').text('n');
 			}
-			objSettings.rowNewData={date:objSettings.currentDate,transfer:'n'};
+			objSettings.rowNewData={date:objSettings.currentDate};
 			handleSplitRowsShow(objSettings);						
 		});		
 		
@@ -244,7 +244,7 @@
 			if(e.keyCode == 9){
 				$(this).find('input').blur();	
 				var $nextCol = $(this).next();
-				if($nextCol.attr('name') == 'transfer'){
+				if($nextCol.attr('name') == 'rstate'){
 					$nextCol = $nextCol.next();
 				}
 				var $targetColumn	= $nextCol;			
@@ -413,6 +413,11 @@
 							$(td).attr('data-path_curr',splits[j].currency);
 							appendCurrencySelector($(td),objSettings);							
 						}
+						
+						var td = $tr.find('td[name="rstate"]')[0];
+						var $tdContent = objSettings.colContainerRef.clone();
+						$tdContent.text(splits[j]['rstate'] && splits[j]['rstate'] != "" ? splits[j]['rstate'] : 'n');
+						$(td).append($tdContent);
 						var columnName = 'deposit';
 						var val = splits[j]['value'];
 						var quantity = splits[j]['quantity']
@@ -535,33 +540,33 @@
 	 * Show or hide path field content in main row
 	 */
 	function showPathInUpdMainRow(objSettings,show){
-		var $td = $(objSettings.tableBodyRef.find('tr.mainRow[recordid="'+objSettings.selectedRowId+'"] td[name="path"]')[0]);
+		var $tdColumns = $(objSettings.tableBodyRef.find('tr.mainRow[recordid="'+objSettings.selectedRowId+'"] td[name="path"],tr.mainRow[recordid="'+objSettings.selectedRowId+'"] td[name="rstate"]'));
 		if(show){
-			$td.find('.tdContent').removeClass('invisible');
-			$td.removeClass('ski_disabled');	
+			$tdColumns.find('.tdContent').removeClass('invisible');
+			$tdColumns.removeClass('ski_disabled');	
 		}
 		else{			
-			$td.find('.tdContent').addClass('invisible');
-			$td.addClass('ski_disabled');					
+			$tdColumns.find('.tdContent').addClass('invisible');
+			$tdColumns.addClass('ski_disabled');					
 		}
-		objSettings.tableBodyRef.find('tr.mainRow[recordid!="'+objSettings.selectedRowId+'"] td[name="path"]').removeClass('ski_disabled').find('.tdContent').removeClass('invisible');
-		objSettings.newTrContainer.find('tr.mainRow td[name="path"]').removeClass('ski_disabled').find('.tdContent').removeClass('invisible');
+		objSettings.tableBodyRef.find('tr.mainRow[recordid!="'+objSettings.selectedRowId+'"] td[name="path"],tr.mainRow[recordid!="'+objSettings.selectedRowId+'"] td[name="rstate"]').removeClass('ski_disabled').find('.tdContent').removeClass('invisible');
+		objSettings.newTrContainer.find('tr.mainRow td[name="path"],tr.mainRow td[name="rstate"]').removeClass('ski_disabled').find('.tdContent').removeClass('invisible');
 	
 	};	
 	
 	
 	function showPathInNewMainRow(objSettings,show){
 		var $mainRow = $(objSettings.newTrContainer.find('tr.mainRow')[0]);
-		var $td = $mainRow.find('td[name="path"]');					
+		var $tdColumns = $mainRow.find('td[name="path"],td[name="rstate"]');					
 		if(show){
-			$td.find('.tdContent').removeClass('invisible');
-			$td.removeClass('ski_disabled');	
+			$tdColumns.find('.tdContent').removeClass('invisible');
+			$tdColumns.removeClass('ski_disabled');	
 		}
 		else{			
-			$td.find('.tdContent').addClass('invisible');
-			$td.addClass('ski_disabled');					
+			$tdColumns.find('.tdContent').addClass('invisible');
+			$tdColumns.addClass('ski_disabled');					
 		}
-		objSettings.tableBodyRef.find('tr.mainRow[recordid!="'+objSettings.selectedRowId+'"] td[name="path"]').removeClass('ski_disabled').find('.tdContent').removeClass('invisible');
+		objSettings.tableBodyRef.find('tr.mainRow[recordid!="'+objSettings.selectedRowId+'"] td[name="path"],tr.mainRow[recordid!="'+objSettings.selectedRowId+'"] td[name="rstate"]').removeClass('ski_disabled').find('.tdContent').removeClass('invisible');
 		
 	};
 	
@@ -690,8 +695,7 @@
 						//console.log($splitRow.find('td[name="'+splitColumnName+'"]')[0]);
 						$($splitRow.find('td[name="'+splitColumnName+'"]')[0]).attr('data-value',val).attr('data-quantity',quantity).find('.tdContent').text(val);
 					}
-					else if(oldSelectedName != 'description' && oldSelectedName != 'num'){
-						$($splitRow.find('td[name="'+oldSelectedName+'"]')[0]).find('.tdContent').text(newColumnVal);
+					else if(oldSelectedName != 'description' && oldSelectedName != 'num'){						
 						if(oldSelectedName == 'path'){
 							if(objSettings.accounts[newColumnVal].currency != objSettings.currentAccount.currency){
 								$pathCol = $($splitRow.find('td[name="path"]')[0]);
@@ -699,6 +703,11 @@
 								appendCurrencySelector($pathCol,objSettings);
 							}	
 						}
+						else if(oldSelectedName == 'rstate'){
+							$splitRow = $(rowsContainer.find('tr.splitRow[recordid="'+recordId+'"][accountid="'+objSettings.currentAccount.id+'"]')[0]);
+							
+						}
+						$($splitRow.find('td[name="'+oldSelectedName+'"]')[0]).find('.tdContent').text(newColumnVal);
 					}					
 				}
 				/* sync main row  with split rows  data */
@@ -707,7 +716,7 @@
 						rowsContainer.find('tr.mainRow[recordid="'+recordId+'"] td[name="path"] .tdContent').text('--Multiple--');
 					}
 					else{
-						if(oldSelectedName == 'path'){
+						if(oldSelectedName == 'path' && $oldSelectedTD.parent().attr('accountid') != objSettings.currentAccount.id){
 							var $mainRowCol = $(rowsContainer.find('tr.mainRow[recordid="'+recordId+'"] td[name="path"]')[0]);
 							$mainRowCol.find('.tdContent').text(newColumnVal);
 							if(objSettings.accounts[newColumnVal].currency != objSettings.currentAccount.currency){
@@ -716,12 +725,14 @@
 							}	
 					
 						}
+						else if(oldSelectedName == 'rstate' && $oldSelectedTD.parent().attr('accountid') == objSettings.currentAccount.id){
+							rowsContainer.find('tr.mainRow[recordid="'+recordId+'"] td[name="rstate"] .tdContent').text(newColumnVal);
+						}
 						/* add code for sync deposit and withdrawal */
 					}
 				}
 				switch(oldSelectedName){
-					case 'date':										
-					case 'transfer':					
+					case 'date':									
 						rowData[oldSelectedName] = newColumnVal;
 					break;					
 					case 'path':
@@ -729,6 +740,7 @@
 					case 'withdrawal':
 					case 'description':	
 					case 'num':	
+					case 'rstate':
 						if((oldSelectedName == 'description' || oldSelectedName == 'num') && $oldSelectedTD.parent().hasClass('mainRow')){
 							rowData[oldSelectedName] = newColumnVal;
 						}	
@@ -744,11 +756,13 @@
 									var deposit_quantity = $(splitRow).find('td[name="deposit"]').attr('data-quantity');
 									var	withdrawal = $(splitRow).find('td[name="withdrawal"]').attr('data-value');
 									var	withdrawal_quantity = $(splitRow).find('td[name="withdrawal"]').attr('data-quantity');
+									var rstate = $(splitRow).find('td[name="rstate"]').text();
 									var split = {
 										id:splitId,
 										num:num,
 										description:description,
 										path:path, 
+										rstate:rstate,
 										deposit:(deposit ? deposit : ""), 
 										deposit_quantity:(deposit_quantity ? deposit_quantity : ""), 
 										withdrawal:(withdrawal ? withdrawal : ""),
@@ -780,7 +794,7 @@
 		for(i in rowNewData){
 			fieldsCount++;
 		}
-		if(fieldsCount == 2){
+		if(fieldsCount <= 2){
 			return false;
 		}				
 		addRow(rowNewData,objSettings,function(err){
@@ -1106,7 +1120,7 @@
 			var elemName = $(element).attr('name');
 			$(element).css('height',options.rowHeight)
 				.attr('num',index)
-				.append((elemName == 'num' || elemName == 'description' || elemName == 'path' || elemName == 'deposit' || elemName == 'withdrawal') && !$(element).is(':has(.tdContent)') ? objSettings.colContainerRef.clone() : '');
+				.append((elemName == 'num' || elemName == 'description' || elemName == 'path' || elemName == 'rstate' || elemName == 'deposit' || elemName == 'withdrawal') && !$(element).is(':has(.tdContent)') ? objSettings.colContainerRef.clone() : '');
 		});
 	};
 	
