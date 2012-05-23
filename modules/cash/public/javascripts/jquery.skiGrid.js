@@ -110,10 +110,10 @@
 		$obj.css({'position':'absolute','left':'0'});
 		/* add toolbox panel */
 		var $toolbox = $('<div class="ski_gridToolbox"></div>');
-		var $splitButton = $('<div class="ski_splitButton ski_button">Split</div>');
-		objSettings.splitButton = $splitButton;		
-		$toolbox.append($splitButton);
-		$obj.parents('.ski_gridWrapper').prepend($toolbox);
+		var $splitButton = $('<div class="ski_splitButton "><input id="splitCheck" type="checkbox"/><label for="splitCheck">Split Mode</label></div>');
+		objSettings.splitButton = $splitButton;	
+		$gridHeaderWrapper.find('th[name="path"] .tdContent').append($splitButton);
+		
 		/* add footer panel */		
 		var $newTrContainer = $('<div class="ski_newTrContainer"></div>');
 		var $newTrGrid = $obj.clone();
@@ -129,7 +129,13 @@
 	function bindEvents($obj,objSettings){
 		/* split button event */
 		objSettings.splitButton.on('click',function(){
-			$(this).toggleClass('ski_selected');
+			var active = $(this).find('input').is(':checked');
+			if(active){
+				$(this).addClass('ski_selected');
+			}
+			else{
+				$(this).removeClass('ski_selected');
+			}
 			handleSplitRowsShow(objSettings);			
 		});
 		
@@ -217,20 +223,14 @@
 		/* event handler for click on settings menu item */
 		objSettings.gridWrapper.find('tbody').on('click','.ski_settingsMenu .menuItem',function(){						
 			if($(this).hasClass('delete') && $(this).hasClass('split')){
-				var recordId = $($(this).parents('.splitRow')[0]).attr('recordid');
-				var splitId = $($(this).parents('.splitRow')[0]).attr('splitid');
-				processSplitDelete(splitId, recordId, objSettings,function(err){
-					objSettings.splitButton.removeClass('ski_selected');
-					handleSplitRowsShow(objSettings);		
-					if(!err){								
-						objSettings.bodyWrapperRef.scroll();												
-					}
-				});
+				var recordId = $(this).parents('.splitRow').attr('recordId');
+				$(this).parents('.splitRow').remove();		
+				objSettings.rowEditedData['splits'] = createSplitsData(objSettings.tableBodyRef,recordId);		
 			}	
 			else if($(this).hasClass('delete')){
 				var recordId = $($(this).parents('.mainRow')[0]).attr('recordid');
 				processRowDelete(recordId, objSettings,function(err){
-					objSettings.splitButton.removeClass('ski_selected');
+					turnOffSplitMode(objSettings);
 					handleSplitRowsShow(objSettings);		
 					if(!err){								
 						objSettings.bodyWrapperRef.scroll();												
@@ -264,8 +264,7 @@
 		});
 		/* handle modify data */
 		objSettings.gridWrapper.on('AddRowData',function(){								
-			processRowAdd(objSettings,function(err){
-				//objSettings.splitButton.removeClass('ski_selected');
+			processRowAdd(objSettings,function(err){				
 				handleSplitRowsShow(objSettings);		
 				if(!err){					
 					clearDataForNewTransaction(objSettings);
@@ -282,14 +281,17 @@
 		
 		objSettings.gridWrapper.on('UpdateRowData',function(e,$col){							
 			processRowUpdate(objSettings,function(err){
-				if(!err){
-					//objSettings.splitButton.removeClass('ski_selected');
+				if(!err){					
 					handleSplitRowsShow(objSettings);	
 					objSettings.bodyWrapperRef.find('tr.mainRow').removeClass('ski_selected');
 					if($col){												
 						objSettings.selectedRowId = $col.parent().attr('recordid');	
 						objSettings.rowEditedData={};
 						objSettings.rowEditedData['id'] = objSettings.selectedRowId;
+						if($col.parent().hasClass('mainRow') && $col.parent().data('multisplit')*1 == 1 && !objSettings.splitButton.find('input').is(':checked')){
+							objSettings.splitButton.find('input').attr('checked','checked');
+							objSettings.splitButton.click();
+						}
 						if(objSettings.isNeedReload){							
 							objSettings.isNeedReload = false;
 							objSettings.editableColumn = $col;
@@ -361,7 +363,7 @@
 					}			
 					$td.css('height',options.rowHeight).attr('num',j).append($tdContent);
 					if(name == 'path'){
-						if(tdVal == "-- Multiple --" ){
+						if(data.aaData[i]['multisplit']*1 == 1){							
 							$td.addClass('multiple');
 						}
 						else if(data.aaData[i]['path_curr']){
@@ -369,7 +371,7 @@
 							appendCurrencySelector($td,objSettings);
 						}
 					}
-					
+					tr.attr('data-multisplit',data.aaData[i]['multisplit']);
 					
 				}			
 				objSettings.tableBodyRef.append(tr);
@@ -575,7 +577,7 @@
 		if($prevInput && $prevInput.parents('td.account').length > 0 && !$col.hasClass('ski_selected')){
 			if(objSettings.accounts){				
 				var currentAcc = $prevInput.val();				
-				if(currentAcc != "" && !objSettings.accounts[currentAcc]){									
+				if(currentAcc != "" && !objSettings.accounts[currentAcc] && $col.parent().data('multisplit') && $col.parent().data('multisplit')*1 != 1){									
 					$("#ski_dialog-confirm-create-account p.text").text('The account "'+currentAcc+'" does not exist. Would you like to create it?');
 					$("#ski_dialog-confirm-create-account").dialog({
 						resizable: false,
@@ -600,7 +602,7 @@
 				}
 			}
 			
-		}
+		}			
 		processHandleColumnClick($col,objSettings);		
 	};
 	
@@ -744,33 +746,8 @@
 						if((oldSelectedName == 'description' || oldSelectedName == 'num') && $oldSelectedTD.parent().hasClass('mainRow')){
 							rowData[oldSelectedName] = newColumnVal;
 						}	
-						else{				
-							rowData['splits']=[];						
-							rowsContainer.find('tr.splitRow[recordid="'+recordId+'"]').each(function(index,splitRow){
-								var path = getColumnVal($(splitRow).find('td[name="path"]'));
-								if(path != ""){									
-									var splitId = $(splitRow).attr('splitid');
-									var num = $(splitRow).find('td[name="num"] .tdContent').text();
-									var description = $(splitRow).find('td[name="description"] .tdContent').text();							
-									var deposit = $(splitRow).find('td[name="deposit"]').attr('data-value');
-									var deposit_quantity = $(splitRow).find('td[name="deposit"]').attr('data-quantity');
-									var	withdrawal = $(splitRow).find('td[name="withdrawal"]').attr('data-value');
-									var	withdrawal_quantity = $(splitRow).find('td[name="withdrawal"]').attr('data-quantity');
-									var rstate = $(splitRow).find('td[name="rstate"]').text();
-									var split = {
-										id:splitId,
-										num:num,
-										description:description,
-										path:path, 
-										rstate:rstate,
-										deposit:(deposit ? deposit : ""), 
-										deposit_quantity:(deposit_quantity ? deposit_quantity : ""), 
-										withdrawal:(withdrawal ? withdrawal : ""),
-										withdrawal_quantity:(withdrawal_quantity ? withdrawal_quantity : "")										
-									};
-									rowData['splits'].push(split);
-								}
-							});	
+						else{
+							rowData['splits'] = createSplitsData(rowsContainer,recordId);								
 						}					
 					break;
 				}	
@@ -836,19 +813,6 @@
 		deleteRow(recordId,objSettings,function(err){
 			if(err){
 				showError(err.error,objSettings);					
-				cb(err);
-				return false;
-			}					
-			cb();
-			
-		});			
-		
-	};
-	
-	function processSplitDelete(splitId, recordId, objSettings,cb){		
-		deleteSplit(splitId,recordId,objSettings,function(err){
-			if(err){
-				showError(err.error,objSettings);				
 				cb(err);
 				return false;
 			}					
@@ -935,30 +899,7 @@
 			cb(error);			
 		});
 		
-	};
-	
-	function deleteSplit(splitId, recordId,objSettings,cb){		
-		var jqXHR = $.ajax({
-			"url": options.editable.sDeleteSplitURL,
-			"data":{splitId:splitId,recordId:recordId},
-			"type":"POST",
-			"dataType": "json",
-			"cache": false				
-		});
-		jqXHR.done(function(data){
-			if(data.error){
-				cb(data);
-			}
-			else{
-				cb();
-			}			
-		});
-		jqXHR.fail(function(data){
-			var error={error:'invalidResponse'};
-			cb(error);			
-		});
-		
-	};
+	};	
 	
 	function processColumnEditable($col,objSettings){
 		objSettings.gridWrapper.find('tr.ski_selected').removeClass('ski_selected');
@@ -1314,6 +1255,41 @@
 		jqXHR.done(function(data){					
 			cb(data);			
 		});
+	};
+	
+	function turnOffSplitMode(objSettings){
+		objSettings.splitButton.removeClass('ski_selected');
+		objSettings.splitButton.find('input').removeAttr('checked');
+	};
+	
+	function createSplitsData(rowsContainer,recordId){
+		splits=[];						
+		rowsContainer.find('tr.splitRow[recordid="'+recordId+'"]').each(function(index,splitRow){
+			var path = getColumnVal($(splitRow).find('td[name="path"]'));
+			if(path != ""){									
+				var splitId = $(splitRow).attr('splitid');
+				var num = $(splitRow).find('td[name="num"] .tdContent').text();
+				var description = $(splitRow).find('td[name="description"] .tdContent').text();							
+				var deposit = $(splitRow).find('td[name="deposit"]').attr('data-value');
+				var deposit_quantity = $(splitRow).find('td[name="deposit"]').attr('data-quantity');
+				var	withdrawal = $(splitRow).find('td[name="withdrawal"]').attr('data-value');
+				var	withdrawal_quantity = $(splitRow).find('td[name="withdrawal"]').attr('data-quantity');
+				var rstate = $(splitRow).find('td[name="rstate"]').text();
+				var split = {
+					id:splitId,
+					num:num,
+					description:description,
+					path:path, 
+					rstate:rstate,
+					deposit:(deposit ? deposit : ""), 
+					deposit_quantity:(deposit_quantity ? deposit_quantity : ""), 
+					withdrawal:(withdrawal ? withdrawal : ""),
+					withdrawal_quantity:(withdrawal_quantity ? withdrawal_quantity : "")										
+				};
+				splits.push(split);
+			}
+		});	
+		return splits;
 	};
       
 	return this.each(function(){		

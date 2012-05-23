@@ -170,13 +170,7 @@ module.exports = function account(webapp) {
 		], function (err) {
 			if (err) return next(err);
 		});		
-	});
-	
-	app.post(webapp.prefix+'/account/:id/delsplit', function(req, res, next) {	
-		res.send(req.body.splitId);
-		
-	});
-
+	});	
 
 	app.get(webapp.prefix+'/account/:id/getaccounts', function(req, res, next) {
 		var tmp = [];		
@@ -297,12 +291,23 @@ module.exports = function account(webapp) {
 						split.currency = accInfo[split.accountId].currency;
 						splitsInfo.push(split);
 					});	
+					var path = "";
+					if(recv.length==1){
+						path = accInfo[recv[0].accountId].path;
+					}
+					else if(recv.length > 1){						
+						path = '['+accInfo[recv[0].accountId].path;
+						for(j=1; j<recv.length;j++){
+							path += ','+accInfo[recv[j].accountId].path;
+						}
+						path += ']';
+					}
 					data.aaData.push({
 						id:tr.id,
 						date:df.format(dp),
 						num:tr.num ? tr.num : '',
 						description:tr.description,
-						path:(recv.length==1?accInfo[recv[0].accountId].path:"-- Multiple --"),
+						path:path,
 						path_curr: (recv.length==1 && accInfo[recv[0].accountId].currency != accInfo[req.params.id].currency ? accInfo[recv[0].accountId].currency :null),
 						rstate: (send.rstate ? send.rstate:"n"),
 						deposit:(send.value>0?sprintf("%.2f",send.value):''),
@@ -311,7 +316,8 @@ module.exports = function account(webapp) {
 						withdrawal_quantity: (recv.length == 1 && recv[0].quantity>0?sprintf("%.2f",recv[0].quantity):''),
 						total:sprintf("%.2f",trs.ballance),
 						splits:splitsInfo,
-						multicurr:multicurr
+						multicurr:multicurr,
+						multisplit:recv.length > 1 ? 1 : 0
 					});
 				}				
 				data.iTotalRecords = count;

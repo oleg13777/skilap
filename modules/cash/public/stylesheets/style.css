@@ -233,10 +233,15 @@ background-color:#eee;
 }
 
 .ski_splitButton{
-	float:left;	
-	margin:5px  0 0 10px;
+	position:absolute;
+	top:0;
+	right:0;
 }
-
+.ski_splitButton label{
+margin:0 5px;
+font-size:12px;
+font-weight:500;
+}
 .ski_vline,.ski_hline{
 	position:absolute;
 	top:0;

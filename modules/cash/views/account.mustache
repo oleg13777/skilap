@@ -1,15 +1,15 @@
 <div id="ski_createAccount"></div>
 <table id="acc" cellspacing="0" cellpadding="5" width="100%">	
-<thead>
-		<th class="value">{{#i18n}}Date{{/i18n}}</th>
-		<th class="number">{{#i18n}}Num{{/i18n}}</th>
-		<th class="description">{{#i18n}}Description{{/i18n}}</th>
-		<th class="account">{{#i18n}}Transfer{{/i18n}}</th>
-		<th class="rstate">R</th>
-		<th class="value">{{#i18n}}Receive{{/i18n}}</th>
-		<th class="value">{{#i18n}}Spend{{/i18n}}</th>
-		<th class="value"{{#i18n}}>Balance{{/i18n}}</th>
-		<th class="settings"></th>
+	<thead>
+		<th class="value" name="date">{{#i18n}}Date{{/i18n}}</th>
+		<th class="number" name="num">{{#i18n}}Num{{/i18n}}</th>
+		<th class="description" name="description">{{#i18n}}Description{{/i18n}}</th>
+		<th class="account" name="path">{{#i18n}}Transfer{{/i18n}}</th>
+		<th class="rstate" name="rstate">R</th>
+		<th class="value" name="deposit">{{#i18n}}Receive{{/i18n}}</th>
+		<th class="value" name="withdrawal">{{#i18n}}Spend{{/i18n}}</th>
+		<th class="value" name="total">{{#i18n}}Balance{{/i18n}}</th>
+		<th class="settings" name="settings"></th>
 	</thead>
 	<tbody>
 		
@@ -46,8 +46,7 @@ $(document).ready(function(){
 		"editable":{
 			"sUpdateURL":"{{prefix}}/account/{{accountId}}/updaterow",	
 			"sAddURL":"{{prefix}}/account/{{accountId}}/addrow",
-			"sDeleteURL":"{{prefix}}/account/{{accountId}}/delrow",	
-			"sDeleteSplitURL":"{{prefix}}/account/{{accountId}}/delsplit",		
+			"sDeleteURL":"{{prefix}}/account/{{accountId}}/delrow",						
 			"columns": [
 				{"type":"datepicker","icon":"{{prefix}}/images/calendar.gif"},
 				{"type":"input","format":"number"},			
