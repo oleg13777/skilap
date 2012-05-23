@@ -14,13 +14,15 @@
 	
 	function settings(){
 		this.obj = null;
-		this.gridWrapper = null;		
+		this.gridWrapper = null;
+		this.gridBodyWrapper = null;		
 		this.tableBodyRef = null;
 		this.tableRowRef = null;
 		this.colContainerRef = null;		
 		this.headerWrapperRef = null;
 		this.bodyScrollerRef = null;
-		this.bodyWrapperRef = null;		
+		this.bodyWrapperRef = null;	
+		this.tableHeight = options.tableHeight;	
 		this.totalRowsCount = 0;				
 		this.rowsLimit = 0;
 		this.totalHeight=0;
@@ -42,20 +44,20 @@
 	
 	function init($obj){		
 		var objSettings = new settings();
-		objSettings.obj = $obj;
+		objSettings.obj = $obj;		
 		objSettings.rowNewData = {};
 		objSettings.colContainerRef = $('<div class="tdContent"></div>').css('line-height',options.rowHeight+'px');
 		var tableBody = $obj.find('tbody')[0];
 		objSettings.tableBodyRef = $(tableBody);
 		var trTemplate = $obj.find('tbody tr')[0];
-		objSettings.tableRowRef = $(trTemplate);
+		objSettings.tableRowRef = $(trTemplate);		
 		wrapGrid($obj,objSettings);	
 		bindEvents($obj,objSettings);
 			
 		if(options.sAjaxSource == ''){
 			showError('ajax source is undefined');
 		}
-		objSettings.rowsLimit = Math.round(options.tableHeight/options.rowHeight)+1;
+		adaptGridHeight(objSettings);		
 		var jqXHR = $.ajax( {
 			"url": options.sAjaxSource,
 			"data":{"sEcho":objSettings.sEcho,"iColumns":options.columnsCount},		
@@ -76,7 +78,8 @@
 		objSettings.currentAccount = data.currentAccount;
 		objSettings.totalRowsCount = data.iTotalRecords+1;			
 		objSettings.totalHeight = objSettings.totalRowsCount*options.rowHeight;
-		objSettings.bodyScrollerRef.css('height',objSettings.totalHeight+'px');
+		adaptGridHeight(objSettings);		
+		objSettings.bodyScrollerRef.height(objSettings.totalHeight);
 		var tablePosition = objSettings.totalHeight - objSettings.rowsLimit*options.rowHeight;			
 		objSettings.tablePosition = tablePosition;	
 		if(objSettings.isRowAdded){
@@ -100,9 +103,10 @@
 		$obj.parent().prepend($gridHeaderWrapper);		
 		objSettings.headerWrapperRef = $gridHeaderWrapper;
 		/* add scroll to table body */
-		$gridBodyWrapper = $('<div class="ski_gridBodyWrapper"></div>');
+		$gridBodyWrapper = $('<div class="ski_gridBodyWrapper"></div>');		
 		$obj.find('thead').remove();		
 		$obj.wrap($gridBodyWrapper);
+		objSettings.gridBodyWrapper = $gridBodyWrapper;			
 		var $gridBodyScroller = $('<div class="ski_gridBodyScroller"></div>');
 		objSettings.bodyScrollerRef = $gridBodyScroller;
 		objSettings.bodyWrapperRef = $obj.parent();
@@ -158,7 +162,7 @@
 			var scrollPosition = $(this).scrollTop();			
 			var tablePosition = scrollPosition;
 			objSettings.tablePosition = tablePosition;				
-			var offset = objSettings.totalRowsCount - objSettings.rowsLimit - Math.round((objSettings.totalHeight-scrollPosition - options.tableHeight)/options.rowHeight);
+			var offset = objSettings.totalRowsCount - objSettings.rowsLimit - Math.round((objSettings.totalHeight-scrollPosition - objSettings.tableHeight)/options.rowHeight);
 			showGrid($obj,objSettings,offset);			
 		});	
 		/* event handler for switching currency in multiple currency transactions */	
@@ -321,7 +325,8 @@
 		
 		
 		/* event handler for fix grid borders size when window change */
-		$(window).on('resize',function(){			
+		$(window).on('resize',function(){	
+			adaptGridHeight(objSettings);				
 			drawGridBorders($obj,objSettings);
 		});
 	};
@@ -471,7 +476,7 @@
 	function drawGridBorders($obj,objSettings){	
 		objSettings.gridWrapper.find('.ski_vline,.ski_hline').remove();			
 		var $vline = $('<div class="ski_vline"></div>');
-		var totalHeight = options.tableHeight + options.rowHeight + objSettings.headerWrapperRef.height();
+		var totalHeight = objSettings.tableHeight + options.rowHeight + objSettings.headerWrapperRef.height();
 		$vline.height(totalHeight);
 		var columnHeaders = objSettings.headerWrapperRef.find('th');
 		var w=0;
@@ -511,9 +516,9 @@
 			if(objSettings.splitButton.hasClass('ski_selected')){
 				objSettings.tableBodyRef.find('tr.splitRow[recordid="'+objSettings.selectedRowId+'"]').removeClass('invisible');
 				var pos = objSettings.tableBodyRef.find('tr.splitRow[recordid="'+objSettings.selectedRowId+'"]:last').position();
-				if(pos.top > options.tableHeight){					
+				if(pos.top > objSettings.tableHeight){					
 					var currScroll = objSettings.bodyWrapperRef.scrollTop();					
-					objSettings.bodyWrapperRef.scrollTop(currScroll + (pos.top - options.tableHeight + options.rowHeight));
+					objSettings.bodyWrapperRef.scrollTop(currScroll + (pos.top - objSettings.tableHeight + options.rowHeight));
 				}
 				showPathInUpdMainRow(objSettings,false);				
 			}
@@ -1291,6 +1296,12 @@
 		});	
 		return splits;
 	};
+	
+	function adaptGridHeight(objSettings){
+		objSettings.tableHeight = Math.ceil(($(window).height()-120)/options.rowHeight)*options.rowHeight;
+		objSettings.rowsLimit = Math.round(objSettings.tableHeight/options.rowHeight)+1;
+		objSettings.obj.parents('.ski_gridBodyWrapper').height(objSettings.tableHeight);
+	};	
       
 	return this.each(function(){		
 		init($(this));		
