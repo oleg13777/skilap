@@ -317,7 +317,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 		function (cb) {
 			var str = _(trn).pick(["id","datePosted","dateEntered","currency","splits","description","num"]);
 			for (var i=0; i<str.splits.length; i++) {
-				var split = _(str.splits[i]).pick("id","value","quantity","rstate","description","accountId");
+				var split = _(str.splits[i]).pick("id","value","quantity","rstate","description","accountId","num");
 				str.splits[i]= split;
 			}
 			trn = str;
