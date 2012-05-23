@@ -77,8 +77,7 @@
 		objSettings.currentDate = data.currentDate;		
 		objSettings.currentAccount = data.currentAccount;
 		objSettings.totalRowsCount = data.iTotalRecords+1;			
-		objSettings.totalHeight = objSettings.totalRowsCount*options.rowHeight;
-		adaptGridHeight(objSettings);		
+		objSettings.totalHeight = objSettings.totalRowsCount*options.rowHeight;			
 		objSettings.bodyScrollerRef.height(objSettings.totalHeight);
 		var tablePosition = objSettings.totalHeight - objSettings.rowsLimit*options.rowHeight;			
 		objSettings.tablePosition = tablePosition;	
@@ -517,9 +516,10 @@
 				objSettings.tableBodyRef.find('tr.splitRow[recordid="'+objSettings.selectedRowId+'"]').removeClass('invisible');
 				var pos = objSettings.tableBodyRef.find('tr.splitRow[recordid="'+objSettings.selectedRowId+'"]:last').position();
 				if(pos.top > objSettings.tableHeight){					
-					var currScroll = objSettings.bodyWrapperRef.scrollTop();					
+					var currScroll = objSettings.bodyWrapperRef.scrollTop();	
 					objSettings.bodyWrapperRef.scrollTop(currScroll + (pos.top - objSettings.tableHeight + options.rowHeight));
 				}
+				
 				showPathInUpdMainRow(objSettings,false);				
 			}
 			else{
