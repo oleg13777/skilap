@@ -94,11 +94,11 @@ function Skilap() {
 									});
 								} else cb3();
 							}],	function secureGuard (err) {
-								modules['core'].api.getUser(req.session.apiToken, function (err, user) {
+								modules['core'].api.getUser(req.session.apiToken, function (err, user) {/*
 									if (user.type != 'guest' && req.cookies['sguard']==null) {
 										console.log('Redirect to secure');
 										res.redirect('https://'+req.headers.host+req.url);
-									} else next();
+									} else */next();
 								});
 							}
 						)
@@ -229,33 +229,79 @@ function Skilap() {
 					});
 				});
 				
+				function handleBatch(batch, req, res, next) {
+					if (batch.batchName == 'forEach') {
+						var ret = [];
+						async.forEachSeries(batch.object, function(iterator, cb) {
+							var params = batch.params;
+							var func = batch.method.match(/^(.*)\.(.*)$/);
+							var module = func[1];
+							func = func[2];
+							console.log('Begin ' + module + '.' + func + '.' + iterator.key);
+							var api = modules[module].api;
+							var fn = api[func];
+							params = JSON.parse(params.replace('\"_iterator_\"', JSON.stringify(iterator.value)));
+							params.push(function () {
+								var jsonres = {};
+								if (arguments[0]) {
+									var err = arguments[0];
+									jsonres.error = {message:err.message,subject:err.skilap?err.skilap.subject:"GenericError"}
+									jsonres.result = null;
+								} else {
+									jsonres.error = null;
+									jsonres.result = Array.prototype.slice.call(arguments,1);
+								}
+								var body = JSON.stringify(jsonres);
+								ret.push({id: iterator.key, data: body});
+								cb();
+							});
+							fn.apply(api, params);
+						}, function() {
+							var jsonres = {};
+							jsonres.result = ret;
+							res.send(JSON.stringify(jsonres), { 'Content-Type': 'text/plain', 'Connection': 'close' });
+						});
+					}
+				}
+				
 				function handleJsonRpc(jsonrpc, req, res, next) {
+					var startTime = new Date();
 					var id = null; var out = false;
 					try {
 						id = jsonrpc.id;
-						var func = jsonrpc.method.match(/^(.*)\.(.*)$/);
-						var module = func[1];
-						func = func[2];
-						var api = modules[module].api;
-						var fn = api[func];
 						var params = jsonrpc.params;
 						if (typeof(params) != 'object')
 							params = JSON.parse(params);
-						params.push(function () {
-							var jsonres = {};
-							if (arguments[0]) {
-								var err = arguments[0];
-								jsonres.error = {message:err.message,subject:err.skilap?err.skilap.subject:"GenericError"}
-								jsonres.result = null;
-							} else {
-								jsonres.error = null;
-								jsonres.result = Array.prototype.slice.call(arguments,1);
-							}
-							jsonres.id = jsonrpc.id;
-							res.send(jsonres);
-						})
-						fn.apply(api, params);
-						out = true;
+						if (jsonrpc.method == 'batch') {
+							handleBatch(params[1], req, res, next);
+						} else {
+							var func = jsonrpc.method.match(/^(.*)\.(.*)$/);
+							var module = func[1];
+							func = func[2];
+							console.log('Begin ' + func);
+							console.log('Now ' + new Date());
+							var api = modules[module].api;
+							var fn = api[func];
+							params.push(function () {
+								var jsonres = {};
+								if (arguments[0]) {
+									var err = arguments[0];
+									jsonres.error = {message:err.message,subject:err.skilap?err.skilap.subject:"GenericError"}
+									jsonres.result = null;
+								} else {
+									jsonres.error = null;
+									jsonres.result = Array.prototype.slice.call(arguments,1);
+								}
+								jsonres.id = jsonrpc.id;
+								var body = JSON.stringify(jsonres);
+								var reqTime = new Date() - startTime;
+								console.log("Request time:" + reqTime);
+								console.log('End ' + func);
+								res.send(body, { 'Content-Type': 'text/plain', 'Connection': 'close' });
+							})
+							fn.apply(api, params);
+							out = true;
+						}
 					} catch (err) {
 						console.log(err);
 						if (!out) 
@@ -264,7 +310,9 @@ function Skilap() {
 				};
 
 				app.get("/jsonrpc", function (req, res, next) {
-					handleJsonRpc(req.query.jsonrpc, req, res, next);
+					console.log('Now ' + new Date());
+					console.log(req.query.jsonrpc);
+					handleJsonRpc(JSON.parse(req.query.jsonrpc), req, res, next);
 				})
 				app.post("/jsonrpc", function (req,res,next) {
 					handleJsonRpc(req.body, req, res, next);
