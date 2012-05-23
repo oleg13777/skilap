@@ -297,7 +297,7 @@ function Skilap() {
 								var reqTime = new Date() - startTime;
 								console.log("Request time:" + reqTime);
 								console.log('End ' + func);
-								res.send(body, { 'Content-Type': 'text/plain', 'Connection': 'close' });
+								res.send(jsonres);
 							})
 							fn.apply(api, params);
 							out = true;
