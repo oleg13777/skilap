@@ -54,7 +54,8 @@ CashApi.prototype.saveTransaction = require('./trnapi.js').saveTransaction;
 CashApi.prototype.importTransactions = require('./trnapi.js').importTransactions;
 CashApi.prototype.clearTransactions = require('./trnapi.js').clearTransactions;
 CashApi.prototype.getTransactionsInDateRange = require('./trnapi.js').getTransactionInDateRange;
-CashApi.prototype.export = require('./export.js').export;
+CashApi.prototype.parseRaw = require('./export.js').import;
+CashApi.prototype.exportRaw = require('./export.js').export;
 
 CashApi.prototype._waitForData = function (cb) {
 	this._lastAccess = new Date();

@@ -8,10 +8,10 @@ module.exports = function account(webapp) {
 	var prefix = webapp.prefix;
 	var ctx = webapp.ctx;
 
-	app.get(prefix + "/import", function(req, res, next) {
+	app.get(prefix + "/import/gnucash", function(req, res, next) {
 		async.waterfall([
 			function (cb1) {
-				webapp.guessTab(req, {pid:'import',name:'Import',url:req.url}, cb1);
+				webapp.guessTab(req, {pid:'import-gnucash',name:'GnuCash import',url:req.url}, cb1);
 			},
 			function render (vtabs) {
 				res.render(__dirname+"/../views/import", {prefix:prefix, tabs:vtabs, caption: "Select file for import", upload:true });
@@ -20,7 +20,7 @@ module.exports = function account(webapp) {
 		);
 	});
 
-	app.post(prefix + "/import", function(req, res, next) {
+	app.post(prefix + "/import/gnucash", function(req, res, next) {
 		var step = req.query.step;
 		var path;
 		if (step == 1) {
@@ -40,7 +40,7 @@ module.exports = function account(webapp) {
 					});
 				},
 				function (cb1) {
-					webapp.guessTab(req, {pid:'import',name:'Import',url:req.url}, cb1);
+					webapp.guessTab(req, {pid:'import-gnucash',name:'Import',url:req.url}, cb1);
 				},
 				function render (vtabs) {
 					res.render(__dirname+"/../views/import", {prefix:prefix, tabs:vtabs, caption: "We find:", step1:true, transactions:tr_count, accounts:acc_count, path:path});
@@ -80,7 +80,7 @@ module.exports = function account(webapp) {
 					cashapi.importTransactions(req.session.apiToken, transactions, cb1);
 				},
 				function (cb1) {
-					webapp.guessTab(req, {pid:'import',name:'Import',url:req.url}, cb1);
+					webapp.guessTab(req, {pid:'import-gnucash',name:'Import',url:req.url}, cb1);
 				},
 				function (vtabs, cb1) {
 					tabs = vtabs;
@@ -94,7 +94,7 @@ module.exports = function account(webapp) {
 		} else {
 			async.waterfall([
 				function (cb1) {
-					webapp.guessTab(req, {pid:'import',name:'Import',url:req.url}, cb1);
+					webapp.guessTab(req, {pid:'import-gnucash',name:'Import',url:req.url}, cb1);
 				},
 				function render (vtabs) {
 					res.render(__dirname+"/../views/import", {prefix:prefix, tabs:vtabs, caption: "data saved", form:elseForm, transactions:transactions.length, accounts:accounts.length});

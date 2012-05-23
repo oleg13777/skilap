@@ -403,9 +403,18 @@ function Skilap() {
 		cb(null, webapp);
 	}
 
+	var id = null; var saveTimer = null;
 	this.getUniqueId = function(cb) {
-		var id = parseInt(fs.readFileSync(storepath+"unique.id","utf-8"));
-		id++; fs.writeFileSync(storepath+"unique.id",id.toString());
+		if (id==null) 
+			id = parseInt(fs.readFileSync(storepath+"unique.id","utf-8"));
+		id++; 
+		// save the id, but not right away, not often than once a second
+		if (saveTimer==null) {
+			saveTimer = setTimeout(function () {
+				fs.writeFileSync(storepath+"unique.id",id.toString());
+				saveTimer=null;
+			}, 1000);
+		}
 		process.nextTick(function () { cb(null,id)});
 	}
 
