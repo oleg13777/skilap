@@ -458,11 +458,53 @@ div.tree div.expanded {
 	height: 100%;
 }
 
-#header .menu a{
+.menu .menuItem a{
+	display:block;
 	line-height: 30px;
 	color: #193479;
-	font-size: 122%;
-	text-decoration: underline;
+	font-size: 130%;
+	text-decoration: none;
+}
+
+.menu .menuItem{
+display:inline-block;
+position:relative;
+margin-right:10px;
+}
+
+.menu .submenu{
+display:none;
+position:absolute;
+top:30px;
+left:0;
+background:#fff;
+z-index:4;
+border-top:1px solid #ccc;
+border-left:1px solid #ccc;
+border-right:1px solid #ccc;
+}
+
+.menu .menuItem:hover .submenu{
+display:block;
+}
+
+.submenu .submenuItem{
+padding:3px 5px;
+border-bottom:1px solid #ccc;
+width:250px;
+}
+
+.submenu .submenuItem:hover{
+background:#79b6e6;
+}
+
+.submenu .submenuItem a{
+font-size:100%;
+color:#333;
+}
+
+.submenu .submenuItem:hover a{
+color:#fff;
 }
 
 #tabs{
