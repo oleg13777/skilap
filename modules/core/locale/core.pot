@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-03 19:36+0400\n"
+"POT-Creation-Date: 2012-05-24 14:24+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,139 +16,183 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../modules/core/lib/coreapi.js:125 ../modules/core/lib/viewStrings.js:12
+#: ../modules/core/lib/coreapi.js:135 ../modules/core/lib/viewStrings.js:32
 msgid "Access denied"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:255
+#: ../modules/core/lib/coreapi.js:261 ../modules/core/lib/coreapi.js:265
+msgid "User must have non empty password"
+msgstr ""
+
+#: ../modules/core/lib/coreapi.js:263
+msgid "Password too short, at least 6 characters required"
+msgstr ""
+
+#: ../modules/core/lib/coreapi.js:267
+msgid "First name is required"
+msgstr ""
+
+#: ../modules/core/lib/coreapi.js:269
+msgid "Last name is required"
+msgstr ""
+
+#: ../modules/core/lib/coreapi.js:276
+msgid "User log-in is not unique"
+msgstr ""
+
+#: ../modules/core/lib/coreapi.js:321
+msgid "Ski Master"
+msgstr ""
+
+#: ../modules/core/lib/coreapi.js:329
 msgid "Log-in failed"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:280
+#: ../modules/core/lib/coreapi.js:419
 msgid "View personal data"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:281
+#: ../modules/core/lib/coreapi.js:420
 msgid "Edit personal data"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:282
+#: ../modules/core/lib/coreapi.js:421
 msgid "View system users"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:283
+#: ../modules/core/lib/coreapi.js:422
 msgid "Edit system users"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:289
+#: ../modules/core/lib/coreapi.js:428
 msgid "Core module"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:290
+#: ../modules/core/lib/coreapi.js:429
 msgid ""
 "Primary system module. Provides system with common functionality and allows "
 "to administer it"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:1 ../modules/core/lib/viewStrings.js:14
-msgid "Please login"
+#: ../modules/core/lib/viewStrings.js:1
+msgid "Guest prefferences"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:2 ../modules/core/lib/viewStrings.js:4
-#: ../modules/core/lib/viewStrings.js:7 ../modules/core/lib/viewStrings.js:15
-#: ../modules/core/lib/viewStrings.js:17 ../modules/core/lib/viewStrings.js:22
-#: ../modules/core/lib/viewStrings.js:30
-msgid "Login"
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:3 ../modules/core/lib/viewStrings.js:16
-msgid "Password"
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:5
-msgid "Hi Stranger, this is protected area."
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:6
-msgid "Please contact site owner for account if you need it."
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:8
-msgid "if you have it already"
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:9
-msgid "Hi"
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:10
-msgid "Logout"
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:11
-msgid "Copyright by PushOk Software"
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:13
-msgid "You do not have permission."
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:18
-msgid "Your prefferences"
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:19 ../modules/core/lib/viewStrings.js:26
+#: ../modules/core/lib/viewStrings.js:2 ../modules/core/lib/viewStrings.js:6
+#: ../modules/core/lib/viewStrings.js:47 ../modules/core/lib/viewStrings.js:54
 msgid "edit"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:20 ../modules/core/lib/viewStrings.js:28
-msgid "First name"
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:21 ../modules/core/lib/viewStrings.js:29
-msgid "Last name"
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:23 ../modules/core/lib/viewStrings.js:35
+#: ../modules/core/lib/viewStrings.js:3 ../modules/core/lib/viewStrings.js:9
+#: ../modules/core/lib/viewStrings.js:21 ../modules/core/lib/viewStrings.js:44
+#: ../modules/core/lib/viewStrings.js:51
 msgid "Gui language"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:24 ../modules/core/lib/viewStrings.js:36
+#: ../modules/core/lib/viewStrings.js:4 ../modules/core/lib/viewStrings.js:10
+#: ../modules/core/lib/viewStrings.js:22 ../modules/core/lib/viewStrings.js:45
+#: ../modules/core/lib/viewStrings.js:52
 msgid "Timezone"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:25
-msgid "Your permissions"
+#: ../modules/core/lib/viewStrings.js:5
+msgid "Guest permissions"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:27
+#: ../modules/core/lib/viewStrings.js:7 ../modules/core/lib/viewStrings.js:38
+msgid "Edit permissions"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:8 ../modules/core/lib/viewStrings.js:15
 msgid "Account prefferences"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:31
+#: ../modules/core/lib/viewStrings.js:11 ../modules/core/lib/viewStrings.js:34
+msgid "Please login"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:12 ../modules/core/lib/viewStrings.js:14
+#: ../modules/core/lib/viewStrings.js:18 ../modules/core/lib/viewStrings.js:25
+#: ../modules/core/lib/viewStrings.js:35 ../modules/core/lib/viewStrings.js:37
+#: ../modules/core/lib/viewStrings.js:42 ../modules/core/lib/viewStrings.js:50
+msgid "Login"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:13 ../modules/core/lib/viewStrings.js:20
+#: ../modules/core/lib/viewStrings.js:36 ../modules/core/lib/viewStrings.js:43
+msgid "Password"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:16 ../modules/core/lib/viewStrings.js:40
+#: ../modules/core/lib/viewStrings.js:48
+msgid "First name"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:17 ../modules/core/lib/viewStrings.js:41
+#: ../modules/core/lib/viewStrings.js:49
+msgid "Last name"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:19
 msgid "Change password"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:32
-msgid "Old password"
+#: ../modules/core/lib/viewStrings.js:23
+msgid "Hi Stranger, this is protected area."
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:24
+msgid "Please contact site owner for account if you need it."
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:26
+msgid "if you have it already"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:27
+msgid "Hi"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:28
+msgid "My account"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:29
+msgid "Manage users"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:30
+msgid "Logout"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:31
+msgid "Copyright by PushOk Software"
 msgstr ""
 
 #: ../modules/core/lib/viewStrings.js:33
-msgid "New password"
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:34
-msgid "Retype new password"
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:37
-msgid "Welcome to SkiLap!"
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:38
-msgid "Following modules are available:"
+msgid "You do not have permission."
 msgstr ""
 
 #: ../modules/core/lib/viewStrings.js:39
+msgid "Add new user"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:46
+msgid "Your prefferences"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:53
+msgid "Your permissions"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:55
+msgid "Welcome to SkiLap!"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:56
+msgid "Following modules are available:"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:57
 msgid "Please note, you might need to log-in to get access to some modules."
 msgstr ""

@@ -1,6 +1,7 @@
 var async = require("async");
 var temp = require("temp");
 var fs   = require('fs');
+var zlib = require('zlib');
 
 module.exports = function account(webapp) {
 	var app = webapp.web;
@@ -8,10 +9,26 @@ module.exports = function account(webapp) {
 	var prefix = webapp.prefix;
 	var ctx = webapp.ctx;
 
-	app.get(prefix + "/import/gnucash", function(req, res, next) {
+	app.get(prefix + "/export/raw", function(req, res, next) {
+		async.waterfall([
+			function get(cb) {
+				cashapi.exportRaw(req.session.apiToken,cb)
+			},
+			function gzip(raw, cb) {
+				zlib.gzip(JSON.stringify(raw), cb);
+			},
+			function send (data) {
+				res.attachment('skilap.cash.gz');
+				res.send(data)
+			}],
+			next
+		);
+	});
+	
+	app.get(prefix + "/import/raw", function(req, res, next) {
 		async.waterfall([
 			function (cb1) {
-				webapp.guessTab(req, {pid:'import-gnucash',name:'GnuCash import',url:req.url}, cb1);
+				webapp.guessTab(req, {pid:'import-raw',name:'Raw import',url:req.url}, cb1);
 			},
 			function render (vtabs) {
 				res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, caption: "Select file for import", upload:true });
@@ -19,8 +36,8 @@ module.exports = function account(webapp) {
 			next
 		);
 	});
-
-	app.post(prefix + "/import/gnucash", function(req, res, next) {
+	
+	app.post(prefix + "/import/raw", function(req, res, next) {
 		var step = req.query.step;
 		var path;
 		if (step == 1) {
@@ -28,7 +45,7 @@ module.exports = function account(webapp) {
 			var tr_count = 0;
 			async.waterfall([
 				function (cb1) {
-					cashapi.parseGnuCashXml(req.files.upload.path, function (err, ret) {
+					cashapi.parseRaw(req.files.upload.path, function (err, ret) {
 						acc_count = ret.acc.length;
 						tr_count = ret.tr.length;
 						var str = JSON.stringify(ret);
@@ -40,7 +57,7 @@ module.exports = function account(webapp) {
 					});
 				},
 				function (cb1) {
-					webapp.guessTab(req, {pid:'import-gnucash',name:'Import',url:req.url}, cb1);
+					webapp.guessTab(req, {pid:'import-raw',name:'Import',url:req.url}, cb1);
 				},
 				function render (vtabs) {
 					res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, caption: "We find:", step1:true, transactions:tr_count, accounts:acc_count, path:path});
@@ -80,7 +97,7 @@ module.exports = function account(webapp) {
 					cashapi.importTransactions(req.session.apiToken, transactions, cb1);
 				},
 				function (cb1) {
-					webapp.guessTab(req, {pid:'import-gnucash',name:'Import',url:req.url}, cb1);
+					webapp.guessTab(req, {pid:'import-raw',name:'Import',url:req.url}, cb1);
 				},
 				function (vtabs, cb1) {
 					tabs = vtabs;
@@ -94,7 +111,7 @@ module.exports = function account(webapp) {
 		} else {
 			async.waterfall([
 				function (cb1) {
-					webapp.guessTab(req, {pid:'import-gnucash',name:'Import',url:req.url}, cb1);
+					webapp.guessTab(req, {pid:'import-raw',name:'Import',url:req.url}, cb1);
 				},
 				function render (vtabs) {
 					res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, caption: "data saved", form:elseForm, transactions:transactions.length, accounts:accounts.length});
@@ -102,5 +119,5 @@ module.exports = function account(webapp) {
 				next
 			);
 		}
-	});
+	});	
 }

@@ -4,7 +4,7 @@
 <hr size="2" noshade />
 
 {{#upload}}
-<form action="{{prefix}}/import?step=1" enctype="multipart/form-data" method="post">
+<form action="?step=1" enctype="multipart/form-data" method="post">
 	<input type="file" name="upload">
 	<hr size="2" noshade />
 	<input type="submit" value="Next" style="width: 87px; height: 20px"/>
@@ -15,7 +15,7 @@
 transactions = {{transactions}}
 accounts = {{accounts}}
 <hr size="2" noshade />
-<form action="{{prefix}}/import?step=2" enctype="multipart/form-data" method="post">
+<form action="?step=2" enctype="multipart/form-data" method="post">
 	<input type="hidden" name="fileName" value="{{path}}">
 	<input type="submit" value="Next" style="width: 87px; height: 20px">
 </form>

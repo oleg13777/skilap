@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-03 17:14+0400\n"
+"POT-Creation-Date: 2012-05-24 14:24+0400\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Sergey Korotkov <sergey@pushok.com>\n"
 "Language-Team: \n"
@@ -10,236 +10,301 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../modules/cash/lib/cashapi.js:746
+#: ../modules/cash/lib/accapi.js:105
+msgid "Disballance"
+msgstr "Дисбаланс"
+
+#: ../modules/cash/lib/accapi.js:302
 msgid "Cash"
 msgstr "Наличность"
 
-#: ../modules/cash/lib/cashapi.js:746
+#: ../modules/cash/lib/accapi.js:302
 msgid "My wallet"
 msgstr "Мой кошелек"
 
-#: ../modules/cash/lib/cashapi.js:747
+#: ../modules/cash/lib/accapi.js:303
 msgid "Bank"
 msgstr "Банк"
 
-#: ../modules/cash/lib/cashapi.js:747
+#: ../modules/cash/lib/accapi.js:303
 msgid "My account"
 msgstr "Мой счет"
 
-#: ../modules/cash/lib/cashapi.js:748
+#: ../modules/cash/lib/accapi.js:304
 msgid "Credit Cards"
 msgstr "Кредитные карты"
 
-#: ../modules/cash/lib/cashapi.js:748
+#: ../modules/cash/lib/accapi.js:304
 msgid "My card"
 msgstr "Моя карта"
 
-#: ../modules/cash/lib/cashapi.js:749
+#: ../modules/cash/lib/accapi.js:305
 msgid "Income"
 msgstr "Доход"
 
-#: ../modules/cash/lib/cashapi.js:749
+#: ../modules/cash/lib/accapi.js:305
 msgid "Salary"
 msgstr "Зарплата"
 
-#: ../modules/cash/lib/cashapi.js:749
+#: ../modules/cash/lib/accapi.js:305
 msgid "Interest"
 msgstr "Интерес"
 
-#: ../modules/cash/lib/cashapi.js:749
+#: ../modules/cash/lib/accapi.js:305
 msgid "Assets sale"
 msgstr "Продажа вещей"
 
-#: ../modules/cash/lib/cashapi.js:749
-#: ../modules/cash/lib/cashapi.js:750
-#: ../modules/cash/lib/cashapi.js:751
-#: ../modules/cash/lib/cashapi.js:752
-#: ../modules/cash/lib/cashapi.js:753
-#: ../modules/cash/lib/cashapi.js:754
-#: ../modules/cash/lib/cashapi.js:755
-#: ../modules/cash/lib/cashapi.js:756
+#: ../modules/cash/lib/accapi.js:305
+#: ../modules/cash/lib/accapi.js:306
+#: ../modules/cash/lib/accapi.js:307
+#: ../modules/cash/lib/accapi.js:308
+#: ../modules/cash/lib/accapi.js:309
+#: ../modules/cash/lib/accapi.js:310
+#: ../modules/cash/lib/accapi.js:311
+#: ../modules/cash/lib/accapi.js:312
 msgid "Other"
 msgstr "Другое"
 
-#: ../modules/cash/lib/cashapi.js:750
+#: ../modules/cash/lib/accapi.js:306
 msgid "Car"
 msgstr "Авто"
 
-#: ../modules/cash/lib/cashapi.js:750
+#: ../modules/cash/lib/accapi.js:306
 msgid "Fuel"
 msgstr "Топливо"
 
-#: ../modules/cash/lib/cashapi.js:750
-#: ../modules/cash/lib/cashapi.js:754
+#: ../modules/cash/lib/accapi.js:306
+#: ../modules/cash/lib/accapi.js:310
 msgid "Insurance"
 msgstr "Страховка"
 
-#: ../modules/cash/lib/cashapi.js:750
+#: ../modules/cash/lib/accapi.js:306
 msgid "Service"
 msgstr "Обслуживание"
 
-#: ../modules/cash/lib/cashapi.js:750
+#: ../modules/cash/lib/accapi.js:306
 msgid "Repair"
 msgstr "Ремонт"
 
-#: ../modules/cash/lib/cashapi.js:751
+#: ../modules/cash/lib/accapi.js:307
 msgid "Life"
 msgstr "Жизнь"
 
-#: ../modules/cash/lib/cashapi.js:751
+#: ../modules/cash/lib/accapi.js:307
 msgid "Food"
 msgstr "Пища"
 
-#: ../modules/cash/lib/cashapi.js:751
+#: ../modules/cash/lib/accapi.js:307
 msgid "Drugs"
 msgstr "Лекарства"
 
-#: ../modules/cash/lib/cashapi.js:751
-#: ../modules/cash/lib/cashapi.js:754
+#: ../modules/cash/lib/accapi.js:307
+#: ../modules/cash/lib/accapi.js:310
 msgid "Transport"
 msgstr "Транспорт"
 
-#: ../modules/cash/lib/cashapi.js:752
+#: ../modules/cash/lib/accapi.js:308
 msgid "Utilities"
 msgstr "Регулярные услуги"
 
-#: ../modules/cash/lib/cashapi.js:752
+#: ../modules/cash/lib/accapi.js:308
 msgid "Mobile links"
 msgstr "Мобильная связь"
 
-#: ../modules/cash/lib/cashapi.js:752
+#: ../modules/cash/lib/accapi.js:308
 msgid "Fixed links"
 msgstr "Стационарная связь"
 
-#: ../modules/cash/lib/cashapi.js:752
+#: ../modules/cash/lib/accapi.js:308
 msgid "House"
 msgstr "Жилье"
 
-#: ../modules/cash/lib/cashapi.js:752
+#: ../modules/cash/lib/accapi.js:308
 msgid "Education"
 msgstr "Образование"
 
-#: ../modules/cash/lib/cashapi.js:753
+#: ../modules/cash/lib/accapi.js:309
 msgid "Hobby"
 msgstr "Хобби"
 
-#: ../modules/cash/lib/cashapi.js:753
+#: ../modules/cash/lib/accapi.js:309
 msgid "Sport"
 msgstr "Спорт"
 
-#: ../modules/cash/lib/cashapi.js:753
+#: ../modules/cash/lib/accapi.js:309
 msgid "Garden"
 msgstr "Сад"
 
-#: ../modules/cash/lib/cashapi.js:753
+#: ../modules/cash/lib/accapi.js:309
 msgid "Charuty"
 msgstr "Благотворительность"
 
-#: ../modules/cash/lib/cashapi.js:754
+#: ../modules/cash/lib/accapi.js:310
 msgid "Real assets"
 msgstr "Реальные вещи"
 
-#: ../modules/cash/lib/cashapi.js:754
+#: ../modules/cash/lib/accapi.js:310
 msgid "Furniture"
 msgstr "Мебель"
 
-#: ../modules/cash/lib/cashapi.js:754
+#: ../modules/cash/lib/accapi.js:310
 msgid "Estate"
 msgstr "Недвижимость"
 
-#: ../modules/cash/lib/cashapi.js:754
+#: ../modules/cash/lib/accapi.js:310
 msgid "Goods"
 msgstr "Товары"
 
-#: ../modules/cash/lib/cashapi.js:755
+#: ../modules/cash/lib/accapi.js:311
 msgid "Recreation"
 msgstr "Отдых"
 
-#: ../modules/cash/lib/cashapi.js:755
+#: ../modules/cash/lib/accapi.js:311
 msgid "Travel"
 msgstr "Путешествия"
 
-#: ../modules/cash/lib/cashapi.js:755
+#: ../modules/cash/lib/accapi.js:311
 msgid "Pleasures"
 msgstr "Удовольствия"
 
-#: ../modules/cash/lib/cashapi.js:755
+#: ../modules/cash/lib/accapi.js:311
 msgid "Food & drinks"
 msgstr "Еда и выпивка"
 
-#: ../modules/cash/lib/cashapi.js:755
+#: ../modules/cash/lib/accapi.js:311
 msgid "Events"
 msgstr "События"
 
-#: ../modules/cash/lib/cashapi.js:756
+#: ../modules/cash/lib/accapi.js:312
 msgid "Accidental"
 msgstr "Вне плана"
 
-#: ../modules/cash/lib/cashapi.js:756
+#: ../modules/cash/lib/accapi.js:312
 msgid "Stolen"
 msgstr "Украли"
 
-#: ../modules/cash/lib/cashapi.js:756
+#: ../modules/cash/lib/accapi.js:312
 msgid "Gifts"
 msgstr "Подарки"
 
-#: ../modules/cash/lib/cashapi.js:756
+#: ../modules/cash/lib/accapi.js:312
 msgid "Bad debts"
 msgstr "Плохие долги"
 
-#: ../modules/cash/lib/cashapi.js:757
+#: ../modules/cash/lib/accapi.js:313
 msgid "Debts"
 msgstr "Долги"
 
-#: ../modules/cash/lib/cashapi.js:757
+#: ../modules/cash/lib/accapi.js:313
 msgid "Friends"
 msgstr "Друзья"
 
-#: ../modules/cash/lib/webapp.js:236
+#: ../modules/cash/lib/webapp.js:237
 msgid "View cash data"
 msgstr "Просмотр данных"
 
-#: ../modules/cash/lib/webapp.js:237
+#: ../modules/cash/lib/webapp.js:238
 msgid "Append new data"
 msgstr "Добавление данных"
 
-#: ../modules/cash/lib/webapp.js:238
+#: ../modules/cash/lib/webapp.js:239
 msgid "Edit cash data"
 msgstr "Редактирование данных"
 
-#: ../modules/cash/lib/webapp.js:244
+#: ../modules/cash/lib/webapp.js:245
 msgid "Cash module"
 msgstr "Управление финансами"
 
-#: ../modules/cash/lib/webapp.js:245
+#: ../modules/cash/lib/webapp.js:246
 msgid "Personal and familty finances. Inspired by gnucash."
 msgstr "Персональные и семейные финансы. По мотивам GnuCash."
 
 #: ../modules/cash/lib/viewStrings.js:1
-msgid "Skilap"
-msgstr "СкайЛап"
+msgid "Date"
+msgstr "Дата"
 
 #: ../modules/cash/lib/viewStrings.js:2
-msgid "Import"
-msgstr "Импорт"
+msgid "Num"
+msgstr "Номер"
 
 #: ../modules/cash/lib/viewStrings.js:3
+msgid "Description"
+msgstr "Описание"
+
+#: ../modules/cash/lib/viewStrings.js:4
+msgid "Transfer"
+msgstr "Перевод"
+
+#: ../modules/cash/lib/viewStrings.js:5
+msgid "Receive"
+msgstr "Получено"
+
+#: ../modules/cash/lib/viewStrings.js:6
+msgid "Spend"
+msgstr "Списано"
+
+#: ../modules/cash/lib/viewStrings.js:7
+msgid "Balance"
+msgstr "Баланс"
+
+#: ../modules/cash/lib/viewStrings.js:8
+msgid "Data"
+msgstr "Данные"
+
+#: ../modules/cash/lib/viewStrings.js:9
+msgid "New register"
+msgstr "Создать новый"
+
+#: ../modules/cash/lib/viewStrings.js:10
+msgid "Import Gnu Cash"
+msgstr "Импорт данных из Gnu Cash"
+
+#: ../modules/cash/lib/viewStrings.js:11
+msgid "Import Skilap Cash"
+msgstr "Импорт данных из Skilap Cash"
+
+#: ../modules/cash/lib/viewStrings.js:12
+msgid "Export Skilap Cash"
+msgstr "Экспорт данных из Skilap Cash"
+
+#: ../modules/cash/lib/viewStrings.js:13
+msgid "View"
+msgstr "Просмотр"
+
+#: ../modules/cash/lib/viewStrings.js:14
+msgid "Home"
+msgstr "Домашняя"
+
+#: ../modules/cash/lib/viewStrings.js:15
+msgid "Accounts"
+msgstr "Счета"
+
+#: ../modules/cash/lib/viewStrings.js:16
 msgid "Report"
 msgstr "Отчет"
 
-#: ../modules/cash/lib/viewStrings.js:4
-msgid "Tree"
-msgstr "Дерево"
+#: ../modules/cash/lib/viewStrings.js:17
+msgid "Spend/receive bar chart"
+msgstr "Гистограмма доходов/расходов"
 
-#: ../modules/cash/lib/viewStrings.js:5
-msgid "toDefaults"
-msgstr "Аккаунты по умолчаню"
+#: ../modules/cash/lib/viewStrings.js:18
+msgid "Spend/receive pie chart"
+msgstr "Круговая диаграмма доходов/расходов"
 
-#: ../modules/cash/lib/viewStrings.js:6
+#: ../modules/cash/lib/viewStrings.js:19
 msgid "Assets"
 msgstr "Активы"
 
-#: ../modules/cash/lib/viewStrings.js:7
+#: ../modules/cash/lib/viewStrings.js:20
 msgid "Liabilities"
 msgstr "Обязательства"
+
+#~ msgid "Skilap"
+#~ msgstr "СкайЛап"
+#~ msgid "Import"
+#~ msgstr "Импорт"
+#~ msgid "Tree"
+#~ msgstr "Дерево"
+#~ msgid "toDefaults"
+#~ msgstr "Аккаунты по умолчаню"
 
