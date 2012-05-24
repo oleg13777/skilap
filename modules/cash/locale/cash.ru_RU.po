@@ -2,9 +2,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-05-24 14:24+0400\n"
+"POT-Creation-Date: 2012-05-24 22:11+0400\n"
 "PO-Revision-Date: \n"
-"Last-Translator: Sergey Korotkov <sergey@pushok.com>\n"
+"Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -39,6 +39,8 @@ msgid "My card"
 msgstr "Моя карта"
 
 #: ../modules/cash/lib/accapi.js:305
+#: ../modules/cash/lib/viewStrings.js:20
+#: ../modules/cash/lib/viewStrings.js:30
 msgid "Income"
 msgstr "Доход"
 
@@ -292,19 +294,68 @@ msgid "Spend/receive pie chart"
 msgstr "Круговая диаграмма доходов/расходов"
 
 #: ../modules/cash/lib/viewStrings.js:19
+#: ../modules/cash/lib/viewStrings.js:29
+msgid "Expense"
+msgstr "Расходы"
+
+#: ../modules/cash/lib/viewStrings.js:21
+msgid "Apply"
+msgstr "Применить"
+
+#: ../modules/cash/lib/viewStrings.js:22
+msgid "Close"
+msgstr "Закрыть"
+
+#: ../modules/cash/lib/viewStrings.js:23
+msgid "Report settings"
+msgstr "Параметры отчета"
+
+#: ../modules/cash/lib/viewStrings.js:24
+msgid "Start date"
+msgstr "Начальная дата"
+
+#: ../modules/cash/lib/viewStrings.js:25
+msgid "End date"
+msgstr "Конечная дата"
+
+#: ../modules/cash/lib/viewStrings.js:26
+msgid "Max account"
+msgstr "Макс. счетов"
+
+#: ../modules/cash/lib/viewStrings.js:27
+msgid "Report name"
+msgstr "Имя отчета"
+
+#: ../modules/cash/lib/viewStrings.js:28
+msgid "Account type"
+msgstr "Тип счета"
+
+#: ../modules/cash/lib/viewStrings.js:31
 msgid "Assets"
 msgstr "Активы"
 
-#: ../modules/cash/lib/viewStrings.js:20
+#: ../modules/cash/lib/viewStrings.js:32
 msgid "Liabilities"
 msgstr "Обязательства"
+
+#: ../modules/cash/pages/acctree.js:113
+msgid "Tree"
+msgstr "Дерево"
+
+#: ../modules/cash/pages/report.js:149
+msgid "Pie flow chart"
+msgstr "Движение средств (круг.)"
+
+#: ../modules/cash/pages/report.js:149
+msgid "Bar flow chart"
+msgstr "Движение средств (столб.)"
+
+#: ../modules/cash/pages/restoredefaults.js:14
+msgid "toDefaults"
+msgstr "Аккаунты по умолчаню"
 
 #~ msgid "Skilap"
 #~ msgstr "СкайЛап"
 #~ msgid "Import"
 #~ msgstr "Импорт"
-#~ msgid "Tree"
-#~ msgstr "Дерево"
-#~ msgid "toDefaults"
-#~ msgstr "Аккаунты по умолчаню"
 

@@ -95,6 +95,7 @@ module.exports = function account(webapp) {
 			if (!periods)
 				report = {type:'pie', data: report};
 			
+			
 			cb(null, report);
 		})
 	}
@@ -106,7 +107,7 @@ module.exports = function account(webapp) {
 				calcAccStatsByPerriod(token, accounts, params.accType, params.startDate, params.endDate, null, params.maxAcc, cb1);
 			}
 		], function (err, series) {
-			cb(null, {settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, series:JSON.stringify(series), params:JSON.stringify(params)});
+			cb(null, {pie:true, settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, series:JSON.stringify(series), params:JSON.stringify(params)});
 		});
 	};
 
@@ -119,14 +120,14 @@ module.exports = function account(webapp) {
 				calcAccStatsByPerriod(token, accounts, params.accType, params.startDate, params.endDate, periods, params.maxAcc, cb1);
 			}
 		], function (err, series) {
-			cb(null, {settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, categories:JSON.stringify(categories), series:JSON.stringify(series), params:JSON.stringify(params)});
+			cb(null, {expense:true, settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, categories:JSON.stringify(categories), series:JSON.stringify(series), params:JSON.stringify(params)});
 		});
 	};
 	
 	function getDefaultSettings(reportName) {
 		var defaultSettings = {
-				startDate:new Date(new Date().getFullYear()-1, 0, 1),
-				endDate:new Date(new Date().getFullYear()-1, 11, 31),
+				startDate:new Date(new Date().getFullYear(), 0, 1),
+				endDate:new Date(new Date().getFullYear(), 11, 31),
 				accType:"EXPENSE",
 				maxAcc:10,
 				reportName:reportName,
@@ -135,20 +136,30 @@ module.exports = function account(webapp) {
 		return defaultSettings;
 	}
 
-	app.get(prefix + "/report", function(req, res, next) {
+	app.get(prefix + "/reports/barflow", function (req, res, next ) {
+		report(req, res, next, "barflow");
+	})
+
+	app.get(prefix + "/reports/pieflow", function (req, res, next ) {
+		report(req, res, next, "pieflow");
+	})
+
+	function report(req, res, next, type) {
 		if (!req.query || !req.query.name) {
-			res.redirect(req.url+"?name=expense");
+			res.redirect(req.url+"?name="+(type=='pieflow'?ctx.i18n(req.session.apiToken, 'cash','Pie flow chart'):ctx.i18n(req.session.apiToken,'cash','Bar flow chart')));
 			return;
 		}
+
+		var pid = "reports-" +type + "-" + req.query.name;
 		
 		async.waterfall([
 			function (cb1) {
 				async.series([
 					function(cb2) {
-						webapp.guessTab(req, {pid:req.query.name, name:req.query.name, url:req.url}, cb2);
+						webapp.guessTab(req, {pid: pid, name:req.query.name, url:req.url}, cb2);
 					},
 					function(cb2) {
-						webapp.getTabSettings(req.session.apiToken, req.query.name, cb2);
+						webapp.getTabSettings(req.session.apiToken, pid, cb2);
 					}
 				],
 				function (err, results) {
@@ -159,48 +170,57 @@ module.exports = function account(webapp) {
 				if (_.isEmpty(settings) || !settings.version || (settings.version != 1)) {
 					settings = getDefaultSettings(req.query.name);
 				}
-				if (req.query.name == 'expense')
+				if (type == 'barflow')
 					calculateDataForChart(req.session.apiToken, settings, vtabs, cb1);
-				else if (req.query.name == 'pie_chart')
+				else
 					calculateDataForPie(req.session.apiToken, settings, vtabs, cb1);
 			},
 			function (data) {
-				if (req.query.name == 'pie_chart')
-					data.pie=true;
-				else if (req.query.name == 'expense')
-					data.expense = true;
 				res.render(__dirname+"/../views/report", data);
 			}],
 			next
 		);
-	});
+	};
 
-	app.post(prefix+"/report", function(req, res, next) {
-		async.waterfall([
-			function (cb) { webapp.removeTabs(req.session.apiToken, [req.query.name], cb) },
-			function (cb1) {
-				var settings = getDefaultSettings();
-				if (req.body.reportType == "INCOME"){
-					settings.accType = req.body.reportType;
-				}
-				settings.maxAcc = req.body.maxAcc;
-				settings.startDate = new Date(parseInt(req.body.startDate));
-				settings.endDate = new Date(parseInt(req.body.endDate));
-				settings.reportName = req.body.reportName;
-				cb1(null, settings);
+	app.post(prefix + "/reports/barflow", function (req, res, next ) {
+		saveParams(req, res, next, "barflow");
+	})
+
+	app.post(prefix + "/reports/pieflow", function (req, res, next ) {
+		saveParams(req, res, next, "pieflow");
+	})
+
+	function saveParams (req, res, next, type) {
+		var url = prefix+"/reports/"+type;
+		var oldpid = "reports-" +type + "-" + req.query.name;
+		var pid = "reports-" +type + "-" + req.body.reportName;
+		var settings = getDefaultSettings();
+		settings.accType = req.body.reportType;
+		settings.maxAcc = req.body.maxAcc;
+		settings.startDate = new Date(parseInt(req.body.startDate));
+		settings.endDate = new Date(parseInt(req.body.endDate));
+		settings.reportName = req.body.reportName;
+
+		var steeps = [
+			function(cb) { 
+				webapp.removeTabs(req.session.apiToken, [pid], cb) 
 			},
-			function(settings, cb1) {
-				webapp.guessTab(req, {pid:settings.reportName, name:settings.reportName, url:prefix+"/report?name="+settings.reportName}, function (err, tabs) {
-					cb1(err, settings);
-				});
+			function(cb) {
+				webapp.guessTab(req, {pid:pid, name:settings.reportName, url:url+"?name="+settings.reportName}, cb);
 			},
-			function(settings){
-				webapp.saveTabSettings(req.session.apiToken, settings.reportName, settings, function (err) {
-					res.writeHead(200, {'Content-Type': 'text/plain'});
-					var redirectUrl = prefix+"/report?name="+settings.reportName;
-					res.end(redirectUrl);
-				});
+			function(cb){
+				webapp.saveTabSettings(req.session.apiToken, pid, settings, cb);
 			}
-		], next);
-	});
+		];
+		// if pid the same then not need to recreate tabs
+		if (oldpid==pid)
+			steeps = steeps.slice(2);
+		
+		async.series(steeps, function (err) {
+			if (err) return next(err);
+			res.writeHead(200, {'Content-Type': 'text/plain'});
+			var redirectUrl = url+"?name="+settings.reportName;
+			res.end(redirectUrl);
+		})
+	};
 }

@@ -1,13 +1,13 @@
+<div class="report">
 <script type="text/javascript" src="{{prefix}}/javascripts/highcharts/highcharts.js"></script>
 
 <script type="text/javascript">
 	var chart;
 	var params = {{{params}}};
-	var x_title = "Expense Over Time";
-	var y_title = "Total Expense";
+	var x_title = params.reportName;
+	var y_title = "{{#i18n}}Expense{{/i18n}}";
 	if (params.accType == "INCOME") {
-		x_title = "Income Over Time";
-		y_title = "Total Income";
+		y_title = "{{#i18n}}Income{{/i18n}}";
 	}
 	$(document).ready(function() {
 		{{#expense}}
@@ -68,7 +68,7 @@
 				plotShadow: false
 			},
 			title: {
-				text: 'Expense Accounts'
+				text: params.reportName
 			},
 			tooltip: {
 				formatter: function() {
@@ -105,13 +105,13 @@
 		$("#endDate").datepicker();
 		$("#endDate").datepicker('setDate', new Date(params.endDate));
 		form.elements.reportName.value=params.reportName;
-		$("#openD").click(function(){
+		$(".report .settings").click(function(){
 			$("#dialog").dialog("open");
 		});
 		$("#dialog").dialog({
 			position: ["center","center"],
 			buttons: {
-				"apply": function() {
+				"{{#i18n}}Apply{{/i18n}}": function() {
 					var f = document.forms.properties;
 					var p = {
 						startDate : new Date(f.elements.startDate.value).getTime(),
@@ -124,7 +124,7 @@
 					var jqXHR = $.ajax({
 						"type": "POST",
 						"data": p,
-						"url": "{{prefix}}/report"+location.search,
+						"url": location.pathname+location.search,
 						"dataType": "text"
 					});
 					jqXHR.done(function(data){
@@ -133,7 +133,7 @@
 					jqXHR.fail(function(data){
 					});
 				},
-				"close": function() {
+				"{{#i18n}}Close{{/i18n}}": function() {
 					$(this).dialog("close");
 				}
 			},
@@ -150,31 +150,31 @@
 	});
 </script>
 	
-<div id="dialog" title="Report settings" style="width: 600; height: 200px;">
+<div id="dialog" title="{{#i18n}}Report settings{{/i18n}}" style="width: 600; height: 200px;">
 	<form name="properties">
 		<table>
 			<tr>
-				<td>start date:</td>
+				<td>{{#i18n}}Start date{{/i18n}}:</td>
 				<td><input type="text" id="startDate" tabindex="-1"></tr>
 			</tr>
 			<tr>
-				<td>end date:</td>
+				<td>{{#i18n}}End date{{/i18n}}:</td>
 				<td><input type="text" id="endDate" tabindex="-1"></td>
 			</tr>
 			<tr>
-				<td>max account:</td>
+				<td>{{#i18n}}Max account{{/i18n}}:</td>
 				<td><input type="text" id="maxAcc"></td>
 			</tr>
 			<tr>
-				<td>Report name:</td>
+				<td>{{#i18n}}Report name{{/i18n}}:</td>
 				<td><input type="text" id="reportName"></td>
 			</tr>
 			<tr>
-				<td>Select report:</td>
+				<td>{{#i18n}}Account type{{/i18n}}:</td>
 				<td>
 					<select name="report_type">
-						<option value="EXPENSE">Expense Over Time</option>
-						<option value="INCOME">Income Over Time</option>
+						<option value="EXPENSE">{{#i18n}}Expense{{/i18n}}</option>
+						<option value="INCOME">{{#i18n}}Income{{/i18n}}</option>
 					</select>
 				</td>
 			</tr>
@@ -182,7 +182,8 @@
 	</form>
 </div>
 
-<a id="openD" href="#">Properties</a>
+<a class="settings" href="#" title="{{#i18n}}Report settings{{/i18n}}"></a>
 
 <div id="container" style="width: 100%; height: 700px;"></div>
 
+</div>

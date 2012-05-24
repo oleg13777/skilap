@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-05-24 14:24+0400\n"
+"POT-Creation-Date: 2012-05-24 22:11+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,7 +44,8 @@ msgstr ""
 msgid "My card"
 msgstr ""
 
-#: ../modules/cash/lib/accapi.js:305
+#: ../modules/cash/lib/accapi.js:305 ../modules/cash/lib/viewStrings.js:20
+#: ../modules/cash/lib/viewStrings.js:30
 msgid "Income"
 msgstr ""
 
@@ -291,10 +292,62 @@ msgstr ""
 msgid "Spend/receive pie chart"
 msgstr ""
 
-#: ../modules/cash/lib/viewStrings.js:19
+#: ../modules/cash/lib/viewStrings.js:19 ../modules/cash/lib/viewStrings.js:29
+msgid "Expense"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:21
+msgid "Apply"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:22
+msgid "Close"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:23
+msgid "Report settings"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:24
+msgid "Start date"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:25
+msgid "End date"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:26
+msgid "Max account"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:27
+msgid "Report name"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:28
+msgid "Account type"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:31
 msgid "Assets"
 msgstr ""
 
-#: ../modules/cash/lib/viewStrings.js:20
+#: ../modules/cash/lib/viewStrings.js:32
 msgid "Liabilities"
+msgstr ""
+
+#: ../modules/cash/pages/acctree.js:113
+msgid "Tree"
+msgstr ""
+
+#: ../modules/cash/pages/report.js:149
+msgid "Pie flow chart"
+msgstr ""
+
+#: ../modules/cash/pages/report.js:149
+msgid "Bar flow chart"
+msgstr ""
+
+#: ../modules/cash/pages/restoredefaults.js:14
+msgid "toDefaults"
 msgstr ""
