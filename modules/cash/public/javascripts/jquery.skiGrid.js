@@ -76,10 +76,11 @@
 	function updateGridSettings(data,objSettings){
 		objSettings.currentDate = data.currentDate;		
 		objSettings.currentAccount = data.currentAccount;
-		objSettings.totalRowsCount = data.iTotalRecords+1;			
-		objSettings.totalHeight = objSettings.totalRowsCount*options.rowHeight;			
+		objSettings.totalRowsCount = data.iTotalRecords+1;	
+		var totalRowsHeight = objSettings.totalRowsCount*options.rowHeight;	
+		objSettings.totalHeight = objSettings.tableHeight > totalRowsHeight ? objSettings.tableHeight : totalRowsHeight;		
 		objSettings.bodyScrollerRef.height(objSettings.totalHeight);
-		var tablePosition = objSettings.totalHeight - objSettings.rowsLimit*options.rowHeight;			
+		var tablePosition = objSettings.tableHeight > totalRowsHeight ? 0 :objSettings.totalHeight - objSettings.rowsLimit*options.rowHeight;	
 		objSettings.tablePosition = tablePosition;	
 		if(objSettings.isRowAdded){
 			objSettings.isRowAdded = false;
@@ -330,7 +331,7 @@
 		});
 	};
 	
-	function showGrid($obj,objSettings,offset){			
+	function showGrid($obj,objSettings,offset){		
 		$obj.css('top',objSettings.tablePosition+'px');
 		objSettings.sEcho++;
 		var jqXHR = $.ajax( {
@@ -640,15 +641,14 @@
 	function handleNewTrColumnClick($col,objSettings){				
 		if($col != null && ($col.hasClass('ski_selected') || $col.hasClass('ski_disabled')) && !objSettings.needSaveNewTr){			
 			return false;
-		}
-		
+		}		
 		processOldSelectedColumn(objSettings,true);		
 		if($col == null || objSettings.needSaveNewTr){
 			if(!objSettings.needSaveNewTr){
 				objSettings.newTrContainer.find('tr.mainRow').removeClass('ski_selected');
 			}
 			objSettings.needSaveNewTr = false;			
-			objSettings.gridWrapper.trigger('AddRowData');
+			objSettings.gridWrapper.trigger('AddRowData');			
 			return false;
 		}		
 		processColumnEditable($col,objSettings);		
@@ -775,8 +775,8 @@
 		var fieldsCount = 0;
 		for(i in rowNewData){
 			fieldsCount++;
-		}
-		if(fieldsCount <= 2){
+		}		
+		if(fieldsCount <= 1){
 			return false;
 		}				
 		addRow(rowNewData,objSettings,function(err){
@@ -1246,7 +1246,8 @@
 	};
 	
 	function checkToNeedSaveNewTr($col,objSettings){
-		if($col.parents('.ski_newTrContainer').length > 0){					
+		console.log('checkToNeed');		
+		if($col.parents('.ski_newTrContainer').length > 0){							
 			objSettings.needSaveNewTr = true;
 		}		
 	};
