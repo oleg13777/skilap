@@ -469,7 +469,7 @@ function Skilap() {
 	
 	var currencies = null;
 	this.i18n_getCurrencies = function (langtoken, cb) {
-		if (currencies!=null) cb(null, currencies);
+		if (currencies!=null) return cb(null, currencies);
 		var res = [];
 		var cu = i18n.currency().getCurrencies();
 		_(cu).forEach(function(cid) {

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-05-24 22:11+0400\n"
+"POT-Creation-Date: 2012-05-25 20:08+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,8 +44,8 @@ msgstr ""
 msgid "My card"
 msgstr ""
 
-#: ../modules/cash/lib/accapi.js:305 ../modules/cash/lib/viewStrings.js:20
-#: ../modules/cash/lib/viewStrings.js:30
+#: ../modules/cash/lib/accapi.js:305 ../modules/cash/lib/viewStrings.js:28
+#: ../modules/cash/lib/viewStrings.js:38
 msgid "Income"
 msgstr ""
 
@@ -253,6 +253,7 @@ msgid "Data"
 msgstr ""
 
 #: ../modules/cash/lib/viewStrings.js:9
+#: ../modules/cash/pages/restoredefaults.js:14
 msgid "New register"
 msgstr ""
 
@@ -292,47 +293,79 @@ msgstr ""
 msgid "Spend/receive pie chart"
 msgstr ""
 
-#: ../modules/cash/lib/viewStrings.js:19 ../modules/cash/lib/viewStrings.js:29
-msgid "Expense"
+#: ../modules/cash/lib/viewStrings.js:19
+msgid "Create new cash register"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:20
+msgid "Attention! Your existing data will be overwritten upon complete."
 msgstr ""
 
 #: ../modules/cash/lib/viewStrings.js:21
-msgid "Apply"
+msgid "Default currency"
 msgstr ""
 
 #: ../modules/cash/lib/viewStrings.js:22
-msgid "Close"
+msgid "Template"
 msgstr ""
 
 #: ../modules/cash/lib/viewStrings.js:23
-msgid "Report settings"
+msgid "Default accounts"
 msgstr ""
 
 #: ../modules/cash/lib/viewStrings.js:24
-msgid "Start date"
+msgid "Empty"
 msgstr ""
 
 #: ../modules/cash/lib/viewStrings.js:25
-msgid "End date"
+msgid "Confirm"
 msgstr ""
 
 #: ../modules/cash/lib/viewStrings.js:26
-msgid "Max account"
+msgid "Cancel"
 msgstr ""
 
-#: ../modules/cash/lib/viewStrings.js:27
-msgid "Report name"
+#: ../modules/cash/lib/viewStrings.js:27 ../modules/cash/lib/viewStrings.js:37
+msgid "Expense"
 msgstr ""
 
-#: ../modules/cash/lib/viewStrings.js:28
-msgid "Account type"
+#: ../modules/cash/lib/viewStrings.js:29
+msgid "Apply"
 msgstr ""
 
-#: ../modules/cash/lib/viewStrings.js:31
-msgid "Assets"
+#: ../modules/cash/lib/viewStrings.js:30
+msgid "Close"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:31 ../modules/cash/lib/viewStrings.js:39
+msgid "Report settings"
 msgstr ""
 
 #: ../modules/cash/lib/viewStrings.js:32
+msgid "Start date"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:33
+msgid "End date"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:34
+msgid "Max account"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:35
+msgid "Report name"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:36
+msgid "Account type"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:40
+msgid "Assets"
+msgstr ""
+
+#: ../modules/cash/lib/viewStrings.js:41
 msgid "Liabilities"
 msgstr ""
 
@@ -346,8 +379,4 @@ msgstr ""
 
 #: ../modules/cash/pages/report.js:149
 msgid "Bar flow chart"
-msgstr ""
-
-#: ../modules/cash/pages/restoredefaults.js:14
-msgid "toDefaults"
 msgstr ""

@@ -515,7 +515,7 @@ color:#fff;
 }
 
 .sl_border{
-	border: 2px solid #193479;
+	border: 1px solid #396499;
 }
 
 #tabs .sl_border_radius{
@@ -546,6 +546,8 @@ color:#fff;
 	margin-right: 10px;
 	min-height: 400px;
 	background-color: #fff;
+	padding: 10px;
+    border-radius: 4px 4px 4px 4px;	
 }
 
 #workspace .dataTables_wrapper, #workspace .dataTables_scroll{
@@ -584,4 +586,63 @@ overflow:hidden;
     height: 16px;
     width: 16px;
 
+}
+
+.wizard {
+	width:640px;
+	margin-top: 50px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.wizard .header {
+	width: 100%;
+	height: 20px;
+	border: 2px solid #193479;	
+	border-radius: 5px 5px 5px 5px;
+	padding: 5px;
+	font-size: 130%;
+}
+
+.wizard .notice {
+	width: 100%;
+	height: 20px;
+	padding: 5px;
+	font-size: 110%;
+	color: red;
+}
+
+.wizard .form {
+	width: 100%;
+	padding: 5px;
+	padding-top: 10px;
+}
+
+.wizard .buttons {
+	padding: 5px;
+	padding-top: 10px;
+}
+
+.wizard .button {
+    border: 2px solid #888582;
+    border-radius: 4px 4px 4px 4px;
+    color: #333;
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-right: 10px;
+    height:30px;
+    line-height:30px;
+    text-align: center;   
+    background: #fff;
+    background: -moz-linear-gradient(top, #fff, #ededed);
+    background: -webkit-gradient(linear, left top, left bottom, 
+                color-stop(0%,#fff), color-stop(100%,#ededed));
+    background: -webkit-linear-gradient(top, #fff, #ededed);
+    background: -o-linear-gradient(top, #fff, #ededed);
+    background: -ms-linear-gradient(top, #fff, #ededed);
+    background: linear-gradient(top, #fff, #ededed);
+}
+
+.wizard .button:hover {
+   background: #ccc;
 }

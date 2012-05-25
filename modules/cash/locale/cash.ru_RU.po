@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-05-24 22:11+0400\n"
+"POT-Creation-Date: 2012-05-25 20:08+0400\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -39,8 +39,8 @@ msgid "My card"
 msgstr "Моя карта"
 
 #: ../modules/cash/lib/accapi.js:305
-#: ../modules/cash/lib/viewStrings.js:20
-#: ../modules/cash/lib/viewStrings.js:30
+#: ../modules/cash/lib/viewStrings.js:28
+#: ../modules/cash/lib/viewStrings.js:38
 msgid "Income"
 msgstr "Доход"
 
@@ -254,8 +254,9 @@ msgid "Data"
 msgstr "Данные"
 
 #: ../modules/cash/lib/viewStrings.js:9
+#: ../modules/cash/pages/restoredefaults.js:14
 msgid "New register"
-msgstr "Создать новый"
+msgstr "Новый реестр"
 
 #: ../modules/cash/lib/viewStrings.js:10
 msgid "Import Gnu Cash"
@@ -294,47 +295,80 @@ msgid "Spend/receive pie chart"
 msgstr "Круговая диаграмма доходов/расходов"
 
 #: ../modules/cash/lib/viewStrings.js:19
-#: ../modules/cash/lib/viewStrings.js:29
+msgid "Create new cash register"
+msgstr "Создать новый денежный реестр"
+
+#: ../modules/cash/lib/viewStrings.js:20
+msgid "Attention! Your existing data will be overwritten upon complete."
+msgstr "Внимание! Ваши текущие данные будут перезаписаны по окончанию операции."
+
+#: ../modules/cash/lib/viewStrings.js:21
+msgid "Default currency"
+msgstr "Валюта по умолчанию"
+
+#: ../modules/cash/lib/viewStrings.js:22
+msgid "Template"
+msgstr "Шаблон"
+
+#: ../modules/cash/lib/viewStrings.js:23
+msgid "Default accounts"
+msgstr "Счета по умолчанию"
+
+#: ../modules/cash/lib/viewStrings.js:24
+msgid "Empty"
+msgstr "Пустой"
+
+#: ../modules/cash/lib/viewStrings.js:25
+msgid "Confirm"
+msgstr "Подтвердить"
+
+#: ../modules/cash/lib/viewStrings.js:26
+msgid "Cancel"
+msgstr "Отменить"
+
+#: ../modules/cash/lib/viewStrings.js:27
+#: ../modules/cash/lib/viewStrings.js:37
 msgid "Expense"
 msgstr "Расходы"
 
-#: ../modules/cash/lib/viewStrings.js:21
+#: ../modules/cash/lib/viewStrings.js:29
 msgid "Apply"
 msgstr "Применить"
 
-#: ../modules/cash/lib/viewStrings.js:22
+#: ../modules/cash/lib/viewStrings.js:30
 msgid "Close"
 msgstr "Закрыть"
 
-#: ../modules/cash/lib/viewStrings.js:23
+#: ../modules/cash/lib/viewStrings.js:31
+#: ../modules/cash/lib/viewStrings.js:39
 msgid "Report settings"
 msgstr "Параметры отчета"
 
-#: ../modules/cash/lib/viewStrings.js:24
+#: ../modules/cash/lib/viewStrings.js:32
 msgid "Start date"
 msgstr "Начальная дата"
 
-#: ../modules/cash/lib/viewStrings.js:25
+#: ../modules/cash/lib/viewStrings.js:33
 msgid "End date"
 msgstr "Конечная дата"
 
-#: ../modules/cash/lib/viewStrings.js:26
+#: ../modules/cash/lib/viewStrings.js:34
 msgid "Max account"
 msgstr "Макс. счетов"
 
-#: ../modules/cash/lib/viewStrings.js:27
+#: ../modules/cash/lib/viewStrings.js:35
 msgid "Report name"
 msgstr "Имя отчета"
 
-#: ../modules/cash/lib/viewStrings.js:28
+#: ../modules/cash/lib/viewStrings.js:36
 msgid "Account type"
 msgstr "Тип счета"
 
-#: ../modules/cash/lib/viewStrings.js:31
+#: ../modules/cash/lib/viewStrings.js:40
 msgid "Assets"
 msgstr "Активы"
 
-#: ../modules/cash/lib/viewStrings.js:32
+#: ../modules/cash/lib/viewStrings.js:41
 msgid "Liabilities"
 msgstr "Обязательства"
 
@@ -350,10 +384,8 @@ msgstr "Движение средств (круг.)"
 msgid "Bar flow chart"
 msgstr "Движение средств (столб.)"
 
-#: ../modules/cash/pages/restoredefaults.js:14
-msgid "toDefaults"
-msgstr "Аккаунты по умолчаню"
-
+#~ msgid "toDefaults"
+#~ msgstr "Аккаунты по умолчаню"
 #~ msgid "Skilap"
 #~ msgstr "СкайЛап"
 #~ msgid "Import"

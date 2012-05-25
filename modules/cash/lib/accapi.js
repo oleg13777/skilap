@@ -295,7 +295,7 @@ module.exports.importAccounts = function  (token, accounts, cb) {
 	})
 }
 
-module.exports.getDefaultAccounts = function (token, cb){
+module.exports.getDefaultAccounts = function (token, cmdty, cb){
 	var self = this;
 	var ctx = self._ctx;
 	var accounts = [
@@ -314,7 +314,6 @@ module.exports.getDefaultAccounts = function (token, cb){
 	];
 
 	var ret = [];
-	var cmdty = {space:"ISO4217",id:"RUB"};
 	async.forEachSeries(accounts, function(acc, cb) {
 		self._ctx.getUniqueId(function(err, uniqId) {
 			ret.push({parentId:0, cmdty:cmdty, name:acc.name, id:uniqId, type:acc.type});
@@ -331,7 +330,7 @@ module.exports.getDefaultAccounts = function (token, cb){
 	});
 }
 
-module.exports.restoreToDefaults = function (token, cb){
+module.exports.restoreToDefaults = function (token, cmdty, type, cb){
 	var self = this;
 	async.waterfall([
 		function start(cb) {
@@ -350,7 +349,10 @@ module.exports.restoreToDefaults = function (token, cb){
 			self._cash_accounts.clear(cb);
 		},
 		function (cb) {
-			self.getDefaultAccounts(token, cb);
+			if (type == "default")
+				self.getDefaultAccounts(token, cmdty, cb);
+			else 
+				cb(null, []);
 		},
 		function (accounts, cb) {
 			async.forEachSeries(accounts, function (e, cb) {
