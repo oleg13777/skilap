@@ -10,7 +10,7 @@ img {
 
 body {
   font: 14px Arial, Helvetica, "Lucida Grande", sans-serif;
-  min-width: 1024px;
+  min-width: 960px;
   background-color: #f6f6f6;
 }
 
@@ -447,14 +447,14 @@ div.tree div.expanded {
 #header #logo{
 	background: url("../images/logo.png") no-repeat scroll center center transparent;
     height: 96px;
-    left: 56px;
+    left: 18px;
     position: absolute;
     top: 0px;
     width: 128px;
 }
 
 #header .menu{
-	margin-left: 200px;
+	margin-left: 180px;
 	height: 100%;
 }
 
@@ -509,7 +509,7 @@ color:#fff;
 
 #tabs{
 	float: left;
-    margin-left: 50px;
+    margin-left: 10px;
     margin-top: 50px;
     width: 165px;
 }
@@ -531,6 +531,7 @@ color:#fff;
 #tabs div{
 	display: block;
 	margin: 5px 0;
+	padding: 3px 5px;
 	background-color: #E6F9C0;
 	border-right: none !important;
 }
@@ -541,8 +542,8 @@ color:#fff;
 
 #workspace{
 	position:relative;
-	margin-left: 215px;
-	margin-right: 20px;
+	margin-left: 175px;
+	margin-right: 10px;
 	min-height: 400px;
 	background-color: #fff;
 }
@@ -574,4 +575,13 @@ overflow:hidden;
     right: 5px;
     width: 32px;
     z-index:10;
+}
+
+.closeTab {
+	background:url('../images/icon_close16.png') no-repeat;
+    position: absolute;
+    left: 158px;
+    height: 16px;
+    width: 16px;
+
 }

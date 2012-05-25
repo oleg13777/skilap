@@ -10,6 +10,15 @@
 		y_title = "{{#i18n}}Income{{/i18n}}";
 	}
 	$(document).ready(function() {
+		$(window).on('resize',function(){	
+			adaptHeight();
+		});	
+		
+		function adaptHeight() {
+			$("#container").height($(window).height()-$("#header").height()-10);
+		}		
+		adaptHeight();
+			
 		{{#expense}}
 		chart = new Highcharts.Chart({
 			chart: {
@@ -148,6 +157,7 @@
 		$(".closeTab").on("click", function(e){
 		});
 	});
+	
 </script>
 	
 <div id="dialog" title="{{#i18n}}Report settings{{/i18n}}" style="width: 600; height: 200px;">
@@ -187,3 +197,4 @@
 <div id="container" style="width: 100%; height: 700px;"></div>
 
 </div>
+

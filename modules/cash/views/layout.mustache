@@ -21,10 +21,10 @@
 					"dataType": "json"
 				});
 				jqXHR.done(function(data){
-					if (self.parent().hasClass("active")){
+					if (self.parent().find("span").hasClass("active")){
 						location.href="{{prefix}}";
 					} else {
-						self.parent().parent().remove();
+						self.parent().remove();
 					}
 				});
 				jqXHR.fail(function(data){
@@ -43,7 +43,8 @@
 		<div id="tabs">
 			{{#tabs}}
 				<div class="sl_border sl_border_radius">
-				<span {{#selected}}class="{{activeTabClass}}"{{/selected}}>( <a href='{{url}}' pid="{{pid}}" class="closeTab">X</a> ) <a href='{{url}}'><span class="sl_text">{{name}}</span></a></span>
+				<a href='{{url}}' pid="{{pid}}" class="closeTab"></a>				
+				<span {{#selected}}class="{{activeTabClass}}"{{/selected}}><a href='{{url}}'><span class="sl_text">{{name}}</span></a></span>
 				</div>
 			{{/tabs}}
 		</div>
