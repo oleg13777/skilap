@@ -1,35 +1,35 @@
-<div id="import">
-
-<h2> {{caption}} </h2>
-<hr size="2" noshade />
-
+<div class="wizard">
+	{{#GnuCash}}
+	<div class="header">{{#i18n}}Import Gnu Cash{{/i18n}}</div>	
+	{{/GnuCash}}
+	{{#SkilapCash}}
+	<div class="header">{{#i18n}}Import Skilap Cash{{/i18n}}</div>
+	{{/SkilapCash}}
 {{#upload}}
+	<div class="step-hint">{{#i18n}}Select file for import{{/i18n}}</div>
 <form action="?step=1" enctype="multipart/form-data" method="post">
-	<input type="file" name="upload">
-	<hr size="2" noshade />
-	<input type="submit" value="Next" style="width: 87px; height: 20px"/>
+		<input type="file" name="upload" />	
+	<button class="button" type="submit">{{#i18n}}Next{{/i18n}}</button>
 </form>
 {{/upload}}
 
 {{#step1}}
-transactions = {{transactions}}
-accounts = {{accounts}}
-<hr size="2" noshade />
+<div class="step-hint">{{#i18n}}We find{{/i18n}}: {{#i18n}}transactions{{/i18n}} = {{transactions}};&nbsp;
+{{#i18n}}accounts{{/i18n}} = {{accounts}}</div>
 <form action="?step=2" enctype="multipart/form-data" method="post">
 	<input type="hidden" name="fileName" value="{{path}}">
-	<input type="submit" value="Next" style="width: 87px; height: 20px">
+	<button type="submit" class="button" >{{#i18n}}Next{{/i18n}}</button>
 </form>
 {{/step1}}
 
 {{#step2}}
 <form action="{{prefix}}" enctype="multipart/form-data" method="get">
-	{{transactions}} transactions and {{accounts}} accounts were imported
-	<hr size="2" noshade />
-	<input type="submit" value="Finish" style="width: 87px; height: 20px">
+	<div class="step-hint">Data saved: {{transactions}} transactions and {{accounts}} accounts were imported!</div>
+	<button type="submit" class="button" >{{#i18n}}Finish{{/i18n}}</button>
 </form>
 {{/step2}}
 
 {{#error}}
-Wrong data. Please try again.
+<div class="notice">{{#i18n}}Wrong data. Please try again.{{/i18n}}</div>
 {{/error}}
 </div>

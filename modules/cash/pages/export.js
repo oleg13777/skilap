@@ -31,7 +31,7 @@ module.exports = function account(webapp) {
 				webapp.guessTab(req, {pid:'import-raw',name:'Raw import',url:req.url}, cb1);
 			},
 			function render (vtabs) {
-				res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, caption: "Select file for import", upload:true });
+				res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, upload:true,SkilapCash:1 });
 			}],
 			next
 		);
@@ -60,7 +60,7 @@ module.exports = function account(webapp) {
 					webapp.guessTab(req, {pid:'import-raw',name:'Import',url:req.url}, cb1);
 				},
 				function render (vtabs) {
-					res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, caption: "We find:", step1:true, transactions:tr_count, accounts:acc_count, path:path});
+					res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, step1:true, transactions:tr_count, accounts:acc_count, path:path,SkilapCash:1});
 				}],
 				next
 			);
@@ -104,7 +104,7 @@ module.exports = function account(webapp) {
 					webapp.removeTabs(req.session.apiToken, null, cb1);
 				},
 				function render (cb1) {
-					res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:tabs, caption: "data saved", step2:true, transactions:transactions.length, accounts:accounts.length});
+					res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:tabs, step2:true, transactions:transactions.length, accounts:accounts.length,SkilapCash:1});
 				}],
 				next
 			);
@@ -114,7 +114,7 @@ module.exports = function account(webapp) {
 					webapp.guessTab(req, {pid:'import-raw',name:'Import',url:req.url}, cb1);
 				},
 				function render (vtabs) {
-					res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, caption: "data saved", form:elseForm, transactions:transactions.length, accounts:accounts.length});
+					res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, form:elseForm, transactions:transactions.length, accounts:accounts.length,SkilapCash:1});
 				}],
 				next
 			);

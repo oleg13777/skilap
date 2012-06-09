@@ -596,12 +596,14 @@ overflow:hidden;
 }
 
 .wizard .header {
-	width: 100%;
-	height: 20px;
+	width: 100%;	
 	border: 2px solid #193479;	
 	border-radius: 5px 5px 5px 5px;
 	padding: 5px;
 	font-size: 130%;
+	box-sizing:border-box;
+	-moz-box-sizing:border-box;
+	-webkit-box-sizing:border-box;
 }
 
 .wizard .notice {
@@ -630,8 +632,8 @@ overflow:hidden;
     cursor: pointer;
     padding: 5px 10px;
     margin-right: 10px;
-    height:30px;
-    line-height:30px;
+    height:30px; 
+    text-decoration:none;   
     text-align: center;   
     background: #fff;
     background: -moz-linear-gradient(top, #fff, #ededed);
@@ -645,6 +647,39 @@ overflow:hidden;
 
 .wizard .button:hover,.action-button:hover {
    background: #ccc;
+}
+.wizard .step-hint{
+display:block;
+margin:15px 0;
+font-size:16px;
+color:#333;
+padding: 0 0 5px 0;
+border-bottom: 1px solid #ccc;
+}
+
+.wizard .fileUploadContainer{
+position:relative;
+display:inline-block;
+width:300px;
+}
+
+.wizard .fakeUploadInput{
+width:120px;
+line-height:30px;
+}
+
+.wizard .inputUploadContainer{
+width:150px;
+overflow:hidden;
+}
+
+.wizard .customize-fileupload{
+display:block;
+position:absolute;
+right:0;
+top:0;
+width:200px;
+overflow:hidden;
 }
 
 #currencySelectorForm,#rateTable,.rateCtrlButtonsContainer{
@@ -729,4 +764,5 @@ padding:0 10px;
     {
         z-index: 1003 !important; /* must be > than popup editor (1002) */
     }
+
 
