@@ -45,7 +45,10 @@ module.exports.getPricesByPair = function (token,pair,cb) {
 							prices.push(price);							
 						}
 					}
-					else cb(null, prices);
+					else{
+						prices = _.sortBy(prices, function(price){ return price.date.valueOf() });
+						cb(null, prices);
+					}
 				},
 			true);
 		}], function end(err, results) {

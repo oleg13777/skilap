@@ -23,7 +23,7 @@
 		$("#currencySelectorForm").submit(function(){
 			var $self = $(this);
 			var jqXHR = $.ajax({
-				url:"{{prefix}}/rateeditor",
+				url:"{{prefix}}/priceeditor",
 				data:$self.serialize(),
 				dataType:"html"
 			});
@@ -63,7 +63,7 @@
 						var from = $("#from").val();
 						var to = $("#to").val();
 						var jqXHR = $.ajax({
-							url:"{{prefix}}/rateeditor",
+							url:"{{prefix}}/priceeditor",
 							data:{mode:mode,date:date,value:rate,from:from,to:to,id:id},
 							dataType:"html"
 						});
@@ -102,7 +102,7 @@
 				buttons: {
 					"Delete": function() {
 						var jqXHR = $.ajax({
-							url:"{{prefix}}/rateeditor",
+							url:"{{prefix}}/priceeditor",
 							data:{deleteId:id},
 							dataType:"json"								
 						});
