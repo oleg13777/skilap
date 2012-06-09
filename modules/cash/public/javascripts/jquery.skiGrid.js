@@ -581,9 +581,12 @@
 	function handleColumnClick($col,objSettings){
 		var $prevInput = $(objSettings.gridWrapper.find('td.ski_selected input')[0]);		
 		if($prevInput && $prevInput.parents('td.account').length > 0 && !$col.hasClass('ski_selected')){
-			if(objSettings.accounts){				
-				var currentAcc = $prevInput.val();				
-				if(currentAcc != "" && !objSettings.accounts[currentAcc] && $col.parent().data('multisplit') && $col.parent().data('multisplit')*1 != 1){									
+			if(objSettings.accounts){
+				console.log(objSettings.accounts);				
+				var currentAcc = $prevInput.val();	
+				console.log(currentAcc);
+				console.log($col.parent().data('multisplit'));			
+				if(currentAcc != "" && !objSettings.accounts[currentAcc] && (!$col.parent().data('multisplit') ||  $col.parent().data('multisplit') && $col.parent().data('multisplit')*1 != 1)){									
 					$("#ski_dialog-confirm-create-account p.text").text('The account "'+currentAcc+'" does not exist. Would you like to create it?');
 					$("#ski_dialog-confirm-create-account").dialog({
 						resizable: false,
@@ -969,7 +972,7 @@
 				}
 				else{
 					getAccountsData(function(data){
-						objSettings.accounts = data;
+						objSettings.accounts = data;					
 						fillAutocomplete($element1,objSettings.accounts);
 					});					
 				}

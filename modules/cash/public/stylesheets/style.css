@@ -623,7 +623,7 @@ overflow:hidden;
 	padding-top: 10px;
 }
 
-.wizard .button {
+.wizard .button,.action-button {
     border: 2px solid #888582;
     border-radius: 4px 4px 4px 4px;
     color: #333;
@@ -643,6 +643,90 @@ overflow:hidden;
     background: linear-gradient(top, #fff, #ededed);
 }
 
-.wizard .button:hover {
+.wizard .button:hover,.action-button:hover {
    background: #ccc;
 }
+
+#currencySelectorForm,#rateTable,.rateCtrlButtonsContainer{
+display:block;
+width:550px;
+margin:15px 0;
+}
+
+
+
+#currencySelectorForm select{
+display:inline-block;
+width:200px;
+border:1px solid #ccc;
+height:25px;
+margin-right:10px;
+}
+
+#currencySelectorForm button{
+display:block;
+float:right;
+padding:0 10px;
+height:25px;
+line-height:20px;
+cursor:pointer;
+}
+
+#rateTable{
+border:1px solid #ccc;
+}
+
+#rateTable .date,#rateTable .rate{
+width:275px;
+text-align:center;
+padding:5px;
+}
+
+#rateTable .date{
+border-right:1px solid #ccc;
+
+}
+
+#rateTable .rate{
+border-left:1px solid #ccc;
+}
+
+#rateTable th.date{
+border-bottom:1px solid #ccc;
+}
+
+#rateTable th.rate{
+border-bottom:1px solid #ccc;
+}
+
+#rateTable td.date{
+border-top:1px solid #ccc;
+}
+
+#rateTable td.rate{
+border-top:1px solid #ccc;
+}
+
+#rateTable tr.selected{
+background:#0074cc;
+}
+
+.rateCtrlButtonsContainer{
+text-align:center;
+}
+
+.rateCtrlBtn{
+display:inline-block;
+margin:0 10px;
+padding:0 10px;
+}
+
+#dialogRateCurrency label, #dialogRateCurrency input { display:block; }
+#dialogRateCurrency  input.text { margin-bottom:12px; width:95%; padding: .4em; }
+#dialogRateCurrency fieldset { padding:0; border:0; }
+
+.ui-datepicker
+    {
+        z-index: 1003 !important; /* must be > than popup editor (1002) */
+    }
+

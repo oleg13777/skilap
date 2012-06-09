@@ -32,6 +32,7 @@ self.ctx.once("WebStarted", function (err) {
 		require("../pages/acctree.js")(self);
 		require("../pages/restoredefaults.js")(self)	
 		require("../pages/export.js")(self);
+		require("../pages/priceeditor.js")(self);
 	})
 })
 

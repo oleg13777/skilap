@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-05-25 20:08+0400\n"
+"POT-Creation-Date: 2012-06-09 18:08+0400\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -39,8 +39,8 @@ msgid "My card"
 msgstr "Моя карта"
 
 #: ../modules/cash/lib/accapi.js:305
-#: ../modules/cash/lib/viewStrings.js:28
-#: ../modules/cash/lib/viewStrings.js:38
+#: ../modules/cash/lib/viewStrings.js:34
+#: ../modules/cash/lib/viewStrings.js:44
 msgid "Income"
 msgstr "Доход"
 
@@ -201,23 +201,23 @@ msgstr "Долги"
 msgid "Friends"
 msgstr "Друзья"
 
-#: ../modules/cash/lib/webapp.js:237
+#: ../modules/cash/lib/webapp.js:238
 msgid "View cash data"
 msgstr "Просмотр данных"
 
-#: ../modules/cash/lib/webapp.js:238
+#: ../modules/cash/lib/webapp.js:239
 msgid "Append new data"
 msgstr "Добавление данных"
 
-#: ../modules/cash/lib/webapp.js:239
+#: ../modules/cash/lib/webapp.js:240
 msgid "Edit cash data"
 msgstr "Редактирование данных"
 
-#: ../modules/cash/lib/webapp.js:245
+#: ../modules/cash/lib/webapp.js:246
 msgid "Cash module"
 msgstr "Управление финансами"
 
-#: ../modules/cash/lib/webapp.js:246
+#: ../modules/cash/lib/webapp.js:247
 msgid "Personal and familty finances. Inspired by gnucash."
 msgstr "Персональные и семейные финансы. По мотивам GnuCash."
 
@@ -271,104 +271,126 @@ msgid "Export Skilap Cash"
 msgstr "Экспорт данных из Skilap Cash"
 
 #: ../modules/cash/lib/viewStrings.js:13
+#: ../modules/cash/pages/priceeditor.js:55
+msgid "Rate Currency Editor"
+msgstr "Редактор курсов валют"
+
+#: ../modules/cash/lib/viewStrings.js:14
 msgid "View"
 msgstr "Просмотр"
 
-#: ../modules/cash/lib/viewStrings.js:14
+#: ../modules/cash/lib/viewStrings.js:15
 msgid "Home"
 msgstr "Домашняя"
 
-#: ../modules/cash/lib/viewStrings.js:15
+#: ../modules/cash/lib/viewStrings.js:16
 msgid "Accounts"
 msgstr "Счета"
 
-#: ../modules/cash/lib/viewStrings.js:16
+#: ../modules/cash/lib/viewStrings.js:17
 msgid "Report"
 msgstr "Отчет"
 
-#: ../modules/cash/lib/viewStrings.js:17
+#: ../modules/cash/lib/viewStrings.js:18
 msgid "Spend/receive bar chart"
 msgstr "Гистограмма доходов/расходов"
 
-#: ../modules/cash/lib/viewStrings.js:18
+#: ../modules/cash/lib/viewStrings.js:19
 msgid "Spend/receive pie chart"
 msgstr "Круговая диаграмма доходов/расходов"
 
-#: ../modules/cash/lib/viewStrings.js:19
-msgid "Create new cash register"
-msgstr "Создать новый денежный реестр"
-
 #: ../modules/cash/lib/viewStrings.js:20
-msgid "Attention! Your existing data will be overwritten upon complete."
-msgstr "Внимание! Ваши текущие данные будут перезаписаны по окончанию операции."
+msgid "Select pair of currencies to edit rate exchanging currency"
+msgstr "Выберите пару валют для редактирования курса обмена"
 
 #: ../modules/cash/lib/viewStrings.js:21
-msgid "Default currency"
-msgstr "Валюта по умолчанию"
-
-#: ../modules/cash/lib/viewStrings.js:22
-msgid "Template"
-msgstr "Шаблон"
-
-#: ../modules/cash/lib/viewStrings.js:23
-msgid "Default accounts"
-msgstr "Счета по умолчанию"
-
-#: ../modules/cash/lib/viewStrings.js:24
-msgid "Empty"
-msgstr "Пустой"
-
-#: ../modules/cash/lib/viewStrings.js:25
-msgid "Confirm"
-msgstr "Подтвердить"
-
-#: ../modules/cash/lib/viewStrings.js:26
-msgid "Cancel"
-msgstr "Отменить"
-
-#: ../modules/cash/lib/viewStrings.js:27
-#: ../modules/cash/lib/viewStrings.js:37
-msgid "Expense"
-msgstr "Расходы"
-
-#: ../modules/cash/lib/viewStrings.js:29
+#: ../modules/cash/lib/viewStrings.js:35
 msgid "Apply"
 msgstr "Применить"
 
+#: ../modules/cash/lib/viewStrings.js:22
+msgid "Add"
+msgstr "Добавить"
+
+#: ../modules/cash/lib/viewStrings.js:23
+msgid "Edit"
+msgstr "Редактировать"
+
+#: ../modules/cash/lib/viewStrings.js:24
+msgid "Delete"
+msgstr "Удалить"
+
+#: ../modules/cash/lib/viewStrings.js:25
+msgid "Create new cash register"
+msgstr "Создать новый денежный реестр"
+
+#: ../modules/cash/lib/viewStrings.js:26
+msgid "Attention! Your existing data will be overwritten upon complete."
+msgstr "Внимание! Ваши текущие данные будут перезаписаны по окончанию операции."
+
+#: ../modules/cash/lib/viewStrings.js:27
+msgid "Default currency"
+msgstr "Валюта по умолчанию"
+
+#: ../modules/cash/lib/viewStrings.js:28
+msgid "Template"
+msgstr "Шаблон"
+
+#: ../modules/cash/lib/viewStrings.js:29
+msgid "Default accounts"
+msgstr "Счета по умолчанию"
+
 #: ../modules/cash/lib/viewStrings.js:30
+msgid "Empty"
+msgstr "Пустой"
+
+#: ../modules/cash/lib/viewStrings.js:31
+msgid "Confirm"
+msgstr "Подтвердить"
+
+#: ../modules/cash/lib/viewStrings.js:32
+msgid "Cancel"
+msgstr "Отменить"
+
+#: ../modules/cash/lib/viewStrings.js:33
+#: ../modules/cash/lib/viewStrings.js:43
+msgid "Expense"
+msgstr "Расходы"
+
+#: ../modules/cash/lib/viewStrings.js:36
 msgid "Close"
 msgstr "Закрыть"
 
-#: ../modules/cash/lib/viewStrings.js:31
-#: ../modules/cash/lib/viewStrings.js:39
+#: ../modules/cash/lib/viewStrings.js:37
+#: ../modules/cash/lib/viewStrings.js:45
 msgid "Report settings"
 msgstr "Параметры отчета"
 
-#: ../modules/cash/lib/viewStrings.js:32
+#: ../modules/cash/lib/viewStrings.js:38
 msgid "Start date"
 msgstr "Начальная дата"
 
-#: ../modules/cash/lib/viewStrings.js:33
+#: ../modules/cash/lib/viewStrings.js:39
 msgid "End date"
 msgstr "Конечная дата"
 
-#: ../modules/cash/lib/viewStrings.js:34
+#: ../modules/cash/lib/viewStrings.js:40
 msgid "Max account"
 msgstr "Макс. счетов"
 
-#: ../modules/cash/lib/viewStrings.js:35
+#: ../modules/cash/lib/viewStrings.js:41
 msgid "Report name"
 msgstr "Имя отчета"
 
-#: ../modules/cash/lib/viewStrings.js:36
+#: ../modules/cash/lib/viewStrings.js:42
 msgid "Account type"
 msgstr "Тип счета"
 
-#: ../modules/cash/lib/viewStrings.js:40
+#: ../modules/cash/lib/viewStrings.js:46
 msgid "Assets"
 msgstr "Активы"
 
-#: ../modules/cash/lib/viewStrings.js:41
+#: ../modules/cash/lib/viewStrings.js:47
 msgid "Liabilities"
 msgstr "Обязательства"
 
