@@ -46,7 +46,7 @@ module.exports.getPricesByPair = function (token,pair,cb) {
 						}
 					}
 					else{
-						prices = _.sortBy(prices, function(price){ return price.date.valueOf() });
+						prices = _.sortBy(prices, function(price){ return new Date(price.date).valueOf() });
 						cb(null, prices);
 					}
 				},
