@@ -657,30 +657,23 @@ padding: 0 0 5px 0;
 border-bottom: 1px solid #ccc;
 }
 
-.wizard .fileUploadContainer{
-position:relative;
-display:inline-block;
-width:300px;
-}
-
 .wizard .fakeUploadInput{
-width:120px;
-line-height:30px;
-}
-
-.wizard .inputUploadContainer{
-width:150px;
-overflow:hidden;
-}
-
-.wizard .customize-fileupload{
 display:block;
-position:absolute;
-right:0;
-top:0;
+float:left;
 width:200px;
-overflow:hidden;
+height:30px;
+border: 1px solid #ccc;
+line-height:30px;
+box-sizing:border-box;
+	-moz-box-sizing:border-box;
+	-webkit-box-sizing:border-box;
+margin: 0 5px 0 0;
+padding: 0 0 0 5px;
+
 }
+
+.wizard input[type=file] { width: 1px; }
+
 
 #currencySelectorForm,#rateTable,.rateCtrlButtonsContainer{
 display:block;
