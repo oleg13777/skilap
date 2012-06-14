@@ -410,3 +410,49 @@ module.exports.saveAccount = function (token, account, cb) {
 		}
 	)
 }
+
+module.exports.getAllCurrencies = function(token,cb){
+	var self = this;
+	async.waterfall ([
+		function (cb) {
+			async.parallel([
+				function (cb1) { self._coreapi.checkPerm(token,["cash.view"],cb1); },
+				function (cb1) { self._waitForData(cb1); }
+			],function(err){
+				if (err) cb(err);			
+				cb(null);
+			});			
+		}, 		
+		function(cb){
+			async.parallel({
+				curr:function (cb1) {				
+					self._ctx.i18n_getCurrencies(token, cb1);					
+				},
+				usedCurr:function (cb1) {
+					var usedCurrencies = {};					
+					self._cash_accounts.scan(function (err, key, acc) {						
+						if (err) cb1(err);
+						if (key){
+							usedCurrencies[acc.cmdty.id] = acc.cmdty;
+						}
+						else cb1(null, usedCurrencies);
+					},
+					true);							
+				}
+			},function (err, result) {																	
+				cb(err, result.curr,result.usedCurr);
+			});			
+		},
+		function(currencies,usedCurrencies,cb){			
+			_.forEach(currencies,function(curr){				
+				curr.used = _.has(usedCurrencies, curr.iso) ? 1 : 0;				
+			});
+			cb(null,currencies);
+		}
+	], function(err, result) {		
+			if (err) return cb(err);			
+			cb(null, result);
+		}
+	);
+	
+}

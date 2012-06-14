@@ -85,7 +85,7 @@ this.guessTab = function (req, ti,cb) {
 				cb(null,{});
 		},
 		function (views, cb) {
-			if (views==null) views = {tabs:[]};
+			if (views==null) views = {tabs:[]};			
 			var tab;
 			// search current tabs
 			_.forEach(views.tabs, function (t) {

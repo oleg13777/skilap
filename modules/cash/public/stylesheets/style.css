@@ -675,7 +675,7 @@ padding: 0 0 0 5px;
 .wizard input[type=file] { width: 1px; }
 
 
-#currencySelectorForm,#rateTable,.rateCtrlButtonsContainer{
+#currencySelectorForm,#rateTable,.rateCtrlButtonsContainer,.rateEditorContainer{
 display:block;
 width:550px;
 margin:15px 0;
@@ -758,4 +758,16 @@ padding:0 10px;
         z-index: 1003 !important; /* must be > than popup editor (1002) */
     }
 
+select option.separator{
+border-top:1px dotted #333;
+margin-top:10px;
+}
 
+.rateEditorContainer .paging{
+text-align:center;
+}
+
+.rateEditorContainer .paging .pageNum.active{
+text-decoration:none;
+color:#333;
+}

@@ -28,10 +28,19 @@
 				dataType:"html"
 			});
 			jqXHR.done(function(data){
+				$("#dialogRateCurrency").dialog("destroy");
 				$(".rateEditorContainer").html(data);
+				$(".rateCtrlBtn").attr('disabled','disabled');
 				$(".add.rateCtrlBtn").removeAttr('disabled');
 			});
 			return false;
+		});
+		
+		$(document).on('click',".paging .pageNum",function(){
+			if($(this).hasClass("active"))
+				return false;
+			$("#currencySelectorForm input[name=\"offset\"]").val($(this).data("offset"));
+			$("#currencySelectorForm").submit();
 		});		
 		
 		$(document).on('click',"#rateTable tbody tr",function(){
@@ -41,27 +50,31 @@
 		});
 		
 		$(".add.rateCtrlBtn,.edit.rateCtrlBtn").click(function(){
-			var title = 'Add Rate Currency';
-			var mode = 'add';
+			var title,mode;
 			var id = 0;
-			if($(this).hasClass('edit')){
-				title = 'Edit Rate Currency';
+			if($(this).hasClass('add')){
+				title = '{{#i18n}}Add Rate Currency{{/i18n}}';
+				var mode = 'add';	
+				$("#rate").val($("#rate").data("value"));
+				$("#date").val($("#date").data("value"));			
+			}
+			else if($(this).hasClass('edit')){
+				title = '{{#i18n}}Edit Rate Currency{{/i18n}}';
 				mode = 'edit';
 				id = $("#rateTable tr.selected").data('id');
 				$("#rate").val($("#rateTable tr.selected td.rate").text());
 				$("#date").val($("#rateTable tr.selected td.date").text());
 			}
-			var $dialog = $("#dialogRateCurrency");
-			$dialog.dialog("destroy");
+			var $dialog = $("#dialogRateCurrency");			
 			$dialog.attr('data-mode',mode).removeClass('invisible').dialog({
 				title:title,
 				position:'center',
 				buttons: {
-					"apply": function() {
-						var date = $("#date").val();
-						var rate = $("#rate").val();
-						var from = $("#from").val();
-						var to = $("#to").val();
+					"apply": function() {						
+						var date = $(this).find("#date").val();
+						var rate =  $(this).find("#rate").val();
+						var from =  $(this).find("#from").val();
+						var to =  $(this).find("#to").val();
 						var jqXHR = $.ajax({
 							url:"{{prefix}}/priceeditor",
 							data:{mode:mode,date:date,value:rate,from:from,to:to,id:id},
@@ -72,7 +85,7 @@
 								$("#rateTable tr.selected[data-id='"+id+"']").replaceWith(data);
 							}
 							else{
-								$("#rateTable tbody").append(data);
+								$("#rateTable tbody").prepend(data);
 							}
 							$dialog.dialog("close");
 						});											
@@ -124,18 +137,13 @@
 </script>
 <div class="header"><h2>{{#i18n}}Select pair of currencies to edit rate exchanging currency{{/i18n}}</h2></div>
 <form id="currencySelectorForm">
-	
+	<input type="hidden" name="offset" value="0" />
 	<select id="firstCurrency" name="firstCurr">
-		{{#currencies}}
-			<option value="{{iso}}">{{iso}} - {{country}}</option>
-		{{/currencies}}
-	</select>
-	
+		{{>currencies_list}}		
+	</select>	
 	
 	<select id="secondCurrency" name="secondCurr">
-		{{#currencies}}
-			<option value="{{iso}}">{{iso}} - {{country}}</option>
-		{{/currencies}}
+		{{>currencies_list}}	
 	</select>
 	
 	<button type="submit" class="action-button">{{#i18n}}Apply{{/i18n}}</button>

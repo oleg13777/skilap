@@ -44,6 +44,7 @@ CashApi.prototype.getAssetsTypes = require('./accapi.js').getAssetsTypes;
 CashApi.prototype.getDefaultAccounts = require('./accapi.js').getDefaultAccounts;
 CashApi.prototype.saveAccount = require('./accapi.js').saveAccount;
 CashApi.prototype.getSpecialAccount = require('./accapi.js').getSpecialAccount;
+CashApi.prototype.getAllCurrencies = require('./accapi.js').getAllCurrencies;
 CashApi.prototype.importPrices = require('./priceapi.js').importPrices;
 CashApi.prototype.clearPrices = require('./priceapi.js').clearPrices;
 CashApi.prototype.getCmdtyPrice = require('./priceapi.js').getCmdtyPrice;

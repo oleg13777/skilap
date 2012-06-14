@@ -14,6 +14,11 @@
 		{{/prices}}
 	</tbody>
 </table>
+<div class="paging">
+	{{#paging}}
+		<a class="pageNum {{#active}}active{{/active}}" href="javascript:void(0);" data-offset="{{offset}}">{{num}}</a>
+	{{/paging}}
+</div>
 <div id="dialogRateCurrency" class="invisible" >
 	<form>
 		<fieldset>
@@ -21,9 +26,9 @@
 			<input type="hidden" id="to" name="to" value="{{secondCurr}}" />
 			<input type="text" style="display:block;width:1px;height:1px;position:absolute;top:0;left:0;"/>
 			<label for="date">Date</label>
-			<input type="text" name="date" id="date" class="text ui-widget-content ui-corner-all" />
+			<input type="text" name="date" id="date" data-value="{{currentDate}}" class="text ui-widget-content ui-corner-all" />
 			<label for="rate">Rate currency</label>
-			<input type="text" name="rate" id="rate" value="" class="text ui-widget-content ui-corner-all" />
+			<input type="text" name="rate" id="rate" data-value="{{lastRate}}" class="text ui-widget-content ui-corner-all" />
 			<span>1 {{firstCurr}} = x {{secondCurr}}</span>			
 		</fieldset>
 	</form>

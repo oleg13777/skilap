@@ -9,14 +9,44 @@ module.exports = function priceeditor(webapp) {
 	var prefix = webapp.prefix
 	var ctx = webapp.ctx;
 	
-	app.get(prefix + "/priceeditor", function(req, res, next) {
-		if(req.xhr){
+	app.get(prefix + "/priceeditor", function(req, res, next) {	
+		if(req.xhr){				
 			if(req.query.firstCurr && req.query.secondCurr){				
 				cashapi.getPricesByPair(req.session.apiToken,{from:req.query.firstCurr,to:req.query.secondCurr},function(err,prices){
-					_.forEach(prices,function(price){
+					var paging,pagingPrices;
+					var offset = req.query.offset ? req.query.offset : 0;
+					var limit = 10;
+					var len = prices.length;
+					if(len > limit){
+						pagingPrices = prices.slice(offset,offset+limit > len ? len : limit);
+						currentPageIndex = Math.ceil(offset/limit)+1;						
+						pages = _.range(1,Math.ceil(len/limit)+1);
+						paging = [];
+						_.forEach(pages,function(index){
+							pagingItem = {num:index,offset: (index-1)*limit};
+							if(currentPageIndex == index){
+								pagingItem.active = 1;
+							}
+							paging.push(pagingItem);
+						});
+					}
+					else{
+						pagingPrices = prices;
+					}
+					_.forEach(pagingPrices,function(price){
 						price.date = df.format(new Date(price.date));							
-					});
-					res.partial(__dirname+"/../views/priceeditor/table",{prices:prices,firstCurr:req.query.firstCurr,secondCurr:req.query.secondCurr});
+					});	
+					firstPrice =_.first(prices);
+					var lastRate;
+					if(firstPrice)
+						lastRate = firstPrice.value;
+					res.partial(__dirname+"/../views/priceeditor/table",{
+						prices:pagingPrices,
+						firstCurr:req.query.firstCurr,
+						secondCurr:req.query.secondCurr,
+						currentDate:df.format(new Date()),
+						lastRate:lastRate,
+						paging:paging});
 				});			
 			}
 			else if(req.query.mode){
@@ -45,27 +75,29 @@ module.exports = function priceeditor(webapp) {
 			
 		}
 		else{
+			var usedCurrencies = [];	
+			var notUsedCurrencies = [];		
 			async.waterfall([
-				function(cb){
-					async.parallel({
-						currencies:function (cb1) {				
-							ctx.i18n_getCurrencies(req.session.apiToken, cb1);
-						},
-						vtabs:function (cb1) {				
-							webapp.guessTab(req, {pid:'priceeditor',name:ctx.i18n(req.session.apiToken, 'cash', 'Rate Currency Editor'), url:req.url}, cb1);
-						},
-					},function (err, results) {										
-						cb(err, results.currencies,results.vtabs);
+				function (cb) { 
+					cashapi.getAllCurrencies(req.session.apiToken,cb)
+				},
+				function(currencies,cb){
+					usedCurrencies = _.filter(currencies,function(curr){
+						return curr.used == 1;
 					});
-				},						
-				function render (currencies,vtabs) {
-					//console.log(currencies);												
+					notUsedCurrencies = _.filter(currencies,function(curr){
+						return curr.used == 0;
+					});
+					webapp.guessTab(req, {pid:'priceeditor',name:ctx.i18n(req.session.apiToken, 'cash', 'Rate Currency Editor'), url:req.url}, cb);
+				},										
+				function render (vtabs) {																	
 					var rdata = {
 							settings:{views:__dirname+"/../views/"},
 							prefix:prefix, 
 							tabs:vtabs, 						
 							token: req.session.apiToken,
-							currencies:currencies						
+							usedCurrencies:usedCurrencies,
+							notUsedCurrencies:notUsedCurrencies						
 						};
 					res.render(__dirname+"/../views/priceeditor", rdata);
 				}],
