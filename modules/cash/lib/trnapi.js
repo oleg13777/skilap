@@ -163,8 +163,18 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 					}
 					
 					// if split cmdty not equal to trn currency and both values defined, nothing to do 
-					if (!_.isUndefined(spl.value) && !_.isUndefined(spl.quantity))
-						return cb();
+					if (!_.isUndefined(spl.value) && !_.isUndefined(spl.quantity)){
+						var rate = (spl.quantity/spl.value).toFixed(5);
+						price = {cmdty:trn.currency,currency:splitAccount.cmdty,date:trn.dateEntered,value:rate,source:"transaction"};
+						self.savePrice(token,price,function(err,pricen){
+							console.log('after save price');
+							console.log(err);
+							console.log(pricen);
+							if(err)
+								return cb(err);
+							return cb();
+						});					
+					}
 						
 					// otherwise lets try to fill missing value
 					var irate = 1;

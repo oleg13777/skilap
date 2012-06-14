@@ -36,43 +36,59 @@ module.exports = function (fileName, callback){
 	var slot = {};
 	var slots = [];
 	var flags = ["hidden", "placeholder"];
-	saxStream.on("opentag", function (node) {
-		path.push(node.name);
-		if (node.name == "GNC:TRANSACTION") {
+	
+	var opentag = {
+		"GNC:TRANSACTION":function(){
 			tr = {currency:{},splits:[]};
-		} else if (node.name == "GNC:ACCOUNT") {
+		},
+		"GNC:ACCOUNT":function(){
 			acc = {parentId:0,cmdty:{}};
-		} else if (node.name == "TRN:SPLIT") {
+		},		
+		"TRN:SPLIT":function(){
 			split = {};
-		} else if (node.name == "PRICE") {
+		},
+		"PRICE":function(){
 			price = {id:gluid,cmdty:{},currency:{}};
 			gluid++;
-		} else if (node.name == "SLOT") {
+		},
+		"SLOT":function(){
 			slot = {};
-		} else if (node.name == "ACT:SLOTS") {
+		},
+		"ACT:SLOTS":function(){
 			slots = [];
 		}
-	})
-
-	saxStream.on("text", function (text) {
-		nodetext = text;
-	})
-
-	saxStream.on("closetag", function (name) {
-		var node = {name:name};
-		path.pop();
-		if (name == "GNC:TRANSACTION") {
+	};
+	
+	var closetag = {
+		"GNC:TRANSACTION":function(){
 			transactions.push(tr);
-		} else if (name == "PRICE") {
-			prices.push(price);
-		} else if (node.name == "TRN:DESCRIPTION") {
+		},	
+		"GNC:ACCOUNT":function(){
+			if (acc.type != "ROOT") {
+				accounts.push (acc);
+				accMap[acc.id]=acc;
+			} else {
+				rootId = acc.id;
+			}
+		},
+		"TRN:SPLIT":function(){
+			if (accMap[split.accountId]==null) {
+				exit(0);
+			}
+			tr.splits.push(split);
+		},	
+		"TRN:DESCRIPTION":function(){
 			tr.description = nodetext;
-		} else if (node.name == "TRN:NUM") {
+		},
+		"TRN:NUM":function(){
 			tr.num = nodetext;
-		} else if (node.name == "TRN:ID") {
+		},
+		"TRN:ID":function(){
 			gluMap[nodetext]=gluid;
-			tr.id = gluid; gluid++;
-		} else if (node.name == "TS:DATE") {
+			tr.id = gluid;
+			gluid++;
+		},		
+		"TS:DATE":function(){
 			if (path[path.length-1]=="TRN:DATE-ENTERED") {
 				tr.dateEntered = new Date(nodetext);
 			} else if (path[path.length-1]=="TRN:DATE-POSTED") {
@@ -80,80 +96,125 @@ module.exports = function (fileName, callback){
 			} else if (path[path.length-1]=="PRICE:TIME") {
 				price.date = new Date(nodetext);
 			}
-		} else if (node.name == "ACT:NAME") {
+		},
+		"ACT:NAME":function(){
 			acc.name = nodetext;
-		} else if (node.name == "ACT:TYPE") {
+		},
+		"ACT:TYPE":function(){
 			acc.type = nodetext;
-		} else if (node.name == "ACT:ID") {
+		},
+		"ACT:ID":function(){
 			gluMap[nodetext]=gluid;
-			acc.id = gluid; gluid++;
-		} else if (node.name == "ACT:PARENT") {
+			acc.id = gluid; 
+			gluid++;
+		},
+		"ACT:PARENT":function(){
 			acc.parentId = gluMap[nodetext];
 			if (acc.parentId == rootId)
 				acc.parentId = 0;
-		} else if (node.name == "CMDTY:ID") {
-			if (path[path.length-1]=="ACT:COMMODITY") {
-				acc.cmdty.id = nodetext;
-			} else if (path[path.length-1]=="TRN:CURRENCY") {
-				tr.currency.id = nodetext;
-			} else if (path[path.length-1]=="PRICE:COMMODITY") {
-				price.cmdty.id = nodetext;
-			} else if (path[path.length-1]=="PRICE:CURRENCY") {
-				price.currency.id = nodetext;
-			}
-		} else if (node.name == "CMDTY:SPACE") {
-			if (path[path.length-1]=="ACT:COMMODITY") {
-				acc.cmdty.space = nodetext;
-			} else if (path[path.length-1]=="TRN:CURRENCY") {
-				tr.currency.space = nodetext;
-			} else if (path[path.length-1]=="PRICE:COMMODITY") {
-				price.cmdty.space = nodetext;
-			} else if (path[path.length-1]=="PRICE:CURRENCY") {
-				price.currency.space = nodetext;
-			}
-		} else if (node.name == "GNC:ACCOUNT") {
-			if (acc.type != "ROOT") {
-				accounts.push (acc);
-				accMap[acc.id]=acc;
-			} else {
-				rootId = acc.id;
-			}
-		} else if (node.name == "SPLIT:QUANTITY") {
-			split.quantity = eval(nodetext);
-		} if (node.name == "SPLIT:VALUE") {
-			split.value = eval(nodetext);
-		} if (node.name == "SPLIT:MEMO") {
-			split.memo = nodetext;
-		} if (node.name == "SPLIT:ID") {
-			gluMap[nodetext]=gluid;
-			split.id = gluid; gluid++;
-		}  if (node.name == "SPLIT:ACCOUNT") {
-			split.accountId = gluMap[nodetext];
-		} if (node.name == "SPLIT:RECONCILED-STATE") {
-			split.rstate = nodetext;
-		} if (node.name == "SPLIT:ACTION") {
-			split.action = nodetext;
-		} else if (node.name == "TRN:SPLIT") {
-			if (accMap[split.accountId]==null) {
-				exit(0);
-			}
-			tr.splits.push(split);
-		} if (node.name == "PRICE:VALUE") {
+		},
+		"CMDTY:ID":function(){
+			switch(path[path.length-1]){
+				case "ACT:COMMODITY":
+					acc.cmdty.id = nodetext;
+				break;
+				case "TRN:CURRENCY":
+					tr.currency.id = nodetext;
+				break;
+				case "PRICE:COMMODITY":
+					price.cmdty.id = nodetext;
+				break;
+				case "PRICE:CURRENCY":
+					price.currency.id = nodetext;
+				break;
+			}			
+		},
+		"CMDTY:SPACE":function(){
+			switch(path[path.length-1]){
+				case "ACT:COMMODITY":
+					acc.cmdty.space = nodetext;
+				break;
+				case "TRN:CURRENCY":
+					tr.currency.space = nodetext;
+				break;
+				case "PRICE:COMMODITY":
+					price.cmdty.space = nodetext;
+				break;
+				case "PRICE:CURRENCY":
+					price.currency.space = nodetext;
+				break;
+			}			
+		},	
+		"PRICE:VALUE":function(){
 			price.value = eval(nodetext);
-		} if (node.name == "SPLIT:MEMO") {
+		},
+		"PRICE:SOURCE":function(){
+			price.source = nodetext == "user:xfer-dialog" ? "transaction" : "edit";
+		},
+		"PRICE":function(){
+			prices.push(price);
+		},	
+		"SPLIT:QUANTITY":function(){
+			split.quantity = eval(nodetext);
+		},
+		"SPLIT:VALUE":function(){
+			split.value = eval(nodetext);
+		},
+		"SPLIT:MEMO":function(){
 			split.memo = nodetext;
-		} if (node.name == "SLOT:KEY") {
+		},
+		"SPLIT:ID":function(){
+			gluMap[nodetext]=gluid;
+			split.id = gluid; 
+			gluid++;
+		},
+		"SPLIT:ACCOUNT":function(){
+			split.accountId = gluMap[nodetext];
+		},
+		"SPLIT:RECONCILED-STATE":function(){
+			split.rstate = nodetext;
+		},
+		"SPLIT:ACTION":function(){
+			split.action = nodetext;
+		},		
+		"SLOT:KEY":function(){
 			slot.key = nodetext;
-		} if (node.name == "SLOT:VALUE") {
+		},
+		"SLOT:VALUE":function(){
 			slot.value = nodetext;
-		} if ((node.name == "SLOT") && (_(flags).indexOf(slot.key) > -1)) {
-			slots.push(slot);
-		} if ((node.name == "ACT:SLOTS") && !(_(slots).isEmpty())) {
-			_(slots).forEach(function (s) {
-				acc[s.key] = s.value;
-			});
+		},
+		"SLOT":function(){
+			if(_(flags).indexOf(slot.key) > -1) {
+				slots.push(slot);
+			}
+		},
+		"ACT:SLOTS":function(){
+			if(!(_(slots).isEmpty())) {
+				_(slots).forEach(function (s) {
+					acc[s.key] = s.value;
+				});
+			}
 		}
+		
+	};
+	
+	saxStream.on("opentag", function (node) {
+		path.push(node.name);
+		if(opentag[node.name]){
+			opentag[node.name]();
+		}		
+	});
+
+	saxStream.on("text", function (text) {
+		nodetext = text;
 	})
+
+	saxStream.on("closetag", function (name) {		
+		path.pop();
+		if(closetag[name]){
+			closetag[name]();
+		}	
+	});
 
 	saxStream.on("end", function (node) {
 		// we need to transpond ids to our own space
@@ -202,7 +263,7 @@ module.exports = function (fileName, callback){
 				callback(null,ret);
 			});
 		})
-	})
+	});
 	
 	var buffer = new Buffer(3);
 	var fd = fs.openSync(fileName, 'r');

@@ -54,7 +54,7 @@ module.exports = function priceeditor(webapp) {
 				var date = dateFormat.format(new Date(req.query.date));
 				var cmdty = {space:"ISO4217",id:req.query.from};
 				var currency = {space:"ISO4217",id:req.query.to};	
-				price = {cmdty:cmdty,currency:currency,date:date,value:req.query.value};
+				price = {cmdty:cmdty,currency:currency,date:date,value:req.query.value,source:"edit"};
 				if(req.query.id != 0){
 					price.id = req.query.id;
 				}							
