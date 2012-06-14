@@ -1,12 +1,100 @@
-<script>
-	$(function() {		
+<script type="text/javascript" src="{{prefix}}/javascripts/highcharts/highcharts.js"></script>
+<script type="text/javascript">	
+	$(function() {	
+		var graphOptions = {
+            chart: {
+                renderTo: 'graphContainer',
+                zoomType: 'x',
+                spacingRight: 20
+            },
+            title: {
+                text: ''
+            },
+            subtitle: {
+                text: document.ontouchstart === undefined ?
+                    'Click and drag in the plot area to zoom in' :
+                    'Drag your finger over the plot to zoom in'
+            },
+            xAxis: {
+                type: 'datetime',
+                maxZoom: 14 * 24 * 3600000, // fourteen days
+                title: {
+                    text: null
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'Exchange rate'
+                },                
+                startOnTick: false,                                
+                showFirstLabel: false
+            },
+            tooltip: {
+                shared: true
+            },
+            legend: {
+                enabled: false
+            },
+            plotOptions: {
+                area: {
+                    fillColor: {
+                        linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1},
+                        stops: [
+                            [0, Highcharts.getOptions().colors[0]],
+                            [1, 'rgba(2,0,0,0)']
+                        ]
+                    },
+                    lineWidth: 1,
+                    marker: {
+                        enabled: false,
+                        states: {
+                            hover: {
+                                enabled: true,
+                                radius: 5
+                            }
+                        }
+                    },
+                    shadow: false,
+                    states: {
+                        hover: {
+                            lineWidth: 1
+                        }
+                    }
+                }
+            },
+    
+            series: [{
+                type: 'area',
+                name: '',                 
+                data: []
+            }]
+        };
+		
+		var redrawPriceGraph = function(){
+			var from =$("#currencySelectorForm").find('#firstCurrency option:selected').val();
+			var to = $("#currencySelectorForm").find('#secondCurrency option:selected').val();
+			var jqXHR = $.ajax({
+				url:"{{prefix}}/priceeditor",
+				data:{redrawGraph:1,from:from,to:to},
+				dataType:"json"
+			});
+			jqXHR.done(function(res){	
+				graphOptions.title.text = from+' to '+to+' exchange rate';
+				graphOptions.series[0].name = from+' to '+to;	
+				graphOptions.yAxis.max = res.max;			
+				graphOptions.series[0].data = res.data;
+				var chart = new Highcharts.Chart(graphOptions);				
+			});
+		};
+		
 		var selectList = $("#currencySelectorForm select");
 		$($(selectList[0]).find('option')[0]).attr('selected','selected');
+		$($(selectList[0]).find('option')[1]).attr('disabled','disabled');
 		$($(selectList[1]).find('option')[0]).attr('disabled','disabled');
 		$($(selectList[1]).find('option')[1]).attr('selected','selected');
 		
 		$(".rateCtrlBtn").attr('disabled','disabled');
-		
+		/* on change currency */
 		$("#currencySelectorForm select").on('change',function(){
 			var current=0,target=1;
 			if(selectList[1] == $(this).get(0)){
@@ -14,14 +102,24 @@
 			}
 			$(selectList[current]).find('option').removeAttr('disabled');
 			$(selectList[target]).find('option').removeAttr('disabled');
-			$(selectList[target]).find('option[value="'+$(this).find("option:selected").val()+'"]').attr('disabled','disabled');
+			var $currentOption = $(this).find("option:selected");
+			var $targetOption = $(selectList[target]).find('option[value="'+$currentOption.val()+'"]');
+			if($targetOption.is(":selected")){
+				$targetOption.removeAttr('selected');
+			}
+			$targetOption.attr('disabled','disabled');
 			
 			$(".rateEditorContainer").html('');
+			$("#graphContainer").html('');
 			$(".rateCtrlBtn").attr('disabled','disabled');
 		});
-				
+		
+		var oldFrom,oldTo;				
 		$("#currencySelectorForm").submit(function(){
 			var $self = $(this);
+			var from = $self.find('#firstCurrency option:selected').val();
+			var to = $self.find('#secondCurrency option:selected').val();
+			
 			var jqXHR = $.ajax({
 				url:"{{prefix}}/priceeditor",
 				data:$self.serialize(),
@@ -31,7 +129,12 @@
 				$("#dialogRateCurrency").dialog("destroy");
 				$(".rateEditorContainer").html(data);
 				$(".rateCtrlBtn").attr('disabled','disabled');
-				$(".add.rateCtrlBtn").removeAttr('disabled');
+				$(".add.rateCtrlBtn").removeAttr('disabled');				
+				if(oldFrom != from || oldTo != to){				
+					oldFrom = from;
+					oldTo = to;
+					redrawPriceGraph();
+				}
 			});
 			return false;
 		});
@@ -88,6 +191,7 @@
 								$("#rateTable tbody").prepend(data);
 							}
 							$dialog.dialog("close");
+							redrawPriceGraph();
 						});											
 					},			
 					close: function() {
@@ -124,6 +228,7 @@
 								$("#rateTable tr.selected[data-id='"+id+"']").remove();
 							}							
 							$dialog.dialog("close");
+							redrawPriceGraph();
 						});						
 					},
 					Cancel: function() {
@@ -131,30 +236,36 @@
 					}
 				}
 			});
-		});
-		
+		});		
 	});
 </script>
 <div class="header"><h2>{{#i18n}}Select pair of currencies to edit rate exchanging currency{{/i18n}}</h2></div>
-<form id="currencySelectorForm">
-	<input type="hidden" name="offset" value="0" />
-	<select id="firstCurrency" name="firstCurr">
-		{{>currencies_list}}		
-	</select>	
-	
-	<select id="secondCurrency" name="secondCurr">
-		{{>currencies_list}}	
-	</select>
-	
-	<button type="submit" class="action-button">{{#i18n}}Apply{{/i18n}}</button>
-</form>
-<div class="rateCtrlButtonsContainer">
-	<button class="add rateCtrlBtn" disabled="disabled" >{{#i18n}}Add{{/i18n}}</button>
-	<button class="edit rateCtrlBtn" disabled="disabled" >{{#i18n}}Edit{{/i18n}}</button>
-	<button class="delete rateCtrlBtn" disabled="disabled" >{{#i18n}}Delete{{/i18n}}</button>
-</div>
-<div class="rateEditorContainer">
+<div class="priceWrapper">
+	<div class="leftcol price">
+		<form id="currencySelectorForm">	
+			<input type="hidden" name="offset" value="0" />
+			<select id="firstCurrency" name="firstCurr">
+				{{>currencies_list}}		
+			</select>	
+			
+			<select id="secondCurrency" name="secondCurr">
+				{{>currencies_list}}	
+			</select>
+			
+			<button type="submit" class="action-button">{{#i18n}}Apply{{/i18n}}</button>
+		</form>
+		<div class="rateCtrlButtonsContainer">
+			<button class="add rateCtrlBtn" disabled="disabled" >{{#i18n}}Add{{/i18n}}</button>
+			<button class="edit rateCtrlBtn" disabled="disabled" >{{#i18n}}Edit{{/i18n}}</button>
+			<button class="delete rateCtrlBtn" disabled="disabled" >{{#i18n}}Delete{{/i18n}}</button>
+		</div>
+		<div class="rateEditorContainer">
 
+		</div>
+	</div>
+	<div class="rightcol price">
+		<div id="graphContainer"></div>
+	</div>
 </div>
 
 

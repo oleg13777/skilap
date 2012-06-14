@@ -67,10 +67,30 @@ module.exports = function priceeditor(webapp) {
 				cashapi.clearPrices(req.session.apiToken,[req.query.deleteId],function(err){
 					var result={};
 					if(err){
-						res.error = 1;
+						result.error = 1;
 					}
 					res.send(result);
 				});	
+			}
+			else if(req.query.redrawGraph){
+				cashapi.getPricesByPair(req.session.apiToken,{from:req.query.from,to:req.query.to},function(err,prices){
+					var result={};
+					if(err){
+						result.error = 1;
+					}
+					else{
+						result.data=[];
+						_.forEach(prices,function(price){
+							result.data.push([new Date(price.date).valueOf(),price.value])							
+						});	
+						maxPrice = _.max(prices,function(price){
+							return price.value;
+						});
+						result.max = maxPrice.value;
+						
+					}
+					res.send(result);
+				});
 			}
 			
 		}

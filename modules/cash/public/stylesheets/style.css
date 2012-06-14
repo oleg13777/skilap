@@ -677,10 +677,23 @@ padding: 0 0 0 5px;
 
 #currencySelectorForm,#rateTable,.rateCtrlButtonsContainer,.rateEditorContainer{
 display:block;
-width:550px;
 margin:15px 0;
 }
 
+.priceWrapper{
+display:table;
+width:100%;
+}
+
+.leftcol.price{
+float:left;
+width:50%;
+}
+
+.rightcol.price{
+float:right;
+width:49%;
+}
 
 
 #currencySelectorForm select{
