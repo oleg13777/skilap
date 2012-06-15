@@ -84,9 +84,8 @@ module.exports = function account(webapp) {
 				var obj = {};
 				if (periods){
 					var obj = {name:accKey.name, data:_(accKey.periods).pluck('summ')}
-				} else {
-					var percent = (accKey.summ / total) * 100
-					obj = [accKey.name, percent];
+				} else {					
+					obj = [accKey.name, accKey.summ];
 				}
 				memo.push(obj);
 				return memo;
@@ -106,7 +105,7 @@ module.exports = function account(webapp) {
 			function (accounts, cb1) {
 				calcAccStatsByPerriod(token, accounts, params.accType, params.startDate, params.endDate, null, params.maxAcc, cb1);
 			}
-		], function (err, series) {
+		], function (err, series) {			
 			cb(null, {pie:true, settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, series:JSON.stringify(series), params:JSON.stringify(params)});
 		});
 	};
@@ -119,7 +118,7 @@ module.exports = function account(webapp) {
 			function (accounts, cb1) {
 				calcAccStatsByPerriod(token, accounts, params.accType, params.startDate, params.endDate, periods, params.maxAcc, cb1);
 			}
-		], function (err, series) {
+		], function (err, series) {			
 			cb(null, {expense:true, settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, categories:JSON.stringify(categories), series:JSON.stringify(series), params:JSON.stringify(params)});
 		});
 	};

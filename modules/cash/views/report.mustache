@@ -81,19 +81,21 @@
 			},
 			tooltip: {
 				formatter: function() {
-					return '<b>'+ this.point.name +'</b>: '+ this.percentage.toFixed(2) +' %';
+					return '<b>'+this.point.name +'</b>: '+ this.percentage.toFixed(2) +' % ('+ this.y.toFixed(2)+')';
+						
 				}
 			},
 			plotOptions: {
 				pie: {
 					allowPointSelect: true,
 					cursor: 'pointer',
+					showInLegend: true,
 					dataLabels: {
 						enabled: true,
 						color: '#000000',
 						connectorColor: '#000000',
 						formatter: function() {
-							return '<b>'+ this.point.name +'</b>: '+ this.percentage.toFixed(2) +' %';
+							return '<b>'+ this.point.name +'</b>: '+ this.percentage.toFixed(2) +' % ('+ this.y.toFixed(2)+')';
 						}
 					}
 				}
