@@ -46,7 +46,7 @@ module.exports.getTransaction = function (token, trId, cb) {
 }
 
 module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
-	var debug = false;
+	var debug = true;
 	if (debug) { console.log("Received"); console.log(arguments); }
 	if (_.isFunction(leadAccId)) {
 		cb = leadAccId;
@@ -172,25 +172,26 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 							return cb();
 						});					
 					}
-						
-					// otherwise lets try to fill missing value
-					var irate = 1;
-					// value is known
-					self.getCmdtyPrice(token,trn.currency,splitAccount.cmdty,null,null,function(err,rate){
-						if(err && !(err.skilap && err.skilap.subject == "UnknownRate"))
-							return cb(err);
+					else{	
+						// otherwise lets try to fill missing value
+						var irate = 1;
+						// value is known
+						self.getCmdtyPrice(token,trn.currency,splitAccount.cmdty,null,null,function(err,rate){
+							if(err && !(err.skilap && err.skilap.subject == "UnknownRate"))
+								return cb(err);
 
-						if (!err && rate!=0) 
-							irate = rate;
+							if (!err && rate!=0) 
+								irate = rate;
 
-						// depending on which part are known, restore another part
-						if (spl.value)
-							spl.quantity = spl.value*irate;
-						else
-							spl.value = spl.quantity/irate;
-							
-						cb()
-					})
+							// depending on which part are known, restore another part
+							if (spl.value)
+								spl.quantity = spl.value*irate;
+							else
+								spl.value = spl.quantity/irate;
+								
+							cb()
+						});
+					}
 				})
 			}, function (err) {
 				cb(err);
