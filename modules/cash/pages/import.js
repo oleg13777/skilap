@@ -11,7 +11,7 @@ module.exports = function account(webapp) {
 	app.get(prefix + "/import/gnucash", function(req, res, next) {
 		async.waterfall([
 			function (cb1) {
-				webapp.guessTab(req, {pid:'import-gnucash',name:'GnuCash import',url:req.url}, cb1);
+				webapp.guessTab(req, {pid:'import-gnucash',name:ctx.i18n(req.session.apiToken, 'cash','GnuCash import'),url:req.url}, cb1);
 			},
 			function render (vtabs) {
 				res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, upload:true,GnuCash:1 });
@@ -40,7 +40,7 @@ module.exports = function account(webapp) {
 					});
 				},
 				function (cb1) {
-					webapp.guessTab(req, {pid:'import-gnucash',name:'Import',url:req.url}, cb1);
+					webapp.guessTab(req, {pid:'import-gnucash',name:ctx.i18n(req.session.apiToken, 'cash','GnuCash import'),url:req.url}, cb1);
 				},
 				function render (vtabs) {
 					res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, step1:true, transactions:tr_count, accounts:acc_count, path:path,GnuCash:1});
@@ -80,7 +80,7 @@ module.exports = function account(webapp) {
 					cashapi.importTransactions(req.session.apiToken, transactions, cb1);
 				},
 				function (cb1) {
-					webapp.guessTab(req, {pid:'import-gnucash',name:'Import',url:req.url}, cb1);
+					webapp.guessTab(req, {pid:'import-gnucash',name:ctx.i18n(req.session.apiToken, 'cash','GnuCash import'),url:req.url}, cb1);
 				},
 				function (vtabs, cb1) {
 					tabs = vtabs;
@@ -94,7 +94,7 @@ module.exports = function account(webapp) {
 		} else {
 			async.waterfall([
 				function (cb1) {
-					webapp.guessTab(req, {pid:'import-gnucash',name:'Import',url:req.url}, cb1);
+					webapp.guessTab(req, {pid:'import-gnucash',name:ctx.i18n(req.session.apiToken, 'cash','GnuCash import'),url:req.url}, cb1);
 				},
 				function render (vtabs) {
 					res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, form:elseForm, transactions:transactions.length, accounts:accounts.length,GnuCash:1});

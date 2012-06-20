@@ -648,6 +648,7 @@ overflow:hidden;
 .wizard .button:hover,.action-button:hover {
    background: #ccc;
 }
+
 .wizard .step-hint{
 display:block;
 margin:15px 0;
@@ -783,4 +784,18 @@ text-align:center;
 .rateEditorContainer .paging .pageNum.active{
 text-decoration:none;
 color:#333;
+}
+
+.editAcc {
+	background:url('../images/icon_edit16.png') no-repeat;
+    height: 16px;
+    width: 16px;
+    text-decoration: none;
+}
+
+.deleteAcc {
+	background:url('../images/icon_delete16.png') no-repeat;
+    height: 16px;
+    width: 16px;
+    text-decoration: none;
 }

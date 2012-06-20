@@ -110,7 +110,7 @@ module.exports = function account(webapp) {
 				});
 			},
 			function (cb1) {				
-				webapp.guessTab(req, {pid:'acctree',name:ctx.i18n(req.session.apiToken, 'cash', 'Tree'), url:req.url}, cb1);
+				webapp.guessTab(req, {pid:'acctree',name:ctx.i18n(req.session.apiToken, 'cash', 'Accounts'), url:req.url}, cb1);
 			},
 			function render (vtabs) {								
 				var rdata = {

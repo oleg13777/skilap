@@ -28,7 +28,7 @@ module.exports = function account(webapp) {
 	app.get(prefix + "/import/raw", function(req, res, next) {
 		async.waterfall([
 			function (cb1) {
-				webapp.guessTab(req, {pid:'import-raw',name:'Raw import',url:req.url}, cb1);
+				webapp.guessTab(req, {pid:'import-raw',name:ctx.i18n(req.session.apiToken, 'cash','Raw import'),url:req.url}, cb1);
 			},
 			function render (vtabs) {
 				res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, upload:true,SkilapCash:1 });
@@ -57,7 +57,7 @@ module.exports = function account(webapp) {
 					});
 				},
 				function (cb1) {
-					webapp.guessTab(req, {pid:'import-raw',name:'Import',url:req.url}, cb1);
+					webapp.guessTab(req, {pid:'import-raw',name:ctx.i18n(req.session.apiToken, 'cash','Raw import'),url:req.url}, cb1);
 				},
 				function render (vtabs) {
 					res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, step1:true, transactions:tr_count, accounts:acc_count, path:path,SkilapCash:1});
@@ -111,7 +111,7 @@ module.exports = function account(webapp) {
 		} else {
 			async.waterfall([
 				function (cb1) {
-					webapp.guessTab(req, {pid:'import-raw',name:'Import',url:req.url}, cb1);
+					webapp.guessTab(req, {pid:'import-raw',name:ctx.i18n(req.session.apiToken, 'cash','Raw import'),url:req.url}, cb1);
 				},
 				function render (vtabs) {
 					res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, form:elseForm, transactions:transactions.length, accounts:accounts.length,SkilapCash:1});
