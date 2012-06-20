@@ -15,6 +15,7 @@ var SkilapError = require("skilap-utils").SkilapError;
 var Gettext = require("../vendor/Gettext");
 var hogan=require('hogan');
 var i18n = require('jsorm-i18n');
+var ApiBatch = require('./batch.js');
 
 var tmpl = {
     compile: function (source, options) {	
@@ -278,9 +279,12 @@ function Skilap() {
 							var func = jsonrpc.method.match(/^(.*)\.(.*)$/);
 							var module = func[1];
 							func = func[2];
-							console.log('Begin ' + func);
-							console.log('Now ' + new Date());
-							var api = modules[module].api;
+							var api;
+							if (module == 'core')
+								api = self;
+							else
+								api = modules[module].api;
+								
 							var fn = api[func];
 							params.push(function () {
 								var jsonres = {};
@@ -295,8 +299,6 @@ function Skilap() {
 								jsonres.id = jsonrpc.id;
 								var body = JSON.stringify(jsonres);
 								var reqTime = new Date() - startTime;
-								console.log("Request time:" + reqTime);
-								console.log('End ' + func);
 								res.send(jsonres);
 							})
 							fn.apply(api, params);
@@ -310,8 +312,6 @@ function Skilap() {
 				};
 
 				app.get("/jsonrpc", function (req, res, next) {
-					console.log('Now ' + new Date());
-					console.log(req.query.jsonrpc);
 					handleJsonRpc(JSON.parse(req.query.jsonrpc), req, res, next);
 				})
 				app.post("/jsonrpc", function (req,res,next) {
@@ -384,6 +384,10 @@ function Skilap() {
 	this.getModule = function (name, cb) {
 		cb(null, modules[name]);
 	}
+	
+	this.getModuleSync = function (name) {
+		return modules[name];
+	}	
 
 	this.getModulesInfo = function (langtoken, cb) {
 		var ret = [];
@@ -482,6 +486,10 @@ function Skilap() {
 		cb(null, res);
 	}
 	
+	this.runBatch = function (tasks,cb) {
+		batch = new ApiBatch(this);
+		batch.run(tasks,cb);
+	}
 }
 
 util.inherits(Skilap, events.EventEmitter);
