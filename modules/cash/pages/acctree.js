@@ -103,7 +103,7 @@ module.exports = function account(webapp) {
 				ctx.i18n_getCurrencies("rus", cb1);
 			},
 			function(_curencies, cb1){				
-				cashapi.getAssetsTypes(function(err, types){
+				cashapi.getAssetsTypes(req.session.apiToken,function(err, types){
 					curencies = _curencies
 					assetsTypes = types;
 					cb1();
@@ -132,40 +132,32 @@ module.exports = function account(webapp) {
 	
 	var responseHandler = function(req, res, next, tplName){
 		var assets, curencies, assetsTypes;
-		async.waterfall([
+		async.series([
 			function (cb) { 
-				getAssetsTree(req.session.apiToken, function(err,assets_){
-					if(err)
-						cb(err);
-					else{
-						assets = assets_;
-						cb();
-					}
-				}); 
+				getAssetsTree(req.session.apiToken, cb);
 			},
-			function (cb) {	ctx.i18n_getCurrencies("rus", cb) },
-			function(_curencies, cb1){
-				cashapi.getAssetsTypes(function(err, types){
-					curencies = _curencies
-					assetsTypes = types;
-					cb1();
-				});
-			},			
-			function render () {
-				var rdata = {
-						settings:{views:__dirname+"/../views"},
-						prefix:prefix,						
-						assets:assets,
-						token: req.session.apiToken,
-						curencies: curencies,
-						assetsTypes: assetsTypes,
-						mainLayoutHide:1,
-						host:req.headers.host						
-					};
-				res.render(__dirname+"/../views/"+tplName, rdata);
-			}],
-			next
-		);
+			function (cb) {	
+				webapp.getUseRangedCurrencies(req.session.apiToken,cb);
+			},
+			function(cb){
+				cashapi.getAssetsTypes(req.session.apiToken, cb);
+			}
+		], function (err,r) {
+			if (err) return next(err);
+			var rdata = {
+					settings:{views:__dirname+"/../views"},
+					prefix:prefix,						
+					assets:r[0],
+					token: req.session.apiToken,
+					curencies: r[1].all,
+					usedCurrencies:r[1].used,
+					notUsedCurrencies:r[1].unused,							
+					assetsTypes: r[2],
+					mainLayoutHide:1,
+					host:req.headers.host						
+				};
+			res.render(__dirname+"/../views/"+tplName, rdata);
+		});
 	};
 
 	app.get(prefix+"/acccreate",  function(req, res, next) {

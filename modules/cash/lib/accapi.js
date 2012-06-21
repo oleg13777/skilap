@@ -366,21 +366,22 @@ module.exports.restoreToDefaults = function (token, cmdty, type, cb){
 	});
 }
 
-module.exports.getAssetsTypes = function (cb) {
+module.exports.getAssetsTypes = function (token,cb) {
+	var self = this;	
 	var types = [
-			{value:"BANK", name:"Bank"},
-			{value:"CASH", name:"Cash"},
-			{value:"ASSET", name:"Asset"},
-			{value:"CREDIT", name:"Credit card"},
-			{value:"LIABILITY", name:"Liability"},
-			{value:"STOCK", name:"Stock"},
-			{value:"MUTUAL", name:"Mutual found"},
-			{value:"CURENCY", name:"Curency"},
-			{value:"INCOME", name:"Income"},
-			{value:"EXPENSE", name:"Expense"},
-			{value:"EQUITY", name:"Equity"},
-			{value:"RECIEVABLE", name:"Recievable"},
-			{value:"PAYABLE", name:"Payable"}
+			{value:"BANK", name:self._ctx.i18n(token, 'cash', 'Bank')},
+			{value:"CASH", name:self._ctx.i18n(token, 'cash', 'Cash')},
+			{value:"ASSET", name:self._ctx.i18n(token, 'cash', 'Asset')},
+			{value:"CREDIT", name:self._ctx.i18n(token, 'cash', 'Credit card')},
+			{value:"LIABILITY", name:self._ctx.i18n(token, 'cash', 'Liability')},
+			{value:"STOCK", name:self._ctx.i18n(token, 'cash', 'Stock')},
+			{value:"MUTUAL", name:self._ctx.i18n(token, 'cash', 'Mutual found')},
+			{value:"CURENCY", name:self._ctx.i18n(token, 'cash', 'Curency')},
+			{value:"INCOME", name:self._ctx.i18n(token, 'cash', 'Income')},
+			{value:"EXPENSE", name:self._ctx.i18n(token, 'cash', 'Expense')},
+			{value:"EQUITY", name:self._ctx.i18n(token, 'cash', 'Equity')},
+			{value:"RECIEVABLE", name:self._ctx.i18n(token, 'cash', 'Recievable')},
+			{value:"PAYABLE", name:self._ctx.i18n(token, 'cash', 'Payable')}
 		]
 	cb (null, types);
 }

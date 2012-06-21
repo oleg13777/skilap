@@ -3,7 +3,7 @@ $(function() {
 	$("#deleteDialog").dialog({
 		position: ["left","top"],
 		buttons: {
-			"apply": function() {
+			"{{#i18n}}Apply{{/i18n}}": function() {
 				var secret = $('#token').val();
 				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
 				var options = {};
@@ -28,7 +28,7 @@ $(function() {
 				//$(this).dialog("close");
 				window.parent.$("body .iframeContainer").trigger('closeDialog');
 			},
-			"close": function() {
+			"{{#i18n}}Close{{/i18n}}": function() {
 			//	$(this).dialog("close");
 				window.parent.$("body .iframeContainer").trigger('closeDialog');
 			}
@@ -45,8 +45,8 @@ $(function() {
 		},
 		autoOpen: true,
 		resizable: false,
-		height: 500,
-		width: 350,
+		height: 560,
+		width: 500,
 		modal: true,
 		draggable: false
 	});
@@ -57,7 +57,7 @@ $(function() {
 				var acc = event.data.data;
 				console.log(acc);
 				$('#del_acc').val(acc.id);
-				$('#deleteDialog').dialog( "option", "title", "Delete account \"" + acc.name +"\"");			
+				$('#deleteDialog').dialog( "option", "title", "{{#i18n}}Delete account{{/i18n}} \"" + acc.name +"\"");			
 			}
 			else if(event.data.name == 'resetAccountDialogData'){				
 				$("#deleteDialog form[name='deleteAccForm']").get(0).reset();
@@ -90,11 +90,11 @@ $(function() {
 		<input type="hidden" id="del_acc">
 		<input type="hidden" id="token" value="{{token}}">
 		<div id="sub_tr">
-			<h3>Transactions:</h3>
-			<p>If this account contans transactions. What would you like to do with these transactions?</p>
+			<h3>{{#i18n}}Transactions{{/i18n}}:</h3>
+			<p>{{#i18n}}If this account contans transactions. What would you like to do with these transactions?{{/i18n}}</p>
 			<br />
-			<p><input action="del" type="radio" name="trn_action" /> Delete<br />
-			<input action="move" type="radio" name="trn_action" checked /> Move to:
+			<p><input action="del" type="radio" name="trn_action" />{{#i18n}}Delete{{/i18n}}<br />
+			<input action="move" type="radio" name="trn_action" checked />{{#i18n}}Move to{{/i18n}}:
 			<select id="tr_parent" class="new_parent">
 				{{#assets}}
 					{{>acctree_list_item}}
@@ -104,11 +104,11 @@ $(function() {
 		</br>
 		<hr />
 		<div id="sub_acc">
-			<h3>Sub-accounts:</h3>
-			<p>If this account contans sub-accounts. What would you like to do with these sub-accounts?</p>
+			<h3>{{#i18n}}Sub-accounts{{/i18n}}:</h3>
+			<p>{{#i18n}}If this account contans sub-accounts. What would you like to do with these sub-accounts?{{/i18n}}</p>
 			<br />
-			<p><input action="del" type="radio" name="sub_acc_action"/> Delete<br />
-			<input action="move" type="radio" name="sub_acc_action" checked /> Move to:
+			<p><input action="del" type="radio" name="sub_acc_action"/>{{#i18n}}Delete{{/i18n}}<br />
+			<input action="move" type="radio" name="sub_acc_action" checked />{{#i18n}}Move to{{/i18n}}:
 			<select id="sub_acc_parent" class="new_parent">
 				{{#assets}}
 					{{>acctree_list_item}}
@@ -118,11 +118,11 @@ $(function() {
 			</br>
 			<hr />
 		<div id="sub_acc_tr">
-			<h3>Sub-account transactions:</h3>
-			<p>If one or more sub-account contan transactions. What would you like to do with these transactios?</p>
+			<h3>{{#i18n}}Sub-account transactions{{/i18n}}:</h3>
+			<p>{{#i18n}}If one or more sub-account contan transactions. What would you like to do with these transactios?{{/i18n}}</p>
 			<br />
-			<p><input action="del" type="radio" name="sub_acc_trn_action" /> Delete<br />
-			<input action="move" type="radio" name="sub_acc_trn_action" checked /> Move to:
+			<p><input action="del" type="radio" name="sub_acc_trn_action" />{{#i18n}}Delete{{/i18n}}<br />
+			<input action="move" type="radio" name="sub_acc_trn_action" checked />{{#i18n}}Move to{{/i18n}}:
 			<select id="sub_acc_trn_parent" class="new_parent">
 				{{#assets}}
 					{{>acctree_list_item}}

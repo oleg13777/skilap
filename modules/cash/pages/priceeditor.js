@@ -95,35 +95,26 @@ module.exports = function priceeditor(webapp) {
 			
 		}
 		else{
-			var usedCurrencies = [];	
-			var notUsedCurrencies = [];		
-			async.waterfall([
+			async.series([
 				function (cb) { 
-					cashapi.getAllCurrencies(req.session.apiToken,cb)
+					webapp.getUseRangedCurrencies(req.session.apiToken,cb)
 				},
-				function(currencies,cb){
-					usedCurrencies = _.filter(currencies,function(curr){
-						return curr.used == 1;
-					});
-					notUsedCurrencies = _.filter(currencies,function(curr){
-						return curr.used == 0;
-					});
+				function(cb){
 					webapp.guessTab(req, {pid:'priceeditor',name:ctx.i18n(req.session.apiToken, 'cash', 'Rate Currency Editor'), url:req.url}, cb);
-				},										
-				function render (vtabs) {																	
-					var rdata = {
-							settings:{views:__dirname+"/../views/"},
-							prefix:prefix, 
-							tabs:vtabs, 						
-							token: req.session.apiToken,
-							usedCurrencies:usedCurrencies,
-							notUsedCurrencies:notUsedCurrencies						
-						};
-					res.render(__dirname+"/../views/priceeditor", rdata);
-				}],
-				next
-				
-			);
+				}
+			], function render (err,r) {	
+				console.log(r[0]);																
+				if (err) return next(err);
+				var rdata = {
+					settings:{views:__dirname+"/../views/"},
+					prefix:prefix, 
+					tabs:r[1], 						
+					token: req.session.apiToken,
+					usedCurrencies:r[0].used,
+					notUsedCurrencies:r[0].unused						
+				};
+				res.render(__dirname+"/../views/priceeditor", rdata);
+			});
 		}		
 	});
 }

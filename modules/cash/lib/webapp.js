@@ -198,6 +198,28 @@ this.getTabSettings = function(token, tabId, cb) {
 	)
 }
 
+this.getUseRangedCurrencies = function(token, cb) {
+	var res =  {};
+	async.waterfall([
+		function (cb) { 
+			self.api.getAllCurrencies(token,cb)
+		},
+		function(currencies,cb){
+			res.all = currencies;
+			res.used = _.filter(currencies,function(curr){
+				return curr.used == 1;
+			});
+			res.unused = _.filter(currencies,function(curr){
+				return curr.used == 0;
+			});
+			cb();
+		}
+	], function (err) {
+		if (err) return cb(err);
+		cb(null, res);
+	})
+}
+
 this.i18n_cmdtytext = function(langtoken,cmdty,value) {
 	if (cmdty.space == 'ISO4217')
 		return ctx.i18n_cytext(langtoken,cmdty.id,value)
