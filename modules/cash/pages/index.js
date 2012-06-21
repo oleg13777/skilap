@@ -105,7 +105,7 @@ module.exports = function account(webapp) {
 					cb();
 				})
 			},
-			function (cb) { webapp.guessTab(req, {pid:'home',name:'Home',url:req.url}, cb) },
+			function (cb) { webapp.guessTab(req, {pid:'home',name:webapp.ctx.i18n(req.session.apiToken, 'cash','Home'),url:req.url}, cb) },
 			function render (vtabs) {
 				var rdata = {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs};
 				rdata.assetsSum = webapp.i18n_cmdtytext(req.session.apiToken,repCmdty,_(assets).reduce(function (m,e) {return m+e.value;},0));

@@ -5,6 +5,7 @@
 	{{#SkilapCash}}
 	<div class="header">{{#i18n}}Import Skilap Cash{{/i18n}}</div>
 	{{/SkilapCash}}
+	<div class="notice">{{#i18n}}Attention! Your existing data will be overwritten upon complete.{{/i18n}}</div>	
 {{#upload}}
 	<script type="text/javascript">
 		$(function(){
@@ -22,13 +23,13 @@
 		<input id="upload-file" type="file" name="upload" style="visibility:hidden;" />			
 		<input class="fakeUploadInput" readonly="readonly" />
 		<button class="fakeUploadBrowse button" type="button" >{{#i18n}}Browse{{/i18n}}</button>
+		<br><br>
 		<button class="button" type="submit">{{#i18n}}Next{{/i18n}}</button>
 	</form>	
 {{/upload}}
 
 {{#step1}}
-<div class="step-hint">{{#i18n}}We find{{/i18n}}: {{#i18n}}transactions{{/i18n}} = {{transactions}};&nbsp;
-{{#i18n}}accounts{{/i18n}} = {{accounts}}</div>
+<div class="step-hint">{{#i18n}}File parsed. It contains{{/i18n}}: {{transactions}} {{#i18n}}transactions{{/i18n}}, {{accounts}} {{#i18n}}accounts{{/i18n}}</div>
 <form action="?step=2" enctype="multipart/form-data" method="post">
 	<input type="hidden" name="fileName" value="{{path}}">
 	<button type="submit" class="button" >{{#i18n}}Next{{/i18n}}</button>
@@ -37,7 +38,7 @@
 
 {{#step2}}
 <form action="{{prefix}}" enctype="multipart/form-data" method="get">
-	<div class="step-hint">Data saved: {{transactions}} transactions and {{accounts}} accounts were imported!</div>
+	<div class="step-hint">{{#i18n}}Data saved{{/i18n}}, {{transactions}} {{#i18n}}transactions{{/i18n}} {{#i18n}}and{{/i18n}} {{accounts}} {{#i18n}}accounts{{/i18n}} {{#i18n}}were imported{{/i18n}}!</div>
 	<button type="submit" class="button" >{{#i18n}}Finish{{/i18n}}</button>
 </form>
 {{/step2}}

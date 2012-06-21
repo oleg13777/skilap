@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-06-09 18:08+0400\n"
+"POT-Creation-Date: 2012-06-20 19:03+0400\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -39,8 +39,8 @@ msgid "My card"
 msgstr "Моя карта"
 
 #: ../modules/cash/lib/accapi.js:305
-#: ../modules/cash/lib/viewStrings.js:34
-#: ../modules/cash/lib/viewStrings.js:44
+#: ../modules/cash/lib/viewStrings.js:53
+#: ../modules/cash/lib/viewStrings.js:63
 msgid "Income"
 msgstr "Доход"
 
@@ -259,10 +259,12 @@ msgid "New register"
 msgstr "Новый реестр"
 
 #: ../modules/cash/lib/viewStrings.js:10
+#: ../modules/cash/lib/viewStrings.js:35
 msgid "Import Gnu Cash"
 msgstr "Импорт данных из Gnu Cash"
 
 #: ../modules/cash/lib/viewStrings.js:11
+#: ../modules/cash/lib/viewStrings.js:36
 msgid "Import Skilap Cash"
 msgstr "Импорт данных из Skilap Cash"
 
@@ -271,7 +273,7 @@ msgid "Export Skilap Cash"
 msgstr "Экспорт данных из Skilap Cash"
 
 #: ../modules/cash/lib/viewStrings.js:13
-#: ../modules/cash/pages/priceeditor.js:55
+#: ../modules/cash/pages/priceeditor.js:111
 msgid "Rate Currency Editor"
 msgstr "Редактор курсов валют"
 
@@ -300,97 +302,153 @@ msgid "Spend/receive pie chart"
 msgstr "Круговая диаграмма доходов/расходов"
 
 #: ../modules/cash/lib/viewStrings.js:20
+msgid "Add Rate Currency"
+msgstr "Добавить курс обмена"
+
+#: ../modules/cash/lib/viewStrings.js:21
+msgid "Edit Rate Currency"
+msgstr "Редактор курса обмена"
+
+#: ../modules/cash/lib/viewStrings.js:22
 msgid "Select pair of currencies to edit rate exchanging currency"
 msgstr "Выберите пару валют для редактирования курса обмена"
 
-#: ../modules/cash/lib/viewStrings.js:21
-#: ../modules/cash/lib/viewStrings.js:35
+#: ../modules/cash/lib/viewStrings.js:23
+#: ../modules/cash/lib/viewStrings.js:54
 msgid "Apply"
 msgstr "Применить"
 
-#: ../modules/cash/lib/viewStrings.js:22
+#: ../modules/cash/lib/viewStrings.js:24
 msgid "Add"
 msgstr "Добавить"
 
-#: ../modules/cash/lib/viewStrings.js:23
+#: ../modules/cash/lib/viewStrings.js:25
 msgid "Edit"
 msgstr "Редактировать"
 
-#: ../modules/cash/lib/viewStrings.js:24
+#: ../modules/cash/lib/viewStrings.js:26
 msgid "Delete"
 msgstr "Удалить"
 
-#: ../modules/cash/lib/viewStrings.js:25
+#: ../modules/cash/lib/viewStrings.js:27
 msgid "Create new cash register"
 msgstr "Создать новый денежный реестр"
 
-#: ../modules/cash/lib/viewStrings.js:26
+#: ../modules/cash/lib/viewStrings.js:28
+#: ../modules/cash/lib/viewStrings.js:37
 msgid "Attention! Your existing data will be overwritten upon complete."
 msgstr "Внимание! Ваши текущие данные будут перезаписаны по окончанию операции."
 
-#: ../modules/cash/lib/viewStrings.js:27
+#: ../modules/cash/lib/viewStrings.js:29
 msgid "Default currency"
 msgstr "Валюта по умолчанию"
 
-#: ../modules/cash/lib/viewStrings.js:28
+#: ../modules/cash/lib/viewStrings.js:30
 msgid "Template"
 msgstr "Шаблон"
 
-#: ../modules/cash/lib/viewStrings.js:29
+#: ../modules/cash/lib/viewStrings.js:31
 msgid "Default accounts"
 msgstr "Счета по умолчанию"
 
-#: ../modules/cash/lib/viewStrings.js:30
+#: ../modules/cash/lib/viewStrings.js:32
 msgid "Empty"
 msgstr "Пустой"
 
-#: ../modules/cash/lib/viewStrings.js:31
+#: ../modules/cash/lib/viewStrings.js:33
 msgid "Confirm"
 msgstr "Подтвердить"
 
-#: ../modules/cash/lib/viewStrings.js:32
+#: ../modules/cash/lib/viewStrings.js:34
 msgid "Cancel"
 msgstr "Отменить"
 
-#: ../modules/cash/lib/viewStrings.js:33
+#: ../modules/cash/lib/viewStrings.js:38
+msgid "Select file for import"
+msgstr "Выбирите файл для импорта"
+
+#: ../modules/cash/lib/viewStrings.js:39
+msgid "Browse"
+msgstr "Обзор"
+
+#: ../modules/cash/lib/viewStrings.js:40
+#: ../modules/cash/lib/viewStrings.js:44
+msgid "Next"
+msgstr "Продолжить"
+
+#: ../modules/cash/lib/viewStrings.js:41
+msgid "File parsed. It contains"
+msgstr "Файл обработан. Он содержит "
+
+#: ../modules/cash/lib/viewStrings.js:42
+#: ../modules/cash/lib/viewStrings.js:46
+msgid "transactions"
+msgstr "транзакций"
+
 #: ../modules/cash/lib/viewStrings.js:43
+#: ../modules/cash/lib/viewStrings.js:48
+msgid "accounts"
+msgstr "счета"
+
+#: ../modules/cash/lib/viewStrings.js:45
+msgid "Data saved"
+msgstr "Данные сохранены"
+
+#: ../modules/cash/lib/viewStrings.js:47
+msgid "and"
+msgstr "и"
+
+#: ../modules/cash/lib/viewStrings.js:49
+msgid "were imported"
+msgstr "было импортировано"
+
+#: ../modules/cash/lib/viewStrings.js:50
+msgid "Finish"
+msgstr "Завершить"
+
+#: ../modules/cash/lib/viewStrings.js:51
+msgid "Wrong data. Please try again."
+msgstr "Ошибочный данные. Попробуйте снова."
+
+#: ../modules/cash/lib/viewStrings.js:52
+#: ../modules/cash/lib/viewStrings.js:62
 msgid "Expense"
 msgstr "Расходы"
 
-#: ../modules/cash/lib/viewStrings.js:36
+#: ../modules/cash/lib/viewStrings.js:55
 msgid "Close"
 msgstr "Закрыть"
 
-#: ../modules/cash/lib/viewStrings.js:37
-#: ../modules/cash/lib/viewStrings.js:45
+#: ../modules/cash/lib/viewStrings.js:56
+#: ../modules/cash/lib/viewStrings.js:64
 msgid "Report settings"
 msgstr "Параметры отчета"
 
-#: ../modules/cash/lib/viewStrings.js:38
+#: ../modules/cash/lib/viewStrings.js:57
 msgid "Start date"
 msgstr "Начальная дата"
 
-#: ../modules/cash/lib/viewStrings.js:39
+#: ../modules/cash/lib/viewStrings.js:58
 msgid "End date"
 msgstr "Конечная дата"
 
-#: ../modules/cash/lib/viewStrings.js:40
+#: ../modules/cash/lib/viewStrings.js:59
 msgid "Max account"
 msgstr "Макс. счетов"
 
-#: ../modules/cash/lib/viewStrings.js:41
+#: ../modules/cash/lib/viewStrings.js:60
 msgid "Report name"
 msgstr "Имя отчета"
 
-#: ../modules/cash/lib/viewStrings.js:42
+#: ../modules/cash/lib/viewStrings.js:61
 msgid "Account type"
 msgstr "Тип счета"
 
-#: ../modules/cash/lib/viewStrings.js:46
+#: ../modules/cash/lib/viewStrings.js:65
 msgid "Assets"
 msgstr "Активы"
 
-#: ../modules/cash/lib/viewStrings.js:47
+#: ../modules/cash/lib/viewStrings.js:66
 msgid "Liabilities"
 msgstr "Обязательства"
 
@@ -398,11 +456,11 @@ msgstr "Обязательства"
 msgid "Tree"
 msgstr "Дерево"
 
-#: ../modules/cash/pages/report.js:149
+#: ../modules/cash/pages/report.js:148
 msgid "Pie flow chart"
 msgstr "Движение средств (круг.)"
 
-#: ../modules/cash/pages/report.js:149
+#: ../modules/cash/pages/report.js:148
 msgid "Bar flow chart"
 msgstr "Движение средств (столб.)"
 
