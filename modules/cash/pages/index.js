@@ -81,11 +81,10 @@ module.exports = function account(webapp) {
 						"dep":"cmdty",
 						"cmd":"api",
 						"ctx":{"a":"each","v":"cmdty"},	
-						"prm":["cash.getCmdtyPrice","token","this","repCmdty",null,null],
+						"prm":["cash.getCmdtyPrice","token","this","repCmdty",null,"safe"],
 						"res":{"a":"store","v":"rate"}
 					}					
 				}
-				
 				webapp.ctx.runBatch(batch,function (err, _data) {
 					if (err) return cb(err);
 					data = _data;

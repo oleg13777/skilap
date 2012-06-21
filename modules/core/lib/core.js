@@ -280,7 +280,7 @@ function Skilap() {
 							var module = func[1];
 							func = func[2];
 							var api;
-							if (module == 'core')
+							if (module == 'batch')
 								api = self;
 							else
 								api = modules[module].api;
@@ -297,7 +297,6 @@ function Skilap() {
 									jsonres.result = Array.prototype.slice.call(arguments,1);
 								}
 								jsonres.id = jsonrpc.id;
-								var body = JSON.stringify(jsonres);
 								var reqTime = new Date() - startTime;
 								res.send(jsonres);
 							})
