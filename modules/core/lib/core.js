@@ -111,6 +111,8 @@ function Skilap() {
 							if (!user.language) {
 								// guess language 
 								var al = req.headers['accept-language'];
+								if (_.isUndefined(al))
+									al = "en-US";
 								var re = al.match(/\w\w-\w\w/i);
 								var guesslang = null;
 								if (re.length>0) {
