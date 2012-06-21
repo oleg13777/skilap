@@ -18,7 +18,12 @@ module.exports.getCmdtyPrice = function (token,cmdty,currency,date,method,cb) {
 		function get(cb) {
 			var key = JSON.stringify({from:cmdty,to:currency});			
 			var ptree = self._stats.priceTree[key];
-			if (ptree==null) return cb(new SkilapError("Unknown price pair","UnknownRate"));
+			if (ptree==null) {
+				if (method == "safe")
+					return cb(null, 1);
+				else
+					return cb(new SkilapError("Unknown price pair","UnknownRate"));
+			}
 			cb(null,ptree.last);
 		}], function end(err, results) {
 			if (err) return cb(err);
