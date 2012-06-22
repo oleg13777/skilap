@@ -12,8 +12,8 @@
             },
             subtitle: {
                 text: document.ontouchstart === undefined ?
-                    'Click and drag in the plot area to zoom in' :
-                    'Drag your finger over the plot to zoom in'
+                    '{{#i18n}}Click and drag in the plot area to zoom in{{/i18n}}' :
+                    '{{#i18n}}Drag your finger over the plot to zoom in{{/i18n}}'
             },
             xAxis: {
                 type: 'datetime',
@@ -24,7 +24,7 @@
             },
             yAxis: {
                 title: {
-                    text: 'Exchange rate'
+                    text: '{{#i18n}}Exchange rate{{/i18n}}'
                 },                
                 startOnTick: false,                                
                 showFirstLabel: false
@@ -79,7 +79,7 @@
 				dataType:"json"
 			});
 			jqXHR.done(function(res){	
-				graphOptions.title.text = from+' to '+to+' exchange rate';
+				graphOptions.title.text = from+' {{#i18n}}to{{/i18n}} '+to+' {{#i18n}}exchange rate{{/i18n}}';
 				graphOptions.series[0].name = from+' to '+to;	
 				graphOptions.yAxis.max = res.max;			
 				graphOptions.series[0].data = res.data;
@@ -173,7 +173,7 @@
 				title:title,
 				position:'center',
 				buttons: {
-					"apply": function() {						
+					"{{#i18n}}Apply{{/i18n}}": function() {						
 						var date = $(this).find("#date").val();
 						var rate =  $(this).find("#rate").val();
 						var from =  $(this).find("#from").val();
@@ -194,7 +194,7 @@
 							redrawPriceGraph();
 						});											
 					},			
-					close: function() {
+					"{{#i18n}}Close{{/i18n}}": function() {
 						$dialog.dialog("close");					
 					}
 				},							
@@ -217,7 +217,7 @@
 				height:140,
 				modal: true,
 				buttons: {
-					"Delete": function() {
+					"{{#i18n}}Delete{{/i18n}}": function() {
 						var jqXHR = $.ajax({
 							url:"{{prefix}}/priceeditor",
 							data:{deleteId:id},
@@ -231,7 +231,7 @@
 							redrawPriceGraph();
 						});						
 					},
-					Cancel: function() {
+					"{{#i18n}}Cancel{{/i18n}}": function() {
 						$dialog.dialog( "close" );
 					}
 				}

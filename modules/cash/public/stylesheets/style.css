@@ -688,12 +688,11 @@ width:100%;
 
 .leftcol.price{
 float:left;
-width:50%;
+width:600px;
 }
 
 .rightcol.price{
 float:right;
-width:49%;
 }
 
 
@@ -718,9 +717,15 @@ cursor:pointer;
 border:1px solid #ccc;
 }
 
-#rateTable .date,#rateTable .rate{
+#rateTable .date,#rateTable .frate{
 width:275px;
 text-align:center;
+padding:5px;
+}
+
+#rateTable .rate{
+width:275px;
+text-align:left;
 padding:5px;
 }
 
@@ -730,6 +735,10 @@ border-right:1px solid #ccc;
 }
 
 #rateTable .rate{
+border-left:1px solid #ccc;
+}
+
+#rateTable .frate{
 border-left:1px solid #ccc;
 }
 
@@ -746,6 +755,10 @@ border-top:1px solid #ccc;
 }
 
 #rateTable td.rate{
+border-top:1px solid #ccc;
+}
+
+#rateTable td.frate{
 border-top:1px solid #ccc;
 }
 
