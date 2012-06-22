@@ -7,134 +7,110 @@ module.exports = function account(webapp) {
 	var prefix = webapp.prefix
 	var repCmdty = {space:"ISO4217",id:"RUB"};
 	var ctx = webapp.ctx;
-	
-	
-	function getAccountDetail(token,acc,cb){		
-		var childs=[];
-		cashapi.getAccountInfo(token, acc.id, ["value"], function(err, d) {
-			if (err) return cb(err);
+
+	function getAccountTree(token, id, data, cb) {
+		// filter this level data
+		var level = _(data.accounts).filter(function (e) { return e.parentId == id; });
+		var res = [];
+		_(level).forEach (function (acc) {
 			var det = {};
 			det.cmdty = acc.cmdty;
 			det.name = acc.name;
-			det.parentId = acc.parentId;
-			det.id = acc.id;
-			det.value = d.value;
-			det.childs = childs;
-			det.fvalue='';
-			if (acc.hidden)
-				det.hidden = true;
-			if (acc.placeholder)
-				det.placeholder = true;
-			
-			// do the conversion
-			async.series ([
-				function (cb1) {					
-					cashapi.getCmdtyPrice(token,det.cmdty,repCmdty,null,null, function (err, rate) {
-						if (err) {
-							return cb1(err);
-						}
-						if (!_(repCmdty).isEqual(det.cmdty)) 
-							det.quantity = d.value;
-						det.value = parseFloat(webapp.i18n_cmdtyval(det.cmdty.id,d.value*rate));						
-						det.fvalue = webapp.i18n_cmdtytext(token,repCmdty,det.value);
-						if (det.quantity)
-							det.fquantity = webapp.i18n_cmdtytext(token,det.cmdty,det.quantity);
-							
-						cb1();
-					})
-				}
-			], function (err) {
-				if (err) console.log(err);
-				cb(null,det);
-			});
-		});
-	};
+			det.id = acc.id;			
+			det.path = acc.path.split('::');
+			getAccountTree(token, acc.id, data, function (err,childs) {
+				if (err) return cb(err);
+				if (!_(repCmdty).isEqual(det.cmdty)) 
+					det.quantity = acc.value;
+				var rate = 1;
+				var r = _(data.cmdty).find(function (e) { return e.id==acc.cmdty.id });
+				if (r!=null)
+					rate = r.rate;
+				det.value = parseFloat(webapp.i18n_cmdtyval(det.cmdty.id,acc.value*rate));
+				det.childs = childs;
+				_(childs).forEach (function (e) {
+					det.value+=e.value;
+				})
+				det.fvalue = webapp.i18n_cmdtytext(token,repCmdty,det.value);
+				if (det.quantity)
+					det.fquantity = webapp.i18n_cmdtytext(token,det.cmdty,det.quantity);
+				res.push(det);
+			})
+		})
+		cb(null, _(res).sortBy(function (e) {return e.name; }));
+	}
 	
-	function getAssetsTree(token,cb){
-		cashapi.getAllAccounts(token,function(err,accounts){
-			if(err)
-				return cb(err);
-			
-			var assets = {};
-			async.forEachSeries(accounts, function(acc, cb1){
-				getAccountDetail(token,acc,function(err,det){
-					if(err){
-						return cb(err);
-					}
-					assets[acc.id] = det;
-					cb1();
-				});							
-			}, function(){
-				for(key in assets){
-					if(assets[key].parentId != 0){						
-						if(!assets[assets[key].parentId].childs){
-							assets[assets[key].parentId].childs = [];
-						}
-						assets[assets[key].parentId].childs.push(assets[key]);						
-						assets[assets[key].parentId].value += parseFloat(assets[key].value);
-						assets[assets[key].parentId].fvalue	= webapp.i18n_cmdtytext(token,repCmdty,assets[assets[key].parentId].value);				
-					}
-				}
-				var assets_=[];
-				for(key in assets){
-					if((assets[key].parentId == 0) && !(assets[key].hidden))
-						assets_.push(assets[key]);
-				}				
-				cb(null,assets_);				
-			});				
-			
-		});
-	};
+	function getAccountList (token, cb) {
+		var batch = {
+			"setup":{
+				"cmd":"object",
+				"prm":{"token":token,"repCmdty":repCmdty},
+				"res":{"a":"merge"}
+			},
+			"accounts":{
+				"dep":"setup",
+				"cmd":"api",
+				"prm":["cash.getAllAccounts","token"],
+				"res":{"a":"store","v":"accounts"}
+			},
+			"info":{
+				"dep":"accounts",
+				"cmd":"api",
+				"ctx":{"a":"each","v":"accounts"},
+				"prm":["cash.getAccountInfo","token","id",["value","path"]],
+				"res":{"a":"merge"}
+			},
+			"cmdty":{
+				"dep":"accounts",
+				"cmd":"pluck",
+				"prm":["accounts","cmdty","unique"],
+				"res":{"a":"clone","v":"cmdty"}
+			},
+			"rates":{
+				"dep":"cmdty",
+				"cmd":"api",
+				"ctx":{"a":"each","v":"cmdty"},	
+				"prm":["cash.getCmdtyPrice","token","this","repCmdty",null,"safe"],
+				"res":{"a":"store","v":"rate"}
+			}					
+		}
+		webapp.ctx.runBatch(batch,cb);
+	}
 
 	app.get(prefix+"/acctree", function(req, res, next) {
 		var assets,curencies,assetsTypes;		
-		async.waterfall([
-			function (cb1) {
-				getAssetsTree(req.session.apiToken, function(err,assets_){
-					if(err)
-						cb1(err);
-					else{
-						assets = assets_;
-						cb1();
-					}
-				});
+		async.series([
+			function (cb) {
+				getAccountList(req.session.apiToken, function (err, data) {
+					if (err) return cb(err);
+					getAccountTree(req.session.apiToken,0,data,cb);
+				})
 			},
-			function (cb1) {				
-				ctx.i18n_getCurrencies("rus", cb1);
-			},
-			function(_curencies, cb1){				
-				cashapi.getAssetsTypes(req.session.apiToken,function(err, types){
-					curencies = _curencies
-					assetsTypes = types;
-					cb1();
-				});
-			},
-			function (cb1) {				
-				webapp.guessTab(req, {pid:'acctree',name:ctx.i18n(req.session.apiToken, 'cash', 'Accounts'), url:req.url}, cb1);
-			},
-			function render (vtabs) {								
-				var rdata = {
-						settings:{views:__dirname+"/../views"},
-						prefix:prefix, 
-						tabs:vtabs, 
-						assets:assets,
-						token: req.session.apiToken,
-						curencies: curencies,
-						assetsTypes: assetsTypes,
-						host:req.headers.host
-					};
-				res.render(__dirname+"/../views/acctree", rdata);
-			}],
-			next
-			
-		);
+			function (cb) {				
+				webapp.guessTab(req, {pid:'acctree',name:ctx.i18n(req.session.apiToken, 'cash', 'Accounts'), url:req.url},cb);
+			}
+		], function (err, r) {
+			if (err) return next(err);
+			var rdata = {
+					settings:{views:__dirname+"/../views"},
+					prefix:prefix, 
+					tabs:r[1], 
+					assets:r[0],
+					token: req.session.apiToken,
+					host:req.headers.host
+				};
+			res.render(__dirname+"/../views/acctree", rdata);
+		})
 	});
 	
 	var responseHandler = function(req, res, next, tplName){
 		var assets, curencies, assetsTypes;
 		async.series([
-			function (cb) { 
-				getAssetsTree(req.session.apiToken, cb);
+			function (cb) {
+				getAccountList(req.session.apiToken, function (err, data) {
+					if (err) return cb(err);
+					getAccountTree(req.session.apiToken,0,data,cb);
+				})
 			},
 			function (cb) {	
 				webapp.getUseRangedCurrencies(req.session.apiToken,cb);
@@ -191,8 +167,7 @@ module.exports = function account(webapp) {
 				});
 			},
 			function(det, cb1){				
-				res.writeHead(200, {'Content-Type': 'text/plain'});
-				res.end(JSON.stringify(det));
+				res.end(det);
 			}
 		],next);
 	});
