@@ -1,4 +1,4 @@
-<option value="{{id}}" pid="{{parentId}}">{{#path}}&nbsp;&nbsp;&nbsp;{{/path}}{{name}}</option>
+<option value="{{id}}" pid="{{parentId}}">{{#path}}&nbsp;&nbsp;&nbsp;{{/path}}{{#hidden}}* {{/hidden}}{{name}}</option>
 {{#childs}}
 {{>acctree_list_item}}
 {{/childs}}

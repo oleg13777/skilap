@@ -21,6 +21,7 @@ account.i18n(f[1],i,"Receive");
 account.i18n(f[1],i,"Spend");
 account.i18n(f[1],i,"Balance");
 acctree.i18n(f[1],i,"Add new account");
+acctree.i18n(f[1],i,"denotes hidden accounts");
 nav.i18n(f[1],i,"Data");
 nav.i18n(f[1],i,"New register");
 nav.i18n(f[1],i,"Import Gnu Cash");

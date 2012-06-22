@@ -18,6 +18,8 @@ module.exports = function account(webapp) {
 			det.name = acc.name;
 			det.id = acc.id;			
 			det.path = acc.path.split('::');
+			det.placeholder = acc.placeholder;
+			det.hidden = acc.hidden;
 			getAccountTree(token, acc.id, data, function (err,childs) {
 				if (err) return cb(err);
 				if (!_(repCmdty).isEqual(det.cmdty)) 
@@ -145,30 +147,18 @@ module.exports = function account(webapp) {
 	});		
 
 	app.post(prefix+"/accupd", function(req, res, next) {
-		async.waterfall([
-			function(cb1) {
-				var acc = {};
-				acc.id = req.body.id;
-				acc.name=req.body.name;
-				acc.parentId=req.body.parentId;
-				acc.type=req.body.type;
-				acc.cmdty={space:"ISO4217",id:req.body.curency};
-				_(req.body.slots).forEach(function(slot) {
-					acc[slot.key] = slot.value;
-				});
-				cashapi.saveAccount(req.session.apiToken, acc, cb1);
-			},
-			function(acc, cb1){
-				getAccountDetail(req.session.apiToken, acc, function (err,det) {
-					if(err)
-						cb1(err);
-					else
-						cb1(null,det);					
-				});
-			},
-			function(det, cb1){				
-				res.end(det);
-			}
-		],next);
+		var acc = {};
+		acc.id = req.body.id;
+		acc.name=req.body.name;
+		acc.parentId=req.body.parentId;
+		acc.type=req.body.type;
+		acc.cmdty={space:"ISO4217",id:req.body.curency};
+		_(req.body.slots).forEach(function(slot) {
+			acc[slot.key] = slot.value;
+		});
+		cashapi.saveAccount(req.session.apiToken, acc, function (err, acc) {
+			if (err) return next(err);
+			res.send(acc);
+		})
 	});
 }
