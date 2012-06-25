@@ -60,6 +60,11 @@ var cmdFunc = {
 			return _(param[2]).include(e[param[1]]);
 		})
 		cb(null, col)
+	},
+	'flatten': function (param, lookup, cb) {
+		var col = lookup(param[0]);
+		col = _.flatten(col, true);
+		cb(null, col)
 	}	
 }
 

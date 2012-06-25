@@ -19,7 +19,10 @@ module.exports.getAccountRegister = function (token,accId, offset, limit, cb ) {
 				else
 					process.nextTick(function () { cb1(null, accStats.trDateIndex.slice(offset, offset + limit)); });
 			} else
-				process.nextTick(function () { cb1(null, accStats.trDateIndex.slice(offset, offset + limit)); });
+				if (limit < 0)
+					process.nextTick(function () { cb1(null, accStats.trDateIndex.slice(limit)); });
+				else
+					process.nextTick(function () { cb1(null, accStats.trDateIndex.slice(offset, offset + limit)); });
 		}], function (err, results) {
 			if (err) return cb(err);
 			cb(null,results[1]);
