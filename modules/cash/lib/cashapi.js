@@ -281,6 +281,8 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 				// sort by date
 				accStats.trDateIndex = _.sortBy(accStats.trDateIndex,function (e) { return e.date.valueOf(); });
 				var ballance = 0;
+				if (assetInfo[accStats.type]==null)
+					console.log(accStats);
 				var act = assetInfo[accStats.type].act;
 				async.forEachSeries(accStats.trDateIndex, function (trs,cb3) {
 					self._cash_transactions.get(trs.id, function (err, tr) {
