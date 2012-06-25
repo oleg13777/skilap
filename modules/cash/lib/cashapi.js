@@ -172,7 +172,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 	// helper functions
 	function getAccStats (accId) {
 		if (self._stats[accId]==null)
-			self._stats[accId] = {id:accId, value:0, count:0, trDateIndex:[]};
+			self._stats[accId] = {id:accId, value:0, count:0, trDateIndex:[], type: "BANK"};
 		return self._stats[accId];
 	}
 	function getAccPath (acc, cb) {
