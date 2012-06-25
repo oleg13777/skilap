@@ -232,41 +232,6 @@ function Skilap() {
 					});
 				});
 				
-				function handleBatch(batch, req, res, next) {
-					if (batch.batchName == 'forEach') {
-						var ret = [];
-						async.forEachSeries(batch.object, function(iterator, cb) {
-							var params = batch.params;
-							var func = batch.method.match(/^(.*)\.(.*)$/);
-							var module = func[1];
-							func = func[2];
-							console.log('Begin ' + module + '.' + func + '.' + iterator.key);
-							var api = modules[module].api;
-							var fn = api[func];
-							params = JSON.parse(params.replace('\"_iterator_\"', JSON.stringify(iterator.value)));
-							params.push(function () {
-								var jsonres = {};
-								if (arguments[0]) {
-									var err = arguments[0];
-									jsonres.error = {message:err.message,subject:err.skilap?err.skilap.subject:"GenericError"}
-									jsonres.result = null;
-								} else {
-									jsonres.error = null;
-									jsonres.result = Array.prototype.slice.call(arguments,1);
-								}
-								var body = JSON.stringify(jsonres);
-								ret.push({id: iterator.key, data: body});
-								cb();
-							});
-							fn.apply(api, params);
-						}, function() {
-							var jsonres = {};
-							jsonres.result = ret;
-							res.send(JSON.stringify(jsonres), { 'Content-Type': 'text/plain', 'Connection': 'close' });
-						});
-					}
-				}
-				
 				function handleJsonRpc(jsonrpc, req, res, next) {
 					var startTime = new Date();
 					var id = null; var out = false;
@@ -275,36 +240,32 @@ function Skilap() {
 						var params = jsonrpc.params;
 						if (typeof(params) != 'object')
 							params = JSON.parse(params);
-						if (jsonrpc.method == 'batch') {
-							handleBatch(params[1], req, res, next);
-						} else {
-							var func = jsonrpc.method.match(/^(.*)\.(.*)$/);
-							var module = func[1];
-							func = func[2];
-							var api;
-							if (module == 'batch')
-								api = self;
-							else
-								api = modules[module].api;
-								
-							var fn = api[func];
-							params.push(function () {
-								var jsonres = {};
-								if (arguments[0]) {
-									var err = arguments[0];
-									jsonres.error = {message:err.message,subject:err.skilap?err.skilap.subject:"GenericError"}
-									jsonres.result = null;
-								} else {
-									jsonres.error = null;
-									jsonres.result = Array.prototype.slice.call(arguments,1);
-								}
-								jsonres.id = jsonrpc.id;
-								var reqTime = new Date() - startTime;
-								res.send(jsonres);
-							})
-							fn.apply(api, params);
-							out = true;
-						}
+						var func = jsonrpc.method.match(/^(.*)\.(.*)$/);
+						var module = func[1];
+						func = func[2];
+						var api;
+						if (module == 'batch')
+							api = self;
+						else
+							api = modules[module].api;
+							
+						var fn = api[func];
+						params.push(function () {
+							var jsonres = {};
+							if (arguments[0]) {
+								var err = arguments[0];
+								jsonres.error = {message:err.message,subject:err.skilap?err.skilap.subject:"GenericError"}
+								jsonres.result = null;
+							} else {
+								jsonres.error = null;
+								jsonres.result = Array.prototype.slice.call(arguments,1);
+							}
+							jsonres.id = jsonrpc.id;
+							var reqTime = new Date() - startTime;
+							res.send(jsonres);
+						})
+						fn.apply(api, params);
+						out = true;
 					} catch (err) {
 						console.log(err);
 						if (!out) 
