@@ -6,14 +6,14 @@ $(document).ready(function() {
 	$("#editPermDialog").dialog({
 		position: ["center","center"],
 		buttons: {
-			"apply": function() {
+			"{{#i18n}}Apply{{/i18n}}": function() {
 				var perms = [];
 				$('.perm').filter(":checkbox:checked").each(function(index, checkbox) {
 					perms.push($(checkbox).attr("value"));
 				});
-				var settings = {perm: perms};
+				var settings = {permissions: perms};
 				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
-				rpc.call('core.saveSystemSettings', $("#token").val(), null, settings, {
+				rpc.call('core.saveSystemSettings', $("#token").val(), "guest", settings, {
 					success: function (data) {
 						$("#caption").text("");
 						$(this).dialog("close");
@@ -25,7 +25,7 @@ $(document).ready(function() {
 					}
 				});
 			},
-			"close": function() {
+			"{{#i18n}}Close{{/i18n}}": function() {
 				$(this).dialog("close");
 			}
 		},
@@ -43,13 +43,13 @@ $(document).ready(function() {
 	$("#editPrefDialog").dialog({
 		position: ["center","center"],
 		buttons: {
-			"apply": function() {
+			"{{#i18n}}Apply{{/i18n}}": function() {
 				var settings = {
-					timezone: $("#timezone option:selected").val(),
+					timeZone: $("#timezone option:selected").val(),
 					language: $("#language option:selected").val()
 				};
 				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
-				rpc.call('core.saveSystemSettings', $("#token").val(), null, settings, {
+				rpc.call('core.saveSystemSettings', $("#token").val(), "guest", settings, {
 					success: function (data) {
 						$(this).dialog("close");
 						location.reload(true);
@@ -60,7 +60,7 @@ $(document).ready(function() {
 				});
 				$(this).dialog("close");
 			},			
-			"close": function() {
+			"{{#i18n}}Close{{/i18n}}": function() {
 				$(this).dialog("close");
 			}
 		},
@@ -83,7 +83,7 @@ $(document).ready(function() {
 			<td>{{#i18n}}Gui language{{/i18n}}</td><td>{{language}}</td>
 		</tr>
 		<tr>
-			<td>{{#i18n}}Timezone{{/i18n}}</td><td>{{timezone}}</td>
+			<td>{{#i18n}}Timezone{{/i18n}}</td><td>{{timeZone}}</td>
 		</tr>
 	</table>
 	{{/sysSet}}
@@ -91,27 +91,30 @@ $(document).ready(function() {
 <div class="user">
 	<h2>{{#i18n}}Guest permissions{{/i18n}}</h2><a href="#" id="editPerm">{{#i18n}}edit{{/i18n}}</a>
 	<hr size="2" noshade />
-	{{#sysSet.permissions}}
-		<h4>{{module}}:</h4>
+	{{#permissions}}
+		<h4>{{name}}:</h4>
 		{{#perm}}
-			&nbsp;&nbsp;&nbsp;{{.}}<br />
+			{{#selected}}
+			&nbsp;&nbsp;&nbsp;{{desc}}<br />
+			{{/selected}}
 		{{/perm}}
-	{{/sysSet.permissions}}
+	{{/permissions}}
 </div>
 
 <div id="editPermDialog" title="{{#i18n}}Edit permissions{{/i18n}}" class="editPermDialog" style="width: 600; height: 200px;">
 	<form>
 	<input id="token" type="hidden" value="{{apiToken}}">
 	<table>
-	{{#mInfo}}
+	{{#permissions}}
 		<tr><td><b>{{name}}</b></td><td></td></tr>
-		{{#permissions}}
-			<tr><td>&nbsp;&nbsp;&nbsp;{{desc}}</td><td><input type="checkbox" class="perm" value="{{id}}"/></td></tr>
-		{{/permissions}}
-	{{/mInfo}}
+		{{#perm}}
+			<tr><td>&nbsp;&nbsp;&nbsp;{{desc}}</td><td><input type="checkbox" class="perm" value="{{id}}" {{#selected}}checked="checked"{{/selected}}/></td></tr>
+		{{/perm}}
+	{{/permissions}}
 	</table>
 	</form>
 </div>
+
 <div id="editPrefDialog" title="{{#i18n}}Account prefferences{{/i18n}}" class="dialog" style="width: 600; height: 200px;">
 	<form>
 	<input id="token" type="hidden" value="{{apiToken}}">

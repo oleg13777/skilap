@@ -107,7 +107,7 @@ function Skilap() {
 					// common data grabber
 					app.use(function (req, res, next) {
 						modules['core'].api.getUser(req.session.apiToken, function (err, user) {
-							if (err) next(err);
+							if (err) return next(err);
 							if (!user.language) {
 								// guess language 
 								var al = req.headers['accept-language'];
@@ -225,10 +225,11 @@ function Skilap() {
 				app.get("/logout", function (req, res, next){
 					res.clearCookie("skilapid");
 					res.clearCookie("sguard");
-					res.clearCookie("connect.sid");
 					modules['core'].api.logOut(req.session.apiToken, function() { 
-						var r = req.param.success || '/';
-						res.redirect(r);
+						req.session.destroy(function () {
+							var r = req.param.success || '/';
+							res.redirect(r);
+						})
 					});
 				});
 				

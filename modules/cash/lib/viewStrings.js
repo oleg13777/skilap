@@ -60,6 +60,7 @@ restoredefaults.i18n(f[1],i,"Confirm");
 restoredefaults.i18n(f[1],i,"Cancel");
 priceeditor_table.i18n(f[1],i,"Date");
 priceeditor_table.i18n(f[1],i,"Rate currency");
+priceeditor_table.i18n(f[1],i,"Raw value");
 priceeditor_table.i18n(f[1],i,"Delete confirmation");
 priceeditor_table.i18n(f[1],i,"Delete selected rate currency?");
 import.i18n(f[1],i,"Import Gnu Cash");

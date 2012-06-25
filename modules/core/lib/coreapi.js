@@ -88,19 +88,26 @@ CoreApi.prototype.getApiToken = function (appId, clientId, signature, cb) {
 			self._core_clients.get(clientId,cb1);
 		},
 		function (client,cb1) {
-			if (client==null) return cb1(new Error());
+			if (client==null) return cb1(null,null);
 			self._core_users.get(client.uid,cb1);
 		},
 		function (user_, cb1) {
-			if (user_==null) return cb1(new Error());
-			user = user_;
-			user.type = 'user';
-			cb1();
+			if (user_==null) {
+				// guest case
+				self.getSystemSettings("guest", function (err, defaults) {
+					if (err) return cb(err);
+					user = {type:'guest'};
+					_.defaults(user,defaults);
+					cb1();
+				})
+			} else {
+				user = user_;
+				user.type = 'user';
+				cb1();
+			}
 		}
 	], function (err) {
-		if (err) {
-			user = {type:'guest',permissions:['core.me.view', 'core.me.edit']};
-		}
+		if (err) return cb(err);
 		var session = {user:user,clientId:clientId,appId:appId};
 		self._sessions[apiToken] = session;
 		cb(null, apiToken);
@@ -252,7 +259,11 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 						cb();
 					})
 				} else {
+					// if screenName doesn't provided, delete it to recreate automatically
+					var screenName = _.isUndefined(newUser.screenName);
 					_(cUser).extend(newUser);					
+					if (screenName && !_.isUndefined(cUser.screenName) )
+						delete cUser.screenName;
 					cb();
 				}
 			},
@@ -263,10 +274,14 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 					return cb(new SkilapError(self._ctx.i18n(token,'core','Password too short, at least 6 characters required'),'InvalidData'));
 				if (_(cUser.login).isUndefined())
 					return cb(new SkilapError(self._ctx.i18n(token,'core','User must have non empty password'),'InvalidData'));
-				if (_(cUser.firstName).isUndefined()) 
+				if (_(cUser.firstName).isUndefined() || cUser.firstName.length<1) 
 					return cb(new SkilapError(self._ctx.i18n(token,'core','First name is required'),'InvalidData'));
-				if (_(cUser.lastName).isUndefined()) 
+				if (_(cUser.lastName).isUndefined()  || cUser.lastName.length<1) 
 					return cb(new SkilapError(self._ctx.i18n(token,'core','Last name is required'),'InvalidData'));
+				// make sure screenName has something
+				if (_(cUser.screenName).isUndefined())
+					// Pupkin V.
+					cUser.screenName = cUser.lastName + " " + cUser.firstName[0] + ".";
 				cb()
 			},
 			function checkUserUniq (cb1) {
@@ -282,6 +297,12 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 			},
 			function updateUser (cb) {
 				self._core_users.put(cUser.id, cUser, cb);
+			},
+			function updateSessionUser(cb) {
+				if (cUser.id==session.user.id) {
+					session.user = cUser;
+				}
+				cb();
 			}
 		], function (err,res) {
 			cb(err);
@@ -334,15 +355,12 @@ CoreApi.prototype.loginByPass = function (token, login, password, cb ) {
 
 CoreApi.prototype.logOut = function (token, cb) {
 	var self = this;
-
-	self._sessions[token].user = {type:'guest',permissions:['core.me.view', 'core.me.edit']};
+	delete self._sessions[token];
 	cb();
 }
 
 CoreApi.prototype.deleteUser = function(token, userId, cb) {
 	var self = this;
-
-	console.log("delete");
 	async.series ([
 		function start(cb1) {
 			async.parallel([
@@ -358,49 +376,39 @@ CoreApi.prototype.deleteUser = function(token, userId, cb) {
 	)
 }
 
-CoreApi.prototype.getSystemSettings = function(token, id, cb) {
+CoreApi.prototype.getSystemSettings = function(id, cb) {
 	var self = this;
-	if (!id) { id = 'guest'; }
 
 	async.series ([
-		function start(cb1) {
-			self.checkPerm(token, ['core.user.view'], cb1);
-		}, 
-		function get(cb1) {
-			self._core_systemSettings.get(id, cb1);
+		function get(cb) {
+			self._core_systemSettings.get(id, cb);
 		}], function end(err, results) {
 			if (err) return cb(err);
-			cb(null, results[1]);
+			var res = results[0];
+			if (!res) res = {};
+			// TODO: not need to be gardcoded, probably every module have to provide defaults
+			// for setting, but now lets leave it this way
+			if (id=="guest")
+				res = _.defaults(res, {timeZone:0,language:"en_US",permissions:[]});
+			cb(null, res);
 		}
 	)
 }
 
 CoreApi.prototype.saveSystemSettings = function(token, id, settings, cb) {
 	var self = this;
-	if (!id) { id = 'guest'; }
-
-	console.log(settings);
 	async.waterfall ([
-		function (cb1) {
-			self.checkPerm(token, ['core.user.edit'], cb1);
+		function (cb) {
+			self.checkPerm(token, ['core.sysadmin'], cb);
 		},
-		function (cb1) {
-			self._core_systemSettings.get(id, function (err, s) {
-				console.log(s);
-				cb1 (null, s);
-			});
+		function (cb) {
+			self.getSystemSettings(id, cb)
 		},
-		function (oldSettings, cb1) {
-			if (oldSettings) {
-				if (settings.timezone) oldSettings.timezone = settings.timezone;
-				if (settings.language) oldSettings.language = settings.language;
-				if (settings.perm) oldSettings.perm = settings.perm;
-			}
-			self._core_systemSettings.put(id, oldSettings, cb1);
-		}], function end(err, results) {
-			if (err) return cb(err);
-			cb(null, true);
-		}
+		function (old, cb) {
+			var s = _.clone(old); 
+			_.extend(s,settings);
+			self._core_systemSettings.put(id, s, cb);
+		}], cb
 	)
 }
 
@@ -420,6 +428,7 @@ module.exports.init = function (ctx, cb) {
 			res.push({id:'core.me.edit', desc:ctx.i18n(token, 'core', 'Edit personal data')});
 			res.push({id:'core.user.view', desc:ctx.i18n(token, 'core', 'View system users')});
 			res.push({id:'core.user.edit', desc:ctx.i18n(token, 'core', 'Edit system users')});
+			res.push({id:'core.sysadmin', desc:ctx.i18n(token, 'core', 'Edit system parameters')});
 			cb(null,res);
 		}
 		

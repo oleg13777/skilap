@@ -7,7 +7,8 @@ $(document).ready(function() {
 		var rpc = new jsonrpc.JsonRpc('/jsonrpc');
 		rpc.call('core.getUserById', secret, uid, {
 			success: function (data) {
-				var user = data[0];								
+				var user = data[0];				
+				console.log(user);				
 				$("#ski_editUser").iframeContainer("triggerEvent",{name:'setEditUserDialogData',data:user});
 			},
 			failure: function (reason) {
@@ -31,7 +32,9 @@ $(document).ready(function() {
 		});		
 		$("#ski_editPermissions").iframeContainer("open");
 	})
-	$(".deleteUser").click(function(){
+	$(".deleteUser").click(function() {
+		if (!confirm("{{#i18n}}Are you sure?{{/i18n}}"))
+			return false;
 		var uid = $(this).attr('uid');
 		var secret = $('#token').val();
 		var rpc = new jsonrpc.JsonRpc('/jsonrpc');
@@ -50,10 +53,13 @@ $(document).ready(function() {
 	$("body").on('accountEditSuccess',function(e,id){
 		location.reload(true);
 	});
+	$("body").on('permisionsEditSuccess',function(e,id){
+		location.reload(true);
+	});	
 	$("#addUserDialog").dialog({
 		position: ["center","center"],
 		buttons: {
-			"apply": function() {
+			"{{#i18n}}Apply{{/i18n}}": function() {
 				var self = $(this);
 				var newUser = {
 					id: $("#uid").val(),
@@ -75,7 +81,7 @@ $(document).ready(function() {
 					}
 				});
 			},
-			"close": function() {
+			"{{#i18n}}Close{{/i18n}}": function() {
 				$(this).dialog("close");
 			}
 		},
@@ -108,12 +114,12 @@ $(document).ready(function() {
 </script>
 
 <div id="users">
-<input id="addNewUser" type="submit" value="Add new user">
+<input id="addNewUser" type="submit" value="{{#i18n}}Add new user{{/i18n}}">
 <input id="token" type="hidden" value="{{apiToken}}">
 <br />
 <br />
 <table id="users">
-<th class="left">#</th><th>First name</th><th>Last name</th><th>Log-in</th><th class="right"><img width="20px" src="{{prefix}}/images/cog_alt.png"></th>
+<th class="left">#</th><th>{{#i18n}}First name{{/i18n}}</th><th>{{#i18n}}Last name{{/i18n}}</th><th>{{#i18n}}Login{{/i18n}}</th><th class="right"><img width="20px" src="{{prefix}}/images/cog_alt.png"></th>
 {{#users}}
 	<tr>
 		<td class="left">{{id}}</td>
@@ -124,9 +130,9 @@ $(document).ready(function() {
 			<ul class="sddm">
 				<li class=""><a href="#" class="preflink" data-uid="{{id}}" ><img width="20px" src="{{prefix}}/images/cog_alt.png"></a>
 					<div class="prefmenu">
-					<a href="#" uid="{{}}" class="editUser">Edit</a>
-					<a href="#" uid="{{id}}" class="editPerm">EditPerm</a>
-					<a href="#" uid="{{id}}" class="deleteUser">Delete</a>
+					<a href="#" uid="{{id}}" class="editUser">{{#i18n}}Edit{{/i18n}}</a>
+					<a href="#" uid="{{id}}" class="editPerm">{{#i18n}}Permissions{{/i18n}}</a>
+					<a href="#" uid="{{id}}" class="deleteUser">{{#i18n}}Delete{{/i18n}}</a>
 					</div>
 				</li>
 			</ul>

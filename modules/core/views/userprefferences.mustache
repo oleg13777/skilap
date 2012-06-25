@@ -6,7 +6,7 @@ $(document).ready(function() {
 	$("#editPrefferences").dialog({
 		position: ["left","top"],
 		buttons: {
-			"apply": function() {
+			"{{#i18n}}Apply{{/i18n}}": function() {
 				var self = $(this);
 				var updUser = {
 					id: $("#uid").val(),
@@ -30,7 +30,7 @@ $(document).ready(function() {
 				});
 				window.parent.$("body .iframeContainer").trigger('closeDialog');
 			},			
-			"close": function() {
+			"{{#i18n}}Close{{/i18n}}": function() {
 				window.parent.$("body .iframeContainer").trigger('closeDialog');
 			}
 		},
@@ -103,8 +103,8 @@ $(document).ready(function() {
 			<td>{{#i18n}}Gui language{{/i18n}}</td>
 			<td>
 				<select id="language">
-					<option value="ru_RU">Russian</option>
-					<option value="en_US">English</option>
+					<option value="ru_RU">{{#i18n}}Russian{{/i18n}}</option>
+					<option value="en_US">{{#i18n}}English{{/i18n}}</option>
 				<select>
 			</td>
 		</tr>
