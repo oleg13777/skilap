@@ -125,6 +125,9 @@ module.exports.getSpecialAccount = function (token,type,cmdty,cb) {
 
 module.exports.getAccountInfo = function (token, accId, details, cb) {
 	var self = this;
+	var accInfo = null;
+	var accStats = null
+	var assInfo = null;
 	async.series ([
 		function (cb) {
 			async.parallel([
@@ -133,23 +136,57 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 			],cb);
 		}, 
 		function (cb) {
-			var res = {};
-			var accStats = self._stats[accId];
+			accStats = self._stats[accId];
 			if (accStats==null)
 				return cb(new Error("Invalid account Id: "+accId));
+			cb();
+		},
+		function (cb) {
+			if (!_(details).include("verbs"))
+				return cb();
+			self.getAssetsTypes(token, function (err, assets) {
+				if (err) return cb(err);
+				accInfo = _(assets).find(function (e) { return e.value == accStats.type; } );
+				if (accInfo==null)
+					return cb(new Error("Wrong account type"));
+				cb();
+			})
+		},
+		function (cb) {
+			if (!_(details).include("act"))
+				return cb();
+			self.getAssetInfo(token,accStats.type, function (err, info) {
+				if (err) return cb(err);
+				assInfo = info;
+				cb();
+			})
+		},		
+		function (cb) {
+			var res = {};
 			res.id = accId;
 			_.forEach(details, function (val) {
-				if (val == "value")
-					res.value = accStats.value;
-				if (val == "count") 
-					res.count = accStats.count;
-				if (val == "path") 
-					res.path = accStats.path;
+				switch(val) {
+					case 'value':
+						res.value = accStats.value;
+						break;
+					case 'count':
+						res.count = accStats.count;
+						break;
+					case 'path':
+						res.path = accStats.path;
+						break;
+					case 'verbs':
+						res.recv = accInfo.recv;
+						res.send = accInfo.send;
+						break;
+					case 'act':
+						res.act = assInfo.act
+				}
 			});				
-			process.nextTick(function () {cb(null, res);});
+			cb(null, res);
 		}], function (err, results) {
 			if (err) return cb(err);
-			cb(null,results[1]);
+			cb(null,results[4]);
 		}
 	)
 }
@@ -366,21 +403,22 @@ module.exports.restoreToDefaults = function (token, cmdty, type, cb){
 	});
 }
 
-module.exports.getAssetsTypes = function (cb) {
+module.exports.getAssetsTypes = function (token,cb) {
+	var self = this;	
 	var types = [
-			{value:"BANK", name:"Bank"},
-			{value:"CASH", name:"Cash"},
-			{value:"ASSET", name:"Asset"},
-			{value:"CREDIT", name:"Credit card"},
-			{value:"LIABILITY", name:"Liability"},
-			{value:"STOCK", name:"Stock"},
-			{value:"MUTUAL", name:"Mutual found"},
-			{value:"CURENCY", name:"Curency"},
-			{value:"INCOME", name:"Income"},
-			{value:"EXPENSE", name:"Expense"},
-			{value:"EQUITY", name:"Equity"},
-			{value:"RECIEVABLE", name:"Recievable"},
-			{value:"PAYABLE", name:"Payable"}
+			{value:"BANK", name:self._ctx.i18n(token, 'cash', 'Bank'),act:1,recv:self._ctx.i18n(token, 'cash', 'Deposited'),send:self._ctx.i18n(token, 'cash', 'Withdrawal')},
+			{value:"CASH", name:self._ctx.i18n(token, 'cash', 'Cash'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"ASSET", name:self._ctx.i18n(token, 'cash', 'Asset'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"CREDIT", name:self._ctx.i18n(token, 'cash', 'Credit card'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"LIABILITY", name:self._ctx.i18n(token, 'cash', 'Liability'),act:-1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"STOCK", name:self._ctx.i18n(token, 'cash', 'Stock'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"MUTUAL", name:self._ctx.i18n(token, 'cash', 'Mutual found'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"CURENCY", name:self._ctx.i18n(token, 'cash', 'Curency'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"INCOME", name:self._ctx.i18n(token, 'cash', 'Income'),act:-1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"EXPENSE", name:self._ctx.i18n(token, 'cash', 'Expense'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"EQUITY", name:self._ctx.i18n(token, 'cash', 'Equity'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"RECIEVABLE", name:self._ctx.i18n(token, 'cash', 'Recievable'),act:-1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"PAYABLE", name:self._ctx.i18n(token, 'cash', 'Payable'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')}
 		]
 	cb (null, types);
 }

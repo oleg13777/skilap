@@ -3,7 +3,7 @@ $(function() {
 	$("#dialog").dialog({
 		position: ["left","top"],
 		buttons: {
-			"apply": function() {
+			"{{#i18n}}Apply{{/i18n}}": function() {
 				var slots = [];
  				$('.slot:checked').each(function (i, input) {
 					slots.push({"key": $(input).attr("id"), "value": "true"});
@@ -31,7 +31,7 @@ $(function() {
 				//$(this).dialog("close");
 				window.parent.$("body .iframeContainer").trigger('closeDialog');
 			},			
-			close: function() {
+			"{{#i18n}}Close{{/i18n}}": function() {
 				//$(this).dialog("close");
 				//console.log('closeDialog');
 				window.parent.$("body .iframeContainer").trigger('closeDialog');
@@ -49,10 +49,10 @@ $(function() {
 		},
 		autoOpen: true,
 		resizable: false,
-		height: 300,
+		height: 320,
 		width: 500,
 		modal: true,
-		draggable: false
+		dragable: true
 	});	
 	
 	function displayMessage(event){		
@@ -96,20 +96,20 @@ $(function() {
 
 });
 </script>
-<div id="dialog" title="Account properties" style="width: 600px; height: 200px;">
+<div id="dialog" title="{{#i18n}}Account properties{{/i18n}}" style="width: 500px; height: 300px;">
 	<form name="properties">
 		<input type="hidden" id="acc_id">
 		<input type="hidden" id="token" value="{{token}}">
 		<table>
 			<tr>
-				<td>Name:</td>
+				<td>{{#i18n}}Name{{/i18n}}:</td>
 				<td><input type="text" id="acc_name"></tr>
 			</tr>
 			<tr>
-				<td>Parent account:</td>
+				<td>{{#i18n}}Parent account{{/i18n}}:</td>
 				<td>
 					<select name="acc_parent" id="acc_parent">
-						<option value="0" pid="0">Root</option>
+						<option value="0" pid="0">{{#i18n}}Root{{/i18n}}</option>
 						{{#assets}}
 							{{>acctree_list_item}}
 						{{/assets}}
@@ -117,17 +117,15 @@ $(function() {
 				</td>
 			</tr>
 			<tr>
-				<td>Curency:</td>
+				<td>{{#i18n}}Curency{{/i18n}}:</td>
 				<td>
 					<select name="acc_curency" id="acc_curency">
-						{{#curencies}}
-							<option value="{{iso}}">{{iso}} - {{country}}</option>
-						{{/curencies}}
+						{{>currencies_list}}
 					</select>
 				</td>
 			</tr>
 			<tr>
-				<td>Type:</td>
+				<td>{{#i18n}}Type{{/i18n}}:</td>
 				<td>
 					<select name="acc_type" id="acc_type">
 						{{#assetsTypes}}
@@ -137,10 +135,10 @@ $(function() {
 				</td>
 			</tr>
 			<tr>
-				<td>Hidden</td><td><input id="hidden" class="slot" type="checkbox" /></td>
+				<td>{{#i18n}}Hidden{{/i18n}}</td><td><input id="hidden" class="slot" type="checkbox" /></td>
 			</tr>
 			<tr>
-				<td>Placeholder</td><td><input id="placeholder" class="slot" type="checkbox"></td>
+				<td>{{#i18n}}Placeholder{{/i18n}}</td><td><input id="placeholder" class="slot" type="checkbox"></td>
 			</tr>
 		</table>
 	</form>

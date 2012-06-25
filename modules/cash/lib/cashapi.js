@@ -144,6 +144,29 @@ CashApi.prototype.init = function (cb) {
 	cb);
 }
 
+var assetInfo = {
+	"BANK":{act:1},
+	"CASH":{act:1},
+	"ASSET":{act:1},
+	"CREDIT":{act:1},
+	"LIABILITY":{act:-1},
+	"STOCK":{act:1},
+	"MUTUAL":{act:1},
+	"CURENCY":{act:1},
+	"INCOME":{act:-1},
+	"EXPENSE":{act:1},
+	"EQUITY":{act:1},
+	"RECIEVABLE":{act:-1},
+	"PAYABLE":{act:1}
+}
+
+CashApi.prototype.getAssetInfo = function (token, asset, cb) {
+	var info = assetInfo[asset];
+	if (info==null)
+		return cb(new Error("Invalid asset type"));
+	cb(null,info);
+}
+
 CashApi.prototype._calcStats = function _calcStats(cb) {
 	var self = this;
 	// helper functions
@@ -227,12 +250,13 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 					c++;
 					getAccPath(acc, function (path) { 
 						getAccStats(acc.id).path = path;
+						getAccStats(acc.id).type = acc.type;
 						if (--c==0) cb1();
 					});
 				} else if (--c==0) cb1();
 			}, true)
 		},
-		transaction_stats: function (cb1) {
+		transaction_stats: ['account_paths',function (cb1) {
 			console.time("Test");
 			var next = this;
 			self._cash_transactions.scan(function (err, k, tr) {
@@ -240,20 +264,24 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 				if (k==null) return cb1();
 				tr.splits.forEach(function(split) {
 					var accStats = getAccStats(split.accountId);
-					accStats.value+=split.quantity;
+					var act = assetInfo[accStats.type].act;								
+					accStats.value+=split.quantity*act;
 					accStats.count++;
 					accStats.trDateIndex.push({id:tr.id,date:(new Date(tr.dateEntered))});
 				});
 			},true)
-		},
+		}],
 		build_register:['transaction_stats', function (cb1) {
 			console.timeEnd("Test");
 			var next = this;
 			async.forEach (_.keys(self._stats), function (accId, cb2) {
-				accStats = self._stats[accId];
+				var accStats = self._stats[accId];
+				if (_.isUndefined(accStats.type))
+					return cb2(); // not an account stats
 				// sort by date
 				accStats.trDateIndex = _.sortBy(accStats.trDateIndex,function (e) { return e.date.valueOf(); });
 				var ballance = 0;
+				var act = assetInfo[accStats.type].act;
 				async.forEachSeries(accStats.trDateIndex, function (trs,cb3) {
 					self._cash_transactions.get(trs.id, function (err, tr) {
 						var recv = [];
@@ -265,7 +293,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 								recv.push(split);
 						})
 						trs.recv = recv; trs.send = send;
-						ballance += send.quantity;
+						ballance += send.quantity*act;
 						trs.ballance = ballance;
 						process.nextTick(cb3);
 					});

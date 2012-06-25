@@ -13,12 +13,15 @@ module.exports = function priceeditor(webapp) {
 		if(req.xhr){				
 			if(req.query.firstCurr && req.query.secondCurr){				
 				cashapi.getPricesByPair(req.session.apiToken,{from:req.query.firstCurr,to:req.query.secondCurr},function(err,prices){
+					_.forEach(prices, function (e) {
+						e.fvalue = webapp.i18n_cmdtytext(req.session.apiToken,e.currency,e.value)
+					})
 					var paging,pagingPrices;
-					var offset = req.query.offset ? req.query.offset : 0;
+					var offset = parseInt(req.query.offset ? req.query.offset : 0);
 					var limit = 10;
 					var len = prices.length;
 					if(len > limit){
-						pagingPrices = prices.slice(offset,offset+limit > len ? len : limit);
+						pagingPrices = prices.slice(offset,offset + Math.min(limit,len));
 						currentPageIndex = Math.ceil(offset/limit)+1;						
 						pages = _.range(1,Math.ceil(len/limit)+1);
 						paging = [];
@@ -40,7 +43,7 @@ module.exports = function priceeditor(webapp) {
 					var lastRate;
 					if(firstPrice)
 						lastRate = firstPrice.value;
-					res.partial(__dirname+"/../views/priceeditor/table",{
+					res.partial(__dirname+"/../views/priceeditor_table",{
 						prices:pagingPrices,
 						firstCurr:req.query.firstCurr,
 						secondCurr:req.query.secondCurr,
@@ -60,7 +63,7 @@ module.exports = function priceeditor(webapp) {
 				}							
 				cashapi.savePrice(req.session.apiToken,price,function(err,pricen){
 					pricen.date = df.format(new Date(pricen.date));
-					res.partial(__dirname+"/../views/priceeditor/pricetr",pricen);
+					res.partial(__dirname+"/../views/priceeditor_tr",pricen);
 				});				
 			}
 			else if(req.query.deleteId){
@@ -95,35 +98,25 @@ module.exports = function priceeditor(webapp) {
 			
 		}
 		else{
-			var usedCurrencies = [];	
-			var notUsedCurrencies = [];		
-			async.waterfall([
+			async.series([
 				function (cb) { 
-					cashapi.getAllCurrencies(req.session.apiToken,cb)
+					webapp.getUseRangedCurrencies(req.session.apiToken,cb)
 				},
-				function(currencies,cb){
-					usedCurrencies = _.filter(currencies,function(curr){
-						return curr.used == 1;
-					});
-					notUsedCurrencies = _.filter(currencies,function(curr){
-						return curr.used == 0;
-					});
+				function(cb){
 					webapp.guessTab(req, {pid:'priceeditor',name:ctx.i18n(req.session.apiToken, 'cash', 'Rate Currency Editor'), url:req.url}, cb);
-				},										
-				function render (vtabs) {																	
-					var rdata = {
-							settings:{views:__dirname+"/../views/"},
-							prefix:prefix, 
-							tabs:vtabs, 						
-							token: req.session.apiToken,
-							usedCurrencies:usedCurrencies,
-							notUsedCurrencies:notUsedCurrencies						
-						};
-					res.render(__dirname+"/../views/priceeditor", rdata);
-				}],
-				next
-				
-			);
+				}
+			], function render (err,r) {	
+				if (err) return next(err);
+				var rdata = {
+					settings:{views:__dirname+"/../views/"},
+					prefix:prefix, 
+					tabs:r[1], 						
+					token: req.session.apiToken,
+					usedCurrencies:r[0].used,
+					notUsedCurrencies:r[0].unused						
+				};
+				res.render(__dirname+"/../views/priceeditor", rdata);
+			});
 		}		
 	});
 }

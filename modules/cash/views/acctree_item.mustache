@@ -1,5 +1,11 @@
-<div id="{{id}}">{{#placeholder}}<font id="open{{id}}">{{/placeholder}}{{^placeholder}}<a id="open{{id}}" href='{{prefix}}/account?id={{id}}'>{{/placeholder}}{{name}}{{^placeholder}}</a>{{/placeholder}}{{#placeholder}}</font>{{/placeholder}} (<a href="javascript:void(0);" class="editAcc" aid="{{id}}">edit</a> <a href="javascript:void(0);" class="deleteAcc" aid="{{id}}">delete</a>)<span>{{#fquantity}}( {{fquantity}} ) {{/fquantity}}{{fvalue}}</span>
-{{#childs}}
+<div id="{{id}}">
+{{#hidden}}* {{/hidden}}{{#placeholder}}<font id="open{{id}}">{{name}}</font>{{/placeholder}}
+{{^placeholder}}<a id="open{{id}}" href='{{prefix}}/account?id={{id}}'>{{name}}</a>{{/placeholder}}
+<span>{{#fquantity}}( {{fquantity}} ) {{/fquantity}}{{fvalue}}
+&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="javascript:void(0);" class="editAcc" aid="{{id}}" title="{{#i18n}}edit{{/i18n}}">&nbsp;&nbsp;&nbsp;&nbsp;</a> 
+<a href="javascript:void(0);" class="deleteAcc" aid="{{id}}" title="{{#i18n}}delete{{/i18n}}">&nbsp;&nbsp;&nbsp;&nbsp;</a>{{#childs}}
+</span>
 {{>acctree_item}}
 {{/childs}}
 </div>

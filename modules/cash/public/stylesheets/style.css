@@ -648,6 +648,7 @@ overflow:hidden;
 .wizard .button:hover,.action-button:hover {
    background: #ccc;
 }
+
 .wizard .step-hint{
 display:block;
 margin:15px 0;
@@ -687,12 +688,11 @@ width:100%;
 
 .leftcol.price{
 float:left;
-width:50%;
+width:600px;
 }
 
 .rightcol.price{
 float:right;
-width:49%;
 }
 
 
@@ -717,9 +717,15 @@ cursor:pointer;
 border:1px solid #ccc;
 }
 
-#rateTable .date,#rateTable .rate{
+#rateTable .date,#rateTable .frate{
 width:275px;
 text-align:center;
+padding:5px;
+}
+
+#rateTable .rate{
+width:275px;
+text-align:left;
 padding:5px;
 }
 
@@ -729,6 +735,10 @@ border-right:1px solid #ccc;
 }
 
 #rateTable .rate{
+border-left:1px solid #ccc;
+}
+
+#rateTable .frate{
 border-left:1px solid #ccc;
 }
 
@@ -745,6 +755,10 @@ border-top:1px solid #ccc;
 }
 
 #rateTable td.rate{
+border-top:1px solid #ccc;
+}
+
+#rateTable td.frate{
 border-top:1px solid #ccc;
 }
 
@@ -783,4 +797,18 @@ text-align:center;
 .rateEditorContainer .paging .pageNum.active{
 text-decoration:none;
 color:#333;
+}
+
+.editAcc {
+	background:url('../images/icon_edit16.png') no-repeat;
+    height: 16px;
+    width: 16px;
+    text-decoration: none;
+}
+
+.deleteAcc {
+	background:url('../images/icon_delete16.png') no-repeat;
+    height: 16px;
+    width: 16px;
+    text-decoration: none;
 }
