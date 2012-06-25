@@ -68,7 +68,8 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 		}, 
 		// get lead account, if any
 		function (cb) {
-			if (leadAccId==null) return cb();
+			if (leadAccId==null) //return cb();
+				leadAccId = tr.splits[0].accountId;
 			self.getAccount(token,leadAccId,function(err,acc) {
 				if (err) return cb(err);
 				leadAcc = acc;
