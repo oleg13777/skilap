@@ -1,55 +1,53 @@
 var async = require('async');
+var safe = require('safe');
 var _ = require('underscore');
-var extend = require('node.extend');
 
-module.exports.getAccountRegister = function (token,accId, offset, limit, cb ) {
+module.exports.getAccountRegister = function (token, accId, offset, limit, cb ) {
 	var self = this;
 	async.series ([
-		function (cb1) {
+		function (cb) {
 			async.parallel([
 				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
 				function (cb) { self._waitForData(cb) }
-			],cb1);
+			],cb);
 		}, 
-		function (cb1) {
+		safe.trap(function (cb) {
 			var accStats = self._stats[accId];
 			if (limit==null) {
 				if (offset==0 || offset == null)
-					process.nextTick(function () { cb1(null, accStats.trDateIndex); });
+					cb(null, accStats.trDateIndex);
 				else
-					process.nextTick(function () { cb1(null, accStats.trDateIndex.slice(offset, offset + limit)); });
+					cb(null, accStats.trDateIndex.slice(offset, offset + limit));
 			} else
 				if (limit < 0)
-					process.nextTick(function () { cb1(null, accStats.trDateIndex.slice(limit)); });
+					cb(null, accStats.trDateIndex.slice(limit));
 				else
-					process.nextTick(function () { cb1(null, accStats.trDateIndex.slice(offset, offset + limit)); });
-		}], function (err, results) {
-			if (err) return cb(err);
-			cb(null,results[1]);
-		}
+					cb(null, accStats.trDateIndex.slice(offset, offset + limit));
+		})], safe.sure(cb,function (results) {
+			process.nextTick(function () { cb(null,results[1]); })
+		})
 	)
 }
 
 module.exports.getTransaction = function (token, trId, cb) {
 	var self = this;
 	async.series ([
-		function (cb1) {
+		function (cb) {
 			async.parallel([
 				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
 				function (cb) { self._waitForData(cb) }
-			],cb1);
+			],cb);
 		}, 
 		function (cb1) {
 			self._cash_transactions.get(trId, cb1);
 		}
-	], function (err, results) {
-		if (err) return cb(err);
+	], safe.sure(cb, function (results) {
 		cb(null,results[1]);
-	})
+	}))
 }
 
 module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
-	var debug = true;
+	var debug = false;
 	if (debug) { console.log("Received"); console.log(arguments); }
 	if (_.isFunction(leadAccId)) {
 		cb = leadAccId;
@@ -68,29 +66,28 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 		}, 
 		// get lead account, if any
 		function (cb) {
-			if (leadAccId==null) //return cb();
-				leadAccId = tr.splits[0].accountId;
-			self.getAccount(token,leadAccId,function(err,acc) {
-				if (err) return cb(err);
+			if (leadAccId==null) {
+				if (tr.splits.legth>0) // if not provided assume lead is first split
+					leadAccId = tr.splits[0].accountId;
+				else
+					return cb();
+			}
+			self.getAccount(token,leadAccId,safe.sure_result(cb, function(acc) {
 				leadAcc = acc;
-				cb(null);
-			});
+			}));
 		},
 		// fix current user id
 		function (cb) {
-			self._coreapi.getUser(token,function (err, user) {
-				if (err) return cb(err);
+			self._coreapi.getUser(token,safe.sure_result(cb, function (user) {
 				tr.uid = user.id;
-				cb()
-			})
+			}))
 		},				
 		// sync with existing transaction or get new id for insert
 		// detect also split modify status
 		function (cb) {				
 			if (debug) { console.log("Before sync on update"); console.log(tr); }			
 			if (tr.id) {
-				self._cash_transactions.get(tr.id,function (err, tr_) {
-					if (err) return cb(err);
+				self._cash_transactions.get(tr.id,safe.trap_sure_result(cb,function (tr_) {
 					// get all the missing properties from existing transaction except splits
 					var fprops = _.without(_(tr_).keys(),"splits");
 					var ftr = _.pick(tr_,fprops);
@@ -128,15 +125,12 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 						} else
 							split.isModified = false;
 					})
-					cb()
-				});		
+				}));		
 			} else {
-				self._ctx.getUniqueId(function (err, id) {
-					if (err) return cb(err);
+				self._ctx.getUniqueId(safe.sure_result(cb, function (id) {
 					trn=tr;
 					trn.id = id;
-					cb()
-				})
+				}))
 			}
 		}, 
 		// ensue that transaction has currency, this is required
@@ -152,8 +146,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			if (debug) { console.log("Before value quantity restore"); console.log(trn); }
 			async.forEachSeries(trn.splits,function(spl,cb) {
 				// with lead account we can use conversion
-				self.getAccount(token,spl.accountId,function(err,splitAccount){
-					if(err) return cb(err);
+				self.getAccount(token,spl.accountId,safe.trap_sure(cb,function (splitAccount) {
 					// if split cmdty equals to transaction currency then both value
 					// and quantity should be the same, value takes preference
 					if (_(splitAccount.cmdty).isEqual(trn.currency)) {
@@ -167,14 +160,11 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 					}
 					
 					// if split cmdty not equal to trn currency and both values defined, nothing to do 
+					// except save rate
 					if (!_.isUndefined(spl.value) && !_.isUndefined(spl.quantity)){
 						var rate = (spl.quantity/spl.value).toFixed(5);
 						price = {cmdty:trn.currency,currency:splitAccount.cmdty,date:trn.dateEntered,value:rate,source:"transaction"};
-						self.savePrice(token,price,function(err,pricen){							
-							if(err)
-								return cb(err);
-							return cb();
-						});					
+						self.savePrice(token,price,cb)
 					}
 					else{	
 						// otherwise lets try to fill missing value
@@ -196,13 +186,11 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 							cb()
 						});
 					}
-				})
-			}, function (err) {
-				cb(err);
-			})
+				}))
+			}, cb)
 		},
 		// avoid dis-balance
-		function (cb) {
+		safe.trap(function (cb) {
 			if (debug) { console.log("Before dis-balance"); console.log(trn); }
 			// check what we have
 			var value=0; var leadSplit = false; var nonEditedSplit = false;
@@ -215,11 +203,9 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			})
 			// simplest, put dis-ballance to missing lead split
 			if (leadAcc && !leadSplit) {
-				self._ctx.getUniqueId(function (err, id) {
-					if (err) return cb(err);
+				self._ctx.getUniqueId(safe.trap_sure_result(cb,function (id) {
 					trn.splits.push({value:-1*value,quantity:-1*value,accountId:leadAcc.id,id:id,description:""});
-					cb()
-				})
+				}))
 			}  // when we have two splits we can compensate thru non modified one
 			else if (trn.splits.length==2 && nonEditedSplit ) {
 				var newVal = nonEditedSplit.value-value;
@@ -234,18 +220,15 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 				cb();
 			} else {
 				if (value==0) return cb();
-				self.getSpecialAccount(token,"disballance",trn.currency, function (err, acc) {
-					if (err) return cb(err);
-					self._ctx.getUniqueId(function (err, id) {
-						if (err) return cb(err);
+				self.getSpecialAccount(token,"disballance",trn.currency, safe.sure(cb, function(acc) {
+					self._ctx.getUniqueId(safe.trap_sure_result(cb, function (id) {
 						trn.splits.push({value:-1*value,quantity:-1*value,accountId:acc.id,id:id,description:""});
-						cb()
-					})
-				})
+					}))
+				}))
 			}
-		},
+		}),
 		// collapse splits of same accounts
-		function (cb) {		
+		safe.trap(function (cb) {		
 			if (debug) { console.log("Before collapse"); console.log(trn); }
 			var newSplits = [];
 			var mgroups = {};
@@ -278,21 +261,19 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			}
 			trn.splits = meaningSplits;
 			cb();
-		},
+		}),
 		// obtain ids for new splits
 		function (cb) {
 			if (debug) { console.log("Before split ids"); console.log(trn);	}
 			async.forEachSeries(trn.splits,function(split,cb){
 				if(split.id) return cb();
-				self._ctx.getUniqueId(function (err, id) {
-					if (err) return cb(err);
+				self._ctx.getUniqueId(safe.sure_result(cb, function (id) {
 					split.id = id;
-					cb();
-				});
+				}));
 			},cb);
 		},
 		// final verification 
-		function (cb) {
+		safe.trap(function (cb) {
 			if (!(_.isArray(trn.splits) && trn.splits.length>0))
 				return cb(new Error("Transaction should have splits"));
 			if (!(_.isObject(trn.currency)))
@@ -324,9 +305,9 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			})
 			if (!fails)
 				cb()
-		},
+		}),
 		// sanify transaction
-		function (cb) {
+		safe.trap(function (cb) {
 			var str = _(trn).pick(["id","datePosted","dateEntered","currency","splits","description","num"]);
 			for (var i=0; i<str.splits.length; i++) {
 				var split = _(str.splits[i]).pick("id","value","quantity","rstate","description","accountId","num");
@@ -334,17 +315,15 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			}
 			trn = str;
 			cb();
-		},
+		}),
 		// finally save or update
 		function(cb){
 			if (debug) { console.log("Before save"); console.log(trn);	}			
 			self._cash_transactions.put(trn.id, trn, cb);
 		}			
-	], function (err) {
-		if (err) return cb(err);
+	], safe.sure_result(cb,function () {
 		self._calcStats(function () {});
-		cb(null);
-	})
+	}))
 }
 
 module.exports.getTransactionInDateRange = function (token, range, cb) {
@@ -357,20 +336,19 @@ module.exports.getTransactionInDateRange = function (token, range, cb) {
 				function (cb) { self._waitForData(cb) }
 			],cb1);
 		}, 
-		function (cb1) {
+		safe.trap(function (cb) {
 			var stream = self._cash_transactions.find({datePosted: {$range: [range[0].valueOf(),range[1].valueOf(),range[2],range[3]]}}).stream();
 			stream.on('record', function (key,tr) {
 				res.push(tr);
 			});
-			stream.on('end',cb1);
-			stream.on('error',cb1);
-		}],
-		function done (err) {
-			if (err) console.log(err);
+			stream.on('end',cb);
+			stream.on('error',cb);
+		})],
+		safe.sure(cb, function () {
 			process.nextTick(function () {
-				cb(err, res);
+				cb(null, res);
 			});
-		}
+		})
 	);
 }
 
@@ -378,48 +356,34 @@ module.exports.clearTransactions = function (token, ids, cb) {
 	var self = this;
 	if (ids == null) {
 		async.series ([
-			function (cb1) {
+			function (cb) {
 				async.parallel([
 					function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
 					function (cb) { self._waitForData(cb) }
-				],cb1);
+				],cb);
 			},
-			function (cb1) {
-				self._cash_transactions.clear(cb1);
+			function (cb) {
+				self._cash_transactions.clear(cb);
 			} 
-		], function (err) {
-			if (err) return cb(err);
+		], safe.sure_result(cb, function () {
 			self._calcStats(function () {})
-			cb(null);
-		});
+		}));
 	} else {
-		var trs = [];
 		async.series ([
-			function (cb1) {
+			function (cb) {
 				async.parallel([
 					function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
 					function (cb) { self._waitForData(cb) }
-				],cb1);
+				],cb);
 			},
-			function (cb1) {				
-				async.forEach(ids,function(id,cb2){
-					self._cash_transactions.get(id,function (err, tr) {
-						if (err) return cb2(err);
-						trs.push(tr);				
-						process.nextTick(cb2);
-					});		
-				},cb1);				
-			},
-			function(cb1){
-				async.forEach(trs, function (e,cb2) {					
-					self._cash_transactions.put(e.id,null,cb2);
-				},cb1);
+			function(cb){
+				async.forEach(ids, function (e,cb) {					
+					self._cash_transactions.put(e.id,null,cb);
+				},cb);
 			} 
-		], function (err) {
-			if (err) return cb(err);
+		], safe.sure_result(cb, function () {
 			self._calcStats(function () {})
-			cb(null);
-		});
+		}));
 	}
 }
 
@@ -434,11 +398,9 @@ module.exports.importTransactions = function (token, transactions, cb) {
 			],cb1);
 		},
 		function (cb) {
-			self._coreapi.getUser(token,function (err, user) {
-				if (err) return cb(err);
+			self._coreapi.getUser(token,safe.sure_result(cb, function (user) {
 				uid = user.id;
-				cb()
-			})
+			}))
 		},					
 		function (cb) {
 			async.forEach(transactions, function (e,cb) {
@@ -446,9 +408,7 @@ module.exports.importTransactions = function (token, transactions, cb) {
 				self._cash_transactions.put(e.id,e,cb);
 			},cb);
 		}, 
-	], function (err) {
-		if (err) return cb(err);
+	], safe.sure_result(function () {
 		self._calcStats(function () {})
-		cb(null);
-	})
+	}))
 }

@@ -29,6 +29,11 @@ function CashApi (ctx) {
 			self._dataInCalc = self._dataReady = false;
 		}
 	}, 60*1000);
+	
+	// set index cleanup 
+	setInterval(function () {
+		console.log("Wait queue: " + self._waitQueue.length)
+	}, 60*1000);	
 }
 
 CashApi.prototype.getAccount = require('./accapi.js').getAccount;

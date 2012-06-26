@@ -1,6 +1,5 @@
 var async = require('async');
 var _ = require('underscore');
-var extend = require('node.extend');
 var SkilapError = require("skilap-utils").SkilapError;
 
 module.exports.getAccount = function (token, id, cb) {
