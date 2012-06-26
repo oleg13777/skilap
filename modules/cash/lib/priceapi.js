@@ -142,7 +142,7 @@ module.exports.importPrices = function  (token, prices, cb) {
 				self._cash_prices.put(e.id,e,cb);
 			},cb);
 		}, 
-	], self.sure_result(cb, function () {
+	], safe.sure_result(cb, function () {
 		self._calcStats(function () {})
 	}))
 }

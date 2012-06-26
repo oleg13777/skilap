@@ -313,7 +313,67 @@ function Skilap() {
 						cb2();
 					});
 				},cb1);
-			}],
+			}, 
+			function instrumenApi(cb) {
+				// comment the line below to get some profile info
+				// return cb();
+				var debug = false, calls=false;
+				if (process.argv[2]) {
+					if (process.argv[2]=="profile" || process.argv[2]=="calls")
+						debug = true;
+					if (process.argv[2]=="calls")
+						calls = true;
+				}
+				if (!debug) return cb();
+				var profile = {count:0,total:0,fstat:{}};
+				_.forEach(modules, function (m,mname) {
+					_.forEach(m.api.constructor.prototype, function (f,k) {
+						if (!_.isFunction(f))
+							return;
+						var p = function () {
+							var start = new Date().valueOf();
+							var fname = mname + ":" + k;
+							if (calls) console.log(fname + " ...");
+							function logend() {
+									var end = new Date().valueOf();
+									if (calls) console.log(fname + " " + (end-start)+"ms");
+									var st = profile.fstat[fname]
+									if (!st) {
+										profile.fstat[fname]=st={name:fname,count:0,total:0};
+									}
+									st.count++;
+									st.total+=(end-start);
+									profile.count++;
+									profile.total+=(end-start);
+							}
+							var cb = arguments[arguments.length-1];
+							if (_.isFunction(cb)) {
+								// log async time
+								arguments[arguments.length-1] = function () {
+									logend();
+									cb.apply(this,arguments);
+								}
+							}
+							var r = f.apply(this, arguments);
+							if (!_.isFunction(cb)) {
+								// log sync time
+								logend();
+							}
+							return r;
+						}
+						m.api.constructor.prototype[k] = p;
+					});
+				})
+				setInterval(function () {
+					console.log("Profile dump: "+profile.count+" "+profile.total+"ms");
+					profile.count = profile.total = 0;
+					_.forEach(profile.fstat, function (e) {
+						console.log(e);
+					})
+				}, 10000);
+				cb();
+			}
+			],
 			function end(err) {
 				console.timeEnd("startApp");
 				if (err) cb(err);

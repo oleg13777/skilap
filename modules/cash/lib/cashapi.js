@@ -341,3 +341,33 @@ module.exports.init = function (ctx,cb) {
 		cb(null, api);
 	})
 }
+
+/* Don't touch this, this can be used to debug/profile cash api 
+var profile = {};
+_.forEach(CashApi.prototype, function (f,k) {
+	var p = function () {
+		var start = new Date().valueOf();
+		var cb = arguments[arguments.length-1];
+		if (_.isFunction(cb)) {
+			arguments[arguments.length-1] = function () {
+				var end = new Date().valueOf();
+				console.log(k + " = " + (end-start));
+				if (!profile[k])
+					profile[k]={name:k,count:0,total:0};
+				profile[k].count++;
+				profile[k].total+=(end-start);
+				cb.apply(this,arguments);
+			}
+		}
+		var pf = f;
+		return f.apply(this, arguments);
+	}
+	CashApi.prototype[k] = p;
+});
+setInterval(function () {
+	console.log("Profile dump");
+	_.forEach(profile, function (e) {
+		console.log(e);
+	})
+}, 10000);
+*/
