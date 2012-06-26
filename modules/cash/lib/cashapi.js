@@ -214,8 +214,8 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 				var year = date.getFullYear();
 				var month = date.getMonth();
 				var dirs = [ 
-					{rate:price.value,key:JSON.stringify({from:price.cmdty,to:price.currency})},
-					{rate:1/price.value,key:JSON.stringify({from:price.currency,to:price.cmdty})}];
+					{rate:price.value,key:(price.cmdty.space+price.cmdty.id+price.currency.space+price.currency.id)},
+					{rate:1/price.value,key:(price.currency.space+price.currency.id+price.cmdty.space+price.cmdty.id)}];
 				_(dirs).forEach(function (dir) {
 					var dirTree = self._stats.priceTree[dir.key];
 					if (dirTree==null) self._stats.priceTree[dir.key]=dirTree={};

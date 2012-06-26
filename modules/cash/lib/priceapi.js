@@ -1,4 +1,5 @@
 var async = require('async');
+var safe = require('safe');
 var _ = require('underscore');
 var SkilapError = require("skilap-utils").SkilapError;
 
@@ -15,7 +16,7 @@ module.exports.getCmdtyPrice = function (token,cmdty,currency,date,method,cb) {
 			],cb);
 		}, 
 		function get(cb) {
-			var key = JSON.stringify({from:cmdty,to:currency});			
+			var key = (cmdty.space+cmdty.id+currency.space+currency.id);			
 			var ptree = self._stats.priceTree[key];
 			if (ptree==null) {
 				if (method == "safe")
@@ -24,10 +25,9 @@ module.exports.getCmdtyPrice = function (token,cmdty,currency,date,method,cb) {
 					return cb(new SkilapError("Unknown price pair","UnknownRate"));
 			}
 			cb(null,ptree.last);
-		}], function end(err, results) {
-			if (err) return cb(err);
+		}], safe.sure(cb, function (results) {
 			cb(null, results[1]);
-		}
+		})
 	)
 }
 
@@ -43,22 +43,22 @@ module.exports.getPricesByPair = function (token,pair,cb) {
 		function get(cb) {
 			var prices = [];
 			self._cash_prices.scan(function (err, key, price) {
-					if (err) cb(err);
-					if (key){ 
-						if(price.cmdty.id == pair.from && price.currency.id == pair.to){
-							prices.push(price);							
-						}
+				if (err) cb(err);
+				if (key) { 
+					if (price.cmdty.id == pair.from && price.currency.id == pair.to){
+						prices.push(price);							
 					}
-					else{
-						prices = _.sortBy(prices, function(price){ return -new Date(price.date).valueOf() });
-						cb(null, prices);
-					}
-				},
-			true);
-		}], function end(err, results) {
-			if (err) return cb(err);
-			cb(null, results[1]);
-		}
+				}
+				else {
+					prices = _.sortBy(prices, function(price){ return -new Date(price.date).valueOf() });
+					cb(null, prices);
+				}
+			}, true);
+		}], safe.sure(cb, function (results) {
+			process.nextTick( function () {
+				cb(null, results[1]);
+			})
+		})
 	)
 }
 
@@ -74,27 +74,22 @@ module.exports.savePrice = function (token,price,cb) {
 		}, 
 		function (cb) {					
 			if (price.id) {
-				self._cash_transactions.get(price.id,function (err, price_) {
-					if (err) return cb(err);
-					pricen = extend(price,price_);
-					cb()
-				});		
+				self._cash_transactions.get(price.id,safe.sure_result(cb, function (price_) {
+					pricen = _.extend(price,price_);
+				}));		
 			} else {
-				self._ctx.getUniqueId(function (err, id) {
-					if (err) return cb(err);
+				self._ctx.getUniqueId(safe.sure_result(function (id) {
 					pricen = price;					
 					pricen.id = id;
-					cb()
-				});
+				}));
 			}
 		}, 
 		function (cb) {			
 			self._cash_prices.put(pricen.id, pricen, cb);			
-		}], function (err){			
-			if (err) return cb(err);
+		}], safe.sure(cb, function () {			
 			self._calcStats(function () {});
 			cb(null,pricen);
-		}
+		})
 	);
 }
 
@@ -111,39 +106,25 @@ module.exports.clearPrices = function (token, ids, cb) {
 			function (cb) {
 				self._cash_prices.clear(cb);
 			} 
-		], function (err) {
-			if (err) return cb(err);
+		], safe.sure_result(cb, function () {
 			self._calcStats(function () {})
-			cb(null);
-		});
+		}));
 	} else {
-		var prs = [];
 		async.series ([
-			function (cb1) {
+			function (cb) {
 				async.parallel([
 					function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
 					function (cb) { self._waitForData(cb) }
-				],cb1);
+				],cb);
 			},
-			function (cb1) {				
-				async.forEach(ids,function(id,cb2){
-					self._cash_prices.get(id,function (err, pr) {
-						if (err) return cb2(err);
-						prs.push(pr);				
-						process.nextTick(cb2);
-					});		
-				},cb1);				
-			},
-			function(cb1){
-				async.forEach(prs, function (e,cb2) {					
-					self._cash_prices.put(e.id,null,cb2);
-				},cb1);
+			function(cb){
+				async.forEach(ids, function (e,cb) {					
+					self._cash_prices.put(e,null,cb);
+				},cb);
 			} 
-		], function (err) {
-			if (err) return cb(err);
+		], safe.sure_result(cb, function () {
 			self._calcStats(function () {})
-			cb(null);
-		});
+		}));
 	}
 }
 
@@ -161,9 +142,7 @@ module.exports.importPrices = function  (token, prices, cb) {
 				self._cash_prices.put(e.id,e,cb);
 			},cb);
 		}, 
-	], function (err) {
-		if (err) return cb(err);
+	], self.sure_result(cb, function () {
 		self._calcStats(function () {})
-		cb(null);
-	})
-}	
+	}))
+}

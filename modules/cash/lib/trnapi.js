@@ -378,7 +378,7 @@ module.exports.clearTransactions = function (token, ids, cb) {
 			},
 			function(cb){
 				async.forEach(ids, function (e,cb) {					
-					self._cash_transactions.put(e.id,null,cb);
+					self._cash_transactions.put(e,null,cb);
 				},cb);
 			} 
 		], safe.sure_result(cb, function () {

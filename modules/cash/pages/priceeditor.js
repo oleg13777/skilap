@@ -1,4 +1,5 @@
 var async = require("async");
+var safe = require('safe');
 var _ = require('underscore');
 var DateFormat = require('dateformatjs').DateFormat;
 var df = new DateFormat("MM/dd/yyyy");
@@ -9,10 +10,10 @@ module.exports = function priceeditor(webapp) {
 	var prefix = webapp.prefix
 	var ctx = webapp.ctx;
 	
-	app.get(prefix + "/priceeditor", function(req, res, next) {	
+	app.get(prefix + "/priceeditor", safe.trap(function(req, res, next) {	
 		if(req.xhr){				
 			if(req.query.firstCurr && req.query.secondCurr){				
-				cashapi.getPricesByPair(req.session.apiToken,{from:req.query.firstCurr,to:req.query.secondCurr},function(err,prices){
+				cashapi.getPricesByPair(req.session.apiToken,{from:req.query.firstCurr,to:req.query.secondCurr},safe.trap_sure(next, function(prices) {
 					_.forEach(prices, function (e) {
 						e.fvalue = webapp.i18n_cmdtytext(req.session.apiToken,e.currency,e.value)
 					})
@@ -50,7 +51,7 @@ module.exports = function priceeditor(webapp) {
 						currentDate:df.format(new Date()),
 						lastRate:lastRate,
 						paging:paging});
-				});			
+				}));			
 			}
 			else if(req.query.mode){
 				var dateFormat = new DateFormat(DateFormat.W3C);
@@ -61,39 +62,27 @@ module.exports = function priceeditor(webapp) {
 				if(req.query.id != 0){
 					price.id = req.query.id;
 				}							
-				cashapi.savePrice(req.session.apiToken,price,function(err,pricen){
+				cashapi.savePrice(req.session.apiToken,price,safe.trap_sure(next, function(pricen) {
 					pricen.date = df.format(new Date(pricen.date));
 					res.partial(__dirname+"/../views/priceeditor_tr",pricen);
-				});				
+				}));				
 			}
 			else if(req.query.deleteId){
-				cashapi.clearPrices(req.session.apiToken,[req.query.deleteId],function(err){
-					var result={};
-					if(err){
-						result.error = 1;
-					}
-					res.send(result);
-				});	
+				cashapi.clearPrices(req.session.apiToken,[req.query.deleteId],safe.sure(next,function () {res.send({});}));
 			}
-			else if(req.query.redrawGraph){
-				cashapi.getPricesByPair(req.session.apiToken,{from:req.query.from,to:req.query.to},function(err,prices){
+			else if(req.query.redrawGraph) {
+				cashapi.getPricesByPair(req.session.apiToken,{from:req.query.from,to:req.query.to},safe.trap_sure(next,function(prices){
 					var result={};
-					if(err){
-						result.error = 1;
-					}
-					else{
-						result.data=[];
-						_.forEach(prices,function(price){
-							result.data.push([new Date(price.date).valueOf(),price.value])							
-						});	
-						maxPrice = _.max(prices,function(price){
-							return price.value;
-						});
-						result.max = maxPrice.value;
-						
-					}
+					result.data=[];
+					_.forEach(prices,function(price){
+						result.data.push([new Date(price.date).valueOf(),price.value])							
+					});	
+					maxPrice = _.max(prices,function(price){
+						return price.value;
+					});
+					result.max = maxPrice.value;
 					res.send(result);
-				});
+				}));
 			}
 			
 		}
@@ -105,18 +94,16 @@ module.exports = function priceeditor(webapp) {
 				function(cb){
 					webapp.guessTab(req, {pid:'priceeditor',name:ctx.i18n(req.session.apiToken, 'cash', 'Rate Currency Editor'), url:req.url}, cb);
 				}
-			], function render (err,r) {	
-				if (err) return next(err);
+			], safe.trap_sure(next, function render (r) {	
 				var rdata = {
 					settings:{views:__dirname+"/../views/"},
 					prefix:prefix, 
 					tabs:r[1], 						
-					token: req.session.apiToken,
 					usedCurrencies:r[0].used,
 					notUsedCurrencies:r[0].unused						
 				};
 				res.render(__dirname+"/../views/priceeditor", rdata);
-			});
+			}));
 		}		
-	});
+	}));
 }
