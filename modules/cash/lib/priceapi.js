@@ -78,7 +78,7 @@ module.exports.savePrice = function (token,price,cb) {
 					pricen = _.extend(price,price_);
 				}));		
 			} else {
-				self._ctx.getUniqueId(safe.sure_result(function (id) {
+				self._ctx.getUniqueId(safe.sure_result(cb,function (id) {
 					pricen = price;					
 					pricen.id = id;
 				}));

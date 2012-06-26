@@ -408,7 +408,7 @@ module.exports.importTransactions = function (token, transactions, cb) {
 				self._cash_transactions.put(e.id,e,cb);
 			},cb);
 		}, 
-	], safe.sure_result(function () {
+	], safe.sure_result(cb, function () {
 		self._calcStats(function () {})
 	}))
 }
