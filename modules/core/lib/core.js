@@ -326,8 +326,15 @@ function Skilap() {
 				}
 				if (!debug) return cb();
 				var profile = {count:0,total:0,fstat:{}};
+				var po = [];
 				_.forEach(modules, function (m,mname) {
-					_.forEach(m.api.constructor.prototype, function (f,k) {
+					po.push({obj:m.api.constructor.prototype,name:mname});
+				})
+				po.push({obj:self,name:"ctx"});
+				
+				_.forEach(po, function (m) {
+					var mname = m.name;
+					_.forEach(m.obj, function (f,k) {
 						if (!_.isFunction(f))
 							return;
 						var p = function () {
@@ -361,7 +368,7 @@ function Skilap() {
 							}
 							return r;
 						}
-						m.api.constructor.prototype[k] = p;
+						m.obj[k] = p;
 					});
 				})
 				setInterval(function () {
@@ -442,7 +449,7 @@ function Skilap() {
 				saveTimer=null;
 			}, 1000);
 		}
-		process.nextTick(function () { cb(null,id)});
+		cb(null,id);
 	}
 
 	this.getRandomString = function (bits,cb) {
