@@ -43,8 +43,8 @@ $(function() {
 		$("#ski_createAccount").iframeContainer("open");
 		return false;
 	});	
-	$("#ski_createAccount").iframeContainer({src:"{{prefix}}/acccreate",host:"{{host}}"});	
-	$("#ski_deleteAccount").iframeContainer({src:"{{prefix}}/accdelete",host:"{{host}}"});	
+	$("#ski_createAccount").iframeContainer({src:"{{prefix}}/accounts/create",host:"{{host}}"});	
+	$("#ski_deleteAccount").iframeContainer({src:"{{prefix}}/accounts/delete",host:"{{host}}"});	
 	
 	$(document).on("click", ".deleteAcc", function(e){
 		var accountId = $(this).attr('aid');
@@ -67,7 +67,7 @@ $(function() {
 	<br><br>
 	<div id="tree_root" class="main tree">
 	{{#assets}}
-		{{>acctree_item}}
+		{{>accounts-tree_item}}
 	{{/assets}}
 	</div>
 	<br><p> * - {{#i18n}}denotes hidden accounts{{/i18n}}</p>

@@ -21,7 +21,7 @@ function CashWeb (ctx) {
 			require("../pages/index.js")(self);
 			require("../pages/import.js")(self);
 			require("../pages/report.js")(self);
-			require("../pages/acctree.js")(self);
+			require("../pages/accounts.js")(self);
 			require("../pages/restoredefaults.js")(self)	
 			require("../pages/export.js")(self);
 			require("../pages/priceeditor.js")(self);
@@ -191,7 +191,7 @@ CashWeb.prototype.getUseRangedCurrencies = function(token, cb) {
 			});
 			cb();
 		})
-	], safe.sure.result(cb, function (res) {
+	], safe.sure_result(cb, function () {
 		return res;
 	}))
 }

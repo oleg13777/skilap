@@ -79,17 +79,16 @@ module.exports = function account(webapp) {
 		webapp.ctx.runBatch(batch,cb);
 	}
 
-	app.get(prefix+"/acctree", function(req, res, next) {
+	app.get(prefix+"/accounts/tree", function(req, res, next) {
 		var assets,curencies,assetsTypes;		
 		async.series([
 			function (cb) {
-				getAccountList(req.session.apiToken, function (err, data) {
-					if (err) return cb(err);
+				getAccountList(req.session.apiToken, safe.trap_sure((edata) {
 					getAccountTree(req.session.apiToken,0,data,cb);
-				})
+				}))
 			},
 			function (cb) {				
-				webapp.guessTab(req, {pid:'acctree',name:ctx.i18n(req.session.apiToken, 'cash', 'Accounts'), url:req.url},cb);
+				webapp.guessTab(req, {pid:'accounts-tree',name:ctx.i18n(req.session.apiToken, 'cash', 'Accounts'), url:req.url},cb);
 			}
 		], function (err, r) {
 			if (err) return next(err);
@@ -101,7 +100,7 @@ module.exports = function account(webapp) {
 					token: req.session.apiToken,
 					host:req.headers.host
 				};
-			res.render(__dirname+"/../views/acctree", rdata);
+			res.render(__dirname+"/../views/accounts-tree", rdata);
 		})
 	});
 	
@@ -109,10 +108,9 @@ module.exports = function account(webapp) {
 		var assets, curencies, assetsTypes;
 		async.series([
 			function (cb) {
-				getAccountList(req.session.apiToken, function (err, data) {
-					if (err) return cb(err);
+				getAccountList(req.session.apiToken, safe.trap_sure((edata) {
 					getAccountTree(req.session.apiToken,0,data,cb);
-				})
+				}))
 			},
 			function (cb) {	
 				webapp.getUseRangedCurrencies(req.session.apiToken,cb);
@@ -138,15 +136,15 @@ module.exports = function account(webapp) {
 		});
 	};
 
-	app.get(prefix+"/acccreate",  function(req, res, next) {
-		responseHandler(req,res,next,'acccreate');
+	app.get(prefix+"/accounts/create",  function(req, res, next) {
+		responseHandler(req,res,next,'accounts-create');
 	});
 	
-	app.get(prefix+"/accdelete", function(req, res, next) {
-		responseHandler(req,res,next,'accdelete');
+	app.get(prefix+"/accounts/delete", function(req, res, next) {
+		responseHandler(req,res,next,'accounts-delete');
 	});		
 
-	app.post(prefix+"/accupd", function(req, res, next) {
+	app.post(prefix+"/accounts/update", function(req, res, next) {
 		var acc = {};
 		acc.id = req.body.id;
 		acc.name=req.body.name;
