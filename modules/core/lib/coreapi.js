@@ -4,6 +4,7 @@
  */
 var _ = require('underscore');
 var async = require('async');
+var safe = require('safe');
 var SkilapError = require("skilap-utils").SkilapError;
 
 /**
@@ -13,7 +14,6 @@ var SkilapError = require("skilap-utils").SkilapError;
 function CoreApi(ctx) {
 	this._ctx = ctx;
 	this._sessions = {};
-	console.log("core api constructor");
 	this._core_users = null;
 	this._core_clients = null;
 	this._core_systemSettings = null;
@@ -28,27 +28,21 @@ CoreApi.prototype.getLanguageSync = function(token) {
 
 CoreApi.prototype.loadData = function (cb) {
 	var self = this;
-	async.waterfall([
-		function (cb1) {
-			self._ctx.getDB(cb1);
-		},
-		function (adb,cb1) {
-			async.parallel([
-				async.apply(adb.ensure, 'core_users',
-					{type:'cached_key_map',buffered:true}),
-				async.apply(adb.ensure, 'core_clients',
-					{type:'cached_key_map',buffered:true}),
-				async.apply(adb.ensure, 'core_system_settings',
-					{type:'cached_key_map',buffered:true})
-			], function (err, results) {
-				if (err) return cb1(err);
-				self._core_users = results[0];
-				self._core_clients = results[1];
-				self._core_systemSettings = results[2];
-				cb1();
-			});
-		}
-	], cb)
+	self._ctx.getDB(safe.sure(cb, function (adb) {
+		async.parallel({
+			_core_users:function (cb) {
+				adb.ensure('core_users',{type:'cached_key_map',buffered:true},cb);
+			},
+			_core_clients:function (cb) {
+				adb.ensure('core_clients',{type:'cached_key_map',buffered:true},cb);
+			},
+			_core_systemSettings:function (cb) {
+				adb.ensure('core_system_settings',{type:'cached_key_map',buffered:true},cb);
+			}
+		}, safe.sure_result(cb, function (results) {
+			_.extend(self,results);
+		}))
+	}))
 }
 
 /**
@@ -130,19 +124,11 @@ CoreApi.prototype.checkPerm = function (token, opts, cb) {
 	var session = self._sessions[token];
 	if (!session) 
 		return cb(new SkilapError('Wrong access token','InvalidToken'));
-	if (session.user.type=='admin') {
-		// admin is valid only for core
-		if (perm.indexOf('core')==0) 
-			cb()
-		else
-			cb(new SkilapError('Admin user can do only administrative tasks'
-				,'AccessDenied'));
-	}
-	else if (session.user.type=="guest")
+	if (_.intersection(opts, session.user.permissions).length>0) 
+		cb()
+	else
 		cb(new SkilapError(self._ctx.i18n(token, 'core', 'Access denied')
 			,'AccessDenied'));
-	else 
-		cb();
 }
 
 /**

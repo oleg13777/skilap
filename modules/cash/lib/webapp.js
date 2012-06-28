@@ -169,7 +169,7 @@ CashWeb.prototype.getTabSettings = function(token, tabId, cb) {
 			else
 				cb(null, {})
 		}], safe.sure(cb, function (err, ret) {
-			cb(null, results);
+			cb(null, ret);
 		})
 	)
 }

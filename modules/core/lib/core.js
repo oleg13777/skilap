@@ -357,6 +357,10 @@ function Skilap() {
 							if (_.isFunction(cb)) {
 								// log async time
 								arguments[arguments.length-1] = function () {
+									// dump any errors
+									if (arguments.length>0 && arguments[0]) {
+										console.log(arguments[0]);
+									}
 									logend();
 									cb.apply(this,arguments);
 								}
