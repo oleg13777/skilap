@@ -1,4 +1,5 @@
 var async = require("async");
+var safe = require("safe");
 var _ = require('underscore');
 
 module.exports = function account(webapp) {
@@ -83,7 +84,7 @@ module.exports = function account(webapp) {
 		var assets,curencies,assetsTypes;		
 		async.series([
 			function (cb) {
-				getAccountList(req.session.apiToken, safe.trap_sure((edata) {
+				getAccountList(req.session.apiToken, safe.trap_sure(function (data) {
 					getAccountTree(req.session.apiToken,0,data,cb);
 				}))
 			},
@@ -108,7 +109,7 @@ module.exports = function account(webapp) {
 		var assets, curencies, assetsTypes;
 		async.series([
 			function (cb) {
-				getAccountList(req.session.apiToken, safe.trap_sure((edata) {
+				getAccountList(req.session.apiToken, safe.trap_sure(function (data) {
 					getAccountTree(req.session.apiToken,0,data,cb);
 				}))
 			},

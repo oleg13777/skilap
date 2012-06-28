@@ -17,7 +17,7 @@
 			$(".closeTab").on("click", function(e){
 				var self = $(this);
 				var jqXHR = $.ajax({
-					"url": "{{prefix}}/close?pid=" + self.attr('pid'),
+					"url": "{{prefix}}/tabs/close?pid=" + self.attr('pid'),
 					"dataType": "json"
 				});
 				jqXHR.done(function(data){
