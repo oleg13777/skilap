@@ -7,7 +7,7 @@ var safe = require('safe');
 
 module.exports.export = function (token,cb) {
 	var self = this;
-	var res = {'skilap-cash':1,transactions:[],prices:[],accounts:[]}
+	var res = {'skilap-cash':1,transactions:[],prices:[],accounts:[],settings:{}}
 	async.series ([
 		function start(cb) {
 			async.parallel([
@@ -32,6 +32,12 @@ module.exports.export = function (token,cb) {
 				if (k==null) return process.nextTick(cb);
 				res.prices.push(v);
 			}),true);
+		},
+		function getSettings(cb) {
+			self._cash_settings.scan(safe.sure(cb, function(k, v) {
+				if (k==null) return process.nextTick(cb);
+				res.settings[k]=v;
+			}),true);
 		}], safe.sure(cb, function (results) {
 			cb(null, res);
 		})
@@ -44,6 +50,7 @@ module.exports.import = function (fileName, cb){
 	var transactions = null;
 	var accounts = null;
 	var prices = null;
+	var settings = null;
 	async.waterfall([
 		function readFile(cb) {
 			fs.readFile(fileName, cb);
@@ -59,6 +66,7 @@ module.exports.import = function (fileName, cb){
 			transactions = data.transactions;
 			accounts = data.accounts;
 			prices = data.prices;
+			settings = data.settings;
 			cb()
 		}),
 		function transpondAccounts(cb) {
@@ -102,7 +110,7 @@ module.exports.import = function (fileName, cb){
 			},cb)
 		},
 	], safe.sure(cb, function () {
-		var ret = {tr:transactions, acc:accounts, prices:prices};
+		var ret = {tr:transactions, acc:accounts, prices:prices,settings:settings};
 		process.nextTick(function(){
 			cb(null,ret);
 		});

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-06-25 20:40+0400\n"
+"POT-Creation-Date: 2012-06-28 22:45+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,63 +16,63 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../modules/core/lib/coreapi.js:135 ../modules/core/lib/viewStrings.js:41
+#: ../modules/core/lib/coreapi.js:130 ../modules/core/lib/viewStrings.js:41
 msgid "Access denied"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:265 ../modules/core/lib/coreapi.js:269
+#: ../modules/core/lib/coreapi.js:258 ../modules/core/lib/coreapi.js:262
 msgid "User must have non empty password"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:267
+#: ../modules/core/lib/coreapi.js:260
 msgid "Password too short, at least 6 characters required"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:271
+#: ../modules/core/lib/coreapi.js:264
 msgid "First name is required"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:273
+#: ../modules/core/lib/coreapi.js:266
 msgid "Last name is required"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:284
+#: ../modules/core/lib/coreapi.js:277
 msgid "User log-in is not unique"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:335
+#: ../modules/core/lib/coreapi.js:328
 msgid "Ski Master"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:343
+#: ../modules/core/lib/coreapi.js:336
 msgid "Log-in failed"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:426
+#: ../modules/core/lib/coreapi.js:413
 msgid "View personal data"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:427
+#: ../modules/core/lib/coreapi.js:414
 msgid "Edit personal data"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:428
+#: ../modules/core/lib/coreapi.js:415
 msgid "View system users"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:429
+#: ../modules/core/lib/coreapi.js:416
 msgid "Edit system users"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:430
+#: ../modules/core/lib/coreapi.js:417
 msgid "Edit system parameters"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:436
+#: ../modules/core/lib/coreapi.js:423
 msgid "Core module"
 msgstr ""
 
-#: ../modules/core/lib/coreapi.js:437
+#: ../modules/core/lib/coreapi.js:424
 msgid ""
 "Primary system module. Provides system with common functionality and allows "
 "to administer it"

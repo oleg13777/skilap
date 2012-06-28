@@ -37,8 +37,12 @@ module.exports = function (fileName, cb){
 	var slot = {};
 	var slots = [];
 	var flags = ["hidden", "placeholder"];
+	var defCurrency = null;
 	
 	var opentag = {
+		"CUST:CURRENCY":function(){
+			defCurrency = {};
+		},
 		"GNC:TRANSACTION":function(){
 			tr = {currency:{},splits:[]};
 		},
@@ -132,6 +136,9 @@ module.exports = function (fileName, cb){
 				case "PRICE:CURRENCY":
 					price.currency.id = nodetext;
 				break;
+				case "CUST:CURRENCY":
+					defCurrency.id = nodetext;
+				break;				
 			}			
 		},
 		"CMDTY:SPACE":function(){
@@ -147,6 +154,9 @@ module.exports = function (fileName, cb){
 				break;
 				case "PRICE:CURRENCY":
 					price.currency.space = nodetext;
+				break;
+				case "CUST:CURRENCY":
+					defCurrency.space = nodetext;
 				break;
 			}			
 		},	
@@ -257,7 +267,10 @@ module.exports = function (fileName, cb){
 				},cb)
 			}
 		], safe.sure(cb, function () {
-			var ret = {tr:transactions, acc:accounts, prices:prices};
+			var settings = {};
+			if (defCurrency)
+				settings['currency'] = defCurrency;
+			var ret = {tr:transactions, acc:accounts, prices:prices, settings:settings};
 			process.nextTick(function(){
 				cb(null,ret);
 			});

@@ -25,6 +25,7 @@ function CashWeb (ctx) {
 			require("../pages/restoredefaults.js")(self)	
 			require("../pages/export.js")(self);
 			require("../pages/priceeditor.js")(self);
+			require("../pages/settings.js")(self);			
 		})
 	})
 }
@@ -98,7 +99,7 @@ CashWeb.prototype.guessTab = function (req, ti,cb) {
 
 CashWeb.prototype.removeTabs = function (token, tabIds, cb) {
 	var self = this;
-	var vtabs=[], user;
+	var user;
 	async.waterfall ([
 		// we need user first
 		function (cb) {
@@ -106,27 +107,16 @@ CashWeb.prototype.removeTabs = function (token, tabIds, cb) {
 		},
 		function (user_, cb) {
 			user = user_;
-			if (user.type!='guest')
-				if (tabIds == null)
-					self._cash_userviews.put(user.id, {tabs:[]},cb);
-				else
-					self._cash_userviews.get(user.id, cb);
-			else
-				cb(null,{});
+			self._cash_userviews.get(user.id, cb);
 		},
 		safe.trap(function (views, cb) {
-			var tIds = {};
-			var _views = {tabs:[]};
-			tabIds.forEach(function(t) {
-				tIds[t]=t;
-			});
-			views.tabs.forEach(function (t) {
-				var tab = tIds[t.pid];
-				if (!tab) {
-					_views.tabs.push(t);
-				}
-			});
-			self._cash_userviews.put(user.id,_views,cb);
+			if (views==null)
+				views={tabs:[]}
+			if (tabIds==null)
+				views.tabs = [];
+			else
+				views.tabs = _.reject(views.tabs, function (t) { return _(tabIds).include(t.id); } )
+			self._cash_userviews.put(user.id,views,cb);
 		})], cb
 	)
 }

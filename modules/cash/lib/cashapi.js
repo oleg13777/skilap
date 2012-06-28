@@ -12,6 +12,7 @@ function CashApi (ctx) {
 	this._cash_accounts = null;
 	this._cash_transactions = null;
 	this._cash_prices = null;
+	this._cash_settings = null;
 	this._dataReady = false;
 	this._dataInCalc = false;
 	this._lastAccess = new Date();
@@ -64,6 +65,10 @@ CashApi.prototype.clearTransactions = require('./trnapi.js').clearTransactions;
 CashApi.prototype.getTransactionsInDateRange = require('./trnapi.js').getTransactionInDateRange;
 CashApi.prototype.parseRaw = require('./export.js').import;
 CashApi.prototype.exportRaw = require('./export.js').export;
+CashApi.prototype.getSettings = require('./settings.js').getSettings;
+CashApi.prototype.saveSettings = require('./settings.js').saveSettings;
+CashApi.prototype.clearSettings = require('./settings.js').clearSettings;
+CashApi.prototype.importSettings = require('./settings.js').importSettings;
 
 CashApi.prototype._waitForData = function (cb) {
 	this._lastAccess = new Date();
@@ -111,12 +116,16 @@ CashApi.prototype._loadData = function (cb) {
 				},
 				function prices (cb) {
 					adb.ensure("cash_prices",{type:'cached_key_map',buffered:false},cb);
+				},
+				function prices (cb) {
+					adb.ensure("cash_settings",{type:'cached_key_map',buffered:false},cb);
 				}
 			], function (err, results) {
 				if (err) return cb(err)
-				self._cash_accounts = cash_accounts = results[0];
-				self._cash_transactions = cash_transactions = results[1];
-				self._cash_prices = cash_prices = results[2];
+				self._cash_accounts = results[0];
+				self._cash_transactions = results[1];
+				self._cash_prices = results[2];
+				self._cash_settings = results[3];				
 				cb();
 			})
 		}, 
@@ -205,7 +214,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 	async.auto({
 		price_tree: function (cb1) {
 			self._stats.priceTree = {};
-			cash_prices.scan(function(err, k, price) {
+			self._cash_prices.scan(function(err, k, price) {
 				if (err) return cb1(err);
 				if (k==null) { 
 					return cb1();

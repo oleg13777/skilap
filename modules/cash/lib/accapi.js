@@ -330,7 +330,7 @@ module.exports.getDefaultAccounts = function (token, cmdty, cb){
 			ret.push({parentId:0, cmdty:cmdty, name:acc.name, id:uniqId, type:acc.type});
 			
 			async.forEachSeries(acc.ch, function(name, cb) {
-				self._ctx.getUniqueId(self.trap_sure_result(function(id) {
+				self._ctx.getUniqueId(safe.trap_sure_result(cb,function(id) {
 					ret.push({parentId:uniqId, cmdty:cmdty, name:name, id:id, type:acc.type});
 				}));
 			}, cb);
@@ -358,6 +358,9 @@ module.exports.restoreToDefaults = function (token, cmdty, type, cb){
 		function (cb){
 			self._cash_accounts.clear(cb);
 		},
+		function (cb){
+			self._cash_settings.clear(cb);
+		},
 		function (cb) {
 			if (type == "default")
 				self.getDefaultAccounts(token, cmdty, cb);
@@ -368,6 +371,9 @@ module.exports.restoreToDefaults = function (token, cmdty, type, cb){
 			async.forEachSeries(accounts, function (e, cb) {
 				self._cash_accounts.put(e.id,e,cb);
 			},cb);
+		},
+		function (cb) {
+			self.saveSettings(token,"currency",cmdty,cb);
 		}
 	], safe.sure_result(cb, function () {
 		self._calcStats(function () {});
