@@ -418,7 +418,7 @@ module.exports.saveAccount = function (token, account, cb) {
 		function get(id, cb) {
 			account.id = id;
 			self._cash_accounts.put(account.id, account, cb);
-		}], safe.sure_retuls(cb,function (result) {
+		}], safe.sure_result(cb,function (result) {
 			self._calcStats(function () {})
 			return account;
 		})
