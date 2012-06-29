@@ -155,10 +155,10 @@ CashWeb.prototype.getTabSettings = function(token, tabId, cb) {
 		function (views, cb) {
 			var ret = _.find(views.tabs,function (t) {return t.pid == tabId; });
 			if (ret) 
-				cb(null, ret)
+				cb(null, ret.settings)
 			else
 				cb(null, {})
-		}], safe.sure(cb, function (err, ret) {
+		}], safe.sure(cb, function (ret) {
 			cb(null, ret);
 		})
 	)
