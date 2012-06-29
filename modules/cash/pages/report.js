@@ -1,3 +1,6 @@
+var DateFormat = require('dateformatjs').DateFormat;
+var df = new DateFormat("MM/dd/yyyy");
+var dfW3C = new DateFormat(DateFormat.W3C);
 var async = require("async");
 var _ = require('underscore');
 
@@ -6,151 +9,32 @@ module.exports = function account(webapp) {
 	var cashapi = webapp.api;
 	var prefix = webapp.prefix;
 	var ctx = webapp.ctx;
-
-	// split date range into periods
-	function getPeriods (sd, ed) {
-		var ret = [];
-		var start = new Date(sd.valueOf());
-		var end = new Date(sd.valueOf());
-		while (end.valueOf() < ed.valueOf()) {
-			end = new Date(start.getFullYear(),start.getMonth()+1,1);
-			if (ed.valueOf()<end.valueOf())
-				end = ed;
-			ret.push({start:start, end:end, summ:0});
-			start = end;
-		}
-		return ret;
-	}
-
-	// Calc accounts stats by perriod
-	function calcAccStatsByPerriod (token, accounts, accType, startDate, endDate, periods, maxAcc, cb) {
-		// prepare the matrix for single pass calculation
-		var accKeys = _(accounts).reduce( function (memo, acc) {
-			if ((acc.type == accType) && periods)
-				memo[acc.id] = {name:acc.name, id:acc.id,summ:0,periods:_(periods).map(function (p) { return _(p).clone(); })};
-			else if (acc.type == accType)
-				memo[acc.id] = {name:acc.name, id:acc.id,summ:0};
-			return memo;
-		}, {})
-		// do a single pass calcs
-		cashapi.getTransactionsInDateRange(token,[startDate,endDate,true,false],function (err,trns) {
-			if (err) return cb1(err);
-			var total = 0;
-			_(trns).forEach(function (tr) {
-				_(tr.splits).forEach( function(split) {
-					var acs = accKeys[split.accountId];
-					if (acs) {
-						var val = split.quantity;
-						if (accType == "INCOME")
-							val *= -1;
-						acs.summ+=val;
-						if (periods) {
-							var d = (new Date(tr.datePosted)).valueOf();
-							_(acs.periods).forEach(function (p) {
-								if (d>p.start.valueOf() && d<=p.end.valueOf())
-									p.summ+=val;
-							})
-						}
-					}
-				})
-			})
-			// find important accounts (with biggest summ over entire period)
-			var iacs = _(accKeys).chain().map(function (acs) { return {id:acs.id, summ:acs.summ}})
-				.sortBy(function (acs) {return acs.summ}).last(maxAcc)
-				.reduce(function (memo, acs) { memo[acs.id]=1; return memo; }, {}).value();
-			// colapse non important
-			var final = _(accKeys).reduce( function (memo, accKey) {
-				total += accKey.summ;
-				if (_(iacs).has(accKey.id))
-					memo[accKey.id] = accKey;
-				else {
-					var other = memo['other'];
-					if (other==null) {
-						accKey.name = "Other";
-						accKey.id = 'other';
-						memo['other'] = accKey;
-					} else {
-						other.summ+=accKey.summ;
-						if (periods)
-							for(var i =0; i<other.periods.length; i++) {
-								other.periods[i].summ+=accKey.periods[i].summ;
-							}
-					}
-				}
-				return memo;
-			}, {});
-			// transform into report form
-			var report = _(final).reduce( function (memo,accKey) {
-				var obj = {};
-				if (periods){
-					var obj = {name:accKey.name, data:_(accKey.periods).pluck('summ')}
-				} else {					
-					obj = [accKey.name, accKey.summ];
-				}
-				memo.push(obj);
-				return memo;
-			}, [])
-			
-			if (!periods)
-				report = {type:'pie', data: report};
-			
-			
-			cb(null, report);
-		})
-	}
+	var reportSettingsVersion = 2;
 	
-	function calculateDataForPie(token, params, vtabs, cb){
-		async.waterfall([
-			function (cb) { cashapi.getAllAccounts(token, cb) },
-			function (accounts, cb1) {
-				calcAccStatsByPerriod(token, accounts, params.accType, params.startDate, params.endDate, null, params.maxAcc, cb1);
-			}
-		], function (err, series) {			
-			cb(null, {pie:true, settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, series:JSON.stringify(series), params:JSON.stringify(params)});
-		});
-	};
-
-	function calculateDataForChart(token, params, vtabs, cb){
-		var periods = getPeriods(params.startDate, params.endDate);
-		var categories = _(periods).map(function (p) { return (p.start.getMonth()+1)+"."+p.start.getFullYear();});
-		async.waterfall([
-			function (cb) { cashapi.getAllAccounts(token, cb) },
-			function (accounts, cb1) {
-				calcAccStatsByPerriod(token, accounts, params.accType, params.startDate, params.endDate, periods, params.maxAcc, cb1);
-			}
-		], function (err, series) {			
-			cb(null, {expense:true, settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, categories:JSON.stringify(categories), series:JSON.stringify(series), params:JSON.stringify(params)});
-		});
-	};
-	
-	function getDefaultSettings(reportName) {
-		var defaultSettings = {
-				startDate:new Date(new Date().getFullYear(), 0, 1),
-				endDate:new Date(new Date().getFullYear(), 11, 31),
-				accType:"EXPENSE",
-				maxAcc:10,
-				reportName:reportName,
-				version: 1
-			};
-		return defaultSettings;
-	}
-
 	app.get(prefix + "/reports/barflow", function (req, res, next ) {
-		report(req, res, next, "barflow");
+		report1(req, res, next, "barflow");
 	})
 
 	app.get(prefix + "/reports/pieflow", function (req, res, next ) {
-		report(req, res, next, "pieflow");
+		report1(req, res, next, "pieflow");
+	})
+	
+	app.post(prefix + "/reports/barflow", function (req, res, next ) {
+		saveParams(req, res, next, "barflow");
 	})
 
-	function report(req, res, next, type) {
-		if (!req.query || !req.query.name) {
+	app.post(prefix + "/reports/pieflow", function (req, res, next ) {
+		saveParams(req, res, next, "pieflow");
+	})	
+	
+	function report1(req, res, next, type) {		
+		if (!req.query || !req.query.name) {			
 			res.redirect(req.url+"?name="+(type=='pieflow'?ctx.i18n(req.session.apiToken, 'cash','Pie flow chart'):ctx.i18n(req.session.apiToken,'cash','Bar flow chart')));
 			return;
 		}
 
 		var pid = "reports-" +type + "-" + req.query.name;
-		
+		var vtabs,data,reportSettings;
 		async.waterfall([
 			function (cb1) {
 				async.series([
@@ -165,40 +49,256 @@ module.exports = function account(webapp) {
 					cb1(null, results[0], results[1]);
 				});
 			},
-			function (vtabs, settings, cb1) {
-				if (_.isEmpty(settings) || !settings.version || (settings.version != 1)) {
-					settings = getDefaultSettings(req.query.name);
-				}
-				if (type == 'barflow')
-					calculateDataForChart(req.session.apiToken, settings, vtabs, cb1);
-				else
-					calculateDataForPie(req.session.apiToken, settings, vtabs, cb1);
+			function (vtabs_, reportSettings_, cb1) {
+				vtabs = vtabs_;
+				reportSettings = reportSettings_;				
+				if (_.isEmpty(reportSettings) || !reportSettings.version || (reportSettings.version != reportSettingsVersion)) {					
+					reportSettings = getDefaultSettings(req.query.name);
+				}						
+				calculateGraphData(req.session.apiToken,type,reportSettings,cb1)					
 			},
-			function (data) {
-				res.render(__dirname+"/../views/report", data);
+			function(data_,cb1){
+				data = data_;
+				cashapi.getAssetsTypes(req.session.apiToken,cb1);
+			},
+			function (assetsTypes,cb1) {								
+				reportSettings.startDate = df.format(new Date(reportSettings.startDate));
+				reportSettings.endDate = df.format(new Date(reportSettings.endDate));
+				reportSettings.accLevelOptions = _(reportSettings.accLevelOptions).reduce(function(memo,item){
+					item.isSelected = item.name == reportSettings.accLevel ? 1 : 0;
+					memo.push(item);					
+					return memo;
+				},[]);
+				reportSettings.accTypeOptions = _(assetsTypes).reduce(function(memo,item){
+					item.isSelected = item.value == reportSettings.accType ? 1 : 0;
+					memo.push(item);
+					return memo;
+				},[]);				
+				reportSettings.accTypeName = _(assetsTypes).reduce(function(memo,item){
+					if(item.value == reportSettings.accType)
+						memo = item.name;					
+					return memo;
+				});
+				data.reportSettings = reportSettings;	
+				data.accountsTree = _(data.accountsTree).reduce(function(memo,item){
+					if(_.isNull(reportSettings.accIds) || _.indexOf(reportSettings.accIds,item['id']) != -1 )
+						item.isSelected = 1;
+					memo.push(item);
+					return memo;
+				},[]);
+				//fix without res.partial doesn't render reportsettings accounts tree			
+				res.partial(__dirname+"/../views/reportsettings",{},cb1);			
+			},
+			function(somedata,cb1){								
+				res.render(__dirname+"/../views/report", _.extend({settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs},data));
 			}],
 			next
 		);
 	};
+	
+	function calculateGraphData(token, type, params, cb){
+		var periods=categories=null;
+		var accountsTree,accKeys;
+		switch(type){
+			case 'barflow':
+				periods = getPeriods(new Date(params.startDate), new Date(params.endDate));			
+				categories = _(periods).map(function (p) { return (p.start.getMonth()+1)+"."+p.start.getFullYear();});
+			break;
+			case 'pieflow':
+			break;
+		}	
+		async.waterfall([
+			function (cb1) { 
+				cashapi.getAllAccounts(token, cb1);
+			},
+			function (accounts, cb1) {
+				accountsTree = cashapi.createAccountsTree(accounts);				
+				//check selected accounts				
+				if(_.isArray(params.accIds) && accounts.length != params.accIds.length){					
+					accounts = _(accounts).filter(function(item){						
+						return _.indexOf(params.accIds,item['id']) != -1;
+					});				
+				}
+				accKeys = _(accounts).reduce(function (memo, acc) {					
+					if (acc.type == params.accType){
+						memo[acc.id] = {name:acc.name, id:acc.id, parentId:acc.parentId,summ:0};
+						if(periods)
+							memo[acc.id].periods = _(periods).map(function (p) { return _(p).clone(); });
+					}					
+					return memo;
+				}, {});
+				cashapi.getTransactionsInDateRange(token,[params.startDate,params.endDate,true,false],cb1);				
+			},
+			function(trns,cb1){						
+				_(trns).forEach(function (tr) {
+					_(tr.splits).forEach( function(split) {
+						var acs = accKeys[split.accountId];
+						if (acs) {
+							var val = split.quantity;
+							if (params.accType == "INCOME")
+								val *= -1;
+							acs.summ+=val;
+							if (periods) {
+								var d = (new Date(tr.datePosted)).valueOf();
+								_(acs.periods).forEach(function (p) {
+									if (d>p.start.valueOf() && d<=p.end.valueOf())
+										p.summ+=val;
+								});
+							}
+						}
+					});
+				});				
+				//collapse accounts to accLevel
+				if(params.accLevel != 'All'){
+					async.series([
+						function(cb2){
+							async.forEach(_(accKeys).keys(),function(key,cb3){
+								cashapi.getAccountInfo(token,key,['level'],function(err,res){									
+									accKeys[key].level = res.level;									
+									cb3();
+								});
+							},cb2);
+						},
+						function(cb2){							
+							var accountsOverLevel = _(accKeys).chain()
+							.values()
+							.filter(function(item){	return item.level > params.accLevel})
+							.groupBy(function(item){return item.parentId})
+							.values()
+							.reduce(function(memo,items){								
+								_.forEach(items,function(item){
+									if(!_.has(memo,item.parentId)){
+										memo[item.parentId] = {summ:0,ids:[]};
+									}
+									memo[item.parentId].summ += item.summ;
+									memo[item.parentId].ids.push(item.id);
+								});								
+								return memo;
+							},{})
+							.value();
+							
+							accKeys = _(accKeys).chain()
+							.values()
+							.filter(function(item){	return item.level <= params.accLevel})							
+							.reduce(function(memo,item){
+								memo[item.id] = item;
+								return memo;
+							},{})
+							.value();
+							
+							_.forEach(_(accountsOverLevel).keys(),function(key){
+								if(accKeys[key]){
+									accKeys[key].summ += accountsOverLevel[key].summ;
+									delete accountsOverLevel[key];
+								}
+							});						
+							
+							cb2();
+						}
+					],function(err){
+						if(err) return cb1(err);
+						cb1();
+					});										
+				}
+				else
+					cb1();
+			},
+			function(cb1){
+				var total = 0;				
+				// find important accounts (with biggest summ over entire period)
+				var iacs = _(accKeys).chain().map(function (acs) { return {id:acs.id, summ:acs.summ}})
+					.sortBy(function (acs) {return acs.summ}).last(params.maxAcc)
+					.reduce(function (memo, acs) { memo[acs.id]=1; return memo; }, {}).value();
+				// colapse non important
+				var final = _(accKeys).reduce( function (memo, accKey) {
+					total += accKey.summ;
+					if (_(iacs).has(accKey.id))
+						memo[accKey.id] = accKey;
+					else {
+						var other = memo['other'];
+						if (other==null) {
+							accKey.name = "Other";
+							accKey.id = 'other';
+							memo['other'] = accKey;
+						} else {
+							other.summ+=accKey.summ;
+							if (periods)
+								for(var i =0; i<other.periods.length; i++) {
+									other.periods[i].summ+=accKey.periods[i].summ;
+								}
+						}
+					}
+					return memo;
+				}, {});
+				// transform into report form
+				var report = _(final).reduce( function (memo,accKey) {
+					var obj = {};
+					if (periods){
+						var obj = {name:accKey.name, data:_(accKey.periods).pluck('summ')}
+					} else {					
+						obj = [accKey.name, accKey.summ];
+					}
+					memo.push(obj);
+					return memo;
+				}, [])
+				cb1(null,report);
+				
+			}
+		], function (err, series) {
+			if(err) return cb(err);			
+			if(type == 'pieflow')
+				series = {type:'pie', data: series};
+			
+			var data = {categories:JSON.stringify(categories), series:JSON.stringify(series), accountsTree:accountsTree};
+			data[type] = 1;							
+			cb(null, data);
+		});
+	}	
 
-	app.post(prefix + "/reports/barflow", function (req, res, next ) {
-		saveParams(req, res, next, "barflow");
-	})
-
-	app.post(prefix + "/reports/pieflow", function (req, res, next ) {
-		saveParams(req, res, next, "pieflow");
-	})
+	// split date range into periods
+	function getPeriods (sd, ed) {
+		var ret = [];
+		var start = new Date(sd.valueOf());
+		var end = new Date(sd.valueOf());
+		while (end.valueOf() < ed.valueOf()) {
+			end = new Date(start.getFullYear(),start.getMonth()+1,1);
+			if (ed.valueOf()<end.valueOf())
+				end = ed;
+			ret.push({start:start, end:end, summ:0});
+			start = end;
+		}
+		return ret;
+	}	
+	
+	function getDefaultSettings(reportName) {		
+		var defaultSettings = {
+				startDate:dfW3C.format(new Date(new Date().getFullYear(), 0, 1)),
+				endDate:dfW3C.format(new Date(new Date().getFullYear(), 11, 31)),
+				accType:"EXPENSE",				
+				maxAcc:10,
+				reportName:reportName,
+				accIds:null,
+				accLevel:2,
+				accLevelOptions:[{name:'All'},{name:1},{name:2},{name:3},{name:4},{name:5},{name:6}],
+				version: reportSettingsVersion
+			};
+		return defaultSettings;
+	}	
 
 	function saveParams (req, res, next, type) {
 		var url = prefix+"/reports/"+type;
 		var oldpid = "reports-" +type + "-" + req.query.name;
 		var pid = "reports-" +type + "-" + req.body.reportName;
 		var settings = getDefaultSettings();
-		settings.accType = req.body.reportType;
+		settings.accType = req.body.accType;
 		settings.maxAcc = req.body.maxAcc;
-		settings.startDate = new Date(parseInt(req.body.startDate));
-		settings.endDate = new Date(parseInt(req.body.endDate));
+		settings.startDate = dfW3C.format(new Date(req.body.startDate));
+		settings.endDate = dfW3C.format(new Date(req.body.endDate));
 		settings.reportName = req.body.reportName;
+		settings.accIds = _.isArray(req.body.accIds) ? _.map(req.body.accIds,function(item){
+			return parseInt(item);
+		}) : null;
+		settings.accLevel = req.body.accLevel;		
 
 		var steeps = [
 			function(cb) { 

@@ -1,15 +1,7 @@
-<div class="report">
 <script type="text/javascript" src="{{prefix}}/javascripts/highcharts/highcharts.js"></script>
-
 <script type="text/javascript">
-	var chart;
-	var params = {{{params}}};
-	var x_title = params.reportName;
-	var y_title = "{{#i18n}}Expense{{/i18n}}";
-	if (params.accType == "INCOME") {
-		y_title = "{{#i18n}}Income{{/i18n}}";
-	}
-	$(document).ready(function() {
+	var chart;	
+	$(function() {
 		$(window).on('resize',function(){	
 			adaptHeight();
 		});	
@@ -19,184 +11,13 @@
 		}		
 		adaptHeight();
 			
-		{{#expense}}
-		chart = new Highcharts.Chart({
-			chart: {
-				renderTo: 'container',
-				defaultSeriesType: 'column'
-			},
-			title: {
-				text: x_title
-			},
-			xAxis: {
-				categories: {{{categories}}}
-			},
-			yAxis: {
-				title: {
-					text: y_title
-				},
-				stackLabels: {
-					enabled: true,
-					style: {
-						fontWeight: 'bold',
-						color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
-					},
-					formatter : function () {
-						return this.total.toFixed(2);
-					}
-				}
-			},
-			credits: {
-				enabled: true
-			},
-			tooltip: {
-				formatter: function() {
-					return '<b>'+this.series.name +'</b>: '+ this.y +'<br/>'+
-						 'Total: '+ this.point.stackTotal.toFixed(2);
-				}
-			},
-			plotOptions: {
-				column: {
-					stacking: 'normal',
-					dataLabels: {
-						enabled: false,
-						color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white'
-					}
-				}
-			},
-			series: {{{series}}}
-		});
-		{{/expense}}
-		
-		{{#pie}}
-		chart = new Highcharts.Chart({
-			chart: {
-				renderTo: 'container',
-				plotBackgroundColor: null,
-				plotBorderWidth: null,
-				plotShadow: false
-			},
-			title: {
-				text: params.reportName
-			},
-			tooltip: {
-				formatter: function() {
-					return '<b>'+this.point.name +'</b>: '+ this.percentage.toFixed(2) +' % ('+ this.y.toFixed(2)+')';
-						
-				}
-			},
-			plotOptions: {
-				pie: {
-					allowPointSelect: true,
-					cursor: 'pointer',
-					showInLegend: true,
-					dataLabels: {
-						enabled: true,
-						color: '#000000',
-						connectorColor: '#000000',
-						formatter: function() {
-							return '<b>'+ this.point.name +'</b>: '+ this.percentage.toFixed(2) +' % ('+ this.y.toFixed(2)+')';
-						}
-					}
-				}
-			},
-			series: [{{{series}}}]
-		});
-		{{/pie}}
-
-		var form = document.forms.properties;
-		form.elements.maxAcc.value=params.maxAcc;
-		if (params.accType == "EXPENSE") {
-			form.elements.report_type.selectedIndex=0;
-		} else {
-			form.elements.report_type.selectedIndex=1;
-		}
-		$("#startDate").datepicker();
-		$("#startDate").datepicker('setDate', new Date(params.startDate));
-		$("#endDate").datepicker();
-		$("#endDate").datepicker('setDate', new Date(params.endDate));
-		form.elements.reportName.value=params.reportName;
-		$(".report .settings").click(function(){
-			$("#dialog").dialog("open");
-		});
-		$("#dialog").dialog({
-			position: ["center","center"],
-			buttons: {
-				"{{#i18n}}Apply{{/i18n}}": function() {
-					var f = document.forms.properties;
-					var p = {
-						startDate : new Date(f.elements.startDate.value).getTime(),
-						endDate : new Date(f.elements.endDate.value).getTime(),
-						maxAcc : f.elements.maxAcc.value,
-						reportType : f.elements.report_type.options[f.elements.report_type.selectedIndex].value,
-						reportName : f.elements.reportName.value,
-						version: 1
-					}
-					var jqXHR = $.ajax({
-						"type": "POST",
-						"data": p,
-						"url": location.pathname+location.search,
-						"dataType": "text"
-					});
-					jqXHR.done(function(data){
-						location.href=data;
-					});
-					jqXHR.fail(function(data){
-					});
-				},
-				"{{#i18n}}Close{{/i18n}}": function() {
-					$(this).dialog("close");
-				}
-			},
-			autoOpen: false,
-			resizable: false,
-			height: 300,
-			width: 350,
-			modal: true,
-			draggable: false
-		});
-		
-		$(".closeTab").on("click", function(e){
-		});
+		{{>report_graph}}		
 	});
 	
 </script>
-	
-<div id="dialog" title="{{#i18n}}Report settings{{/i18n}}" style="width: 600; height: 200px;">
-	<form name="properties">
-		<table>
-			<tr>
-				<td>{{#i18n}}Start date{{/i18n}}:</td>
-				<td><input type="text" id="startDate" tabindex="-1"></tr>
-			</tr>
-			<tr>
-				<td>{{#i18n}}End date{{/i18n}}:</td>
-				<td><input type="text" id="endDate" tabindex="-1"></td>
-			</tr>
-			<tr>
-				<td>{{#i18n}}Max account{{/i18n}}:</td>
-				<td><input type="text" id="maxAcc"></td>
-			</tr>
-			<tr>
-				<td>{{#i18n}}Report name{{/i18n}}:</td>
-				<td><input type="text" id="reportName"></td>
-			</tr>
-			<tr>
-				<td>{{#i18n}}Account type{{/i18n}}:</td>
-				<td>
-					<select name="report_type">
-						<option value="EXPENSE">{{#i18n}}Expense{{/i18n}}</option>
-						<option value="INCOME">{{#i18n}}Income{{/i18n}}</option>
-					</select>
-				</td>
-			</tr>
-		</table>
-	</form>
-</div>
-
-<a class="settings" href="#" title="{{#i18n}}Report settings{{/i18n}}"></a>
-
-<div id="container" style="width: 100%; height: 700px;"></div>
-
+<div class="report">
+	{{>reportsettings}}
+	<a class="settings" href="#" title="{{#i18n}}Report settings{{/i18n}}"></a>
+	<div id="container" style="width: 100%; height: 700px;"></div>
 </div>
 

@@ -145,6 +145,8 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 					res.count = accStats.count;
 				if (val == "path") 
 					res.path = accStats.path;
+				if (val == "level")
+					res.level = accStats.level;
 			});				
 			process.nextTick(function () {cb(null, res);});
 		}], function (err, results) {
@@ -456,4 +458,21 @@ module.exports.getAllCurrencies = function(token,cb){
 		}
 	);
 	
+}
+
+module.exports.createAccountsTree = function(accounts){
+	var oAccounts = _.reduce(accounts,function(memo,item){		
+		memo[item.id] = _.clone(item);
+		memo[item.id].childs=[];
+		return memo;
+	},{});
+	
+	_.forEach(_.keys(oAccounts),function(key){		
+		if(oAccounts[key].parentId != 0){			
+			oAccounts[oAccounts[key].parentId].childs.push(oAccounts[key]);
+		}		
+	});	
+	return _.filter(_.values(oAccounts),function(item){
+		return (item.parentId == 0 && !item.hidden);
+	});
 }

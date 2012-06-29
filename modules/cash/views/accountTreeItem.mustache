@@ -1,0 +1,9 @@
+<li class="accountTreeItem {{^childs}}hide-tree{{/childs}}" data-accountid="{{id}}">
+	<span class="tree-ico"></span><span class="name {{#isSelected}}selected{{/isSelected}}">{{name}}</span>
+	<ul class="accountsTree">
+		{{#childs}}	
+			{{>accountTreeItem}}		
+		{{/childs}}
+	</ul>
+</li>
+

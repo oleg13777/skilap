@@ -374,7 +374,7 @@ text-shadow: black 1px 1px 2px, red 0 0 1em;
 }
 
 .invisible{
-	display:none;
+	display:none !important;
 }
 
 /** start css for treeview */
@@ -799,3 +799,95 @@ color:#333;
     width: 16px;
     text-decoration: none;
 }
+
+.tabs-settings.ui-tabs .ui-tabs-nav li a{
+padding:0.1em 0.2em;
+}
+
+.settingsForm .fieldItemsContainer{
+display:table;
+}
+
+.settingsForm .fieldItem{
+margin-bottom:10px;
+}
+
+.settingsForm .fieldItem.half{
+width:48%;
+}
+
+.settingsForm .fieldItem.left{
+float:left;
+}
+
+.settingsForm .fieldItem.right{
+float:right;
+}
+
+.settingsForm .fieldItem.clear{
+clear:both;
+}
+
+.settingsForm label{
+display:block;
+}
+
+.settingsForm .textField{
+display:block;
+width:100%;
+padding-left:5px;
+height:25px;
+border:1px solid #ccc;
+box-sizing:border-box;
+	-moz-box-sizing:border-box;
+	-webkit-box-sizing:border-box;
+}
+
+
+
+.accountsTreeContainer{
+max-height:200px;
+overflow:auto;
+margin:0 0 30px -30px;
+}
+
+.accountsTree{
+display:block;
+margin-left:30px;
+}
+
+.accountTreeItem{
+display:block;
+}
+
+.accountTreeItem .name{
+display:block;
+margin:3px 0;
+cursor:pointer;
+}
+
+.accountTreeItem .name.selected{
+background:#8eb6ff;
+}
+.accountTreeItem .tree-ico{
+display:block;
+float:left;
+width:12px;
+height:18px;
+background:url('../images/tree-icons.png')no-repeat 0 -15px;
+cursor:pointer;
+margin-left:2px;
+}
+
+.accountTreeItem.hide-tree .tree-ico{
+background:none;
+}
+
+.accountTreeItem.collapsed .tree-ico{
+background:url('../images/tree-icons.png')no-repeat 0 8px;
+}
+
+.accountTreeItem.collapsed .accountsTree{
+display:none;
+}
+

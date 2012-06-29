@@ -1,0 +1,133 @@
+<script type="text/javascript">	
+	$(function() {	
+		var datePickerOptions = {
+			changeMonth: true,
+			changeYear: true
+		};
+		$("#startDate").datepicker(datePickerOptions);		
+		$("#endDate").datepicker(datePickerOptions);		
+		
+		$(".report .settings").click(function(){
+			$("#dialog").dialog("open");
+		});
+		$("#dialog .tabs-settings").tabs();		
+		$("#dialog").dialog({
+			position: ["center","center"],
+			buttons: {
+				"{{#i18n}}Apply{{/i18n}}": function() {									
+					var accIds = [];					
+					$(".settingsForm .accountTreeItem .name.selected").each(function(index,item){						
+						accIds.push($(item).parent().data('accountid'));
+					});					
+					var jqXHR = $.ajax({
+						"type": "POST",
+						"data": $(".settingsForm").serialize() + '&' + $.param({accIds:accIds}) + '&version=2',
+						"url": location.pathname+location.search,
+						"dataType": "text"
+					});
+					jqXHR.done(function(data){
+						location.href=data;
+					});
+					jqXHR.fail(function(data){
+					});
+				},
+				"{{#i18n}}Close{{/i18n}}": function() {
+					$(this).dialog("close");
+				}
+			},			
+			autoOpen: false,
+			resizable: false,
+			height: 520,
+			width: 400,
+			modal: true,
+			draggable: false
+		});		
+				
+		$(".accountTreeItem .tree-ico").click(function(){
+			$(this).parent().toggleClass('collapsed');
+		});
+		$(".accountTreeItem .name").click(function(){
+			$(this).toggleClass('selected');
+		});
+		
+		$("button[name=\"select-all-tree\"]").click(function(){
+			$(".accountTreeItem .name").addClass("selected");
+		});
+		
+		$("button[name=\"clear-all-tree\"]").click(function(){
+			$(".accountTreeItem .name").removeClass("selected");
+		});
+		
+		$("button[name=\"select-all-tree\"],button[name=\"clear-all-tree\"]").hover(function(){
+			$(this).addClass('ui-state-hover');
+		},function(){
+			$(this).removeClass('ui-state-hover');
+		});
+	});
+	
+</script>
+	
+<div id="dialog" style="display:none;" title="{{#i18n}}Report settings{{/i18n}}">
+	<form name="properties" class="settingsForm">
+		<div class="tabs-settings">
+			<ul>
+				<li><a href="#tabs-1">Accounts</a></li>
+				<li><a href="#tabs-2">General</a></li>				
+			</ul>
+			<div id="tabs-1">
+				<div class="fieldItem">
+					<div class="accountsTreeContainer">
+						<ul class="accountsTree">
+							{{#accountsTree}}
+								{{>accountTreeItem}}	
+							{{/accountsTree}}					
+						</ul>
+					</div>
+					<div>
+						<button name="select-all-tree" type="button" class="ui-button ui-state-default ui-corner-all ui-button-text-only ui-widget" role="button"><span class="ui-button-text" >{{#i18n}}Select All{{/i18n}}</span></button>
+						<button name="clear-all-tree" type="button" class="ui-button ui-state-default ui-corner-all ui-button-text-only ui-widget" role="button"><span class="ui-button-text" >{{#i18n}}Clear All{{/i18n}}</span></button>
+					</div>
+				</div>
+				<div class="fieldItem">
+					<label>Show accounts until level</label>								
+					<select name="accLevel" class="textField">					
+						{{#reportSettings.accLevelOptions}}
+							<option value="{{name}}" {{#isSelected}}selected{{/isSelected}} >{{name}}</option>
+						{{/reportSettings.accLevelOptions}}						
+					</select>
+				</div>
+			</div>
+			<div id="tabs-2">
+				<div class="fieldItemsContainer">
+					<div class="fieldItem">
+						<label for="reportName">{{#i18n}}Report name{{/i18n}}:</label>
+						<input class="textField" type="text" id="reportName" name="reportName" value="{{reportSettings.reportName}}">
+					</div>
+					<div class="fieldItem left half">
+						<label for="startDate">{{#i18n}}Start date{{/i18n}}:</label>
+						<input class="textField" type="text" id="startDate" name="startDate" value="{{reportSettings.startDate}}" tabindex="-1">
+					</div>
+					<div class="fieldItem right half">
+						<label for="endDate">{{#i18n}}End date{{/i18n}}:</label>
+						<input class="textField" type="text" id="endDate" name="endDate" value="{{reportSettings.endDate}}" tabindex="-1">
+					</div>
+					<div class="fieldItem clear left half">
+						<label for="maxAcc">{{#i18n}}Max account{{/i18n}}:</label>
+						<input class="textField" type="text" id="maxAcc" name="maxAcc" value="{{reportSettings.maxAcc}}" >
+					</div>
+					
+					<div class="fieldItem right half">
+						<label for="accType">{{#i18n}}Account type{{/i18n}}:</label>
+						<select class="textField" name="accType" id="accType">
+							{{#reportSettings.accTypeOptions}}
+								<option value="{{value}}" {{#isSelected}}selected{{/isSelected}} >{{name}}</option>
+							{{/reportSettings.accTypeOptions}}
+						</select>
+					</div>
+				</div>				
+			</div>			
+		</div>
+
+		
+	</form>
+</div>

@@ -45,6 +45,7 @@ CashApi.prototype.getDefaultAccounts = require('./accapi.js').getDefaultAccounts
 CashApi.prototype.saveAccount = require('./accapi.js').saveAccount;
 CashApi.prototype.getSpecialAccount = require('./accapi.js').getSpecialAccount;
 CashApi.prototype.getAllCurrencies = require('./accapi.js').getAllCurrencies;
+CashApi.prototype.createAccountsTree = require('./accapi.js').createAccountsTree;
 CashApi.prototype.importPrices = require('./priceapi.js').importPrices;
 CashApi.prototype.clearPrices = require('./priceapi.js').clearPrices;
 CashApi.prototype.getCmdtyPrice = require('./priceapi.js').getCmdtyPrice;
@@ -56,7 +57,7 @@ CashApi.prototype.getTransaction = require('./trnapi.js').getTransaction;
 CashApi.prototype.saveTransaction = require('./trnapi.js').saveTransaction;
 CashApi.prototype.importTransactions = require('./trnapi.js').importTransactions;
 CashApi.prototype.clearTransactions = require('./trnapi.js').clearTransactions;
-CashApi.prototype.getTransactionsInDateRange = require('./trnapi.js').getTransactionInDateRange;
+CashApi.prototype.getTransactionsInDateRange = require('./trnapi.js').getTransactionsInDateRange;
 CashApi.prototype.parseRaw = require('./export.js').import;
 CashApi.prototype.exportRaw = require('./export.js').export;
 
@@ -167,6 +168,23 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		else {
 			cb(acc.name);
 		} 
+	}
+	
+	function getAccLevel(acc,startLevel,cb){		
+		if(acc.parentId == 0){
+			cb(startLevel);
+		}
+		else{			
+			self._cash_accounts.get(acc.parentId, function(err, parentAcc) {
+				if (parentAcc==null) {
+					cb(startLevel);
+				} else {
+					getAccLevel(parentAcc, ++startLevel, function (level) {
+						cb(level);
+					});
+				}
+			});
+		}
 	}	
 	
 	console.time("Stats");
@@ -227,6 +245,20 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 					c++;
 					getAccPath(acc, function (path) { 
 						getAccStats(acc.id).path = path;
+						if (--c==0) cb1();
+					});
+				} else if (--c==0) cb1();
+			}, true)
+		},
+		account_level: function(cb1){
+			var next = this;
+			var c=1;
+			self._cash_accounts.scan(function(err, k, acc) {
+				if (err) return cb1(err);
+				if (k!=null) {
+					c++;
+					getAccLevel(acc,1, function(level) { 
+						getAccStats(acc.id).level = level;
 						if (--c==0) cb1();
 					});
 				} else if (--c==0) cb1();
