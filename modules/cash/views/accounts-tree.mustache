@@ -24,32 +24,8 @@ $(function() {
 		return false;
 	});
 	$("body").on('accountUpdatedSuccess',function(e,data){
-		if (data.hidden) {
-			location.reload(true);
-			return false;
-		}
-		var curent = $('#'+data.id);
-		if (!curent.length) {
-			curent = $('<div id="'+data.id+'"><a id="open'+data.id+'" href=\'/cash/account?id='+data.id+'\'>'+data.name+'</a> (<a href="#" class="editAcc" aid="'+data.id+'">edit</a> <a href="#" class="deleteAcc" aid="{{id}}">delete</a>)<span>'+data.fvalue+'</span></div>');
-		}
-		$('#open'+data.id).text(data.name);
-		
-		if (data.placeholder) {
-			$('#open'+data.id).replaceWith('<font id="open'+data.id+'">'+$('#open'+data.id).text()+'</font>');
-		} else {
-			$('#open'+data.id).replaceWith('<a id="open'+data.id+'" href=\'/cash/account?id='+data.id+'\'>'+data.name+'</a>');
-		}
-		
-		var parent;
-		if (data.parentId == 0) {
-			parent = $('#tree_root');
-			parent.append(curent);
-		} else {
-			parent = $('#'+data.parentId);
-			parent.addClass('expanded');
-			parent.children('div').show();
-			parent.append(curent);
-		}
+		location.reload(true);
+		return false;
 	});
 	$(document).on("click", ".editAcc", function(e){
 		var aid = $(this).attr('aid');
@@ -67,8 +43,8 @@ $(function() {
 		$("#ski_createAccount").iframeContainer("open");
 		return false;
 	});	
-	$("#ski_createAccount").iframeContainer({src:"{{prefix}}/acccreate",host:"{{host}}"});	
-	$("#ski_deleteAccount").iframeContainer({src:"{{prefix}}/accdelete",host:"{{host}}"});	
+	$("#ski_createAccount").iframeContainer({src:"{{prefix}}/accounts/create",host:"{{host}}"});	
+	$("#ski_deleteAccount").iframeContainer({src:"{{prefix}}/accounts/delete",host:"{{host}}"});	
 	
 	$(document).on("click", ".deleteAcc", function(e){
 		var accountId = $(this).attr('aid');
@@ -91,7 +67,8 @@ $(function() {
 	<br><br>
 	<div id="tree_root" class="main tree">
 	{{#assets}}
-		{{>acctree_item}}
+		{{>accounts-tree_item}}
 	{{/assets}}
 	</div>
+	<br><p> * - {{#i18n}}denotes hidden accounts{{/i18n}}</p>
 </div>

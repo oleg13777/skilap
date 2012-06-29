@@ -3,12 +3,14 @@
 		<tr>
 			<th class="date" >{{#i18n}}Date{{/i18n}}</th>
 			<th class="rate" >{{#i18n}}Rate currency{{/i18n}}</th>
+			<th class="rate" >{{#i18n}}Raw value{{/i18n}}</th>			
 		</tr>
 	</thead>
 	<tbody>
 		{{#prices}}
 			<tr data-id={{id}}>				
 				<td class="date" >{{date}}</td>
+				<td class="frate" >{{fvalue}}</td>				
 				<td class="rate" >{{value}}</td>
 			</tr>			
 		{{/prices}}

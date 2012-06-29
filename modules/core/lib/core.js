@@ -107,7 +107,7 @@ function Skilap() {
 					// common data grabber
 					app.use(function (req, res, next) {
 						modules['core'].api.getUser(req.session.apiToken, function (err, user) {
-							if (err) next(err);
+							if (err) return next(err);
 							if (!user.language) {
 								// guess language 
 								var al = req.headers['accept-language'];
@@ -225,47 +225,13 @@ function Skilap() {
 				app.get("/logout", function (req, res, next){
 					res.clearCookie("skilapid");
 					res.clearCookie("sguard");
-					res.clearCookie("connect.sid");
 					modules['core'].api.logOut(req.session.apiToken, function() { 
-						var r = req.param.success || '/';
-						res.redirect(r);
+						req.session.destroy(function () {
+							var r = req.param.success || '/';
+							res.redirect(r);
+						})
 					});
 				});
-				
-				function handleBatch(batch, req, res, next) {
-					if (batch.batchName == 'forEach') {
-						var ret = [];
-						async.forEachSeries(batch.object, function(iterator, cb) {
-							var params = batch.params;
-							var func = batch.method.match(/^(.*)\.(.*)$/);
-							var module = func[1];
-							func = func[2];
-							console.log('Begin ' + module + '.' + func + '.' + iterator.key);
-							var api = modules[module].api;
-							var fn = api[func];
-							params = JSON.parse(params.replace('\"_iterator_\"', JSON.stringify(iterator.value)));
-							params.push(function () {
-								var jsonres = {};
-								if (arguments[0]) {
-									var err = arguments[0];
-									jsonres.error = {message:err.message,subject:err.skilap?err.skilap.subject:"GenericError"}
-									jsonres.result = null;
-								} else {
-									jsonres.error = null;
-									jsonres.result = Array.prototype.slice.call(arguments,1);
-								}
-								var body = JSON.stringify(jsonres);
-								ret.push({id: iterator.key, data: body});
-								cb();
-							});
-							fn.apply(api, params);
-						}, function() {
-							var jsonres = {};
-							jsonres.result = ret;
-							res.send(JSON.stringify(jsonres), { 'Content-Type': 'text/plain', 'Connection': 'close' });
-						});
-					}
-				}
 				
 				function handleJsonRpc(jsonrpc, req, res, next) {
 					var startTime = new Date();
@@ -275,36 +241,32 @@ function Skilap() {
 						var params = jsonrpc.params;
 						if (typeof(params) != 'object')
 							params = JSON.parse(params);
-						if (jsonrpc.method == 'batch') {
-							handleBatch(params[1], req, res, next);
-						} else {
-							var func = jsonrpc.method.match(/^(.*)\.(.*)$/);
-							var module = func[1];
-							func = func[2];
-							var api;
-							if (module == 'batch')
-								api = self;
-							else
-								api = modules[module].api;
-								
-							var fn = api[func];
-							params.push(function () {
-								var jsonres = {};
-								if (arguments[0]) {
-									var err = arguments[0];
-									jsonres.error = {message:err.message,subject:err.skilap?err.skilap.subject:"GenericError"}
-									jsonres.result = null;
-								} else {
-									jsonres.error = null;
-									jsonres.result = Array.prototype.slice.call(arguments,1);
-								}
-								jsonres.id = jsonrpc.id;
-								var reqTime = new Date() - startTime;
-								res.send(jsonres);
-							})
-							fn.apply(api, params);
-							out = true;
-						}
+						var func = jsonrpc.method.match(/^(.*)\.(.*)$/);
+						var module = func[1];
+						func = func[2];
+						var api;
+						if (module == 'batch')
+							api = self;
+						else
+							api = modules[module].api;
+							
+						var fn = api[func];
+						params.push(function () {
+							var jsonres = {};
+							if (arguments[0]) {
+								var err = arguments[0];
+								jsonres.error = {message:err.message,subject:err.skilap?err.skilap.subject:"GenericError"}
+								jsonres.result = null;
+							} else {
+								jsonres.error = null;
+								jsonres.result = Array.prototype.slice.call(arguments,1);
+							}
+							jsonres.id = jsonrpc.id;
+							var reqTime = new Date() - startTime;
+							res.send(jsonres);
+						})
+						fn.apply(api, params);
+						out = true;
 					} catch (err) {
 						console.log(err);
 						if (!out) 
@@ -351,7 +313,78 @@ function Skilap() {
 						cb2();
 					});
 				},cb1);
-			}],
+			}, 
+			function instrumenApi(cb) {
+				// comment the line below to get some profile info
+				// return cb();
+				var debug = false, calls=false;
+				if (process.argv[2]) {
+					if (process.argv[2]=="profile" || process.argv[2]=="calls")
+						debug = true;
+					if (process.argv[2]=="calls")
+						calls = true;
+				}
+				if (!debug) return cb();
+				var profile = {count:0,total:0,fstat:{}};
+				var po = [];
+				_.forEach(modules, function (m,mname) {
+					po.push({obj:m.api.constructor.prototype,name:mname});
+				})
+				po.push({obj:self,name:"ctx"});
+				
+				_.forEach(po, function (m) {
+					var mname = m.name;
+					_.forEach(m.obj, function (f,k) {
+						if (!_.isFunction(f))
+							return;
+						var p = function () {
+							var start = new Date().valueOf();
+							var fname = mname + ":" + k;
+							if (calls) console.log(fname + " ...");
+							function logend() {
+									var end = new Date().valueOf();
+									if (calls) console.log(fname + " " + (end-start)+"ms");
+									var st = profile.fstat[fname]
+									if (!st) {
+										profile.fstat[fname]=st={name:fname,count:0,total:0};
+									}
+									st.count++;
+									st.total+=(end-start);
+									profile.count++;
+									profile.total+=(end-start);
+							}
+							var cb = arguments[arguments.length-1];
+							if (_.isFunction(cb)) {
+								// log async time
+								arguments[arguments.length-1] = function () {
+									// dump any errors
+									if (arguments.length>0 && arguments[0]) {
+										console.log(arguments[0]);
+									}
+									logend();
+									cb.apply(this,arguments);
+								}
+							}
+							var r = f.apply(this, arguments);
+							if (!_.isFunction(cb)) {
+								// log sync time
+								logend();
+							}
+							return r;
+						}
+						m.obj[k] = p;
+					});
+				})
+				setInterval(function () {
+					console.log("Profile dump: "+profile.count+" "+profile.total+"ms");
+					profile.count = profile.total = 0;
+					_.forEach(profile.fstat, function (e) {
+						console.log(e);
+					})
+				}, 10000);
+				cb();
+			}
+			],
 			function end(err) {
 				console.timeEnd("startApp");
 				if (err) cb(err);
@@ -420,7 +453,7 @@ function Skilap() {
 				saveTimer=null;
 			}, 1000);
 		}
-		process.nextTick(function () { cb(null,id)});
+		cb(null,id);
 	}
 
 	this.getRandomString = function (bits,cb) {

@@ -1,4 +1,5 @@
 var async = require("async");
+var safe = require("safe");
 var _ = require('underscore');
 
 module.exports = function account(webapp) {
@@ -85,25 +86,19 @@ module.exports = function account(webapp) {
 						"res":{"a":"store","v":"rate"}
 					}					
 				}
-				webapp.ctx.runBatch(batch,function (err, _data) {
-					if (err) return cb(err);
+				webapp.ctx.runBatch(batch,safe.sure_result(cb, function (_data) {
 					data = _data;
-					cb();
-				})
+				}))
 			},
 			function (cb) { 
-				getAssets(req.session.apiToken, 0, assetsTypes, data, function (err, res) {
-					if (err) return cb(err);
+				getAssets(req.session.apiToken, 0, assetsTypes, data, safe.sure_result(cb, function (res) {
 					assets = res;
-					cb();
-				})
+				}))
 			},
 			function (cb) { 
-				getAssets(req.session.apiToken, 0, liabilitiesTypes, data, function (err, res) {
-					if (err) return cb(err);
+				getAssets(req.session.apiToken, 0, liabilitiesTypes, data, safe.sure_result(cb, function (res) {
 					liabilities = res;
-					cb();
-				})
+				}))
 			},
 			function (cb) { webapp.guessTab(req, {pid:'home',name:webapp.ctx.i18n(req.session.apiToken, 'cash','Home'),url:req.url}, cb) },
 			function render (vtabs) {
@@ -119,7 +114,7 @@ module.exports = function account(webapp) {
 		);
 	});
 
-	app.get(prefix + "/close", function(req, res, next) {
+	app.get(prefix + "/tabs/close", function(req, res, next) {
 		async.waterfall([
 			function(cb1){
 				var pid = req.query.pid;

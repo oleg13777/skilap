@@ -1,6 +1,6 @@
 var async = require('async');
+var safe = require('safe');
 var _ = require('underscore');
-var extend = require('node.extend');
 var SkilapError = require("skilap-utils").SkilapError;
 
 module.exports.getAccount = function (token, id, cb) {
@@ -13,15 +13,10 @@ module.exports.getAccount = function (token, id, cb) {
 			],cb);
 		},
 		function get(cb) {
-			self._cash_accounts.get(id, function (err, acc) {
-				if (err) cb(err);
-				cb(null, acc);
-			},
-			true);
-		}], function end(err, result) {
-			if (err) return cb(err);
-			cb(null, result[1]);
-		}
+			self._cash_accounts.get(id, cb);
+		}], safe.sure_result(cb, function (result) {
+			return result[1];
+		})
 	)
 }
 
@@ -42,10 +37,9 @@ module.exports.getAllAccounts = function (token, cb) {
 					else cb(null, accounts);
 				},
 			true);
-		}], function end(err, results) {
-			if (err) return cb(err);
-			cb(null, results[1]);
-		}
+		}], safe.sure_result(cb, function (results) {
+			return results[1];
+		})
 	)
 }
 
@@ -59,15 +53,13 @@ module.exports.getChildAccounts = function(token, parentId, cb) {
 			],cb);
 		}, 
 		function get(cb) {
-			self._cash_accounts.find({parentId: {$eq: parentId}}).all(function (err, accounts) {
-				if (err) return cb(err);
+			self._cash_accounts.find({parentId: {$eq: parentId}}).all(safe.sure(cb, function (accounts) {
 				cb(null, _(accounts).map(function (e) {return e.value;}));
-			});
+			}));
 		}
-		], function end(err, results) {
-			if (err) return cb(err);
-			cb(null, results[1]);
-		}
+		], safe.sure_result(cb,function (results) {
+			return results[1];
+		})
 	)
 }
 
@@ -80,21 +72,16 @@ module.exports.getAccountByPath = function (token,path,cb) {
 				function (cb) { self._waitForData(cb) }
 			],cb);
 		}, 
-		function get(cb) {
+		function find(cb) {
 			var newAccId = null;
-			_.forEach(self._stats, function (accStat,key) {
-				if (accStat.path == path)
-					newAccId = key;
-			});				
+			var stats = self._stats;
+			var accStats = _.find(stats, function (e) { return e.path == path; });
+			newAccId = accStats.id;
 			if (newAccId==null)
-				process.nextTick(function () { cb(new SkilapError("No such account","NO_SUCH_ACCOUNT")); });
-			else 
-				process.nextTick(function () { cb(null, newAccId); });
+				return cb(new SkilapError("No such account","NO_SUCH_ACCOUNT"));
+			self.getAccount(token,newAccId,cb);
 		}
-		], function end(err, results) {
-			if (err) return cb(err);
-			self.getAccount(token,results[1],cb);
-		}
+		], cb
 	)
 }
 
@@ -125,6 +112,9 @@ module.exports.getSpecialAccount = function (token,type,cmdty,cb) {
 
 module.exports.getAccountInfo = function (token, accId, details, cb) {
 	var self = this;
+	var accInfo = null;
+	var accStats = null
+	var assInfo = null;
 	async.series ([
 		function (cb) {
 			async.parallel([
@@ -133,26 +123,58 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 			],cb);
 		}, 
 		function (cb) {
-			var res = {};
-			var accStats = self._stats[accId];
+			accStats = self._stats[accId];
 			if (accStats==null)
 				return cb(new Error("Invalid account Id: "+accId));
+			cb();
+		},
+		function (cb) {
+			if (!_(details).include("verbs"))
+				return cb();
+			self.getAssetsTypes(token, safe.sure(cb,function (assets) {
+				accInfo = _(assets).find(function (e) { return e.value == accStats.type; } );
+				if (accInfo==null)
+					return cb(new Error("Wrong account type"));
+				cb();
+			}))
+		},
+		function (cb) {
+			if (!_(details).include("act"))
+				return cb();
+			self.getAssetInfo(token,accStats.type, safe.sure_result(cb,function (info) {
+				assInfo = info;
+			}))
+		},		
+		safe.trap(function (cb) {
+			var res = {};
 			res.id = accId;
 			_.forEach(details, function (val) {
-				if (val == "value")
-					res.value = accStats.value;
-				if (val == "count") 
-					res.count = accStats.count;
-				if (val == "path") 
-					res.path = accStats.path;
-				if (val == "level")
-					res.level = accStats.level;
+				switch(val) {
+					case 'value':
+						res.value = accStats.value;
+						break;
+					case 'count':
+						res.count = accStats.count;
+						break;
+					case 'path':
+						res.path = accStats.path;
+						break;
+					case 'verbs':
+						res.recv = accInfo.recv;
+						res.send = accInfo.send;
+						break;
+					case 'act':
+						res.act = assInfo.act
+						break;
+					case 'level':
+						res.level = accStats.level;
+					break;
+				}
 			});				
-			process.nextTick(function () {cb(null, res);});
-		}], function (err, results) {
-			if (err) return cb(err);
-			cb(null,results[1]);
-		}
+			cb(null, res);
+		})], safe.sure_result(cb, function (results) {
+			return results[4];
+		})
 	)
 }
 
@@ -167,8 +189,7 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 		}, 
 		function processTransactions(cb) {
 			var updates = [];
-			self._cash_transactions.scan(function (err, key, tr) {
-				if (err) return cb(err);
+			self._cash_transactions.scan(safe.trap_sure(cb, function (key, tr) {
 				if (key==null) {
 					// scan done, propagate changes
 					async.forEach(updates, function (u, cb) {
@@ -186,27 +207,25 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 						}
 					});
 				}
-			},true);
+			},true));
 		},
 		function processSubAccounts(cb){
 			if (options.newSubParent) {
-				self.getChildAccounts(token, accId, function(err, childs){
-					if (err) return cb(err);
+				self.getChildAccounts(token, accId, safe.trap_sure(cb,function(childs){
 					async.forEach(childs, function(ch,cb) {
 						ch.parentId = options.newSubParent;
 						self._cash_accounts.put(ch.id, ch, cb);
 					},cb);
-				});
+				}));
 			} else {
 				var childs = [];
-				async.waterfall([
+				async.series([
 					function(cb){
 						self._getAllChildsId(token, accId, childs, cb);
 					},
 					function (cb){
 						var updates = [];
-						self._cash_transactions.scan(function (err, key, tr) {
-							if (err) return cb(err);
+						self._cash_transactions.scan(safe.trap_sure(cb,function (key, tr) {
 							if (key==null) {
 								// scan done, propagate changes
 								async.forEach(updates, function (u, cb) {
@@ -224,7 +243,7 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 									}
 								})
 							};
-						},true);
+						},true));
 					},
 					function (cb) {
 						async.forEach(childs, function (ch, cb) {
@@ -237,11 +256,9 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 		function deleteAcc(cb) {
 			self._cash_accounts.put(accId, null, cb);
 		}
-	], function (err) {
-		if (err) return cb(err);
+	], self.sure_result(cb, function () {
 		self._calcStats(function () {})
-		cb(null);
-	});
+	}));
 }
 
 module.exports._getAllChildsId = function (token, parentId, buffer, cb) {
@@ -269,11 +286,9 @@ module.exports.clearAccounts = function (token, ids, cb) {
 		function (cb) {
 			self._cash_accounts.clear(cb);
 		} 
-	], function (err) {
-		if (err) return cb(err);
+	], safe.sure_result(cb, function () {
 		self._calcStats(function () {})
-		cb(null);
-	});
+	}));
 }
 
 module.exports.importAccounts = function  (token, accounts, cb) {
@@ -290,11 +305,9 @@ module.exports.importAccounts = function  (token, accounts, cb) {
 				self._cash_accounts.put(e.id,e,cb);
 			},cb);
 		}, 
-	], function (err) {
-		if (err) return cb(err);
+	], safe.sure_result(cb,function () {
 		self._calcStats(function () {})
-		cb(null);
-	})
+	}))
 }
 
 module.exports.getDefaultAccounts = function (token, cmdty, cb){
@@ -303,7 +316,7 @@ module.exports.getDefaultAccounts = function (token, cmdty, cb){
 	var accounts = [
 		{name:ctx.i18n(token, 'cash', 'Cash'), type:'CASH', ch:[ctx.i18n(token, 'cash', 'My wallet')]},
 		{name:ctx.i18n(token, 'cash', 'Bank'), type:'BANK', ch:[ctx.i18n(token, 'cash', 'My account')]},
-		{name:ctx.i18n(token, 'cash', 'Credit Cards'), type:'CREDIT CARD', ch:[ctx.i18n(token, 'cash', 'My card')]},
+		{name:ctx.i18n(token, 'cash', 'Credit Cards'), type:'CREDIT', ch:[ctx.i18n(token, 'cash', 'My card')]},
 		{name:ctx.i18n(token, 'cash', 'Income'), type:'INCOME', ch:[ctx.i18n(token, 'cash', 'Salary'), ctx.i18n(token, 'cash', 'Interest'), ctx.i18n(token, 'cash', 'Assets sale'), ctx.i18n(token, 'cash', 'Other')]},
 		{name:ctx.i18n(token, 'cash', 'Car'), type:'EXPENSE', ch:[ctx.i18n(token, 'cash', 'Fuel'), ctx.i18n(token, 'cash', 'Insurance'), ctx.i18n(token, 'cash', 'Service'), ctx.i18n(token, 'cash', 'Repair'), ctx.i18n(token, 'cash', 'Other')]},
 		{name:ctx.i18n(token, 'cash', 'Life'), type:'EXPENSE', ch:[ctx.i18n(token, 'cash', 'Food'), ctx.i18n(token, 'cash', 'Drugs'), ctx.i18n(token, 'cash', 'Transport'), ctx.i18n(token, 'cash', 'Other')]},
@@ -317,19 +330,18 @@ module.exports.getDefaultAccounts = function (token, cmdty, cb){
 
 	var ret = [];
 	async.forEachSeries(accounts, function(acc, cb) {
-		self._ctx.getUniqueId(function(err, uniqId) {
+		self._ctx.getUniqueId(safe.trap_sure(cb, function (uniqId) {
 			ret.push({parentId:0, cmdty:cmdty, name:acc.name, id:uniqId, type:acc.type});
 			
 			async.forEachSeries(acc.ch, function(name, cb) {
-				self._ctx.getUniqueId(function(err, id) {
+				self._ctx.getUniqueId(safe.trap_sure_result(cb,function(id) {
 					ret.push({parentId:uniqId, cmdty:cmdty, name:name, id:id, type:acc.type});
-					cb();
-				});
+				}));
 			}, cb);
-		});
-	}, function(err) {
-		cb(err, ret);
-	});
+		}));
+	}, safe.sure_result(cb, function() {
+		return ret;
+	}));
 }
 
 module.exports.restoreToDefaults = function (token, cmdty, type, cb){
@@ -350,6 +362,9 @@ module.exports.restoreToDefaults = function (token, cmdty, type, cb){
 		function (cb){
 			self._cash_accounts.clear(cb);
 		},
+		function (cb){
+			self._cash_settings.clear(cb);
+		},
 		function (cb) {
 			if (type == "default")
 				self.getDefaultAccounts(token, cmdty, cb);
@@ -360,30 +375,31 @@ module.exports.restoreToDefaults = function (token, cmdty, type, cb){
 			async.forEachSeries(accounts, function (e, cb) {
 				self._cash_accounts.put(e.id,e,cb);
 			},cb);
+		},
+		function (cb) {
+			self.saveSettings(token,"currency",cmdty,cb);
 		}
-	], function (err) {
-		if (err) return cb(err);
+	], safe.sure_result(cb, function () {
 		self._calcStats(function () {});
-		cb(null);
-	});
+	}));
 }
 
 module.exports.getAssetsTypes = function (token,cb) {
 	var self = this;	
 	var types = [
-			{value:"BANK", name:self._ctx.i18n(token, 'cash', 'Bank')},
-			{value:"CASH", name:self._ctx.i18n(token, 'cash', 'Cash')},
-			{value:"ASSET", name:self._ctx.i18n(token, 'cash', 'Asset')},
-			{value:"CREDIT", name:self._ctx.i18n(token, 'cash', 'Credit card')},
-			{value:"LIABILITY", name:self._ctx.i18n(token, 'cash', 'Liability')},
-			{value:"STOCK", name:self._ctx.i18n(token, 'cash', 'Stock')},
-			{value:"MUTUAL", name:self._ctx.i18n(token, 'cash', 'Mutual found')},
-			{value:"CURENCY", name:self._ctx.i18n(token, 'cash', 'Curency')},
-			{value:"INCOME", name:self._ctx.i18n(token, 'cash', 'Income')},
-			{value:"EXPENSE", name:self._ctx.i18n(token, 'cash', 'Expense')},
-			{value:"EQUITY", name:self._ctx.i18n(token, 'cash', 'Equity')},
-			{value:"RECIEVABLE", name:self._ctx.i18n(token, 'cash', 'Recievable')},
-			{value:"PAYABLE", name:self._ctx.i18n(token, 'cash', 'Payable')}
+			{value:"BANK", name:self._ctx.i18n(token, 'cash', 'Bank'),act:1,recv:self._ctx.i18n(token, 'cash', 'Deposited'),send:self._ctx.i18n(token, 'cash', 'Withdrawal')},
+			{value:"CASH", name:self._ctx.i18n(token, 'cash', 'Cash'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"ASSET", name:self._ctx.i18n(token, 'cash', 'Asset'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"CREDIT", name:self._ctx.i18n(token, 'cash', 'Credit card'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"LIABILITY", name:self._ctx.i18n(token, 'cash', 'Liability'),act:-1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"STOCK", name:self._ctx.i18n(token, 'cash', 'Stock'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"MUTUAL", name:self._ctx.i18n(token, 'cash', 'Mutual found'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"CURENCY", name:self._ctx.i18n(token, 'cash', 'Curency'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"INCOME", name:self._ctx.i18n(token, 'cash', 'Income'),act:-1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"EXPENSE", name:self._ctx.i18n(token, 'cash', 'Expense'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"EQUITY", name:self._ctx.i18n(token, 'cash', 'Equity'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"RECIEVABLE", name:self._ctx.i18n(token, 'cash', 'Recievable'),act:-1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
+			{value:"PAYABLE", name:self._ctx.i18n(token, 'cash', 'Payable'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')}
 		]
 	cb (null, types);
 }
@@ -406,11 +422,10 @@ module.exports.saveAccount = function (token, account, cb) {
 		function get(id, cb) {
 			account.id = id;
 			self._cash_accounts.put(account.id, account, cb);
-		}], function end(err, result) {
-			if (err) return cb(err);
+		}], safe.sure_result(cb,function (result) {
 			self._calcStats(function () {})
-			cb(null, account);
-		}
+			return account;
+		})
 	)
 }
 
@@ -419,27 +434,24 @@ module.exports.getAllCurrencies = function(token,cb){
 	async.waterfall ([
 		function (cb) {
 			async.parallel([
-				function (cb1) { self._coreapi.checkPerm(token,["cash.view"],cb1); },
-				function (cb1) { self._waitForData(cb1); }
-			],function(err){
-				if (err) cb(err);			
-				cb(null);
-			});			
+				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
+				function (cb) { self._waitForData(cb); }
+			],
+			safe.sure(cb, function(){ cb(); }));			
 		}, 		
 		function(cb){
 			async.parallel({
-				curr:function (cb1) {				
-					self._ctx.i18n_getCurrencies(token, cb1);					
+				curr:function (cb) {				
+					self._ctx.i18n_getCurrencies(token, cb);
 				},
-				usedCurr:function (cb1) {
+				usedCurr:function (cb) {
 					var usedCurrencies = {};					
-					self._cash_accounts.scan(function (err, key, acc) {						
-						if (err) cb1(err);
+					self._cash_accounts.scan(safe.trap_sure(cb, function (key, acc) {						
 						if (key){
 							usedCurrencies[acc.cmdty.id] = acc.cmdty;
 						}
-						else cb1(null, usedCurrencies);
-					},
+						else cb(null, usedCurrencies);
+					}),
 					true);							
 				}
 			},function (err, result) {																	
@@ -452,10 +464,7 @@ module.exports.getAllCurrencies = function(token,cb){
 			});
 			cb(null,currencies);
 		}
-	], function(err, result) {		
-			if (err) return cb(err);			
-			cb(null, result);
-		}
+	], cb
 	);
 	
 }

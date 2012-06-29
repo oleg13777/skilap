@@ -34,8 +34,9 @@
 				<h2>{{#i18n}}Hi{{/i18n}} {{user.screenName}}!</h2>
 				<br />
 				{{#user.perm.core_me_view}}<a href="{{prefix}}/user">{{#i18n}}My account{{/i18n}}</a>{{/user.perm.core_me_view}}
-				{{#user.perm.core_user_view}}<a href="{{prefix}}/users">{{#i18n}}Manage users{{/i18n}}</a>{{/user.perm.core_user_view}}
-				<a href="/logout?success={{url}}">{{#i18n}}Logout{{/i18n}}</a>
+				{{#user.perm.core_user_view}}&nbsp;&nbsp;<a href="{{prefix}}/users">{{#i18n}}Manage users{{/i18n}}</a>{{/user.perm.core_user_view}}
+				{{#user.perm.core_sysadmin}}&nbsp;&nbsp;<a href="{{prefix}}/sysset">{{#i18n}}System settings{{/i18n}}</a>{{/user.perm.core_sysadmin}}				
+				&nbsp;&nbsp;<a href="/logout?success={{url}}">{{#i18n}}Logout{{/i18n}}</a>
 				{{/user.loggedin}}
 			</div>
 		</div>

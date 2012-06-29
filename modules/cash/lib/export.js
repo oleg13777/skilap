@@ -3,10 +3,11 @@ var _ = require('underscore');
 var SkilapError = require("skilap-utils").SkilapError;
 var fs = require('fs');
 var zlib = require('zlib');
+var safe = require('safe');
 
 module.exports.export = function (token,cb) {
 	var self = this;
-	var res = {'skilap-cash':1,transactions:[],prices:[],accounts:[]}
+	var res = {'skilap-cash':1,transactions:[],prices:[],accounts:[],settings:{}}
 	async.series ([
 		function start(cb) {
 			async.parallel([
@@ -15,63 +16,66 @@ module.exports.export = function (token,cb) {
 			],cb);
 		}, 
 		function getTransaction(cb) {
-			self._cash_transactions.scan(function(err, k, v) {
-				if (err) cb(err);
+			self._cash_transactions.scan(safe.sure(cb, function(k, v) {
 				if (k==null) return process.nextTick(cb);
 				res.transactions.push(v);
-			},true);
+			}),true);
 		},
 		function getAccounts(cb) {
-			self._cash_accounts.scan(function(err, k, v) {
-				if (err) cb(err);
+			self._cash_accounts.scan(safe.sure(cb, function(k, v) {
 				if (k==null) return process.nextTick(cb);
 				res.accounts.push(v);
-			},true);
+			}),true);
 		},
 		function getPrices(cb) {
-			self._cash_prices.scan(function(err, k, v) {
-				if (err) cb(err);
+			self._cash_prices.scan(safe.sure(cb, function(k, v) {
 				if (k==null) return process.nextTick(cb);
 				res.prices.push(v);
-			},true);
-		}], function end(err, results) {
-			if (err) return cb(err);
+			}),true);
+		},
+		function getSettings(cb) {
+			self._cash_settings.scan(safe.sure(cb, function(k, v) {
+				if (k==null) return process.nextTick(cb);
+				res.settings[k]=v;
+			}),true);
+		}], safe.sure(cb, function (results) {
 			cb(null, res);
-		}
+		})
 	)
 }
 
-module.exports.import = function (fileName, callback){
+module.exports.import = function (fileName, cb){
 	var self = this;
 	var aidMap={};
 	var transactions = null;
 	var accounts = null;
 	var prices = null;
+	var settings = null;
 	async.waterfall([
 		function readFile(cb) {
 			fs.readFile(fileName, cb);
 		},
-		function gnuzipFile(buffer, cb) {
+		safe.trap(function gnuzipFile(buffer, cb) {
 			if (buffer[0] == 31 && buffer[1] == 139 && buffer[2] == 8)
 				zlib.gunzip(buffer,cb)
 			else 
 				cb(null, buffer)
-		},
-		function parse(plain, cb) {
+		}),
+		safe.trap(function parse(plain, cb) {
 			var data = JSON.parse(plain);
 			transactions = data.transactions;
 			accounts = data.accounts;
 			prices = data.prices;
+			settings = data.settings;
 			cb()
-		},
+		}),
 		function transpondAccounts(cb) {
 			async.forEachSeries(accounts, function (acc,cb) {
-				self._ctx.getUniqueId(function (err, id) {
-					if (err) return cb(err);
+				self._ctx.getUniqueId(safe.sure(cb, function (id) {
 					aidMap[acc.id]=id;
 					acc.id = id;
-					cb();
-				})
+					process.nextTick(cb);
+				}))
 			},cb)
 		},
 		function transpondAccountsTree(cb) {
@@ -85,35 +89,30 @@ module.exports.import = function (fileName, callback){
 			async.forEachSeries(transactions, function (trn,cb) {
 				async.forEachSeries(trn.splits, function (split,cb) {
 					split.accountId = aidMap[split.accountId];
-					self._ctx.getUniqueId(function (err, id) {
-						if (err) return cb(err);
+					self._ctx.getUniqueId(safe.sure(cb, function (id) {
 						split.id = id;
-						cb();
-					})
-				}, function (err) {
-					if (err) return cb(err);
-					self._ctx.getUniqueId(function (err, id) {
-						if (err) return cb(err);
+						process.nextTick(cb);
+					}))
+				}, safe.sure(cb, function () {
+					self._ctx.getUniqueId(safe.sure(cb, function (id) {
 						trn.id = id;
-						cb();
-					})
-				})
+						process.nextTick(cb);
+					}))
+				}))
 			},cb)
 		},
 		function transpondPrices(cb) {
 			async.forEachSeries(prices, function (price,cb) {
-				self._ctx.getUniqueId(function (err, id) {
-					if (err) return cb(err);
+				self._ctx.getUniqueId(safe.sure(function (id) {
 					price.id = id;
-					cb();
-				})
+					process.nextTick(cb);
+				}))
 			},cb)
 		},
-	], function (err) {
-		if (err) return cb(err);
-		var ret = {tr:transactions, acc:accounts, prices:prices};
+	], safe.sure(cb, function () {
+		var ret = {tr:transactions, acc:accounts, prices:prices,settings:settings};
 		process.nextTick(function(){
-			callback(null,ret);
+			cb(null,ret);
 		});
-	})
+	}))
 }

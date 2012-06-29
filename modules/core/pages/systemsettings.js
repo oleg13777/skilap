@@ -3,36 +3,26 @@ var skconnect = require('skilap-connect');
 var _ = require('underscore');
 
 module.exports = function account(ctx, app, api, prefix) {
-
-	app.use(skconnect.vstatic(__dirname + '/../public',{vpath:"/core"}));
-
 	app.get(prefix+"/sysset", function(req, res, next) {
-		async.waterfall([
-			function (cb1) {
-				async.parallel([
-					function (cb2) { ctx.getModulesInfo(req.session.apiToken, cb2) },
-					function (cb2) { api.getSystemSettings(req.session.apiToken, null, cb2) }
-				], function (err, result) { cb1(err, result[0], result[1])});
-			},
-			function (mInfo, sysSet, cb1) {
-				var permissions = [];
-				_(mInfo).each(function(info){
-					var tmp = {module:info.name, perm:[]};
-					_(info.permissions).each(function(perm){
-						if (_(sysSet.perm).indexOf(perm.id) >= 0) {
-							tmp.perm.push(perm.desc);
-						}
-					});
-					permissions.push(tmp);
+		async.series([
+			function (cb) { api.checkPerm(req.session.apiToken, ["core.sysadm"], cb) },		
+			function (cb) { ctx.getModulesInfo(req.session.apiToken, cb) },
+			function (cb) { api.getSystemSettings("guest", cb) }
+		], function (err, r) {
+			if (err) return next(err);
+			var guest = r[2];
+			var permissions = [];
+			_(r[1]).each(function(info){
+				var tmp = {name:info.name, perm:[]};
+				_(info.permissions).each(function(perm){
+					perm.selected = _(guest.permissions).indexOf(perm.id) >= 0;
+					tmp.perm.push(perm);
 				});
-				sysSet.permissions = permissions;
-				var rdata = {prefix:prefix, header:true, sysSet:sysSet, mInfo:mInfo };
-				cb1(null, rdata);
-			},
-			function render (data) {
-				res.render(__dirname+"/../views/systemsetings", data);
-			}],
-			next
-		);
-	});
+				permissions.push(tmp);
+			});
+			
+			var rdata = { prefix:prefix, header:true, sysSet:guest, permissions:permissions };
+			res.render(__dirname+"/../views/systemsetings", rdata);
+		});
+	})
 }

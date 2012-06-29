@@ -20,7 +20,7 @@ $(function() {
 					"type": "POST",
 					"data": params,
 					"dataType": "json",
-					"url": "{{prefix}}/accupd",
+					"url": "{{prefix}}/accounts/update",
 				});
 				jqXHR.done(function(data){
 					window.parent.$("body").trigger('accountUpdatedSuccess',[data]);					
@@ -111,7 +111,7 @@ $(function() {
 					<select name="acc_parent" id="acc_parent">
 						<option value="0" pid="0">{{#i18n}}Root{{/i18n}}</option>
 						{{#assets}}
-							{{>acctree_list_item}}
+							{{>accounts_list_item}}
 						{{/assets}}
 					</select>
 				</td>

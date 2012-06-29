@@ -1,90 +1,73 @@
-/**
- * Module dependencies.
- */
-var fs = require("fs");
-var Step = require("step");
-var DateFormat = require('dateformatjs').DateFormat;
-var df = new DateFormat("yyyy.MM.dd");
-var sprintf = require('sprintf').sprintf;
 var _ = require('underscore');
 var skconnect = require('skilap-connect');
 var async = require('async');
-
+var safe = require('safe');
 
 function CashWeb (ctx) {
-var self = this;
-this.ctx = ctx;
-this.api = null;
-this.web = null;
-this.prefix = "/cash";
-this.tabs = [];
-var cash_userviews;
-var coreapi;
+	var self = this;
+	this.ctx = ctx;
+	this.api = null;
+	this.web = null;
+	this.prefix = "/cash";
+	this.tabs = [];
+	this._cash_userviews = null;
+	this._coreapi = null;
 
-self.ctx.once("WebStarted", function (err) {
-	self.ctx.getWebApp(function (err, web) {
-		self.web = web;
-		web.use(skconnect.vstatic(__dirname + '/../public',{vpath:"/cash"}));
-		require("../pages/account.js")(self);
-		require("../pages/index.js")(self);
-		require("../pages/import.js")(self);
-		require("../pages/report.js")(self);
-		require("../pages/acctree.js")(self);
-		require("../pages/restoredefaults.js")(self)	
-		require("../pages/export.js")(self);
-		require("../pages/priceeditor.js")(self);
+	self.ctx.once("WebStarted", function (err) {
+		self.ctx.getWebApp(function (err, web) {
+			self.web = web;
+			web.use(skconnect.vstatic(__dirname + '/../public',{vpath:"/cash"}));
+			require("../pages/account.js")(self);
+			require("../pages/index.js")(self);
+			require("../pages/import.js")(self);
+			require("../pages/report.js")(self);
+			require("../pages/accounts.js")(self);
+			require("../pages/restoredefaults.js")(self)	
+			require("../pages/export.js")(self);
+			require("../pages/priceeditor.js")(self);
+			require("../pages/settings.js")(self);			
+		})
 	})
-})
+}
 
-function loadData (cb) {
-	var adb;
-	async.series([
-			//async.apply(self.ctx.getDB)
-			function(cb1) {self.ctx.getDB(cb1)}
-		], function (err, results) {
-			if (err) return cb(err);
-			var adb = results[0];
-			async.parallel([
-				async.apply(adb.ensure, "cash_userviews",{type:'cached_key_map',buffered:false})
-			], function (err, results) {
-				if (err) return cb(err)
-				cash_userviews = results[0];
-				cb();
-			})
-		}
-	)
-}; 
-
-this.init = function (cb) {
+CashWeb.prototype._init = function (cb) {
+	var self = this;
 	async.parallel([
-		function (cb1) {
-			ctx.getModule("core",function (err, module) {
-				if (err) return cb1(err);
-				coreapi = module.api;
-				cb1();
-			})
+		function (cb) {
+			self.ctx.getModule("core",safe.sure_result(cb, function (module) {
+				self._coreapi = module.api;
+			}))
 		},
-		function (cb1) {
-			loadData(cb1)
-		}], 
+		function (cb) {
+			self.ctx.getDB(safe.sure(function (adb) {
+				async.parallel({
+					_cash_userviews:function (cb) {
+						adb.ensure("cash_userviews",{type:'cached_key_map',buffered:false},cb);
+					}
+				}, safe.sure_result(cb, function (results) {
+					_.extend(self,results);
+				}))
+			}))
+	}], 
 	cb);
 }
 
-this.guessTab = function (req, ti,cb) {
+CashWeb.prototype.guessTab = function (req, ti,cb) {
+	var self = this;
 	var vtabs=[], user;
 	async.waterfall ([
 		// we need user first
 		function (cb) {
-			coreapi.getUser(req.session.apiToken, cb);
+			self._coreapi.getUser(req.session.apiToken, cb);
 		},
 		function (user_, cb) {
 			user = user_;
 			if (user.type!='guest')
-				cash_userviews.get(user.id,cb);
+				self._cash_userviews.get(user.id,cb);
 			else
 				cb(null,{});
 		},
-		function (views, cb) {
+		safe.trap(function (views, cb) {
 			if (views==null) views = {tabs:[]};			
 			var tab;
 			// search current tabs
@@ -103,108 +86,92 @@ this.guessTab = function (req, ti,cb) {
 				vtabs.push({name:ti.name, selected:true, url:ti.url, pid:ti.pid, activeTabClass: "active"});
 				views.tabs.push(tab);
 				if (user.type!='guest')
-					cash_userviews.put(user.id,views,cb)
+					self._cash_userviews.put(user.id,views,cb)
 				else
 					cb();
 			} else
 				cb()
-		}], function (err, results) {
-			cb(err,vtabs);
-		}
+		})], safe.sure_result(cb, function (results) {
+			return vtabs;
+		})
 	)
 }
 
-this.removeTabs = function (token, tabIds, cb) {
-	var vtabs=[], user;
-	async.waterfall ([
-		// we need user first
-		function (cb1) {
-			coreapi.getUser(token, cb1);
-		},
-		function (user_, cb1) {
-			user = user_;
-			if (user.type!='guest')
-				if (tabIds == null) {
-					cash_userviews.put(user.id, {tabs:[]},cb);
-				} else {
-					cash_userviews.get(user.id, cb1);
-				}
-			else
-				cb1(null,{});
-		},
-		function (views, cb1) {
-			var tIds = {};
-			var _views = {tabs:[]};
-			tabIds.forEach(function(t) {
-				tIds[t]=t;
-			});
-			views.tabs.forEach(function (t) {
-				var tab = tIds[t.pid];
-				if (!tab) {
-					_views.tabs.push(t);
-				}
-			});
-			cash_userviews.put(user.id,_views,cb1);
-		}], function (err, results) {
-			cb(err);
-		}
-	)
-}
-
-this.saveTabSettings = function(token, tabId, settings, cb) {
+CashWeb.prototype.removeTabs = function (token, tabIds, cb) {
+	var self = this;
 	var user;
 	async.waterfall ([
 		// we need user first
-		function (cb1) {
-			coreapi.getUser(token, cb1);
+		function (cb) {
+			self._coreapi.getUser(token, cb);
 		},
-		function (_user, cb1) {
-			user = _user;
-			cash_userviews.get(user.id,cb1);
+		function (user_, cb) {
+			user = user_;
+			self._cash_userviews.get(user.id, cb);
 		},
-		function (views, cb1) {
-			_.forEach(views.tabs, function (t) {
-				if (t.pid == tabId) {
-					t.settings = settings
-				}
-			});
-			cash_userviews.put(user.id, views, cb1);
-		}], function (err, results) {
-			cb(err);
-		}
+		safe.trap(function (views, cb) {
+			if (views==null)
+				views={tabs:[]}
+			if (tabIds==null)
+				views.tabs = [];
+			else
+				views.tabs = _.reject(views.tabs, function (t) { return _(tabIds).include(t.id); } )
+			self._cash_userviews.put(user.id,views,cb);
+		})], cb
 	)
 }
 
-this.getTabSettings = function(token, tabId, cb) {
+CashWeb.prototype.saveTabSettings = function(token, tabId, settings, cb) {
+	var self = this;
+	var user;
 	async.waterfall ([
 		// we need user first
-		function (cb1) {
-			coreapi.getUser(token, cb1);
+		function (cb) {
+			self._coreapi.getUser(token, cb);
 		},
-		function (user, cb1) {
-			cash_userviews.get(user.id,cb1);
+		function (_user, cb) {
+			user = _user;
+			self._cash_userviews.get(user.id,cb);
 		},
-		function (views, cb1) {
-			var ret = {};
-			views.tabs.forEach(function (t){
-				if (t.pid == tabId) {
-					ret = t.settings;
-				}
-			});
-			cb1(null, ret);
-		}], function (err, results) {
-			cb(err, results);
-		}
+		function (views, cb) {
+			var t = _.find(views.tabs,function (t) {return t.pid == tabId; });
+			if (!t) return cb();
+			t.settings = settings
+			self._cash_userviews.put(user.id, views, cb);
+		}], cb
 	)
 }
 
-this.getUseRangedCurrencies = function(token, cb) {
+CashWeb.prototype.getTabSettings = function(token, tabId, cb) {
+	var self = this;
+	async.waterfall ([
+		// we need user first
+		function (cb) {
+			self._coreapi.getUser(token, cb);
+		},
+		function (user, cb) {
+			self._cash_userviews.get(user.id,cb);
+		},
+		function (views, cb) {
+			var ret = _.find(views.tabs,function (t) {return t.pid == tabId; });
+			if (ret) 
+				cb(null, ret)
+			else
+				cb(null, {})
+		}], safe.sure(cb, function (err, ret) {
+			cb(null, ret);
+		})
+	)
+}
+
+CashWeb.prototype.getUseRangedCurrencies = function(token, cb) {
+	var self = this;
 	var res =  {};
 	async.waterfall([
 		function (cb) { 
 			self.api.getAllCurrencies(token,cb)
 		},
-		function(currencies,cb){
+		safe.trap(function(currencies,cb){
 			res.all = currencies;
 			res.used = _.filter(currencies,function(curr){
 				return curr.used == 1;
@@ -213,44 +180,43 @@ this.getUseRangedCurrencies = function(token, cb) {
 				return curr.used == 0;
 			});
 			cb();
-		}
-	], function (err) {
-		if (err) return cb(err);
-		cb(null, res);
-	})
+		})
+	], safe.sure_result(cb, function () {
+		return res;
+	}))
 }
 
-this.i18n_cmdtytext = function(langtoken,cmdty,value) {
+CashWeb.prototype.i18n_cmdtytext = function(langtoken,cmdty,value) {
+	var self = this;
 	if (cmdty.space == 'ISO4217')
-		return ctx.i18n_cytext(langtoken,cmdty.id,value)
+		return self.ctx.i18n_cytext(langtoken,cmdty.id,value)
 	else {
-		var res = ctx.i18n_cytext(langtoken,'USD',value);
+		var res = self.ctx.i18n_cytext(langtoken,'USD',value);
 		res.replace('USD',cmdty.id);
 		return res;
 	}
 }
 		
-this.i18n_cmdtyval = function(cmdty,value) {
+CashWeb.prototype.i18n_cmdtyval = function(cmdty,value) {
+	var self = this;
 	if (cmdty.space == 'ISO4217')
-		return ctx.i18n_cyval(cmdty.id,value)
+		return self.ctx.i18n_cyval(cmdty.id,value)
 	else 
-		return ctx.i18n_cyval('USD',value)
-}
-
+		return self.ctx.i18n_cyval('USD',value)
 }
 
 module.exports.init = function (ctx,cb) {
 	async.parallel ([
-		function createApi(cb1) {
+		function createApi(cb) {
 			var api = require("./cashapi.js");
-			api.init(ctx, cb1);
+			api.init(ctx, cb);
 		},
-		function createWeb(cb1) {
-			var api = new CashWeb(ctx);
-			api.init(function (err) {
-				cb1(err, api);
-			});
-		}], function done(err, results) {
+		function createWeb(cb) {
+			var web = new CashWeb(ctx);
+			web._init(safe.sure_result(cb, function () {
+				return web;
+			}));
+		}], safe.sure(cb, function (results) {
 			var m = results[1];
 			m.api = results[0];
 			m.localePath = __dirname+'/../locale';
@@ -273,6 +239,6 @@ module.exports.init = function (ctx,cb) {
 			}
 
 			cb(null, m);
-		}
+		})
 	)
 }

@@ -4,8 +4,9 @@ var async = require('async');
 var sax = require("sax");
 var util = require("util");
 var zlib = require("zlib");
+var safe = require("safe");
 
-module.exports = function (fileName, callback){
+module.exports = function (fileName, cb){
 	var self = this;
 	// stream usage
 	// takes the same options as the parser
@@ -36,8 +37,12 @@ module.exports = function (fileName, callback){
 	var slot = {};
 	var slots = [];
 	var flags = ["hidden", "placeholder"];
+	var defCurrency = null;
 	
 	var opentag = {
+		"CUST:CURRENCY":function(){
+			defCurrency = {};
+		},
 		"GNC:TRANSACTION":function(){
 			tr = {currency:{},splits:[]};
 		},
@@ -89,12 +94,16 @@ module.exports = function (fileName, callback){
 			gluid++;
 		},		
 		"TS:DATE":function(){
-			if (path[path.length-1]=="TRN:DATE-ENTERED") {
-				tr.dateEntered = new Date(nodetext);
-			} else if (path[path.length-1]=="TRN:DATE-POSTED") {
-				tr.datePosted = new Date(nodetext);
-			} else if (path[path.length-1]=="PRICE:TIME") {
-				price.date = new Date(nodetext);
+			switch(path[path.length-1]) {
+				case "TRN:DATE-ENTERED":
+					tr.dateEntered = new Date(nodetext);
+					break;
+				case "TRN:DATE-POSTED":
+					tr.datePosted = new Date(nodetext);
+					break;
+				case "PRICE:TIME":
+					price.date = new Date(nodetext);
+					break;
 			}
 		},
 		"ACT:NAME":function(){
@@ -127,6 +136,9 @@ module.exports = function (fileName, callback){
 				case "PRICE:CURRENCY":
 					price.currency.id = nodetext;
 				break;
+				case "CUST:CURRENCY":
+					defCurrency.id = nodetext;
+				break;				
 			}			
 		},
 		"CMDTY:SPACE":function(){
@@ -142,6 +154,9 @@ module.exports = function (fileName, callback){
 				break;
 				case "PRICE:CURRENCY":
 					price.currency.space = nodetext;
+				break;
+				case "CUST:CURRENCY":
+					defCurrency.space = nodetext;
 				break;
 			}			
 		},	
@@ -222,12 +237,11 @@ module.exports = function (fileName, callback){
 		async.series([
 			function transpondAccounts(cb) {
 				async.forEachSeries(accounts, function (acc,cb) {
-					self._ctx.getUniqueId(function (err, id) {
-						if (err) return cb(err);
+					self._ctx.getUniqueId(safe.sure(cb,function (id) {
 						aidMap[acc.id]=id;
 						acc.id = id;
-						cb();
-					})
+						process.nextTick(cb);
+					}))
 				},cb)
 			},
 			function transpondAccountsTree(cb) {
@@ -241,37 +255,39 @@ module.exports = function (fileName, callback){
 				async.forEachSeries(transactions, function (trn,cb) {
 					async.forEachSeries(trn.splits, function (split,cb) {
 						split.accountId = aidMap[split.accountId];
-						self._ctx.getUniqueId(function (err, id) {
-							if (err) return cb(err);
+						self._ctx.getUniqueId(safe.sure(cb,function (id) {
 							split.id = id;
-							cb();
-						})
-					}, function (err) {
-						if (err) return cb(err);
-						self._ctx.getUniqueId(function (err, id) {
-							if (err) return cb(err);
+							process.nextTick(cb);
+						}))
+					}, safe.sure(cb, function () {
+						self._ctx.getUniqueId(safe.sure_result(cb, function (id) {
 							trn.id = id;
-							cb();
-						})
-					})
+						}))
+					}))
 				},cb)
 			}
-		], function (err) {
-			if (err) return cb(err);
-			var ret = {tr:transactions, acc:accounts, prices:prices};
+		], safe.sure(cb, function () {
+			var settings = {};
+			if (defCurrency)
+				settings['currency'] = defCurrency;
+			var ret = {tr:transactions, acc:accounts, prices:prices, settings:settings};
 			process.nextTick(function(){
-				callback(null,ret);
+				cb(null,ret);
 			});
-		})
+		}))
 	});
 	
-	var buffer = new Buffer(3);
-	var fd = fs.openSync(fileName, 'r');
-	fs.readSync(fd, buffer, 0, 3, 0);
-	fs.closeSync(fd);
+	try {
+		var buffer = new Buffer(3);
+		var fd = fs.openSync(fileName, 'r');
+		fs.readSync(fd, buffer, 0, 3, 0);
+		fs.closeSync(fd);
 
-	if (buffer[0] == 31 && buffer[1] == 139 && buffer[2] == 8)
-		fs.createReadStream(fileName).pipe(zlib.createUnzip()).pipe(saxStream)
-	else 
-		fs.createReadStream(fileName).pipe(saxStream);
+		if (buffer[0] == 31 && buffer[1] == 139 && buffer[2] == 8)
+			fs.createReadStream(fileName).pipe(zlib.createUnzip()).pipe(saxStream)
+		else 
+			fs.createReadStream(fileName).pipe(saxStream);
+	} catch (err) {
+		cb(err)
+	}
 }

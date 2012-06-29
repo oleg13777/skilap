@@ -13,11 +13,18 @@
 	{{>scripts}}
 	
 	<script>
-		$(document).ready(function(){
+		$(document).ready(function() {
+			$("#ski_editSettings").iframeContainer({src:"{{prefix}}/settings",host:"{{host}}"});		
+			
+			$("#editSettings").on("click", function(e){
+				$("#ski_editSettings").iframeContainer("open");		
+				return false;
+			});
+			
 			$(".closeTab").on("click", function(e){
 				var self = $(this);
 				var jqXHR = $.ajax({
-					"url": "{{prefix}}/close?pid=" + self.attr('pid'),
+					"url": "{{prefix}}/tabs/close?pid=" + self.attr('pid'),
 					"dataType": "json"
 				});
 				jqXHR.done(function(data){
@@ -40,6 +47,7 @@
 			<a href='/' id="logo"></a>
 			<div class="menu">{{>nav}}</div>
 		</div>
+		<div id="ski_editSettings"></div>		
 		<div id="tabs">
 			{{#tabs}}
 				<div class="sl_border sl_border_radius">
@@ -55,6 +63,5 @@
 	{{#mainLayoutHide}}
 		<content/>
 	{{/mainLayoutHide}}
-	
 </body>
 </html>

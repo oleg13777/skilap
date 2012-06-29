@@ -51,6 +51,7 @@ module.exports = function account(webapp) {
 			var accounts;
 			var transactions;
 			var prices;
+			var settings;
 			var tabs;
 			async.waterfall([
 				function (cb1) {
@@ -59,6 +60,7 @@ module.exports = function account(webapp) {
 					accounts = obj.acc;
 					transactions = obj.tr;
 					prices = obj.prices;
+					settings = obj.settings;
 					cb1();
 				},
 				function (cb1) {
@@ -78,6 +80,12 @@ module.exports = function account(webapp) {
 				},
 				function (cb1) {
 					cashapi.importTransactions(req.session.apiToken, transactions, cb1);
+				},
+				function (cb1) {
+					cashapi.clearSettings(req.session.apiToken, null, cb1);
+				},
+				function (cb1) {
+					cashapi.importSettings(req.session.apiToken, settings, cb1);
 				},
 				function (cb1) {
 					webapp.guessTab(req, {pid:'import-gnucash',name:ctx.i18n(req.session.apiToken, 'cash','GnuCash import'),url:req.url}, cb1);

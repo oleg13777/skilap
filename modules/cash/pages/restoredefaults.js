@@ -32,7 +32,7 @@ module.exports = function account(webapp) {
 				}
 			], function (err) {
 				if (err) return next(err);
-				res.redirect(prefix+"/acctree");
+				res.redirect(prefix+"/accounts/tree");
 			});
 		} else {
 			async.waterfall([

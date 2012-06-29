@@ -3,7 +3,7 @@ $(document).ready(function() {
 	$("#editPermDialog").dialog({
 		position: ["center","center"],
 		buttons: {
-			"apply": function() {
+			"{{#i18n}}Apply{{/i18n}}": function() {
 				var id = $("#userid").attr("value");
 				var newUser = { id:id };
 				var perms = [];
@@ -14,17 +14,14 @@ $(document).ready(function() {
 				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
 				rpc.call('core.saveUser', $("#token").val(), newUser, {
 					success: function (data) {
-						$("#caption").text("");
-						window.parent.$("body .iframeContainer").trigger('closeDialog');
-						location.reload(true);
+						window.parent.$("body").trigger('permisionsEditSuccess');
 					},
 					failure: function (reason) {
-						console.log(reason);
 						$("#caption").text(reason);
 					}
 				});
 			},
-			"close": function() {
+			"{{#i18n}}Close{{/i18n}}": function() {
 				window.parent.$("body .iframeContainer").trigger('closeDialog');
 			}
 		},
