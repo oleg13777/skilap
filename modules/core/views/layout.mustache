@@ -38,7 +38,7 @@
           <a href='/' id="logoNew"></a>
           <div class="nav-collapse">
           {{#user.loggedin}}
-            <ul class="nav">
+            <ul class="nav nav-pills">
               <li {{#pageUserActive}}class="active"{{/pageUserActive}}>
 				{{#user.perm.core_me_view}}<a href="{{prefix}}/user">{{#i18n}}My account{{/i18n}}</a>{{/user.perm.core_me_view}}
 			  </li>
