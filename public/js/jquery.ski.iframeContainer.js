@@ -8,7 +8,7 @@
 				at: 'center',
 				collision: 'fit',
 				// ensure that the titlebar is never outside the document
-				using: function(pos) {
+				using: function(pos) {					
 					var topOffset = $(this).css(pos).offset().top;
 					if (topOffset < 0) {
 						$(this).css('top', pos.top - topOffset);
@@ -62,10 +62,11 @@
 			var self = this,
 				iframeContainer = self.iframeContainer[self.element.attr('id')];		
 			
-			iframeContainer.on('openDialog',function(e,w,h,p){								
+			iframeContainer.on('openDialog',function(e,w,h,p){										
 				self.iframeContent[self.element.attr('id')].width(Math.round(w));
 				self.iframeContent[self.element.attr('id')].height(Math.round(h));
-				self._isDialogLoad[self.element.attr('id')] = true;								
+				self._isDialogLoad[self.element.attr('id')] = true;	
+				self._position(p);							
 			});
 			
 			self.iframeContainer[self.element.attr('id')].on('closeDialog',function(e){
@@ -120,7 +121,8 @@
 
 			self._isOpen = true;		
 			iframeContainer.show();
-			self.triggerEvent({name:'showDialog'});			
+			self.triggerEvent({name:'showDialog'});	
+			$(document).scrollTop(0);		
 			return self;
 		},
 		
@@ -165,8 +167,7 @@
 				position = $.extend({}, $.ui.dialog.prototype.options.position, position);
 			} else {
 				position = $.ui.dialog.prototype.options.position;
-			}
-			
+			}			
 			this.iframeContainer[this.element.attr('id')]
 				// workaround for jQuery bug #5781 http://dev.jquery.com/ticket/5781
 				.css({ top: 0, left: 0 })
