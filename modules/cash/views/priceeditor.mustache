@@ -1,4 +1,4 @@
-<script type="text/javascript" src="{{prefix}}/javascripts/highcharts/highcharts.js"></script>
+<script type="text/javascript" src="{{prefix}}/js/highcharts/highcharts.js"></script>
 <script type="text/javascript">	
 	$(function() {	
 		var graphOptions = {
@@ -139,8 +139,8 @@
 			return false;
 		});
 		
-		$(document).on('click',".paging .pageNum",function(){
-			if($(this).hasClass("active"))
+		$(document).on('click',".pagination .pageNum",function(){
+			if($(this).parent().hasClass("active"))
 				return false;
 			$("#currencySelectorForm input[name=\"offset\"]").val($(this).data("offset"));
 			$("#currencySelectorForm").submit();
@@ -239,33 +239,32 @@
 		});		
 	});
 </script>
-<div class="header"><h2>{{#i18n}}Select pair of currencies to edit rate exchanging currency{{/i18n}}</h2></div>
-<div class="priceWrapper">
-	<div class="leftcol price">
-		<form id="currencySelectorForm">	
-			<input type="hidden" name="offset" value="0" />
-			<select id="firstCurrency" name="firstCurr">
-				{{>currencies_list}}		
-			</select>	
-			
-			<select id="secondCurrency" name="secondCurr">
-				{{>currencies_list}}	
-			</select>
-			
-			<button type="submit" class="action-button">{{#i18n}}Apply{{/i18n}}</button>
-		</form>
-		<div class="rateCtrlButtonsContainer">
-			<button class="add rateCtrlBtn" disabled="disabled" >{{#i18n}}Add{{/i18n}}</button>
-			<button class="edit rateCtrlBtn" disabled="disabled" >{{#i18n}}Edit{{/i18n}}</button>
-			<button class="delete rateCtrlBtn" disabled="disabled" >{{#i18n}}Delete{{/i18n}}</button>
-		</div>
-		<div class="rateEditorContainer">
+<h2>{{#i18n}}Select pair of currencies to edit rate exchanging currency{{/i18n}}</h2>
+<form id="currencySelectorForm" class="well form-inline">	
+	<input type="hidden" name="offset" value="0" />
+	<select id="firstCurrency" name="firstCurr">
+		{{>currencies_list}}		
+	</select>	
+	
+	<select id="secondCurrency" name="secondCurr">
+		{{>currencies_list}}	
+	</select>	
+	<button type="submit" class="btn btn-primary">{{#i18n}}Apply{{/i18n}}</button>
+</form>
+<div class="row">
+<div class="span4">	
+	<div class="btn-group">
+		<button class="btn add rateCtrlBtn" disabled="disabled" >{{#i18n}}Add{{/i18n}}</button>
+		<button class="btn edit rateCtrlBtn" disabled="disabled" >{{#i18n}}Edit{{/i18n}}</button>
+		<button class="btn delete rateCtrlBtn" disabled="disabled" >{{#i18n}}Delete{{/i18n}}</button>
+    </div>	
+	<div class="rateEditorContainer">
 
-		</div>
 	</div>
-	<div class="rightcol price">
-		<div id="graphContainer"></div>
-	</div>
+</div>
+<div class="span5">
+	<div id="graphContainer"></div>
+</div>
 </div>
 
 

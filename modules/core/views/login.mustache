@@ -1,12 +1,17 @@
-<br/><br/>
-<h2>{{#i18n}}Please login{{/i18n}}</h2>
-<form id='login' method='post' action='/login'>
-<input type='hidden' name='success' value='{{success}}'/>
-<br/>
-{{#i18n}}Login{{/i18n}}:<input type='text' name='name'/><br>
-<br/>
-{{#i18n}}Password{{/i18n}}:<input type='password' name='password'/><br>
-<br/>
-<input type='submit' value='{{#i18n}}Login{{/i18n}}'>
-</form>
-<br/><br/>
+<div class="row">
+	<div class="span4">
+		<h2>{{#i18n}}Please login{{/i18n}}</h2>
+		<form id='login' class="form-horizontal" method='post' action='/login'>
+			<input type='hidden' name='success' value='{{success}}'/>
+			<div class="control-group">
+				<label>{{#i18n}}Login{{/i18n}}:</label>
+				<input type='text' name='name' class="span3" >				
+				<label>{{#i18n}}Password{{/i18n}}:</label>
+				<input type='password' name='password' class="span3">
+			</div>
+			<div class="btn-group">
+				<button type='submit' class="btn clear" >{{#i18n}}Login{{/i18n}}</button>
+			</div>
+		</form>
+	</div>
+</div>

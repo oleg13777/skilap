@@ -1,3 +1,30 @@
+<script type="text/javascript">
+$(function(){	
+	$('#acc').skiGrid({
+		"sAjaxSource": "{{prefix}}/account/{{accountId}}/getgrid",	
+		"urlPrefix":"{{prefix}}",		
+		"editable":{
+			"sUpdateURL":"{{prefix}}/account/{{accountId}}/updaterow",	
+			"sAddURL":"{{prefix}}/account/{{accountId}}/addrow",
+			"sDeleteURL":"{{prefix}}/account/{{accountId}}/delrow",						
+			"columns": [
+				{"type":"datepicker","icon":"{{prefix}}/images/calendar.gif"},
+				{"type":"input","format":"number"},			
+				{"type":"autocomplete","source":"{{prefix}}/account/{{accountId}}/getdesc","placeholder":""},
+				{"type":"select","source":"{{prefix}}/account/{{accountId}}/getaccounts"},
+				{"type":"span"},
+				{"type":"input","format":"number"},
+				{"type":"input","format":"number"},
+				null,
+				null
+			]
+		}		
+	});
+	
+	$("#ski_createAccount").iframeContainer({src:"{{prefix}}/accounts/create",host:"{{host}}"});	
+	
+});
+</script>
 <div id="ski_createAccount"></div>
 <table id="acc" cellspacing="0" cellpadding="5" width="100%">	
 	<thead>
@@ -38,30 +65,4 @@
 	<p class="text"></p>
 </div>
 <br/>
-<script type="text/javascript">
-$(document).ready(function(){	
-	$('#acc').skiGrid({
-		"sAjaxSource": "{{prefix}}/account/{{accountId}}/getgrid",	
-		"urlPrefix":"{{prefix}}",		
-		"editable":{
-			"sUpdateURL":"{{prefix}}/account/{{accountId}}/updaterow",	
-			"sAddURL":"{{prefix}}/account/{{accountId}}/addrow",
-			"sDeleteURL":"{{prefix}}/account/{{accountId}}/delrow",						
-			"columns": [
-				{"type":"datepicker","icon":"{{prefix}}/images/calendar.gif"},
-				{"type":"input","format":"number"},			
-				{"type":"autocomplete","source":"{{prefix}}/account/{{accountId}}/getdesc","placeholder":""},
-				{"type":"select","source":"{{prefix}}/account/{{accountId}}/getaccounts"},
-				{"type":"span"},
-				{"type":"input","format":"number"},
-				{"type":"input","format":"number"},
-				null,
-				null
-			]
-		}		
-	});
-	
-	$("#ski_createAccount").iframeContainer({src:"{{prefix}}/accounts/create",host:"{{host}}"});	
-	
-});
-</script>
+

@@ -1,4 +1,4 @@
-<table id="rateTable" cellpadding="0" cellspacing="0">
+<table id="rateTable" class="table">
 	<thead>
 		<tr>
 			<th class="date" >{{#i18n}}Date{{/i18n}}</th>
@@ -16,10 +16,12 @@
 		{{/prices}}
 	</tbody>
 </table>
-<div class="paging">
+<div class="pagination pagination-centered">
+	<ul>
 	{{#paging}}
-		<a class="pageNum {{#active}}active{{/active}}" href="javascript:void(0);" data-offset="{{offset}}">{{num}}</a>
+		<li class="{{#active}}active{{/active}}"><a class="pageNum" href="javascript:void(0);" data-offset="{{offset}}">{{num}}</a></li>
 	{{/paging}}
+	</ul>
 </div>
 <div id="dialogRateCurrency" class="invisible" >
 	<form>

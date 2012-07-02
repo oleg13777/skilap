@@ -1,11 +1,10 @@
 <script type="text/javascript">
 $(document).ready(function() {
-	$(".editUser").click(function(){
+	$("a[name=\"editUser\"]").click(function(){
 		$("#ski_editUser").iframeContainer({src:"{{prefix}}/userprefferences",host:"{{host}}"});
-		var uid = $(this).attr('uid');
-		var secret = $('#token').val();
+		var uid = $(this).attr('uid');		
 		var rpc = new jsonrpc.JsonRpc('/jsonrpc');
-		rpc.call('core.getUserById', secret, uid, {
+		rpc.call('core.getUserById', '{{apiToken}}', uid, {
 			success: function (data) {
 				var user = data[0];				
 				console.log(user);				
@@ -16,12 +15,11 @@ $(document).ready(function() {
 		});		
 		$("#ski_editUser").iframeContainer("open");
 	});
-	$(".editPerm").click(function(){
+	$("a[name=\"editPerm\"]").click(function(){
 		$("#ski_editPermissions").iframeContainer({src:"{{prefix}}/userpermisions",host:"{{host}}"});
-		var uid = $(this).attr('uid');
-		var secret = $('#token').val();
+		var uid = $(this).attr('uid');		
 		var rpc = new jsonrpc.JsonRpc('/jsonrpc');
-		rpc.call('core.getUserById', secret, uid, {
+		rpc.call('core.getUserById', '{{apiToken}}', uid, {
 			success: function (data) {
 				var user = data[0];								
 				console.log(user);
@@ -32,13 +30,12 @@ $(document).ready(function() {
 		});		
 		$("#ski_editPermissions").iframeContainer("open");
 	})
-	$(".deleteUser").click(function() {
+	$("a[name=\"deleteUser\"]").click(function() {
 		if (!confirm("{{#i18n}}Are you sure?{{/i18n}}"))
 			return false;
-		var uid = $(this).attr('uid');
-		var secret = $('#token').val();
+		var uid = $(this).attr('uid');		
 		var rpc = new jsonrpc.JsonRpc('/jsonrpc');
-		rpc.call('core.deleteUser', secret, uid, {
+		rpc.call('core.deleteUser', '{{apiToken}}', uid, {
 			success: function (data) {
 				console.log("success");
 				console.log(data);
@@ -71,7 +68,7 @@ $(document).ready(function() {
 				};
 				newUser.password = $("#password").val();
 				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
-				rpc.call('core.saveUser', $("#token").val(), newUser, {
+				rpc.call('core.saveUser', '{{apiToken}}', newUser, {
 					success: function (data) {
 						self.dialog("close");
 						location.reload(true);
@@ -92,14 +89,9 @@ $(document).ready(function() {
 		modal: true,
 		draggable: false
 	});
-	$("#addNewUser").click(function(){
+	$("button[name=\"addNewUser\"]").click(function(){
 		$("#addUserDialog").dialog("open");
-	});
-	
-	$("span").css({
-		 'padding' : '5px 20px',
-		 'font-size' : '14px'
-	});
+	});	
 	
 	$(".preflink").on("click", function(){
 		$(this).parent().find(".prefmenu").toggleClass("active");
@@ -112,37 +104,47 @@ $(document).ready(function() {
 	});
 });
 </script>
-
-<div id="users">
-<input id="addNewUser" type="submit" value="{{#i18n}}Add new user{{/i18n}}">
-<input id="token" type="hidden" value="{{apiToken}}">
-<br />
-<br />
-<table id="users">
-<th class="left">#</th><th>{{#i18n}}First name{{/i18n}}</th><th>{{#i18n}}Last name{{/i18n}}</th><th>{{#i18n}}Login{{/i18n}}</th><th class="right"><img width="20px" src="{{prefix}}/images/cog_alt.png"></th>
-{{#users}}
-	<tr>
-		<td class="left">{{id}}</td>
-		<td>{{firstName}}</td>
-		<td>{{lastName}}</td>
-		<td>{{login}}</td>
-		<td class="right">
-			<ul class="sddm">
-				<li class=""><a href="#" class="preflink" data-uid="{{id}}" ><img width="20px" src="{{prefix}}/images/cog_alt.png"></a>
-					<div class="prefmenu">
-					<a href="#" uid="{{id}}" class="editUser">{{#i18n}}Edit{{/i18n}}</a>
-					<a href="#" uid="{{id}}" class="editPerm">{{#i18n}}Permissions{{/i18n}}</a>
-					<a href="#" uid="{{id}}" class="deleteUser">{{#i18n}}Delete{{/i18n}}</a>
-					</div>
-				</li>
-			</ul>
-		</td>
-	</tr>
-{{/users}}
-</table>
-
+<div class="row">
+	<div class="span4">		
+		<button class="btn" name="addNewUser" >{{#i18n}}Add new user{{/i18n}}</button>		
+	</div>
+	<br><br><br>
 </div>
-
+<div class="row">
+	<div class="span12">
+		<table class="table table-condensed">
+			<thead>
+			<tr>
+				<th >#</th>
+				<th>{{#i18n}}First name{{/i18n}}</th>
+				<th>{{#i18n}}Last name{{/i18n}}</th>
+				<th>{{#i18n}}Login{{/i18n}}</th>
+				<th></th>
+			</tr>
+			</thead>
+			<tbody>
+			{{#users}}
+				<tr>
+					<td >{{id}}</td>
+					<td>{{firstName}}</td>
+					<td>{{lastName}}</td>
+					<td>{{login}}</td>
+					<td>
+						<div class="btn-group">
+						  <button data-toggle="dropdown" class="btn dropdown-toggle"><i class="icon-cog"></i>{{#i18n}}Action{{/i18n}}<span class="caret"></span></button>
+						  <ul class="dropdown-menu">
+							<li><a href="javascript:void(0);" name="editUser" uid="{{id}}" >{{#i18n}}Edit{{/i18n}}</a></li>
+							<li><a href="javascript:void(0);" name="editPerm" uid="{{id}}" >{{#i18n}}Permissions{{/i18n}}</a></li>
+							<li><a href="javascript:void(0);" name="deleteUser" uid="{{id}}" >{{#i18n}}Delete{{/i18n}}</a></li>						
+						  </ul>
+						</div>						
+					</td>
+				</tr>
+			{{/users}}
+			</tbody>
+		</table>
+	</div>
+</div>
 <div id="ski_editUser"></div>
 <div id="ski_editPermissions"></div>
 

@@ -1,6 +1,6 @@
 <script type="text/javascript">
 $(document).ready(function() {
-	$("#openEditPref").click(function(){
+	$("a[name=\"openEditPref\"]").click(function(){
 		if ($("#changePass").is(":checked"))
 			$(".pass").show();
 		else
@@ -16,8 +16,8 @@ $(document).ready(function() {
 	});
 
 	$("#ski_editPermissions").iframeContainer({src:"{{prefix}}/userpermisions", host:"{{host}}"});
-	$("#editPerm").click(function(){
-		$("#ski_editPermissions").iframeContainer("triggerEvent",{name:'setEditPermDialogData',data:{uid:{{user.id}}, permissions:{{{userPermissions}}} } });
+	$("a[name=\"editPerm\"]").click(function(){
+		$("#ski_editPermissions").iframeContainer("triggerEvent",{name:'setEditPermDialogData',data:{uid:"{{user.id}}", permissions:{{{userPermissions}}} } });
 		$("#ski_editPermissions").iframeContainer("open");
 	})
 
@@ -27,40 +27,45 @@ $(document).ready(function() {
 });
 </script>
 
-<div class="user">
-	<h2>{{#i18n}}Your prefferences{{/i18n}}</h2>{{#user.perm.core_me_edit}}<a href="#" id="openEditPref">{{#i18n}}edit{{/i18n}}</a>{{/user.perm.core_me_edit}}
-	<hr size="2" noshade />
-	{{#user}}
-	<table>
-		{{#user.loggedin}}		
-		<tr>
-			<td>{{#i18n}}First name{{/i18n}}</td><td>{{firstName}}</td>
-		</tr>
-		<tr>
-			<td>{{#i18n}}Last name{{/i18n}}</td><td>{{lastName}}</td>
-		</tr>
-		<tr>
-			<td>{{#i18n}}Login{{/i18n}}</td><td>{{login}}</td>
-		</tr>
-		{{/user.loggedin}}
-		<tr>
-			<td>{{#i18n}}Gui language{{/i18n}}</td><td>{{language}}</td>
-		</tr>
-		<tr>
-			<td>{{#i18n}}Timezone{{/i18n}}</td><td>{{timeZone}}</td>
-		</tr>
-	</table>
-	{{/user}}
-</div>
-<div class="user">
-	<h2>{{#i18n}}Your permissions{{/i18n}}</h2>{{#user.perm.core_user_edit}}<a href="#" id="editPerm">{{#i18n}}edit{{/i18n}}</a>{{/user.perm.core_user_edit}}
-	<hr size="2" noshade />
-	{{#permissions}}
-		<h4>{{module}}:</h4>
-		{{#perm}}
-			&nbsp;&nbsp;&nbsp;{{.}}<br />
-		{{/perm}}
-	{{/permissions}}
+<div class="row">
+	<div class="span6">
+		<h2>{{#i18n}}Your prefferences{{/i18n}}</h2>
+		{{#user.perm.core_me_edit}}<a href="javascript:void(0):" name="openEditPref">{{#i18n}}edit{{/i18n}}</a>{{/user.perm.core_me_edit}}
+		{{#user}}
+		<table class="table">
+			<tbody>
+				{{#user.loggedin}}		
+				<tr>
+					<td>{{#i18n}}First name{{/i18n}}</td><td>{{firstName}}</td>
+				</tr>
+				<tr>
+					<td>{{#i18n}}Last name{{/i18n}}</td><td>{{lastName}}</td>
+				</tr>
+				<tr>
+					<td>{{#i18n}}Login{{/i18n}}</td><td>{{login}}</td>
+				</tr>
+				{{/user.loggedin}}
+				<tr>
+					<td>{{#i18n}}Gui language{{/i18n}}</td><td>{{language}}</td>
+				</tr>
+				<tr>
+					<td>{{#i18n}}Timezone{{/i18n}}</td><td>{{timeZone}}</td>
+				</tr>
+			</tbody>
+		</table>
+		{{/user}}
+	</div>
+	<div class="span6">
+		<h2>{{#i18n}}Your permissions{{/i18n}}</h2>
+		{{#user.perm.core_user_edit}}<a href="javascript:void(0);" name="editPerm">{{#i18n}}edit{{/i18n}}</a>{{/user.perm.core_user_edit}}
+		<hr class="no-margin-top">
+		{{#permissions}}
+			<h4>{{module}}:</h4>
+			{{#perm}}
+				&nbsp;&nbsp;&nbsp;{{.}}<br />
+			{{/perm}}
+		{{/permissions}}
+	</div>
 </div>
 <div id="ski_editUser"></div>
 <div id="ski_editPermissions"></div>

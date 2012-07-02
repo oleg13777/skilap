@@ -73,48 +73,33 @@ $(document).ready(function() {
 	});	
 });
 </script>
-
-<div class="user">
-	<h2>{{#i18n}}Guest prefferences{{/i18n}}</h2><a href="#" id="openEditPref">{{#i18n}}edit{{/i18n}}</a>
-	<hr size="2" noshade />
-	{{#sysSet}}
-	<table>
-		<tr>
-			<td>{{#i18n}}Gui language{{/i18n}}</td><td>{{language}}</td>
-		</tr>
-		<tr>
-			<td>{{#i18n}}Timezone{{/i18n}}</td><td>{{timeZone}}</td>
-		</tr>
-	</table>
-	{{/sysSet}}
+<div class="row">
+	<div class="span6">
+		<h2>{{#i18n}}Guest prefferences{{/i18n}}</h2><a href="#" id="openEditPref">{{#i18n}}edit{{/i18n}}</a>	
+		{{#sysSet}}
+		<table class="table">
+			<tr>
+				<td>{{#i18n}}Gui language{{/i18n}}</td><td>{{language}}</td>
+			</tr>
+			<tr>
+				<td>{{#i18n}}Timezone{{/i18n}}</td><td>{{timeZone}}</td>
+			</tr>
+		</table>
+		{{/sysSet}}
+	</div>
+	<div class="span6">
+		<h2>{{#i18n}}Guest permissions{{/i18n}}</h2><a href="#" id="editPerm">{{#i18n}}edit{{/i18n}}</a>
+		<hr size="2" noshade class="no-margin-top" >
+		{{#permissions}}
+			<h4>{{name}}:</h4>
+			{{#perm}}
+				{{#selected}}
+				&nbsp;&nbsp;&nbsp;{{desc}}<br />
+				{{/selected}}
+			{{/perm}}
+		{{/permissions}}
+	</div>
 </div>
-<div class="user">
-	<h2>{{#i18n}}Guest permissions{{/i18n}}</h2><a href="#" id="editPerm">{{#i18n}}edit{{/i18n}}</a>
-	<hr size="2" noshade />
-	{{#permissions}}
-		<h4>{{name}}:</h4>
-		{{#perm}}
-			{{#selected}}
-			&nbsp;&nbsp;&nbsp;{{desc}}<br />
-			{{/selected}}
-		{{/perm}}
-	{{/permissions}}
-</div>
-
-<div id="editPermDialog" title="{{#i18n}}Edit permissions{{/i18n}}" class="editPermDialog" style="width: 600; height: 200px;">
-	<form>
-	<input id="token" type="hidden" value="{{apiToken}}">
-	<table>
-	{{#permissions}}
-		<tr><td><b>{{name}}</b></td><td></td></tr>
-		{{#perm}}
-			<tr><td>&nbsp;&nbsp;&nbsp;{{desc}}</td><td><input type="checkbox" class="perm" value="{{id}}" {{#selected}}checked="checked"{{/selected}}/></td></tr>
-		{{/perm}}
-	{{/permissions}}
-	</table>
-	</form>
-</div>
-
 <div id="editPrefDialog" title="{{#i18n}}Account prefferences{{/i18n}}" class="dialog" style="width: 600; height: 200px;">
 	<form>
 	<input id="token" type="hidden" value="{{apiToken}}">

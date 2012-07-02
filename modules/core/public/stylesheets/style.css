@@ -24,8 +24,7 @@ a {
 }
 
 table { border-collapse:collapse }
-td { white-space: nowrap; border: 1px solid black }
-tr { height: 24px;}
+
 .value { text-align: right; width:70px }
 .description { text-align: left; width:300px }
 .account { text-align: left; width:200px }

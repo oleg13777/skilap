@@ -1,17 +1,20 @@
-<div id="home">
-	<h2>{{#i18n}}Assets{{/i18n}}: <span>{{assetsSum}}</span></h2>
-	<hr size="2" noshade />
-	<div class="main">
+<h2>{{#i18n}}Assets{{/i18n}}: <span>{{assetsSum}}</span></h2>
+<hr size="2" noshade />
+<div class="well">
+<ul class="nav nav-list">
 	{{#assets}}
 		{{>index_account}}
 	{{/assets}}
-	</div>
-	<br /><br />
-	<h2>{{#i18n}}Liabilities{{/i18n}}: <span>{{liabilitiesSum}}</span></h2>
-	<hr size="2" noshade />
-	<div class="main">
+</ul>
+</div>
+<br /><br />
+<h2>{{#i18n}}Liabilities{{/i18n}}: <span>{{liabilitiesSum}}</span></h2>
+<hr size="2" noshade />
+<div class="well">
+	<ul class="nav nav-list">
 	{{#liabilities}}
 		{{>index_account}}
 	{{/liabilities}}
-	</div>
+	</ul>
 </div>
+
