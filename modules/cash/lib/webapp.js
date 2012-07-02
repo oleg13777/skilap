@@ -16,6 +16,7 @@ function CashWeb (ctx) {
 	self.ctx.once("WebStarted", function (err) {
 		self.ctx.getWebApp(function (err, web) {
 			self.web = web;
+			web.use(skconnect.vstatic(__dirname + '/../../../public',{vpath:"/common"}));
 			web.use(skconnect.vstatic(__dirname + '/../public',{vpath:"/cash"}));
 			require("../pages/account.js")(self);
 			require("../pages/index.js")(self);

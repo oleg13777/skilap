@@ -194,7 +194,7 @@
 			handleColumnClick($(this),objSettings);			
 		});
 		/* event handler for show/hide row settings menu */
-		objSettings.gridWrapper.find('tbody').on('click','.ski_settingsLink',function(){			
+		objSettings.gridWrapper.find('tbody').on('click','.ski_settingsLink',function(){
 			if($(this).parents('.mainRow').length > 0){
 				var recordId = $($(this).parents('.mainRow')[0]).attr('recordid');						
 				objSettings.gridWrapper.find('tr.mainRow[recordid != "'+recordId+'"] .ski_settingsMenu').removeClass('active');

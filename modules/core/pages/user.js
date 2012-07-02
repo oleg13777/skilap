@@ -1,10 +1,7 @@
 var async = require("async");
-var skconnect = require('skilap-connect');
 var _ = require('underscore');
 
 module.exports = function account(ctx, app, api, prefix) {
-
-	app.use(skconnect.vstatic(__dirname + '/../public',{vpath:"/core"}));
 
 	app.get(prefix+"/userprefferences", function(req, res, next) {
 		async.waterfall([

@@ -55,7 +55,7 @@ exports = module.exports = function static(root, options){
 
   return function static(req, res, next) {
     options.path = req.url;
-    options.getOnly = true;
+    options.getOnly = true;   
     send(req, res, next, options);
   };
 };

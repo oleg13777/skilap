@@ -16,6 +16,7 @@ var Gettext = require("../vendor/Gettext");
 var hogan=require('hogan');
 var i18n = require('jsorm-i18n');
 var ApiBatch = require('./batch.js');
+var skconnect = require('skilap-connect');
 
 var tmpl = {
     compile: function (source, options) {	
@@ -80,6 +81,8 @@ function Skilap() {
 					app.use(express.methodOverride());
 					app.use(express.cookieParser());
 					app.use(express.session({ secret: 'PushOk' }));
+					app.use(skconnect.vstatic(__dirname + '/../../../public',{vpath:"/common"}));
+					app.use(skconnect.vstatic(__dirname + '/../public',{vpath:"/core"}));
 					app.use(function (req, res, next) {
 						if (req.cookies['skilapid']==null) {
 							var clientId; self.getRandomString(128, function (err, rnd) { clientId = rnd; });
