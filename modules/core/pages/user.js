@@ -63,10 +63,11 @@ module.exports = function account(ctx, app, api, prefix) {
 				cb1(null, permissions, modulesInfo, user.permissions);
 			},
 			function (permissions, mInfo, userPerm, cb1) {
-				var rdata = {prefix:prefix, header:true, token:req.session.apiToken, host:req.headers.host, permissions:permissions, mInfo:mInfo, userPermissions:JSON.stringify(userPerm)};
+				var rdata = {prefix:prefix, header:true, token:req.session.apiToken, host:req.headers.host, permissions:permissions, mInfo:mInfo, userPermissions:JSON.stringify(userPerm),pageUserActive:1};
 				cb1(null, rdata);
 			},
 			function render (data) {
+				console.log(data);
 				res.render(__dirname+"/../views/user", data);
 			}],
 			next

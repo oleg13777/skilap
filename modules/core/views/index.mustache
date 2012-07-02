@@ -1,13 +1,20 @@
-<div class='home title'>
-	<h2>{{#i18n}}Welcome to SkiLap!{{/i18n}}</h2>
+<div class="row">
+	<div class="span12">
+		<h2 class="centered">{{#i18n}}Welcome to SkiLap!{{/i18n}}</h2>
+	</div>
 </div>
-<div class='home subTitle'>{{#i18n}}Following modules are available:{{/i18n}}</div>
-<ul class='modulesList'>
-	{{#modules}}
-		<li>
-			<a class='modulName' href='{{url}}'>{{name}}</a>
-			<div>{{desc}}</div>
-		</li>
-	{{/modules}}
-</ul>
-<div class='hint'>{{#i18n}}Please note, you might need to log-in to get access to some modules.{{/i18n}}</div>
+<div class="row">
+	<div class="span12">
+		<h3>{{#i18n}}Following modules are available:{{/i18n}}</h3>
+		<ul class='modulesList'>
+		{{#modules}}
+			<li>
+				<a class='modulName' href='{{url}}'>{{name}}</a>
+				<div>{{desc}}</div>
+			</li>
+		{{/modules}}
+		</ul>
+		<p>{{#i18n}}Please note, you might need to log-in to get access to some modules.{{/i18n}}</p>
+	</div>
+	
+</div>

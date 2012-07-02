@@ -1,11 +1,17 @@
-<div id="{{id}}">
-{{#hidden}}* {{/hidden}}{{#placeholder}}<font id="open{{id}}">{{name}}</font>{{/placeholder}}
-{{^placeholder}}<a id="open{{id}}" href='{{prefix}}/account?id={{id}}'>{{name}}</a>{{/placeholder}}
-<span>{{#fquantity}}( {{fquantity}} ) {{/fquantity}}{{fvalue}}
-&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="javascript:void(0);" class="editAcc" aid="{{id}}" title="{{#i18n}}edit{{/i18n}}">&nbsp;&nbsp;&nbsp;&nbsp;</a> 
-<a href="javascript:void(0);" class="deleteAcc" aid="{{id}}" title="{{#i18n}}delete{{/i18n}}">&nbsp;&nbsp;&nbsp;&nbsp;</a>{{#childs}}
-</span>
+<li id="{{id}}">
+	{{#hidden}}* {{/hidden}}	
+	<a id="open{{id}}" {{^placeholder}}href='{{prefix}}/account?id={{id}}'{{/placeholder}}>
+		<i {{#childs}}class="icon-hand-down expand-collapse"{{/childs}}>{{^childs}}&nbsp;{{/childs}}</i>
+		{{name}}
+		<span class="nav-item-hint">{{#fquantity}}( {{fquantity}} ) {{/fquantity}}{{fvalue}} &nbsp;&nbsp;&nbsp;
+			<i class="icon-edit editAcc" data-aid="{{id}}" title="{{#i18n}}edit{{/i18n}}" ></i> 
+			<i class="icon-trash deleteAcc" data-aid="{{id}}" title="{{#i18n}}delete{{/i18n}}" ></i>
+		</span>
+	</a>		
+
+<ul class="nav nav-list">
+{{#childs}}	
 {{>accounts-tree_item}}
 {{/childs}}
-</div>
+</ul>
+</li>

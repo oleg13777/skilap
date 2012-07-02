@@ -21,7 +21,7 @@ module.exports = function account(ctx, app, api, prefix) {
 				permissions.push(tmp);
 			});
 			
-			var rdata = { prefix:prefix, header:true, sysSet:guest, permissions:permissions };
+			var rdata = { prefix:prefix, header:true, sysSet:guest, permissions:permissions,pageSystemSettingsActive:1 };
 			res.render(__dirname+"/../views/systemsetings", rdata);
 		});
 	})

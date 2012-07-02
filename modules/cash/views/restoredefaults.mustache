@@ -7,36 +7,34 @@
 		$('#acc_curency option[value="{{#i18n}}USD{{/i18n}}"]').attr('selected', 'selected');			
 	});
 </script>
-
-<div class="wizard">
-	<div class="header">{{#i18n}}Create new cash register{{/i18n}}</div>
-	<div class="notice">{{#i18n}}Attention! Your existing data will be overwritten upon complete.{{/i18n}}</div>
-	<form id="props" class="form" method="get" action="#">
-		<input type="hidden" name="confirm" value="true">
-		<table>
-			<tr>
-				<td>{{#i18n}}Default currency{{/i18n}}:</td>
-				<td>
-					<select name="currency" id="acc_curency">
-						{{#curencies}}
-							<option value="{{iso}}">{{iso}} - {{country}}</option>
-						{{/curencies}}
-					</select>
-				</td>
-			</tr>
-			<tr>
-			<td>{{#i18n}}Template{{/i18n}}:</td>
-				<td>
-					<select name="type" id="acc_curency">
-						<option value="default" selected>{{#i18n}}Default accounts{{/i18n}}</option>
-						<option value="empty">{{#i18n}}Empty{{/i18n}}</option>
-					</select>
-				</td>
-			</tr>			
-		</table>
-	</form>
-	<div class="buttons">
-		<a class="button confirm" href="{{prefix}}/restoredefaults?confirm=true">{{#i18n}}Confirm{{/i18n}}</a>	
-		<a class="button" href="{{prefix}}/restoredefaults?confirm=false">{{#i18n}}Cancel{{/i18n}}</a>
+<h2>{{#i18n}}Create new cash register{{/i18n}}</h2>
+<div class="alert">{{#i18n}}Attention! Your existing data will be overwritten upon complete.{{/i18n}}</div>
+<form id="props" class="well form-inline" method="get" action="#">
+	<input type="hidden" name="confirm" value="true">
+	<table>
+		<tr>
+			<td>{{#i18n}}Default currency{{/i18n}}:</td>
+			<td>
+				<select name="currency" id="acc_curency">
+					{{#curencies}}
+						<option value="{{iso}}">{{iso}} - {{country}}</option>
+					{{/curencies}}
+				</select>
+			</td>
+		</tr>
+		<tr>
+		<td>{{#i18n}}Template{{/i18n}}:</td>
+			<td>
+				<select name="type" id="acc_curency">
+					<option value="default" selected>{{#i18n}}Default accounts{{/i18n}}</option>
+					<option value="empty">{{#i18n}}Empty{{/i18n}}</option>
+				</select>
+			</td>
+		</tr>			
+	</table>
+	<div class="form-actions">
+		<a class="btn btn-primary" href="{{prefix}}/restoredefaults?confirm=true">{{#i18n}}Confirm{{/i18n}}</a>	
+		<a class="btn" href="{{prefix}}/restoredefaults?confirm=false">{{#i18n}}Cancel{{/i18n}}</a>
 	</div>
-</div>
+</form>	
+

@@ -1,0 +1,54 @@
+body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+#logoNew{
+	display:block;
+	float:left;
+	margin-right:1em;
+	background: url("../img/skilap-logo-small.png") no-repeat scroll center center;    
+    height: 40px;
+    width: 53px;
+}
+.centered{
+text-align:center;
+}
+
+.modulesList{
+	box-shadow: 0 0 5px 1px #ccc;
+	-moz-box-shadow: 0 0 5px 1px #ccc;
+	-webkit-box-shadow: 0 0 5px 1px #ccc;
+	padding: 0 20px;
+	background-color: #fcfcfc;
+	margin-bottom: 20px;
+}
+
+.modulesList li{
+	padding: 5px 0;
+	border-bottom: 1px solid #ccc;
+	list-style-type: disc;
+}
+
+.modulesList  li:last-child{border-bottom: none;}
+
+.clear{
+clear:both;
+}
+.no-margin-top{
+margin-top:0;
+}
+
+.ui-datepicker{
+z-index:3 !important;
+}
+
+.iframeContainer{
+position:absolute;
+top:0;
+left:0;
+}
+
+.iframeContainer iframe{
+border:1px solid transparent;
+overflow:hidden;
+}

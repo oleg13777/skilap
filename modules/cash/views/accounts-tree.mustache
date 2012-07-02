@@ -1,22 +1,16 @@
-<script>
-$(function() {
-	$('#acc_parent option').filter('[pid="0"]').each(function(e) {
-		$(this).text($.trim($(this).text()));
-	});
-	$('.new_parent option').filter('[pid="0"]').each(function(e) {
-		$(this).text($.trim($(this).text()));
-	});
-	$('div.tree div:has(div)').addClass('parent');
-	$(document).on("click", 'div.tree div', function(e) {
-		var obj = $(this);
-		obj.children('div').toggle();
-		obj.filter('.parent').toggleClass('expanded');
+<script type="text/javascript">
+$(function() {	
+	$(document).on('click','.nav-list .expand-collapse',function(){
+		if($(this).hasClass('icon-hand-down')){
+			$(this).removeClass('icon-hand-down').addClass('icon-hand-right');
+			$(this).parents('li').find('.nav-list').hide();
+		}
+		else{
+			$(this).addClass('icon-hand-down').removeClass('icon-hand-right');
+			$(this).parents('li').find('.nav-list').show();
+		}
 		return false;
 	});
-	$(document).on("click", 'div.tree div a', function(e) {
-		location.href=this.href;
-		return false;
-	});	
 	
 	$(document).on('click', '#add_new', function(e){		
 		$("#ski_createAccount").iframeContainer("open");	
@@ -28,11 +22,9 @@ $(function() {
 		return false;
 	});
 	$(document).on("click", ".editAcc", function(e){
-		var aid = $(this).attr('aid');
-		$('#acc_id').val(aid);
-		var secret = $('#token').val();
+		var aid = $(this).data('aid');			
 		var rpc = new jsonrpc.JsonRpc('/jsonrpc');
-		rpc.call('cash.getAccount', secret, aid, {
+		rpc.call('cash.getAccount', '{{token}}', aid, {
 			success: function (data) {
 				var acc = data[0];								
 				$("#ski_createAccount").iframeContainer("triggerEvent",{name:'setAccountDialogData',data:acc});				
@@ -47,8 +39,8 @@ $(function() {
 	$("#ski_deleteAccount").iframeContainer({src:"{{prefix}}/accounts/delete",host:"{{host}}"});	
 	
 	$(document).on("click", ".deleteAcc", function(e){
-		var accountId = $(this).attr('aid');
-		var accName = $('#open'+$(this).attr('aid')).html();
+		var accountId = $(this).data('aid');
+		var accName = $('#open'+accountId).text();
 		$("#ski_deleteAccount").iframeContainer("triggerEvent",{name:'setAccountDeleteDialogData',data:{id:accountId,name:accName}});	
 		$("#ski_deleteAccount").iframeContainer("open");		
 		return false;
@@ -61,14 +53,14 @@ $(function() {
 </script>
 <div id="ski_createAccount"></div>
 <div id="ski_deleteAccount"></div>
-<div id="home">
-	<input type="hidden" id="token" value="{{token}}">
-	<a id="add_new" href="javascript:void(0);" class="action-button">{{#i18n}}Add new account{{/i18n}}</a>
-	<br><br>
-	<div id="tree_root" class="main tree">
+<a id="add_new" href="javascript:void(0);" class="btn btn-primary">{{#i18n}}Add new account{{/i18n}}</a>
+<br><br>
+<div id="tree_root" class=" well main tree">
+	<ul class="nav nav-list">
 	{{#assets}}
 		{{>accounts-tree_item}}
 	{{/assets}}
-	</div>
-	<br><p> * - {{#i18n}}denotes hidden accounts{{/i18n}}</p>
+	</ul>
 </div>
+<br><p> * - {{#i18n}}denotes hidden accounts{{/i18n}}</p>
+
