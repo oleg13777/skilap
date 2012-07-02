@@ -15,16 +15,17 @@ module.exports = function account(webapp) {
 	app.get(webapp.prefix+'/account', function(req, res, next) {		
 		var idx=0,c=0;
 		var pageSize = 20;
-		var count;
+		var count,verbs;
 		async.waterfall([
 			function (cb1) {
-				cashapi.getAccountInfo(req.session.apiToken,req.query.id,['count','path'], cb1);
+				cashapi.getAccountInfo(req.session.apiToken,req.query.id,['count','path','verbs'], cb1);
 			},
-			function (data, cb1) {
+			function (data, cb1) {				
 				count = data.count;
+				verbs = data.verbs;
 				webapp.guessTab(req, {pid:'acc'+req.query.id,name:data.path,url:req.url}, cb1);
 			},
-			safe.trap(function (vtabs,cb1) {
+			safe.trap(function (vtabs,cb1) {				
 				var pageSize = 25;
 				var firstVisible = Math.max(0, count-pageSize);
 				var scrollGap = pageSize*5;
@@ -38,7 +39,8 @@ module.exports = function account(webapp) {
 					firstVisible:firstVisible,
 					pageSize:pageSize,
 					scrollGap:scrollGap,
-					host:req.headers.host
+					host:req.headers.host,
+					verbs:verbs
 				});
 			})
 		], function (err) {

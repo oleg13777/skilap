@@ -160,8 +160,9 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 						res.path = accStats.path;
 						break;
 					case 'verbs':
-						res.recv = accInfo.recv;
-						res.send = accInfo.send;
+						res.verbs = {};
+						res.verbs.recv = accInfo.recv;
+						res.verbs.send = accInfo.send;
 						break;
 					case 'act':
 						res.act = assInfo.act
