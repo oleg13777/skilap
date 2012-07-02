@@ -42,8 +42,7 @@ $(document).ready(function() {
 		modal: true,
 		draggable: false
 	});
-	function displayMessage(event){		
-		console.log(event.data.data);
+	function displayMessage(event){			
 		if(event.data.name == 'setEditPermDialogData') {
 			var permissions = event.data.data.permissions;
 			if (permissions) {
@@ -52,6 +51,9 @@ $(document).ready(function() {
 				});
 			}
 			$("#userid").attr("value", event.data.data.uid);
+		}
+		else if(event.data.name == 'showDialog') {		
+			$("#editPermDialog").dialog('open');
 		}
 	}
 	if (window.addEventListener) {	

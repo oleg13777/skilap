@@ -83,6 +83,9 @@ $(function() {
 			}
 			else if(event.data.name == 'resetAccountDialogData'){				
 				$("#dialog form[name='properties']").get(0).reset();
+			}
+			else if(event.data.name == 'showDialog') {		
+				$("#dialog").dialog('open');
 			}			
 		}		
 	}

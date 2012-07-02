@@ -45,6 +45,17 @@ $(function() {
 		modal: true,
 		dragable: true
 	});	
+	function displayMessage(event){			
+		 if(event.data.name == 'showDialog') {		
+			$("#dialog").dialog('open');						
+		}		
+	}
+	if (window.addEventListener) {	
+		window.addEventListener("message", displayMessage, false);
+	}
+	else {
+		window.attachEvent("onmessage", displayMessage);
+	}
 });
 </script>
 <div id="dialog" title="{{#i18n}}Cash settings{{/i18n}}" style="width: 500px; height: 300px;">

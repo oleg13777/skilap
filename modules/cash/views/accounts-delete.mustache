@@ -61,6 +61,9 @@ $(function() {
 			}
 			else if(event.data.name == 'resetAccountDialogData'){				
 				$("#deleteDialog form[name='deleteAccForm']").get(0).reset();
+			}
+			else if(event.data.name == 'showDialog') {		
+				$("#deleteDialog").dialog('open');
 			}			
 		}		
 	}

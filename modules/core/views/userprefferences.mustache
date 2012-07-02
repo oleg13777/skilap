@@ -49,7 +49,7 @@ $(document).ready(function() {
 			window.parent.$("body .iframeContainer-ski_editUser").trigger('openDialog',[w,h,p]);						
 		},
 		close:function(e,ui){
-			window.parent.$("body .iframeContainer").trigger('closeDialog');
+			window.parent.$("body .iframeContainer").trigger('closeDialog');			
 		},
 		autoOpen: true,
 		resizable: false,
@@ -59,14 +59,16 @@ $(document).ready(function() {
 		draggable: false
 	});	
 	
-	function displayMessage(event){		
-		console.log("event");
+	function displayMessage(event){			
 		if(event.data.name == 'setEditUserDialogData') {
 			var user = event.data.data;
 			$('#uid').val(user.id);
 			$('#firstName').val(user.firstName);
 			$('#lastName').val(user.lastName);
 			$('#login').val(user.login);
+		}
+		else if(event.data.name == 'showDialog') {		
+			$("#editPrefferences").dialog('open');
 		}
 	}
 	if (window.addEventListener) {	

@@ -88,7 +88,7 @@
 			return this.iframeContainer[this.element.attr('id')];
 		},
 
-		close: function(event) {
+		close: function(event) {			
 			var self = this;
 			if (self.overlay) {
 				self.overlay.destroy();
@@ -104,10 +104,8 @@
 		isOpen: function() {
 			return this._isOpen;
 		},	
-		open: function() {
-			console.log('open widget');
-			if (this._isOpen) { return; }
-			console.log('is OPEN');
+		open: function() {			
+			if (this._isOpen) { return; }			
 			var self = this,
 				options = self.options,
 				iframeContainer = self.iframeContainer[self.element.attr('id')];
@@ -122,6 +120,7 @@
 
 			self._isOpen = true;		
 			iframeContainer.show();
+			self.triggerEvent({name:'showDialog'});			
 			return self;
 		},
 		
