@@ -66,25 +66,46 @@
           </a>
          <a href='/' id="logoNew"></a>
           <div class="nav-collapse">
-          {{>nav}}
+			<ul class="nav nav-pills">
+              {{>nav}}
+              <li class="dropdown">
+				<a href="javascript:void(0);" data-toggle="dropdown" class="dropdown-toggle">{{#i18n}}Tabs{{/i18n}} <b class="caret"></b></a>
+				<ul class="dropdown-menu">				
+				  {{#tabs}}
+				  <li {{#selected}}class="active"{{/selected}}>
+					<a data-toggle="tab" href="{{url}}" data-pid="{{pid}}">{{name}}</a>						
+				  </li>
+				  {{/tabs}}
+				 </ul>
+			  </li>
+			</ul>          
           </div><!--/.nav-collapse -->
         </div>
       </div>
     </div>   
-    <div class="container">		
-		<div class="row">
-			<div class="span3">				
-				<div class="tabbable tabs-left">
-					<ul class="nav nav-tabs ski_nav-tabs">
+    <div class="container-fluid">		
+		<div class="row-fluid">
+			<div class="span2 hidden-phone">				
+					<ul class="nav nav-tabs nav-stacked ski_nav-tabs">
 					  {{#tabs}}
 					  <li {{#selected}}class="active"{{/selected}}>
 						<a data-toggle="tab" href="{{url}}" data-pid="{{pid}}">{{name}} <i class="icon-remove closeTab"></i></a>						
 					  </li>
 					  {{/tabs}}
 					</ul>					
-			  </div> <!-- /tabbable -->				
 			</div>
-			<div class="span9">				
+			<div class="span2 visible-phone">				
+					<ul class="nav nav-tabs nav-stacked ski_nav-tabs">
+					  {{#tabs}}
+					  {{#selected}}
+					  <li class="active">
+						<a data-toggle="tab" href="{{url}}" data-pid="{{pid}}">{{name}} <i class="icon-remove closeTab"></i></a>						
+					  </li>
+					  {{/selected}}
+					  {{/tabs}}
+					</ul>					
+			</div>
+			<div class="span10">				
 				<content/>				
 			</div>
 			 <div id="ski_editSettings"></div>
