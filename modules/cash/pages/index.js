@@ -8,7 +8,7 @@ module.exports = function account(webapp) {
 	var prefix = webapp.prefix
 	var assetsTypes = ["BANK", "CASH", "ASSET", "STOCK", "MUTUAL", "CURENCY"];
 	var liabilitiesTypes = ["CREDIT", "LIABILITY", "RECEIVABLE", "PAYABLE"];
-	var repCmdty = {space:"ISO4217",id:"RUB"};
+	var repCmdty = {space:"ISO4217",id:"USD"};
 	
 	function getAssets(token, id, types, data, cb) {
 		// filter this level data
