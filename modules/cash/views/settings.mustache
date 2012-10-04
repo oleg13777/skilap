@@ -33,7 +33,7 @@ $(function() {
 			$(this).parent().css({"top":0,"left":0,"padding":0,"border":0});
 			window.parent.$("body .iframeContainer-ski_editSettings").trigger('openDialog',[w,h,p]);		
 			console.log("{{values.currency.id}}");
-			$('#acc_curency option[value="{{values.currency.id}}"]').attr('selected', 'selected');				
+			$('#acc_curency option[value="{{values.currency.id}}"]').attr('selected', 'selected');
 		},
 		close:function(e,ui){
 			window.parent.$("body .iframeContainer").trigger('closeDialog');

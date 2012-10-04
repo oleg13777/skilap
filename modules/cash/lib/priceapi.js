@@ -17,6 +17,7 @@ module.exports.getCmdtyPrice = function (token,cmdty,currency,date,method,cb) {
 		}, 
 		function get(cb) {
 			var key = (cmdty.space+cmdty.id+currency.space+currency.id);			
+			//console.log(key);
 			var ptree = self._stats.priceTree[key];
 			if (ptree==null) {
 				if (method == "safe")
