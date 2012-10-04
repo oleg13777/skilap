@@ -112,3 +112,7 @@ accounts-tree.i18n(f[1],i,"Add new account");
 accounts-tree.i18n(f[1],i,"denotes hidden accounts");
 index.i18n(f[1],i,"Assets");
 index.i18n(f[1],i,"Liabilities");
+
+report.i18n(f[1],i,"Currency");
+report.i18n(f[1],i,"Report's currency");
+report.i18n(f[1],i,"Page settings");

@@ -1,0 +1,93 @@
+<script type="text/javascript">
+$(function() {	
+	$(".report-settings").click(function(){
+		$("#dialog").dialog("open");
+	});
+	$("#dialog").dialog({
+		position: ["center","center"],
+		buttons: {
+			"{{#i18n}}Apply{{/i18n}}": function() {									
+				var params = {
+						key: '{{settings.key}}',
+						data: {cmdty:{space:"ISO4217",id:$('#currency option:selected').val()}},
+					};
+				var jqXHR = $.ajax({
+					"type": "POST",
+					"data": params,
+					"url": "{{prefix}}/settings/update",
+				});
+				jqXHR.done(function(data){
+					location.reload();
+				});
+				jqXHR.fail(function(data){
+					console.log(data);
+					alert(data);
+				});
+/*					
+				var accIds = [];					
+				$(".settingsForm .accountTreeItem .name.selected").each(function(index,item){						
+					accIds.push($(item).parent().data('accountid'));
+				});					
+				var jqXHR = $.ajax({
+					"type": "POST",
+					"data": $(".settingsForm").serialize() + '&' + $.param({accIds:accIds}) + '&version=2',
+					"url": location.pathname+location.search,
+					"dataType": "text"
+				});
+				jqXHR.done(function(data){
+					location.href=data;
+				});
+				jqXHR.fail(function(data){
+				});
+*/					
+			},
+			"{{#i18n}}Close{{/i18n}}": function() {
+				$(this).dialog("close");
+			}
+		},
+		open:function(e,ui){
+			$('#currency option[value="{{settings.cmdty.id}}"]').attr('selected', 'selected');
+		},
+
+		autoOpen: false,
+		resizable: false,
+		height: 200,
+		width: 320,
+		modal: true,
+		dragable: false
+	});	
+	function displayMessage(event){			
+		 if(event.data.name == 'showDialog') {		
+			$("#dialog").dialog('open');						
+		}		
+	}
+	if (window.addEventListener) {	
+		window.addEventListener("message", displayMessage, false);
+	}
+	else {
+		window.attachEvent("onmessage", displayMessage);
+	}
+});
+</script>
+<div id="dialog" title="{{#i18n}}Page settings{{/i18n}}" style="width: 320px; height: 200px;">
+	<form name="properties">
+		<table>
+			<tr>
+				<td>{{#i18n}}Currency{{/i18n}}:</td>
+				<td>
+					<select name="currency" id="currency">
+						{{#usedCurrencies}}
+							<option value="{{iso}}">{{iso}} - {{country}}</option>
+						{{/usedCurrencies}}
+						<option class="separator" disabled="disabled"></option>
+						{{#notUsedCurrencies}}
+							<option value="{{iso}}">{{iso}} - {{country}}</option>
+						{{/notUsedCurrencies}}
+					
+						{{>currencies_list}}
+					</select>
+				</td>
+			</tr>
+		</table>
+	</form>
+</div>

@@ -34,7 +34,11 @@
 				"{{#i18n}}Close{{/i18n}}": function() {
 					$(this).dialog("close");
 				}
-			},			
+			},
+			open:function(e,ui){			
+				$('#reportCurrency option[value="{{reportSettings.reportCurrency}}"]').attr('selected', 'selected');
+			},
+			
 			autoOpen: false,
 			resizable: false,
 			height: 520,
@@ -73,6 +77,7 @@
 			<ul>
 				<li><a href="#tabs-1">Accounts</a></li>
 				<li><a href="#tabs-2">General</a></li>				
+				<li><a href="#tabs-3">{{#i18n}}Currency{{/i18n}}</a></li>
 			</ul>
 			<div id="tabs-1">
 				<div class="fieldItem">
@@ -126,6 +131,17 @@
 					</div>
 				</div>				
 			</div>			
+			
+			<div id="tabs-3">
+				<div class="fieldItemsContainer">
+					<div class="fieldItem">
+						<label for="reportCurrency">{{#i18n}}Report's currency{{/i18n}}:</label>
+						<select name="reportCurrency" id="reportCurrency">
+							{{>currencies_list}}
+						</select>
+					</div>
+				</div>				
+			</div>
 		</div>
 
 		

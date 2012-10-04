@@ -3,6 +3,7 @@ var df = new DateFormat("MM/dd/yyyy");
 var dfW3C = new DateFormat(DateFormat.W3C);
 var async = require("async");
 var _ = require('underscore');
+var repCmdty = {space:"ISO4217",id:"RUB"};
 
 module.exports = function account(webapp) {
 	var app = webapp.web;
@@ -34,7 +35,7 @@ module.exports = function account(webapp) {
 		}
 
 		var pid = "reports-" +type + "-" + req.query.name;
-		var vtabs,data,reportSettings;
+		var vtabs,data,reportSettings,currencies;
 		async.waterfall([
 			function (cb1) {
 				async.series([
@@ -43,18 +44,22 @@ module.exports = function account(webapp) {
 					},
 					function(cb2) {
 						webapp.getTabSettings(req.session.apiToken, pid, cb2);
+					},
+					function(cb2) {
+						webapp.getUseRangedCurrencies(req.session.apiToken,cb2)
 					}
 				],
 				function (err, results) {
-					cb1(null, results[0], results[1]);
+					cb1(null, results[0], results[1], results[2]);
 				});
 			},
-			function (vtabs_, reportSettings_, cb1) {
+			function (vtabs_, reportSettings_, currencies_, cb1) {
 				vtabs = vtabs_;
 				reportSettings = reportSettings_;				
 				if (_.isEmpty(reportSettings) || !reportSettings.version || (reportSettings.version != reportSettingsVersion)) {					
 					reportSettings = getDefaultSettings(req.query.name);
-				}						
+				}
+				currencies = currencies_;
 				calculateGraphData(req.session.apiToken,type,reportSettings,cb1)					
 			},
 			function(data_,cb1){
@@ -90,7 +95,7 @@ module.exports = function account(webapp) {
 				res.partial(__dirname+"/../views/reportsettings",{},cb1);			
 			},
 			function(somedata,cb1){								
-				res.render(__dirname+"/../views/report", _.extend({settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs},data));
+				res.render(__dirname+"/../views/report", _.extend({settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, usedCurrencies:currencies.used, notUsedCurrencies:currencies.unused},data));
 			}],
 			next
 		);
@@ -129,7 +134,34 @@ module.exports = function account(webapp) {
 				}, {});
 				cashapi.getTransactionsInDateRange(token,[params.startDate,params.endDate,true,false],cb1);				
 			},
-			function(trns,cb1){						
+			function(trns,cb1){
+				console.log(params);
+				_(trns).forEach(function (tr) {
+					cashapi.getCmdtyPrice(token,tr.currency,{space:"ISO4217",id:params.reportCurrency},null,'safe',function(err,rate){
+						//console.log(rate);
+						if(err && !(err.skilap && err.skilap.subject == "UnknownRate"))
+							return cb1(err);
+						if (!err && rate!=0) 
+							var irate = rate;
+						_(tr.splits).forEach( function(split) {
+							var acs = accKeys[split.accountId];
+							if (acs) {
+								var val = split.quantity*irate;
+								if (params.accType == "INCOME")
+									val *= -1;
+								acs.summ+=val;
+								if (periods) {
+									var d = (new Date(tr.datePosted)).valueOf();
+									_(acs.periods).forEach(function (p) {
+										if (d>p.start.valueOf() && d<=p.end.valueOf())
+											p.summ+=val;
+									});
+								}
+							}
+						});
+					})
+				});
+/*				
 				_(trns).forEach(function (tr) {
 					_(tr.splits).forEach( function(split) {
 						var acs = accKeys[split.accountId];
@@ -147,7 +179,8 @@ module.exports = function account(webapp) {
 							}
 						}
 					});
-				});				
+				});
+*/ 
 				//collapse accounts to accLevel
 				if(params.accLevel != 'All'){
 					async.series([
@@ -280,7 +313,8 @@ module.exports = function account(webapp) {
 				accIds:null,
 				accLevel:2,
 				accLevelOptions:[{name:'All'},{name:1},{name:2},{name:3},{name:4},{name:5},{name:6}],
-				version: reportSettingsVersion
+				version: reportSettingsVersion,
+				reportCurrency:repCmdty.id
 			};
 		return defaultSettings;
 	}	
@@ -299,6 +333,7 @@ module.exports = function account(webapp) {
 			return parseInt(item);
 		}) : null;
 		settings.accLevel = req.body.accLevel;		
+		settings.reportCurrency = req.body.reportCurrency;
 
 		var steeps = [
 			function(cb) { 
