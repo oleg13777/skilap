@@ -115,3 +115,4 @@ index.i18n(f[1],i,"Liabilities");
 
 report.i18n(f[1],i,"Currency");
 report.i18n(f[1],i,"Report's currency");
+report.i18n(f[1],i,"Page settings");

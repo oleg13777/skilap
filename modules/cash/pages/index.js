@@ -43,9 +43,29 @@ module.exports = function account(webapp) {
 
 	app.get(prefix, function(req, res, next) {
 		var data;
+		var settings = {key:'index_page'};
 		var assets = [];
 		var liabilities = [];
+		var currencies = [];
 		async.waterfall([
+			function (cb) {
+				async.series([
+					function (cb1) {
+						cashapi.getSettings(req.session.apiToken, 'index_page', {}, cb1);
+					},
+					function (cb1) {
+						cashapi.getSettings(req.session.apiToken, 'currency', {}, cb1);
+					},
+					function (cb1) {
+						webapp.getUseRangedCurrencies(req.session.apiToken,cb1)
+					}
+				], function (err,r) {
+					settings.cmdty = (r[0].cmdty ? r[0].cmdty : (r[1].cmdty ? r[1].cmdty : repCmdty));
+					currencies = r[2];
+					repCmdty = settings.cmdty;
+					cb();
+				});
+			},
 			function (cb) {
 				var batch = {
 					"setup":{
@@ -102,7 +122,15 @@ module.exports = function account(webapp) {
 			},
 			function (cb) { webapp.guessTab(req, {pid:'home',name:webapp.ctx.i18n(req.session.apiToken, 'cash','Home'),url:req.url}, cb) },
 			function render (vtabs) {
-				var rdata = {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs};
+				settings.views = __dirname+"/../views";
+				var rdata = {
+					settings: settings,
+					prefix: prefix,
+					tabs: vtabs,
+					currencies: currencies.all,
+					usedCurrencies: currencies.used,
+					notUsedCurrencies: currencies.unused,
+				};
 				rdata.assetsSum = webapp.i18n_cmdtytext(req.session.apiToken,repCmdty,_(assets).reduce(function (m,e) {return m+e.value;},0));
 				rdata.liabilitiesSum = webapp.i18n_cmdtytext(req.session.apiToken,repCmdty,_(liabilities).reduce(function (m,e) {return m+e.value;},0));
 				rdata.assets = assets;

@@ -33,8 +33,9 @@ module.exports = function priceeditor(webapp) {
 	
 	app.post(prefix+"/settings/update", function(req, res, next) {
 		var acc = {};
-		acc.cmdty={space:"ISO4217",id:req.body.curency};
-		cashapi.saveSettings(req.session.apiToken, "currency", acc, function (err, acc_) {
+		acc = req.body.data;
+		settings_key = (req.body.key ? req.body.key : "currency");
+		cashapi.saveSettings(req.session.apiToken, settings_key, acc, function (err, acc_) {
 			if (err) return next(err);
 			res.send("ok");
 		})

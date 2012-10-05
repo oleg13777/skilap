@@ -5,7 +5,8 @@ $(function() {
 		buttons: {
 			"{{#i18n}}Apply{{/i18n}}": function() {
 				var params = {
-						curency: $('#acc_curency option:selected').val(),
+						key: 'currency',
+						data: {cmdty: {space:"ISO4217",id:$('#acc_curency option:selected').val()}},
 					};
 				var jqXHR = $.ajax({
 					"type": "POST",
