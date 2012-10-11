@@ -1,0 +1,87 @@
+<script type="text/javascript">
+$(function() {	
+	$("#dialog").dialog({
+		position: ["left","top"],
+		buttons: {
+			"{{#i18n}}Apply{{/i18n}}": function() {
+				var params = {
+						id: $('#task_id').val(),
+						confirm: 1
+					};
+				var jqXHR = $.ajax({
+					"type": "POST",
+					"data": params,
+					"dataType": "json",
+					"url": "{{prefix}}/delete"
+				});
+				jqXHR.done(function(data){
+					window.parent.$("body").trigger('taskDeletedSuccess',[data]);					
+				});
+				jqXHR.fail(function(data){
+					window.parent.$("body").trigger('taskDeletedFailed');
+				});
+				//$(this).dialog("close");
+				window.parent.$("body .iframeContainer").trigger('closeDialog');
+			},			
+			"{{#i18n}}Close{{/i18n}}": function() {
+				//$(this).dialog("close");
+				//console.log('closeDialog');
+				window.parent.$("body .iframeContainer").trigger('closeDialog');
+			}
+		},
+		open:function(e,ui){			
+			var w = $(this).parent().width();
+			var h = $(this).parent().height();
+			var p = $(this).parent().position();
+			$(this).parent().css({"top":0,"left":0,"padding":0,"border":0});
+			window.parent.$("body .iframeContainer-ski_deleteTask").trigger('openDialog',[w,h,p]);						
+		},
+		close:function(e,ui){
+			window.parent.$("body .iframeContainer").trigger('closeDialog');
+		},
+		autoOpen: true,
+		resizable: false,
+		height: 300,
+		width: 400,
+		modal: true,
+		dragable: true
+	});	
+	
+	function displayMessage(event){	
+console.log(event);
+		if (event.origin === "https://{{host}}") {		
+			if(event.data.name == 'setTaskDeleteDialogData'){
+				id = event.data.data;
+				if(task.id){
+					$('#task_id').val(task.id);
+				}
+				if(task.name){			
+					$('#task_name').html(task.name);
+				}
+			}
+			else if(event.data.name == 'showDialog') {		
+				$("#dialog").dialog('open');
+			}			
+		}		
+	}
+	
+	if (window.addEventListener) {
+		window.addEventListener("message", displayMessage, false);
+	}
+	else {
+		window.attachEvent("onmessage", displayMessage);
+	}
+
+});
+</script>
+<div id="dialog" title="{{#i18n}}Task properties{{/i18n}}" style="width: 500px; height: 400px;">
+	<form name="properties">
+		<input type="hidden" id="task_id">
+		<input type="hidden" id="token" value="{{token}}">
+		<table>
+			<tr>
+				<td>{{#i18n}}A you sure want to delete task{{/i18n}} '<span id="task_name"></span>'?</td>
+			</tr>
+		</table>
+	</form>
+</div>

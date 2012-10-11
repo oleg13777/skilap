@@ -60,7 +60,7 @@ module.exports = function account(webapp) {
 						webapp.getUseRangedCurrencies(req.session.apiToken,cb1)
 					}
 				], function (err,r) {
-					settings.cmdty = (r[0].cmdty ? r[0].cmdty : (r[1].cmdty ? r[1].cmdty : repCmdty));
+					settings.cmdty = (r[0] && r[0].cmdty ? r[0].cmdty : (r[1] && r[1].cmdty ? r[1].cmdty : repCmdty));
 					currencies = r[2];
 					repCmdty = settings.cmdty;
 					cb();

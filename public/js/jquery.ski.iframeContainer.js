@@ -19,7 +19,7 @@
 		},
 
 		_create: function() {	
-			console.log(this.element.attr('id'));
+			//console.log(this.element.attr('id'));
 			if(!this.iframeContainer){
 				this.iframeContainer = {};
 			}	
@@ -122,7 +122,7 @@
 			self._isOpen = true;		
 			iframeContainer.show();
 			self.triggerEvent({name:'showDialog'});	
-			$(document).scrollTop(0);		
+			$(document).scrollTop(0);
 			return self;
 		},
 		
