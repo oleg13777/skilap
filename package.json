@@ -13,7 +13,7 @@
     , "async": ""
     , "sprintf" : ""
     , "alfred" : "git://github.com/sergeyksv/alfred.git"
-    , "hogan" : ""
+    , "hogan.js" : ""
     , "dateformatjs" : ""
     , "step" : ">=0.0.3"
     , "carrier" : ">= 0.1.0"
