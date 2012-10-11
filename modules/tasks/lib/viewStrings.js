@@ -1,0 +1,15 @@
+task-create.i18n(f[1],i,"Apply");
+task-create.i18n(f[1],i,"Close");
+task-create.i18n(f[1],i,"Task properties");
+task-create.i18n(f[1],i,"Name");
+task-create.i18n(f[1],i,"Description");
+task-delete.i18n(f[1],i,"Apply");
+task-delete.i18n(f[1],i,"Close");
+task-delete.i18n(f[1],i,"Task properties");
+task-delete.i18n(f[1],i,"A you sure want to delete task");
+layout.i18n(f[1],i,"Tabs");
+layout.i18n(f[1],i,"Copyright by PushOk Software");
+index.i18n(f[1],i,"Add new task");
+index.i18n(f[1],i,"Tasks");
+index.i18n(f[1],i,"edit");
+index.i18n(f[1],i,"delete");

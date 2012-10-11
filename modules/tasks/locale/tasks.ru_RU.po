@@ -1,0 +1,98 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.0.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-10-11 23:36+0400\n"
+"PO-Revision-Date: 2012-10-11 23:41+0300\n"
+"Last-Translator: Sergey Korotkov <serg@local.pushok.com>\n"
+"Language-Team: PushOk Software <contact@pushok.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Russian\n"
+"X-Poedit-Country: RUSSIAN FEDERATION\n"
+
+#: ../modules/tasks/lib/webapp.js:179
+msgid "View tasks data"
+msgstr "Просматривать данные задач"
+
+#: ../modules/tasks/lib/webapp.js:180
+msgid "Add new tasks"
+msgstr "Добавлять новые задачи"
+
+#: ../modules/tasks/lib/webapp.js:181
+msgid "Edit tasks data"
+msgstr "Редкатировать задачи"
+
+#: ../modules/tasks/lib/webapp.js:186
+msgid "Tasks module"
+msgstr "Управление задачами"
+
+#: ../modules/tasks/lib/webapp.js:187
+msgid "Personal task manager."
+msgstr "Личные задачи"
+
+#: ../modules/tasks/lib/viewStrings.js:1
+#: ../modules/tasks/lib/viewStrings.js:6
+msgid "Apply"
+msgstr "Применить"
+
+#: ../modules/tasks/lib/viewStrings.js:2
+#: ../modules/tasks/lib/viewStrings.js:7
+msgid "Close"
+msgstr "Закрыть"
+
+#: ../modules/tasks/lib/viewStrings.js:3
+#: ../modules/tasks/lib/viewStrings.js:8
+msgid "Task properties"
+msgstr "Свойства задачи"
+
+#: ../modules/tasks/lib/viewStrings.js:4
+msgid "Name"
+msgstr "Имя"
+
+#: ../modules/tasks/lib/viewStrings.js:5
+msgid "Description"
+msgstr "Описание"
+
+#: ../modules/tasks/lib/viewStrings.js:9
+msgid "A you sure want to delete task"
+msgstr "Точно точно удалить задачу?"
+
+#: ../modules/tasks/lib/viewStrings.js:10
+msgid "Tabs"
+msgstr "Страницы"
+
+#: ../modules/tasks/lib/viewStrings.js:11
+msgid "Copyright by PushOk Software"
+msgstr "Авторские права ООО \"Пушок Софтваре\""
+
+#: ../modules/tasks/lib/viewStrings.js:12
+msgid "Add new task"
+msgstr "Добавить новую задачу"
+
+#: ../modules/tasks/lib/viewStrings.js:13
+msgid "Tasks"
+msgstr "Задачи"
+
+#: ../modules/tasks/lib/viewStrings.js:14
+msgid "edit"
+msgstr "Изм."
+
+#: ../modules/tasks/lib/viewStrings.js:15
+msgid "delete"
+msgstr "Удалить"
+
+#: ../modules/tasks/pages/settings.js:19
+msgid "USD"
+msgstr "Руб."
+
+#: ../modules/tasks/pages/index.js:73
+msgid "Main"
+msgstr "Главная"
+
