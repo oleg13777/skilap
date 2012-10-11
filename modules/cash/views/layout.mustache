@@ -24,6 +24,7 @@
 	<script type="text/javascript" src="/common/js/bootstrap-dropdown.js"></script>
 	<script type="text/javascript" src="/common/js/bootstrap-collapse.js"></script>
 	<script type="text/javascript" src="/common/js/bootstrap-modal.js"></script>	
+	<script type="text/javascript" src="/common/js/async.min.js"></script>	
 
 	<script type="text/javascript">
 		$(document).ready(function() {
@@ -69,7 +70,7 @@
 			<ul class="nav nav-pills">
               {{>nav}}
               <li class="dropdown">
-				<a href="javascript:void(0);" data-toggle="dropdown" class="dropdown-toggle">{{#i18n}}Tabs{{/i18n}} <b class="caret"></b></a>
+				<a href="javascript:void(0);" data-toggle="dropdown" class="dropdown-toggle">{{#i18n}}Pages{{/i18n}} <b class="caret"></b></a>
 				<ul class="dropdown-menu">				
 				  {{#tabs}}
 				  <li {{#selected}}class="active"{{/selected}}>

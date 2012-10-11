@@ -160,6 +160,7 @@ CashWeb.prototype.getTabSettings = function(token, tabId, cb) {
 			else
 				cb(null, {})
 		}], safe.sure(cb, function (ret) {
+			if (ret==null) ret = {};
 			cb(null, ret);
 		})
 	)
@@ -218,8 +219,19 @@ module.exports.init = function (ctx,cb) {
 				return web;
 			}));
 		}], safe.sure(cb, function (results) {
-			var m = results[1];
+			var m = {};
+			m.web = results[1];
 			m.api = results[0];
+			m.web.api = m.api;
+			
+			// expose web functions thru api with "web" prefix
+			var webApi = m.web.constructor.prototype;
+			_.forEach(_(webApi).keys(), function (fn) {
+				m.api["web_"+fn] = function () {
+					m.web[fn].apply(m.web, arguments);
+				}
+			})
+
 			m.localePath = __dirname+'/../locale';
 			
 			m.getPermissionsList = function (token, cb) {
