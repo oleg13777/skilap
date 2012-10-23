@@ -48,10 +48,9 @@ $(function() {
 	});	
 	
 	function displayMessage(event){	
-console.log(event);
 		if (event.origin === "https://{{host}}") {		
 			if(event.data.name == 'setTaskDeleteDialogData'){
-				id = event.data.data;
+				var task = event.data.data;
 				if(task.id){
 					$('#task_id').val(task.id);
 				}

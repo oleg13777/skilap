@@ -11,6 +11,8 @@ $(function() {
 		}
 		return false;
 	});
+	$("#ski_createTask").iframeContainer({src:"{{prefix}}/create",host:"{{host}}"});
+	$("#ski_deleteTask").iframeContainer({src:"{{prefix}}/delete",host:"{{host}}"});
 	
 	$(document).on('click', '#add_new', function(e){		
 		$("#ski_createTask").iframeContainer("open");	
@@ -33,10 +35,7 @@ $(function() {
 		});
 		$("#ski_createTask").iframeContainer("open");
 		return false;
-	});	
-	$("#ski_createTask").iframeContainer({src:"{{prefix}}/create",host:"{{host}}"});
-	$("#ski_deleteTask").iframeContainer({src:"{{prefix}}/delete",host:"{{host}}"});
-	
+	});
 	$(document).on("click", ".deleteTask", function(e){
 		var id = $(this).data('id');
 		var taskName = $('#task'+id).text();
@@ -44,10 +43,13 @@ $(function() {
 		$("#ski_deleteTask").iframeContainer("triggerEvent",{name:'setTaskDeleteDialogData',data:{id:id,name:taskName}});
 		return false;
 	});
-	
 	$("body").on('taskDeletedSuccess',function(e,id){
 		location.reload(true);
 	});	
+	
+});
+$(document).ready(function(){
+	$('#tasks').dataTable();
 });
 </script>
 <div id="ski_createTask"></div>
@@ -57,17 +59,28 @@ $(function() {
 <hr size="2" noshade />
 <div class="well">
 <ul class="nav nav-list">
-	<table id="example" class="display dataTable" cellspacing="0" cellpadding="0" border="0" style="width:100%;">
+	<table id="tasks" class="display dataTable" cellspacing="0" cellpadding="0" border="0" style="width:100%;">
+	<thead>
+	<tr>
+		<th>Created</th>
+		<th>Name</th>
+		<th>Description</th>
+		<th></th>
+	</tr>
+	</thead>
+	<tbody>
 	{{#tasks}}
 	<tr>
-	<td id="task_{{id}}">{{name}}</td>
-	<td>{{description}}</td>
-	<td>
-		<i class="icon-edit editTask" data-id="{{id}}" title="{{#i18n}}edit{{/i18n}}" ></i> 
-		<i class="icon-trash deleteTask" data-id="{{id}}" title="{{#i18n}}delete{{/i18n}}" ></i>
-	</td>
+		<td>{{dt}}</td>
+		<td id="task_{{id}}">{{name}}</td>
+		<td>{{description}}</td>
+		<td>
+			<i class="icon-edit editTask" data-id="{{id}}" title="{{#i18n}}edit{{/i18n}}" ></i> 
+			<i class="icon-trash deleteTask" data-id="{{id}}" title="{{#i18n}}delete{{/i18n}}" ></i>
+		</td>
 	</tr>
 	{{/tasks}}
+	</tbody>
 	</table>
 </ul>
 </div>

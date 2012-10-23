@@ -86,12 +86,12 @@ TasksApi.prototype.saveTask = function (token, task, cb) {
 		},
 		function (t, cb) {
 			if (task.id)
-				cb(null, task.id);
+				cb(null, task);
 			else
-				self._ctx.getUniqueId(cb);
+				task.dt = new Date();
+				task.id = self._ctx.getUniqueId(function() { cb(null, task); });
 		},
-		function get(id, cb) {
-			task.id = id;
+		function get(task, cb) {
 			self._tasks.put(task.id, task, cb);
 		}], safe.sure_result(cb,function (result) {
 			return task;

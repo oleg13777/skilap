@@ -35,16 +35,15 @@ module.exports = function account(webapp) {
 		responseHandler(req,res,next,'task-create');
 	});
 	
-	app.get(prefix+"/delete", function(req, res, next) {
-		if (req.body.confirm) {
-			tasksapi.deleteTask(req.session.apiToken, req.body.id, function (err) {
-				if (err) return next(err);
-				res.send({id:req.body.id});
-			})
-		}
-		else {
-			responseHandler(req,res,next,'task-delete');
-		}
+	app.get(prefix+"/delete",  function(req, res, next) {
+		responseHandler(req,res,next,'task-delete');
+	});
+	
+	app.post(prefix+"/delete", function(req, res, next) {
+		tasksapi.deleteTask(req.session.apiToken, req.body.id, function (err) {
+			if (err) return next(err);
+			res.send({id:req.body.id});
+		})
 	});		
 
 	app.post(prefix+"/update", function(req, res, next) {
@@ -75,6 +74,7 @@ module.exports = function account(webapp) {
 				var rdata = {
 					prefix: prefix,
 					token: req.session.apiToken,
+					host: req.headers.host,
 					tasks: tasks
 				};
 				res.render(__dirname+"/../views/index", rdata);

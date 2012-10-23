@@ -126,8 +126,8 @@
 			return self;
 		},
 		
-		triggerEvent:function(event){			
-			var self = this;			
+		triggerEvent:function(event){
+			var self = this;
 			if(self._isDialogLoad[self.element.attr('id')]){
 				self._waitLoadCounter[self.element.attr('id')] = 0;	
 				self.iframeContent[self.element.attr('id')].get(0).contentWindow.postMessage(event, "https://"+self.options.host);
