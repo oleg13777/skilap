@@ -2,6 +2,7 @@ var _ = require('underscore');
 var skconnect = require('skilap-connect');
 var async = require('async');
 var safe = require('safe');
+var SkilapError = require("skilap-utils").SkilapError;
 
 function CashWeb (ctx) {
 	var self = this;
@@ -61,6 +62,12 @@ CashWeb.prototype.guessTab = function (req, ti,cb) {
 		function (cb) {
 			self._coreapi.getUser(req.session.apiToken, cb);
 		},
+		function (user_, cb) {
+			if (user_.type=='guest')
+				cb(new SkilapError(self.ctx.i18n(req.session.apiToken, 'core', 'Access denied'),'AccessDenied'));
+			else
+				cb(null, user_)
+		},		
 		function (user_, cb) {
 			user = user_;
 			if (user.type!='guest')
