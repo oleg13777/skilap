@@ -52,7 +52,7 @@ $(function() {
 	function displayMessage(event){	
 		if (event.origin === "https://{{host}}") {		
 			if(event.data.name == 'setTaskDialogData'){
-				var task = event.data.data;
+				var task = event.data.data[0];
 				if(task.id){			
 					$('#task_id').val(task.id);
 				}
@@ -76,7 +76,6 @@ $(function() {
 	}
 	
 	if (window.addEventListener) {
-	console.log(1);
 		window.addEventListener("message", displayMessage, false);
 	}
 	else {
