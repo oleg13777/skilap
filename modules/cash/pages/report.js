@@ -135,10 +135,8 @@ module.exports = function account(webapp) {
 				cashapi.getTransactionsInDateRange(token,[params.startDate,params.endDate,true,false],cb1);				
 			},
 			function(trns,cb1){
-				console.log(params);
 				_(trns).forEach(function (tr) {
 					cashapi.getCmdtyPrice(token,tr.currency,{space:"ISO4217",id:params.reportCurrency},null,'safe',function(err,rate){
-						//console.log(rate);
 						if(err && !(err.skilap && err.skilap.subject == "UnknownRate"))
 							return cb1(err);
 						if (!err && rate!=0) 
@@ -161,26 +159,7 @@ module.exports = function account(webapp) {
 						});
 					})
 				});
-/*				
-				_(trns).forEach(function (tr) {
-					_(tr.splits).forEach( function(split) {
-						var acs = accKeys[split.accountId];
-						if (acs) {
-							var val = split.quantity;
-							if (params.accType == "INCOME")
-								val *= -1;
-							acs.summ+=val;
-							if (periods) {
-								var d = (new Date(tr.datePosted)).valueOf();
-								_(acs.periods).forEach(function (p) {
-									if (d>p.start.valueOf() && d<=p.end.valueOf())
-										p.summ+=val;
-								});
-							}
-						}
-					});
-				});
-*/ 
+
 				//collapse accounts to accLevel
 				if(params.accLevel != 'All'){
 					async.series([
@@ -337,7 +316,7 @@ module.exports = function account(webapp) {
 
 		var steeps = [
 			function(cb) { 
-				webapp.removeTabs(req.session.apiToken, [pid], cb) 
+				webapp.removeTabs(req.session.apiToken, oldpid, cb) 
 			},
 			function(cb) {
 				webapp.guessTab(req, {pid:pid, name:settings.reportName, url:url+"?name="+settings.reportName}, cb);
