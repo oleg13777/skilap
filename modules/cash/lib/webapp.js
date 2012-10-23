@@ -101,6 +101,10 @@ CashWeb.prototype.guessTab = function (req, ti,cb) {
 CashWeb.prototype.removeTabs = function (token, tabIds, cb) {
 	var self = this;
 	var user;
+	// we can accept bot single or multiple ids
+	if (!_.isArray(tabIds)) {
+		tabIds = [tabIds]
+	}	
 	async.waterfall ([
 		// we need user first
 		function (cb) {
@@ -116,7 +120,7 @@ CashWeb.prototype.removeTabs = function (token, tabIds, cb) {
 			if (tabIds==null)
 				views.tabs = [];
 			else
-				views.tabs = _.reject(views.tabs, function (t) { return _(tabIds).include(t.id); } )
+				views.tabs = _.reject(views.tabs, function (t) { return _(tabIds).include(t.pid); } )
 			self._cash_userviews.put(user.id,views,cb);
 		})], cb
 	)

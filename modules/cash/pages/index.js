@@ -142,21 +142,4 @@ module.exports = function account(webapp) {
 			next
 		);
 	});
-
-	app.get(prefix + "/tabs/close", function(req, res, next) {
-		async.waterfall([
-			function(cb1){
-				var pid = req.query.pid;
-				if (pid) {
-					webapp.removeTabs(req.session.apiToken, [pid], cb1);
-				} else {
-					cb1();
-				}
-			},
-			function(){
-				res.writeHead(200, {'Content-Type': 'text/plain'});
-				res.end('true');
-			}
-		], next);
-	})
 }
