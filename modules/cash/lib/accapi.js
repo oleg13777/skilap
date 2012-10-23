@@ -81,7 +81,9 @@ module.exports.getAccountByPath = function (token,path,cb) {
 				return cb(new SkilapError("No such account","NO_SUCH_ACCOUNT"));
 			self.getAccount(token,newAccId,cb);
 		}
-		], cb
+		], safe.sure_result(cb,function (results) {
+			return results[1];
+		})
 	)
 }
 

@@ -75,8 +75,8 @@
 	<form name="properties" class="settingsForm">
 		<div class="tabs-settings">
 			<ul>
-				<li><a href="#tabs-1">Accounts</a></li>
-				<li><a href="#tabs-2">General</a></li>				
+				<li><a href="#tabs-1">{{#i18n}}Accounts{{/i18n}}</a></li>
+				<li><a href="#tabs-2">{{#i18n}}General{{/i18n}}</a></li>				
 				<li><a href="#tabs-3">{{#i18n}}Currency{{/i18n}}</a></li>
 			</ul>
 			<div id="tabs-1">
@@ -94,7 +94,7 @@
 					</div>
 				</div>
 				<div class="fieldItem">
-					<label>Show accounts until level</label>								
+					<label>{{#i18n}}Show accounts until level{{/i18n}}</label>								
 					<select name="accLevel" class="textField">					
 						{{#reportSettings.accLevelOptions}}
 							<option value="{{name}}" {{#isSelected}}selected{{/isSelected}} >{{name}}</option>

@@ -16,6 +16,15 @@ var resFunc = {
 	'merge': function (obj, key, val, cb) {
 		_.extend(obj,val);
 		cb();
+	},
+	'noop': function (obj, key, val, cb) {
+		cb();
+	},
+	'clean': function (obj, key, val, cb) {
+		_(_(obj).keys()).forEach(function (key) {
+			delete obj[key];
+		})
+		cb();
 	}
 }
 

@@ -3,7 +3,7 @@
   , "version": "0.0.1"
   , "private": true
   , "dependencies": {
-      "express": ""
+      "express": "2.x.x"
     , "connect": ""
     , "cookies": ""
     , "jsorm-i18n": ""
@@ -13,7 +13,7 @@
     , "async": ""
     , "sprintf" : ""
     , "alfred" : "git://github.com/sergeyksv/alfred.git"
-    , "hogan" : ""
+    , "hogan.js" : ""
     , "dateformatjs" : ""
     , "step" : ">=0.0.3"
     , "carrier" : ">= 0.1.0"

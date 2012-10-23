@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-06-28 22:45+0400\n"
+"POT-Creation-Date: 2012-10-11 23:36+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../modules/core/lib/coreapi.js:130 ../modules/core/lib/viewStrings.js:41
+#: ../modules/core/lib/coreapi.js:130 ../modules/core/lib/viewStrings.js:40
 msgid "Access denied"
 msgstr ""
 
@@ -79,14 +79,14 @@ msgid ""
 msgstr ""
 
 #: ../modules/core/lib/viewStrings.js:1 ../modules/core/lib/viewStrings.js:3
-#: ../modules/core/lib/viewStrings.js:19 ../modules/core/lib/viewStrings.js:47
-#: ../modules/core/lib/viewStrings.js:51
+#: ../modules/core/lib/viewStrings.js:18 ../modules/core/lib/viewStrings.js:46
+#: ../modules/core/lib/viewStrings.js:50
 msgid "Apply"
 msgstr ""
 
 #: ../modules/core/lib/viewStrings.js:2 ../modules/core/lib/viewStrings.js:4
-#: ../modules/core/lib/viewStrings.js:20 ../modules/core/lib/viewStrings.js:48
-#: ../modules/core/lib/viewStrings.js:52
+#: ../modules/core/lib/viewStrings.js:19 ../modules/core/lib/viewStrings.js:47
+#: ../modules/core/lib/viewStrings.js:51
 msgid "Close"
 msgstr ""
 
@@ -99,14 +99,14 @@ msgstr ""
 msgid "edit"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:7 ../modules/core/lib/viewStrings.js:13
-#: ../modules/core/lib/viewStrings.js:27 ../modules/core/lib/viewStrings.js:65
+#: ../modules/core/lib/viewStrings.js:7 ../modules/core/lib/viewStrings.js:12
+#: ../modules/core/lib/viewStrings.js:26 ../modules/core/lib/viewStrings.js:65
 #: ../modules/core/lib/viewStrings.js:72
 msgid "Gui language"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:8 ../modules/core/lib/viewStrings.js:14
-#: ../modules/core/lib/viewStrings.js:30 ../modules/core/lib/viewStrings.js:66
+#: ../modules/core/lib/viewStrings.js:8 ../modules/core/lib/viewStrings.js:13
+#: ../modules/core/lib/viewStrings.js:29 ../modules/core/lib/viewStrings.js:66
 #: ../modules/core/lib/viewStrings.js:73
 msgid "Timezone"
 msgstr ""
@@ -115,99 +115,103 @@ msgstr ""
 msgid "Guest permissions"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:11 ../modules/core/lib/viewStrings.js:49
-msgid "Edit permissions"
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:12 ../modules/core/lib/viewStrings.js:21
+#: ../modules/core/lib/viewStrings.js:11 ../modules/core/lib/viewStrings.js:20
 msgid "Account prefferences"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:15 ../modules/core/lib/viewStrings.js:43
+#: ../modules/core/lib/viewStrings.js:14 ../modules/core/lib/viewStrings.js:42
 msgid "Please login"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:16 ../modules/core/lib/viewStrings.js:18
-#: ../modules/core/lib/viewStrings.js:24 ../modules/core/lib/viewStrings.js:33
-#: ../modules/core/lib/viewStrings.js:44 ../modules/core/lib/viewStrings.js:46
-#: ../modules/core/lib/viewStrings.js:56 ../modules/core/lib/viewStrings.js:63
+#: ../modules/core/lib/viewStrings.js:15 ../modules/core/lib/viewStrings.js:17
+#: ../modules/core/lib/viewStrings.js:23 ../modules/core/lib/viewStrings.js:37
+#: ../modules/core/lib/viewStrings.js:43 ../modules/core/lib/viewStrings.js:45
+#: ../modules/core/lib/viewStrings.js:55 ../modules/core/lib/viewStrings.js:63
 #: ../modules/core/lib/viewStrings.js:71
 msgid "Login"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:17 ../modules/core/lib/viewStrings.js:26
-#: ../modules/core/lib/viewStrings.js:45 ../modules/core/lib/viewStrings.js:64
+#: ../modules/core/lib/viewStrings.js:16 ../modules/core/lib/viewStrings.js:25
+#: ../modules/core/lib/viewStrings.js:44 ../modules/core/lib/viewStrings.js:64
 msgid "Password"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:22 ../modules/core/lib/viewStrings.js:54
+#: ../modules/core/lib/viewStrings.js:21 ../modules/core/lib/viewStrings.js:53
 #: ../modules/core/lib/viewStrings.js:61 ../modules/core/lib/viewStrings.js:69
 msgid "First name"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:23 ../modules/core/lib/viewStrings.js:55
+#: ../modules/core/lib/viewStrings.js:22 ../modules/core/lib/viewStrings.js:54
 #: ../modules/core/lib/viewStrings.js:62 ../modules/core/lib/viewStrings.js:70
 msgid "Last name"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:25
+#: ../modules/core/lib/viewStrings.js:24
 msgid "Change password"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:28
+#: ../modules/core/lib/viewStrings.js:27
 msgid "Russian"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:29
+#: ../modules/core/lib/viewStrings.js:28
 msgid "English"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:31
-msgid "Hi Stranger, this is protected area."
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:32
-msgid "Please contact site owner for account if you need it."
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:34
-msgid "if you have it already"
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:35
-msgid "Hi"
-msgstr ""
-
-#: ../modules/core/lib/viewStrings.js:36
+#: ../modules/core/lib/viewStrings.js:30
 msgid "My account"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:37
+#: ../modules/core/lib/viewStrings.js:31
 msgid "Manage users"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:38
+#: ../modules/core/lib/viewStrings.js:32
 msgid "System settings"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:39
+#: ../modules/core/lib/viewStrings.js:33
 msgid "Logout"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:40
+#: ../modules/core/lib/viewStrings.js:34
+msgid "Hi"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:35
+msgid "Hi Stranger, this is protected area."
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:36
+msgid "Please contact site owner for account if you need it."
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:38
+msgid "if you have it already"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:39
 msgid "Copyright by PushOk Software"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:42
+#: ../modules/core/lib/viewStrings.js:41
 msgid "You do not have permission."
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:50
+#: ../modules/core/lib/viewStrings.js:48
+msgid "Edit permissions"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:49
 msgid "Are you sure?"
 msgstr ""
 
-#: ../modules/core/lib/viewStrings.js:53 ../modules/core/lib/viewStrings.js:60
+#: ../modules/core/lib/viewStrings.js:52 ../modules/core/lib/viewStrings.js:60
 msgid "Add new user"
+msgstr ""
+
+#: ../modules/core/lib/viewStrings.js:56
+msgid "Action"
 msgstr ""
 
 #: ../modules/core/lib/viewStrings.js:57

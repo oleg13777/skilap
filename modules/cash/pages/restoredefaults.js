@@ -22,7 +22,6 @@ module.exports = function account(webapp) {
 				res.render(__dirname+"/../views/restoredefaults", rdata);
 			});
 		} else if (req.query.confirm == 'true') {
-			console.log(req.query);
 			async.waterfall([
 				function (cb1) {
 					cashapi.newRegistry(req.session.apiToken, {"space":"ISO4217","id":req.query.currency || "USD"}, req.query.type || "default", cb1);

@@ -24,6 +24,7 @@
 	<script type="text/javascript" src="/common/js/bootstrap-dropdown.js"></script>
 	<script type="text/javascript" src="/common/js/bootstrap-collapse.js"></script>
 	<script type="text/javascript" src="/common/js/bootstrap-modal.js"></script>	
+	<script type="text/javascript" src="/common/js/async.min.js"></script>	
 
 	<script type="text/javascript">
 		$(document).ready(function() {
@@ -36,19 +37,32 @@
 			
 			$(".closeTab").on("click", function(e){			
 				var self = $(this);
-				var jqXHR = $.ajax({
-					"url": "{{prefix}}/tabs/close?pid=" + self.parent().data('pid'),
-					"dataType": "json"
-				});
-				jqXHR.done(function(data){
-					if (self.parents("li").hasClass("active")){
-						location.href="{{prefix}}";
-					} else {
-						self.parents("li").remove();
+				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
+				var batch = {
+					"setup":{
+						"cmd":"object",
+						"prm":{"token":"{{apiToken}}"},
+						"res":{"a":"merge"}
+					},
+					"removeTab":{
+						"dep":"setup",
+						"cmd":"api",
+						"prm":["cash.web_removeTabs","token",self.parent().data('pid')],
+						"res":{"a":"clean"}
 					}
-				});
-				jqXHR.fail(function(data){
-				});
+				}		
+				rpc.call('batch.runBatch', batch, {
+					success: function (data) {
+						if (self.parents("li").hasClass("active")){
+							location.href="{{prefix}}";
+						} else {
+							self.parents("li").remove();
+						}					
+					},
+					failure: function (reason) {
+						alert(reason);
+					}
+				})				
 				e.preventDefault();
 			});
 		});
@@ -69,7 +83,7 @@
 			<ul class="nav nav-pills">
               {{>nav}}
               <li class="dropdown">
-				<a href="javascript:void(0);" data-toggle="dropdown" class="dropdown-toggle">{{#i18n}}Tabs{{/i18n}} <b class="caret"></b></a>
+				<a href="javascript:void(0);" data-toggle="dropdown" class="dropdown-toggle">{{#i18n}}Pages{{/i18n}} <b class="caret"></b></a>
 				<ul class="dropdown-menu">				
 				  {{#tabs}}
 				  <li {{#selected}}class="active"{{/selected}}>

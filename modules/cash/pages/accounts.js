@@ -83,41 +83,41 @@ module.exports = function account(webapp) {
 	app.get(prefix+"/accounts/tree", function(req, res, next) {
 		var assets,curencies,assetsTypes;		
 		var settings = {key:'accounts_tree_page'};
-		async.series([
-			function (cb) {
-				async.series([
-					function (cb1) {
-						cashapi.getSettings(req.session.apiToken, 'accounts_tree_page', {}, cb1);
-					},
-					function (cb1) {
-						cashapi.getSettings(req.session.apiToken, 'currency', {}, cb1);
-					}
-				], function (err,r) {
-					settings.cmdty = (r[0].cmdty ? r[0].cmdty : (r[1].cmdty ? r[1].cmdty : repCmdty));
-					repCmdty = settings.cmdty;
-					getAccountList(req.session.apiToken, safe.trap_sure(function (data) {
-						getAccountTree(req.session.apiToken,0,data, cb);
-					}))
-				});
-			},
-			function (cb) {				
+		async.series({
+			tabs:function (cb) {				
 				webapp.guessTab(req, {pid:'accounts-tree',name:ctx.i18n(req.session.apiToken, 'cash', 'Accounts'), url:req.url},cb);
 			},
-			function(cb) {
-				webapp.getUseRangedCurrencies(req.session.apiToken,cb)
+			currency:function getPageCurrency(cb) {
+				// get tab settings first
+				webapp.getTabSettings(req.session.apiToken, 'accounts-tree', safe.sure(cb, function(cfg) {
+					if (cfg && cfg.cmdty) {
+						repCmdty = cfg.cmdty;
+						cb()
+					}
+					else {
+						// when absent get default
+						cashapi.getSettings(req.session.apiToken, 'currency', repCmdty, safe.sure(cb, function (defCmdty) {
+							repCmdty = defCmdty;
+							cb()
+						}))
+					}
+				}));
 			},
-		], function (err, r) {
+			assets:function (cb) {
+				getAccountList(req.session.apiToken, safe.sure(cb, function (data) {
+					getAccountTree(req.session.apiToken,0,data, cb);
+				}))
+			}
+		}, function (err, r) {
 			if (err) return next(err);
 			settings.views = __dirname+"/../views";
 			var rdata = {
 					prefix: prefix, 
-					tabs: r[1], 
-					assets: r[0],
+					tabs: r.tabs, 
+					tabId: 'accounts-tree',
+					assets: r.assets,
 					token: req.session.apiToken,
 					settings: settings,
-					currencies: r[2].all,
-					usedCurrencies: r[2].used,
-					notUsedCurrencies: r[2].unused,
 					host: req.headers.host
 				};
 			res.render(__dirname+"/../views/accounts-tree", rdata);

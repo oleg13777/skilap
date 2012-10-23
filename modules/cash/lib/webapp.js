@@ -2,6 +2,7 @@ var _ = require('underscore');
 var skconnect = require('skilap-connect');
 var async = require('async');
 var safe = require('safe');
+var SkilapError = require("skilap-utils").SkilapError;
 
 function CashWeb (ctx) {
 	var self = this;
@@ -62,6 +63,12 @@ CashWeb.prototype.guessTab = function (req, ti,cb) {
 			self._coreapi.getUser(req.session.apiToken, cb);
 		},
 		function (user_, cb) {
+			if (user_.type=='guest')
+				cb(new SkilapError(self.ctx.i18n(req.session.apiToken, 'core', 'Access denied'),'AccessDenied'));
+			else
+				cb(null, user_)
+		},		
+		function (user_, cb) {
 			user = user_;
 			if (user.type!='guest')
 				self._cash_userviews.get(user.id,cb);
@@ -101,6 +108,10 @@ CashWeb.prototype.guessTab = function (req, ti,cb) {
 CashWeb.prototype.removeTabs = function (token, tabIds, cb) {
 	var self = this;
 	var user;
+	// we can accept bot single or multiple ids
+	if (!_.isArray(tabIds)) {
+		tabIds = [tabIds]
+	}	
 	async.waterfall ([
 		// we need user first
 		function (cb) {
@@ -116,7 +127,7 @@ CashWeb.prototype.removeTabs = function (token, tabIds, cb) {
 			if (tabIds==null)
 				views.tabs = [];
 			else
-				views.tabs = _.reject(views.tabs, function (t) { return _(tabIds).include(t.id); } )
+				views.tabs = _.reject(views.tabs, function (t) { return _(tabIds).include(t.pid); } )
 			self._cash_userviews.put(user.id,views,cb);
 		})], cb
 	)
@@ -160,6 +171,7 @@ CashWeb.prototype.getTabSettings = function(token, tabId, cb) {
 			else
 				cb(null, {})
 		}], safe.sure(cb, function (ret) {
+			if (ret==null) ret = {};
 			cb(null, ret);
 		})
 	)
@@ -218,8 +230,19 @@ module.exports.init = function (ctx,cb) {
 				return web;
 			}));
 		}], safe.sure(cb, function (results) {
-			var m = results[1];
+			var m = {};
+			m.web = results[1];
 			m.api = results[0];
+			m.web.api = m.api;
+			
+			// expose web functions thru api with "web" prefix
+			var webApi = m.web.constructor.prototype;
+			_.forEach(_(webApi).keys(), function (fn) {
+				m.api["web_"+fn] = function () {
+					m.web[fn].apply(m.web, arguments);
+				}
+			})
+
 			m.localePath = __dirname+'/../locale';
 			
 			m.getPermissionsList = function (token, cb) {

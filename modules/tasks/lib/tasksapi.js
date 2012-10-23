@@ -166,9 +166,6 @@ TasksApi.prototype._loadData = function (cb) {
 
 TasksApi.prototype._calcStats = function _calcStats(cb) {
 	var self = this;
-	/**
-	 * Не знаю, что тут должно быть
-	 */
 	self._dataReady=true;
 	self._dataInCalc=false;
 	self._pumpWaitQueue();
