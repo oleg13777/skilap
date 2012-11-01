@@ -184,21 +184,21 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 module.exports.deleteAccount = function (token, accId, options, cb){
 	var self = this;
 	async.series([
-		function start(cb) {
+		function start(cb1) {			
 			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
-				function (cb) { self._waitForData(cb) }
-			],cb);
+				function (cb2) { self._coreapi.checkPerm(token,["cash.edit"],cb2) },
+				function (cb2) { self._waitForData(cb2) }
+			],cb1);
 		}, 
-		function processTransactions(cb) {
+		function processTransactions(cb1) {			
 			var updates = [];
-			self._cash_transactions.scan(safe.trap_sure(cb, function (key, tr) {
-				if (key==null) {
+			self._cash_transactions.scan(safe.trap_sure(cb1, function (key, tr) {				
+				if (key==null) {					
 					// scan done, propagate changes
-					async.forEach(updates, function (u, cb) {
-						self._cash_transactions.put(u.key, u.tr, cb);
-					}, cb)
-				} else {
+					async.forEach(updates, function (u, cb2) {
+						self._cash_transactions.put(u.key, u.tr, cb2);
+					}, cb1)
+				} else {				
 					// collecte transactions that need to be altered
 					_(tr.splits).forEach(function (split) {							
 						if (split.accountId == accId) {
@@ -208,32 +208,32 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 							} else
 								updates.push({key:key,tr:null});
 						}
-					});
+					});					
 				}
-			},true));
+			}),true);
 		},
-		function processSubAccounts(cb){
+		function processSubAccounts(cb1){			
 			if (options.newSubParent) {
-				self.getChildAccounts(token, accId, safe.trap_sure(cb,function(childs){
-					async.forEach(childs, function(ch,cb) {
+				self.getChildAccounts(token, accId, safe.trap_sure(cb1,function(childs){
+					async.forEach(childs, function(ch,cb2) {
 						ch.parentId = options.newSubParent;
-						self._cash_accounts.put(ch.id, ch, cb);
-					},cb);
+						self._cash_accounts.put(ch.id, ch, cb2);
+					},cb1);
 				}));
 			} else {
 				var childs = [];
 				async.series([
-					function(cb){
-						self._getAllChildsId(token, accId, childs, cb);
+					function(cb2){
+						self._getAllChildsId(token, accId, childs, cb2);
 					},
-					function (cb){
+					function (cb2){
 						var updates = [];
-						self._cash_transactions.scan(safe.trap_sure(cb,function (key, tr) {
+						self._cash_transactions.scan(safe.trap_sure(cb2,function (key, tr) {
 							if (key==null) {
 								// scan done, propagate changes
-								async.forEach(updates, function (u, cb) {
-									self._cash_transactions.put(u.key, u.tr, cb);
-								}, cb)
+								async.forEach(updates, function (u, cb3) {
+									self._cash_transactions.put(u.key, u.tr, cb3);
+								}, cb2)
 							} else {								
 								// collect transactions to alter
 								_(tr.splits).forEach(function (split) {
@@ -248,18 +248,18 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 							};
 						},true));
 					},
-					function (cb) {
-						async.forEach(childs, function (ch, cb) {
-							self._cash_accounts.put(ch, null, cb);
-						},cb);
+					function (cb2) {
+						async.forEach(childs, function (ch, cb3) {
+							self._cash_accounts.put(ch, null, cb3);
+						},cb2);
 					}
-				],cb);
+				],cb1);
 			}
 		},
-		function deleteAcc(cb) {
-			self._cash_accounts.put(accId, null, cb);
+		function deleteAcc(cb1) {			
+			self._cash_accounts.put(accId, null, cb1);
 		}
-	], self.sure_result(cb, function () {
+	], safe.sure_result(cb, function () {		
 		self._calcStats(function () {})
 	}));
 }
