@@ -970,6 +970,13 @@
 					for(key in accounts){
 						src.push(key);
 					}
+					src.sort(function(a,b){
+						if(a.toLowerCase() > b.toLowerCase())
+							return 1;
+						if(a.toLowerCase() < b.toLowerCase())
+							return -1;
+						return 0;
+						});					
 					$elem.autocomplete('option','source',src);
 				};
 				if(objSettings.accounts){
