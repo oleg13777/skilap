@@ -46,7 +46,7 @@ module.exports.getTransaction = function (token, trId, cb) {
 	}))
 }
 
-module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
+module.exports.saveTransaction = function (token,tr,leadAccId,cb) {	
 	var debug = false;
 	if (debug) { console.log("Received"); console.log(arguments); }
 	if (_.isFunction(leadAccId)) {
@@ -321,8 +321,9 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			if (debug) { console.log("Before save"); console.log(trn);	}			
 			self._cash_transactions.put(trn.id, trn, cb);
 		}			
-	], safe.sure_result(cb,function () {
+	], safe.sure_result(cb,function () {		
 		self._calcStats(function () {});
+		return trn;
 	}))
 }
 

@@ -48,114 +48,25 @@ module.exports = function account(webapp) {
 		});
 	});	
 	
-	app.post(webapp.prefix+'/account/:id/updaterow', function(req, res, next) {		
-		var result = validateTrData(req.body);
-		if(result.error){
-			res.send(result)
-			return false;
-		}					
-		async.waterfall([
-			function (cb1) {
-				async.parallel({
-					tr:function (cb2) {
-						cashapi.getTransaction(req.session.apiToken, req.body.id, cb2);
-					},
-					splits:function (cb2) {						
-						if (req.body.splits){							
-							var splits = [];																
-							async.forEach(req.body.splits, function(split,cb3){								
-								if(split.path && split.path != ''){									
-									cashapi.getAccountByPath(req.session.apiToken,split.path, function(err,acc){										
-										split.accountId = acc.id;	
-										splits.push(split);																		
-										cb3();										
-									});	
-								}
-								else{
-									cb3();
-								}													
-							},function(){cb2(null,splits);});						
-						}
-						else{ 							
-							cb2(null,null);
-						}
-					}
-				}, function (err, results) {										
-					cb1(err, results.tr,results.splits);
-				});
-			},			
-			function (tr, modifiedSplits,cb1) {
-				createTransactionFromData(req,tr,modifiedSplits,function(err,trans){					
-					if(err){
-						if(err.skilap){
-							res.send(err.message);
-							return cb1(null);
-						}
-						else{
-							return cb1(err);
-						}						
-					}
-					else{						
-						cashapi.saveTransaction(req.session.apiToken, trans, req.params.id, cb1);
-						res.send(req.body.id);
-					}
-				});									
+	app.post(webapp.prefix+'/account/:id/updaterow', function(req, res, next) {	
+		var tr = createTransactionFromData(req.body);
+		cashapi.saveTransaction(req.session.apiToken, tr, req.params.id, function(err,trn){
+			if(err){				
+				return next(err);
 			}
-		], function (err) {
-			if (err) return next(err);
-		});
+			res.send({tr:trn});
+		});		
 	});	
 	
 	
-	app.post(webapp.prefix+'/account/:id/addrow', function(req, res, next) {		
-		var result = validateTrData(req.body,true);
-		if(result.error){
-			res.send(result);
-			return false;
-		}		
-		async.waterfall([		
-			function (cb1) {
-				var newSplits = [];
-				if(req.body.splits){																			
-					async.forEach(req.body.splits, function(split,cb2){								
-						if(split.path && sanitize(split.path).trim() != ''){									
-							cashapi.getAccountByPath(req.session.apiToken,split.path, function(err,acc){
-								split.accountId = acc.id;
-								newSplits.push(split);																
-								cb2();
-							});	
-						}
-						else{
-							cb2();
-						}													
-					},function(){cb1(null,newSplits);});						
-				}
-				else{
-					cb1(null,newSplits);
-				}
-			},
-			function (newSplits,cb1) {
-				createTransactionFromData(req,null,newSplits,function(err,trans){
-					if(err){
-						res.send(err);
-						cb1(null);
-					}
-					else{
-						cashapi.saveTransaction(req.session.apiToken, trans, req.params.id, function(err){							
-							if(err){
-								cb1(err);								
-							}
-							else{
-								res.send({result:"1"});
-								cb1(null);
-							}
-						});
-					}
-				});					
+	app.post(webapp.prefix+'/account/:id/addrow', function(req, res, next) {
+		var tr = createTransactionFromData(req.body);
+		cashapi.saveTransaction(req.session.apiToken, tr, req.params.id, function(err,trn){
+			if(err){				
+				return next(err);
 			}
-		], function (err) {
-			if (err) return next(err);
-		});		
+			res.send({tr:trn});
+		});			
 	});	
 	
 	app.post(webapp.prefix+'/account/:id/delrow', function(req, res, next) {		
@@ -183,7 +94,7 @@ module.exports = function account(webapp) {
 				async.forEach(accounts, function (acc, cb2) {					
 					cashapi.getAccountInfo(req.session.apiToken, acc.id, ["path"], safe.trap_sure_result(cb2,function (info) {
 						if ((info.path.search(req.query.term)!=-1) && !(acc.hidden) && !(acc.placeholder))
-							tmp[info.path] = {currency:acc.cmdty.id};
+							tmp[info.path] = {currency:acc.cmdty.id,id:acc.id};
 						cb2();
 					}));
 				}, function (err) {
@@ -331,59 +242,35 @@ module.exports = function account(webapp) {
 		], function (err) {
 			if (err) return next(err);
 		});
-	});
+	});	
 	
-	var validateTrData = function(data,fullValidate){
-		var result = {};		
-		/* verify path, deposit and withdrawal values of splits */
-		result.splits = {};
-		var regex = /^\d+(\.\d+)?$/;
-		if(data.splits){
-			data.splits.forEach(function(split){
-				var invalidFields ={};				
-				if(sanitize(split.deposit).trim() != "" && !regex.test(split.deposit)){					
-					invalidFields.deposit = 1;
-				}
-				if(sanitize(split.withdrawal).trim() != "" && !regex.test(split.withdrawal)){
-					invalidFields.withdrawal = 1;
-				}				
-				if(_.size(invalidFields)){
-					result.splits[split.id] = invalidFields;
-				}
-			});
-		}
-		if(_.size(result.splits)){
-			result.error = 'validateError';
-		}			
-		return result;
-	};
 	
-	var createTransactionFromData = function(req,oldTr,splits,cb){
+	var createTransactionFromData = function(data){
 		var tr={};
-		if(oldTr){
-			tr.id = oldTr.id;
+		if(data.id){
+			tr.id = data.id;
 		}
 		var dateFormat = new DateFormat(DateFormat.W3C);
 		var datePosted = dateFormat.format(new Date());	
 		tr['datePosted'] = datePosted;	
-		if(req.body.date){
-			var dateEntered = dateFormat.format(new Date(req.body.date));										
+		if(data.date){
+			var dateEntered = dateFormat.format(new Date(data.date));										
 			tr['dateEntered'] = dateEntered;	
 		}
-		if(req.body.num){
-			tr['num'] = req.body.num;
+		if(data.num){
+			tr['num'] = data.num;
 		}				
-		if (req.body.description) {
-			tr['description'] = req.body.description;
+		if (data.description) {
+			tr['description'] = data.description;
 		}
 		
 		tr['splits'] = [];		
-		if(splits) {		
-			_.forEach(splits,function(spl){
-				var depositVal  = (spl.deposit && spl.deposit != "") ? parseFloat(spl.deposit) : 0;
-				var depositQuantity  = spl.deposit_quantity != "" ? parseFloat(spl.deposit_quantity) : 0;
-				var withdrawalVal  = spl.withdrawal != "" ? parseFloat(spl.withdrawal) : 0;
-				var withdrawalQuantity  = spl.withdrawal_quantity != "" ? parseFloat(spl.withdrawal_quantity) : 0;
+		if(data.splits) {		
+			_.forEach(data.splits,function(spl){
+				var depositVal  = (spl.deposit && spl.deposit != "") ? eval(sanitizeNumericField(spl.deposit)) : 0;
+				var depositQuantity  = spl.deposit_quantity != "" ? eval(sanitizeNumericField(spl.deposit_quantity)) : 0;
+				var withdrawalVal  = spl.withdrawal != "" ? eval(sanitizeNumericField(spl.withdrawal)) : 0;
+				var withdrawalQuantity  = spl.withdrawal_quantity != "" ? eval(sanitizeNumericField(spl.withdrawal_quantity)) : 0;
 				splitVal = depositVal - withdrawalVal;
 				splitQuantity = depositQuantity - withdrawalQuantity;
 				var modifiedSplit = {													
@@ -391,23 +278,22 @@ module.exports = function account(webapp) {
 					accountId: spl.accountId,
 					description: spl.description,
 					num:spl.num,
-					rstate:spl.rstate				
-				};
+					rstate:spl.rstate	
+				};	
 				if (spl.deposit_quantity != "" || spl.withdrawal_quantity != "")
-					modifiedSplit.quantity = splitQuantity;
+					modifiedSplit.quantity = splitQuantity;			
 				if(spl.id && spl.id!=-1){
 					modifiedSplit.id = spl.id;
 				}
 				tr['splits'].push(modifiedSplit);
-			});				
-			cb(null,tr);
-		}
-		else if(oldTr){
-			tr['splits'] = oldTr.splits;
-			cb(null,tr);
-		}
-		else{			
-			cb(null,tr);
-		}
+			});			
+			
+		}		
+		return tr;
 	};
+	
+	var sanitizeNumericField = function(field){
+		return field.replace(/[^0-9\.+*/\-]+/g, '');
+	};	
+	
 }

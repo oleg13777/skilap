@@ -292,6 +292,7 @@
 						objSettings.selectedRowId = $col.parent().attr('recordid');	
 						objSettings.rowEditedData={};
 						objSettings.rowEditedData['id'] = objSettings.selectedRowId;
+						objSettings.rowEditedData['splits'] = createSplitsData(objSettings.tableBodyRef,objSettings.selectedRowId);
 						if($col.parent().hasClass('mainRow') && $col.parent().data('multisplit')*1 == 1 && !objSettings.splitButton.find('input').is(':checked')){
 							objSettings.splitButton.find('input').attr('checked','checked');
 							objSettings.splitButton.click();
@@ -707,6 +708,7 @@
 					}
 					else if(oldSelectedName != 'description' && oldSelectedName != 'num'){						
 						if(oldSelectedName == 'path'){
+							$splitRow.attr('accountid',objSettings.accounts[newColumnVal].id);
 							if(objSettings.accounts[newColumnVal].currency != objSettings.currentAccount.currency){
 								$pathCol = $($splitRow.find('td[name="path"]')[0]);
 								$pathCol.attr('data-path_curr',objSettings.accounts[newColumnVal].currency);
@@ -726,6 +728,9 @@
 						rowsContainer.find('tr.mainRow[recordid="'+recordId+'"] td[name="path"] .tdContent').text('--Multiple--');
 					}
 					else{
+						if(oldSelectedName == 'path'){
+							$oldSelectedTD.parent().attr('accountid',objSettings.accounts[newColumnVal]);
+						}
 						if(oldSelectedName == 'path' && $oldSelectedTD.parent().attr('accountid') != objSettings.currentAccount.id){
 							var $mainRowCol = $(rowsContainer.find('tr.mainRow[recordid="'+recordId+'"] td[name="path"]')[0]);
 							$mainRowCol.find('.tdContent').text(newColumnVal);
@@ -862,7 +867,7 @@
 			showPathInUpdMainRow(objSettings,true);
 			cb();
 		}
-		else{		
+		else{			
 			var jqXHR = $.ajax({
 				"url": options.editable.sUpdateURL,
 				"data":rowEditedData,
@@ -1163,9 +1168,9 @@
 		switch(options.editable.columns[colNum].type){
 			case 'input':
 				val = $firstChild.val();
-				if($firstChild.parents('td[name="deposit"]').length > 0 || $firstChild.parents('td[name="withdrawal"]').length > 0 ){
-					val = eval(val);
-				}
+				//if($firstChild.parents('td[name="deposit"]').length > 0 || $firstChild.parents('td[name="withdrawal"]').length > 0 ){
+				//	val = eval(val);
+				//}
 			break;							
 			case 'autocomplete':
 				val = $firstChild.val();
@@ -1277,6 +1282,7 @@
 			var path = getColumnVal($(splitRow).find('td[name="path"]'));
 			if(path != ""){									
 				var splitId = $(splitRow).attr('splitid');
+				var accountId = $(splitRow).attr('accountid');
 				var num = $(splitRow).find('td[name="num"] .tdContent').text();
 				var description = $(splitRow).find('td[name="description"] .tdContent').text();							
 				var deposit = $(splitRow).find('td[name="deposit"]').attr('data-value');
@@ -1293,7 +1299,8 @@
 					deposit:(deposit ? deposit : ""), 
 					deposit_quantity:(deposit_quantity ? deposit_quantity : ""), 
 					withdrawal:(withdrawal ? withdrawal : ""),
-					withdrawal_quantity:(withdrawal_quantity ? withdrawal_quantity : "")										
+					withdrawal_quantity:(withdrawal_quantity ? withdrawal_quantity : ""),
+					accountId:accountId									
 				};
 				splits.push(split);
 			}
