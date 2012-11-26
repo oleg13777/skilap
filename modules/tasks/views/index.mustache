@@ -23,6 +23,20 @@ $(function() {
 		location.reload(true);
 		return false;
 	});
+	$(document).on("click", ".resolveTask", function(e){
+		var id = $(this).data('id');			
+		var rpc = new jsonrpc.JsonRpc('/jsonrpc');
+		rpc.call('tasks.resolveTask', '{{token}}', id, {
+			success: function (data) {
+				location.reload(true);
+				return false;
+			},
+			failure: function (reason) {
+				alert(reason);
+			},
+		});
+		return false;
+	});
 	$(document).on("click", ".editTask", function(e){
 		var id = $(this).data('id');			
 		var rpc = new jsonrpc.JsonRpc('/jsonrpc');
@@ -75,6 +89,7 @@ $(document).ready(function(){
 		<td id="task_{{id}}">{{name}}</td>
 		<td>{{description}}</td>
 		<td>
+		{{#to_resolve}}<i class="icon-ok-circle resolveTask" data-id="{{id}}" title="{{#i18n}}mark as resolved{{/i18n}}" ></i>{{/to_resolve}}
 			<i class="icon-edit editTask" data-id="{{id}}" title="{{#i18n}}edit{{/i18n}}" ></i> 
 			<i class="icon-trash deleteTask" data-id="{{id}}" title="{{#i18n}}delete{{/i18n}}" ></i>
 		</td>

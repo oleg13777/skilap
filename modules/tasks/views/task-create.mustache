@@ -6,8 +6,10 @@ $(function() {
 			"{{#i18n}}Apply{{/i18n}}": function() {
 				var params = {
 						id: $('#task_id').val(),
-						status: $('#task_status').val(),
+						status: $('#task_status').find('option:selected').val(),
 						name: $('#task_name').val(),
+						repeat: $('#task_repeat').find('option:selected').val(),
+						dt: $('#task_dt').val(),
 						description:  $('#task_description').val()
 					};
 				var jqXHR = $.ajax({
@@ -43,7 +45,7 @@ $(function() {
 		},
 		autoOpen: true,
 		resizable: false,
-		height: 300,
+		height: 320,
 		width: 400,
 		modal: true,
 		dragable: true
@@ -56,11 +58,17 @@ $(function() {
 				if(task.id){			
 					$('#task_id').val(task.id);
 				}
+				if(task.dt){
+					$('#task_dt').val(task.dt);
+				}
 				if(task.status){			
-					$('#task_status').val(task.status);
+					$('#task_status').find('option[value=\''+ task.status + '\']').attr('selected', true);
 				}
 				if(task.name){
 					$('#task_name').val(task.name);
+				}
+				if(task.repeat){
+					$('#task_repeat').find('option[value=\''+ task.repeat + '\']').attr('selected', true);
 				}
 				if(task.description){
 					$('#task_description').val(task.description);
@@ -87,18 +95,40 @@ $(function() {
 <div id="dialog" title="{{#i18n}}Task properties{{/i18n}}" style="width: 500px; height: 400px;">
 	<form name="properties">
 		<input type="hidden" id="task_id">
-		<input type="hidden" id="task_status" value="new">
 		<input type="hidden" id="token" value="{{token}}">
+		<input type="hidden" id="task_dt">
 		<table>
 			<tr>
 				<td>{{#i18n}}Name{{/i18n}}:</td>
-				<td><input type="text" id="task_name"></tr>
+				<td><input type="text" id="task_name"></td>
 			</tr>
+			<tr>
+				<td>{{#i18n}}Status{{/i18n}}:</td>
+				<td><select id="task_status">
+					<option value="new">{{#i18n}}new{{/i18n}}</option>
+					<option value="resolved">{{#i18n}}resolved{{/i18n}}</option>
+				</select></td>
+			</tr>
+			<!--
+			<tr>
+				<td>{{#i18n}}Due{{/i18n}}:</td>
+				<td>{{task.due.name}}</td>
+			</tr>
+			-->
 			<tr>
 				<td>{{#i18n}}Description{{/i18n}}:</td>
 				<td>
 					<textarea name="task_description" id="task_description"></textarea>
 				</td>
+			</tr>
+			<tr>
+				<td>{{#i18n}}Repeat{{/i18n}}:</td>
+				<td><select id="task_repeat">
+					<option value="">{{#i18n}}no repeat{{/i18n}}</option>
+					<option value="daily">{{#i18n}}daily{{/i18n}}</option>
+					<option value="weekly">{{#i18n}}weekly{{/i18n}}</option>
+					<option value="monthly">{{#i18n}}monthly{{/i18n}}</option>
+				</select></td>
 			</tr>
 		</table>
 	</form>

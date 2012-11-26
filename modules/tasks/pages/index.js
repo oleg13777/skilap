@@ -49,9 +49,11 @@ module.exports = function account(webapp) {
 	app.post(prefix+"/update", function(req, res, next) {
 		var task = {};
 		task.id = req.body.id;
-		task.name=req.body.name;
-		task.description=req.body.description;
-		task.date=new Date(req.body.date);
+		task.name = req.body.name;
+		task.status = req.body.status;
+		task.description = req.body.description;
+		task.repeat = req.body.repeat;
+		task.dt=new Date(req.body.dt);
 		tasksapi.saveTask(req.session.apiToken, task, function (err, task) {
 			if (err) return next(err);
 			res.send(task);
@@ -65,6 +67,14 @@ module.exports = function account(webapp) {
 		async.waterfall([
 			function (cb) { 
 				tasksapi.getAllTasks(req.session.apiToken, safe.sure_result(cb, function (res) {
+					_.each(res, function(item) {
+						if (item.status != 'resolved') {
+							item.to_resolve = true;
+						}
+						else {
+							item.to_resolve = false;
+						}
+					})
 					tasks = res;
 				}))
 				

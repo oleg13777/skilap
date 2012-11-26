@@ -85,16 +85,40 @@ TasksApi.prototype.saveTask = function (token, task, cb) {
 			],cb);
 		},
 		function (t, cb) {
-			if (task.id)
-				cb(null, task);
-			else
+			if (task.id) {
+				cb(null, task.id);
+			}
+			else {
 				task.dt = new Date();
-				task.id = self._ctx.getUniqueId(function() { cb(null, task); });
+				self._ctx.getUniqueId(cb);
+			}
 		},
-		function get(task, cb) {
+		function get(id, cb) {
+			task.id = id;
 			self._tasks.put(task.id, task, cb);
 		}], safe.sure_result(cb,function (result) {
 			return task;
+		})
+	)
+}
+
+TasksApi.prototype.resolveTask = function (token, id, cb) {
+	var self = this;
+	async.waterfall ([
+		function start(cb) {
+			async.parallel([
+				function (cb) { self._coreapi.checkPerm(token,["task.edit"],cb) },
+				function (cb) { self._waitForData(cb) }
+			],cb);
+		},
+		function (task, cb) {
+			self.getTask(token, id, cb);
+		},
+		function (task, cb) {
+			task.status = 'resolved';
+			self._tasks.put(task.id, task, cb);
+		}], safe.sure_result(cb,function (result) {
+			return true;
 		})
 	)
 }
