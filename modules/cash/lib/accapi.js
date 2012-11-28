@@ -28,7 +28,7 @@ module.exports.getAllAccounts = function (token, cb) {
 				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
 				function (cb) { self._waitForData(cb) }
 			],cb);
-		}, 
+		},
 		function get(cb) {
 			var accounts = [];
 			self._cash_accounts.scan(function (err, key, acc) {
@@ -51,7 +51,7 @@ module.exports.getChildAccounts = function(token, parentId, cb) {
 				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
 				function (cb) { self._waitForData(cb) }
 			],cb);
-		}, 
+		},
 		function get(cb) {
 			self._cash_accounts.find({parentId: {$eq: parentId}}).all(safe.sure(cb, function (accounts) {
 				cb(null, _(accounts).map(function (e) {return e.value;}));
@@ -63,7 +63,7 @@ module.exports.getChildAccounts = function(token, parentId, cb) {
 	)
 }
 
-module.exports.getAccountByPath = function (token,path,cb) {		
+module.exports.getAccountByPath = function (token,path,cb) {
 	var self = this;
 	async.series ([
 		function start(cb) {
@@ -71,7 +71,7 @@ module.exports.getAccountByPath = function (token,path,cb) {
 				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
 				function (cb) { self._waitForData(cb) }
 			],cb);
-		}, 
+		},
 		function find(cb) {
 			var newAccId = null;
 			var stats = self._stats;
@@ -94,7 +94,7 @@ module.exports.getSpecialAccount = function (token,type,cmdty,cb) {
 		name = self._ctx.i18n(token, 'cash', 'Disballance') + "_" + cmdty.id;
 	else
 		return cb(new Error("Unsupported type"));
-	
+
 	self.getAccountByPath(token,name, function (err, acc) {
 		if (err) {
 			if (err.skilap && err.skilap.subject == "NO_SUCH_ACCOUNT") {
@@ -104,10 +104,10 @@ module.exports.getSpecialAccount = function (token,type,cmdty,cb) {
 			} else
 				return cb(err); // unknown error
 		}
-		if (!_(acc.cmdty).isEqual(cmdty)) 
+		if (!_(acc.cmdty).isEqual(cmdty))
 			return cb(new Error("Special account exist, but has wrong currency"))
-		if (acc.type!="EQUITY") 
-			return cb(new Error("Special account exist, but has wrong type"))			
+		if (acc.type!="EQUITY")
+			return cb(new Error("Special account exist, but has wrong type"))
 		cb(null, acc)
 	})
 }
@@ -123,7 +123,7 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
 				function (cb) { self._waitForData(cb) }
 			],cb);
-		}, 
+		},
 		function (cb) {
 			accStats = self._stats[accId];
 			if (accStats==null)
@@ -146,7 +146,7 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 			self.getAssetInfo(token,accStats.type, safe.sure_result(cb,function (info) {
 				assInfo = info;
 			}))
-		},		
+		},
 		safe.trap(function (cb) {
 			var res = {};
 			res.id = accId;
@@ -173,7 +173,7 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 						res.level = accStats.level;
 					break;
 				}
-			});				
+			});
 			cb(null, res);
 		})], safe.sure_result(cb, function (results) {
 			return results[4];
@@ -184,23 +184,23 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 module.exports.deleteAccount = function (token, accId, options, cb){
 	var self = this;
 	async.series([
-		function start(cb1) {			
+		function start(cb1) {
 			async.parallel([
 				function (cb2) { self._coreapi.checkPerm(token,["cash.edit"],cb2) },
 				function (cb2) { self._waitForData(cb2) }
 			],cb1);
-		}, 
-		function processTransactions(cb1) {			
+		},
+		function processTransactions(cb1) {
 			var updates = [];
-			self._cash_transactions.scan(safe.trap_sure(cb1, function (key, tr) {				
-				if (key==null) {					
+			self._cash_transactions.scan(safe.trap_sure(cb1, function (key, tr) {
+				if (key==null) {
 					// scan done, propagate changes
 					async.forEach(updates, function (u, cb2) {
 						self._cash_transactions.put(u.key, u.tr, cb2);
 					}, cb1)
-				} else {				
+				} else {
 					// collecte transactions that need to be altered
-					_(tr.splits).forEach(function (split) {							
+					_(tr.splits).forEach(function (split) {
 						if (split.accountId == accId) {
 							if (options.newParent) {
 								split.accountId = options.newParent;
@@ -208,11 +208,11 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 							} else
 								updates.push({key:key,tr:null});
 						}
-					});					
+					});
 				}
 			}),true);
 		},
-		function processSubAccounts(cb1){			
+		function processSubAccounts(cb1){
 			if (options.newSubParent) {
 				self.getChildAccounts(token, accId, safe.trap_sure(cb1,function(childs){
 					async.forEach(childs, function(ch,cb2) {
@@ -234,13 +234,13 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 								async.forEach(updates, function (u, cb3) {
 									self._cash_transactions.put(u.key, u.tr, cb3);
 								}, cb2)
-							} else {								
+							} else {
 								// collect transactions to alter
 								_(tr.splits).forEach(function (split) {
 									if (_(childs).indexOf(split.accountId) > -1){
 										if (options.newSubAccTrnParent) {
 											split.accountId = options.newSubAccTrnParent;
-											updates.push({key:key,tr:tr});											
+											updates.push({key:key,tr:tr});
 										} else
 											updates.push({key:key,tr:null});
 									}
@@ -256,10 +256,10 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 				],cb1);
 			}
 		},
-		function deleteAcc(cb1) {			
+		function deleteAcc(cb1) {
 			self._cash_accounts.put(accId, null, cb1);
 		}
-	], safe.sure_result(cb, function () {		
+	], safe.sure_result(cb, function () {
 		self._calcStats(function () {})
 	}));
 }
@@ -288,7 +288,7 @@ module.exports.clearAccounts = function (token, ids, cb) {
 		},
 		function (cb) {
 			self._cash_accounts.clear(cb);
-		} 
+		}
 	], safe.sure_result(cb, function () {
 		self._calcStats(function () {})
 	}));
@@ -307,7 +307,7 @@ module.exports.importAccounts = function  (token, accounts, cb) {
 			async.forEachSeries(accounts, function (e, cb) {
 				self._cash_accounts.put(e.id,e,cb);
 			},cb);
-		}, 
+		},
 	], safe.sure_result(cb,function () {
 		self._calcStats(function () {})
 	}))
@@ -335,7 +335,7 @@ module.exports.getDefaultAccounts = function (token, cmdty, cb){
 	async.forEachSeries(accounts, function(acc, cb) {
 		self._ctx.getUniqueId(safe.trap_sure(cb, function (uniqId) {
 			ret.push({parentId:0, cmdty:cmdty, name:acc.name, id:uniqId, type:acc.type});
-			
+
 			async.forEachSeries(acc.ch, function(name, cb) {
 				self._ctx.getUniqueId(safe.trap_sure_result(cb,function(id) {
 					ret.push({parentId:uniqId, cmdty:cmdty, name:name, id:id, type:acc.type});
@@ -355,7 +355,7 @@ module.exports.restoreToDefaults = function (token, cmdty, type, cb){
 				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
 				function (cb) { self._waitForData(cb) }
 			],cb);
-		}, 
+		},
 		function (results ,cb) {
 			self._cash_prices.clear(cb);
 		},
@@ -371,7 +371,7 @@ module.exports.restoreToDefaults = function (token, cmdty, type, cb){
 		function (cb) {
 			if (type == "default")
 				self.getDefaultAccounts(token, cmdty, cb);
-			else 
+			else
 				cb(null, []);
 		},
 		function (accounts, cb) {
@@ -388,7 +388,7 @@ module.exports.restoreToDefaults = function (token, cmdty, type, cb){
 }
 
 module.exports.getAssetsTypes = function (token,cb) {
-	var self = this;	
+	var self = this;
 	var types = [
 			{value:"BANK", name:self._ctx.i18n(token, 'cash', 'Bank'),act:1,recv:self._ctx.i18n(token, 'cash', 'Deposited'),send:self._ctx.i18n(token, 'cash', 'Withdrawal')},
 			{value:"CASH", name:self._ctx.i18n(token, 'cash', 'Cash'),act:1,recv:self._ctx.i18n(token, 'cash', 'Received'),send:self._ctx.i18n(token, 'cash', 'Spent')},
@@ -440,50 +440,49 @@ module.exports.getAllCurrencies = function(token,cb){
 				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
 				function (cb) { self._waitForData(cb); }
 			],
-			safe.sure(cb, function(){ cb(); }));			
-		}, 		
+			safe.sure(cb, function(){ cb(); }));
+		},
 		function(cb){
 			async.parallel({
-				curr:function (cb) {				
+				curr:function (cb) {
 					self._ctx.i18n_getCurrencies(token, cb);
 				},
 				usedCurr:function (cb) {
-					var usedCurrencies = {};					
-					self._cash_accounts.scan(safe.trap_sure(cb, function (key, acc) {						
+					var usedCurrencies = {};
+					self._cash_accounts.scan(safe.trap_sure(cb, function (key, acc) {
 						if (key){
 							usedCurrencies[acc.cmdty.id] = acc.cmdty;
 						}
 						else cb(null, usedCurrencies);
 					}),
-					true);							
+					true);
 				}
-			},function (err, result) {																	
+			},function (err, result) {
 				cb(err, result.curr,result.usedCurr);
-			});			
+			});
 		},
-		function(currencies,usedCurrencies,cb){			
-			_.forEach(currencies,function(curr){				
-				curr.used = _.has(usedCurrencies, curr.iso) ? 1 : 0;				
+		function(currencies,usedCurrencies,cb){
+			_.forEach(currencies,function(curr){
+				curr.used = _.has(usedCurrencies, curr.iso) ? 1 : 0;
 			});
 			cb(null,currencies);
 		}
 	], cb
 	);
-	
 }
 
 module.exports.createAccountsTree = function(accounts){
-	var oAccounts = _.reduce(accounts,function(memo,item){		
+	var oAccounts = _.reduce(accounts,function(memo,item){
 		memo[item.id] = _.clone(item);
 		memo[item.id].childs=[];
 		return memo;
 	},{});
-	
-	_.forEach(_.keys(oAccounts),function(key){		
-		if(oAccounts[key].parentId != 0){			
+
+	_.forEach(_.keys(oAccounts),function(key){
+		if(oAccounts[key].parentId != 0){
 			oAccounts[oAccounts[key].parentId].childs.push(oAccounts[key]);
-		}		
-	});	
+		}
+	});
 	return _.filter(_.values(oAccounts),function(item){
 		return (item.parentId == 0 && !item.hidden);
 	});

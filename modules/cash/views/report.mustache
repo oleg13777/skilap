@@ -1,19 +1,19 @@
 <script type="text/javascript" src="/common/js/highcharts/highcharts.js"></script>
-<script type="text/javascript">
-	var chart;	
+<script type="text/javascript" defer>
+	var chart;
 	$(function() {
-		$(window).on('resize',function(){	
+		$(window).on('resize',function(){
 			adaptHeight();
-		});	
-		
+		});
+
 		function adaptHeight() {
 			$("#container").height($(window).height()-$(".navbar.navbar-fixed-top").height()-20);
-		}		
+		}
 		adaptHeight();
-			
-		{{>report_graph}}		
+
+		{{>report_graph}}
 	});
-	
+
 </script>
 {{>reportsettings}}
 <a class="report-settings" href="javascript:void(0);" title="{{#i18n}}Report settings{{/i18n}}"></a>

@@ -61,7 +61,7 @@ chart = new Highcharts.Chart({
 	tooltip: {
 		formatter: function() {
 			return '<b>'+this.point.name +'</b>: '+ this.percentage.toFixed(2) +' % ('+ this.y.toFixed(2)+')';
-				
+
 		}
 	},
 	plotOptions: {
@@ -82,3 +82,42 @@ chart = new Highcharts.Chart({
 	series: [{{{series}}}]
 });
 {{/pieflow}}
+
+{{#statment}}
+var st = {{{series}}};
+$("#container").append("<ul id='rev' style='width:80%;'><li><b>{{#i18n}}Revenues{{/i18n}}</b></li></ul><br/><ul id='exp' style='width:80%;'><li><b>{{#i18n}}Expenses{{/i18n}}</b></li></ul><br/>");
+
+var ad = 0;
+var lo = 0;
+var link = null;
+
+st.forEach(function(e) {
+	if (e.lost) {
+		lo += e.lost;
+		if (e.pid)
+			link = $("#rev ul[data-pid='" + e.pid + "']");
+		else
+			link = $("#rev");
+
+		link.append("<li><a style='display:inline;' href='/cash/account?id=" + e.id + "'>" + e.name + "</a><span>{{reportSettings.reportCurrency}} " + e.lost.toFixed(2) + "</span><ul data-pid='" + e.id + "'></ul></li>");
+	}
+
+	if (e.add) {
+		ad += e.add;
+		if (e.pid)
+			link = $("#exp ul[data-pid='" + e.pid + "']");
+		else
+			link = $("#exp");
+
+		link.append("<li><a style='display:inline;' href='/cash/account?id=" + e.id + "'>" + e.name + "</a><span>{{reportSettings.reportCurrency}} " + e.add.toFixed(2) + "</span><ul data-pid='" + e.id + "'></ul></li>");
+	}
+});
+
+$("#rev").append("<li><b>{{#i18n}}Total Revenues{{/i18n}}<span>{{reportSettings.reportCurrency}} " + lo.toFixed(2) + "</b></span></li>");
+$("#exp").append("<li><b>{{#i18n}}Total Expenses{{/i18n}}<span>{{reportSettings.reportCurrency}} " + ad.toFixed(2) + "</b></span></li>");
+$("#container").append("<ul style='width:80%;'><li><b>{{#i18n}}Net loss for Period{{/i18n}}<span style='width:300px; float:right;'>{{reportSettings.reportCurrency}} " + (ad - lo).toFixed(2) + "</span></b></li></ul>");
+
+$("#container ul").addClass("nav nav-list").css("padding-right","0").filter(":empty").remove();
+$("#container span").css({"width":"300px", "float":"right"});
+
+{{/statment}}

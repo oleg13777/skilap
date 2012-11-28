@@ -9,7 +9,7 @@ module.exports = function account(webapp) {
 	var assetsTypes = ["BANK", "CASH", "ASSET", "STOCK", "MUTUAL", "CURENCY"];
 	var liabilitiesTypes = ["CREDIT", "LIABILITY", "RECEIVABLE", "PAYABLE"];
 	var repCmdty = {space:"ISO4217",id:"USD"};
-	
+
 	function getAssets(token, id, types, data, cb) {
 		// filter this level data
 		var level = _(data.accounts).filter(function (e) { return e.parentId == id && _(types).include(e.type); });
@@ -18,10 +18,10 @@ module.exports = function account(webapp) {
 			var det = {};
 			det.cmdty = acc.cmdty;
 			det.name = acc.name;
-			det.id = acc.id;			
+			det.id = acc.id;
 			getAssets(token, acc.id,types,data, function (err,childs) {
 				if (err) return cb(err);
-				if (!_(repCmdty).isEqual(det.cmdty)) 
+				if (!_(repCmdty).isEqual(det.cmdty))
 					det.quantity = acc.value;
 				var rate = 1;
 				var r = _(data.cmdty).find(function (e) { return e.id==acc.cmdty.id });
@@ -49,7 +49,7 @@ module.exports = function account(webapp) {
 		var currencies = [];
 		var vtabs = [];
 		async.series([
-			function (cb) { 
+			function (cb) {
 				webapp.guessTab(req, {pid:'home',name:webapp.ctx.i18n(req.session.apiToken, 'cash','Home'),url:req.url}, safe.sure_result(cb,function(val) {
 					vtabs = val;
 				}))
@@ -88,7 +88,7 @@ module.exports = function account(webapp) {
 						"cmd":"filter",
 						"prm":["accounts","type",["BANK", "CASH", "ASSET", "STOCK", "MUTUAL", "CURENCY","CREDIT", "LIABILITY", "RECEIVABLE", "PAYABLE"],"IN"],
 						"res":{"a":"store","v":"accounts"}
-					},					
+					},
 					"info":{
 						"dep":"filter",
 						"cmd":"api",
@@ -105,25 +105,25 @@ module.exports = function account(webapp) {
 					"rates":{
 						"dep":"cmdty",
 						"cmd":"api",
-						"ctx":{"a":"each","v":"cmdty"},	
+						"ctx":{"a":"each","v":"cmdty"},
 						"prm":["cash.getCmdtyPrice","token","this","repCmdty",null,"safe"],
 						"res":{"a":"store","v":"rate"}
-					}					
+					}
 				}
 				webapp.ctx.runBatch(batch,safe.sure_result(cb, function (_data) {
 					data = _data;
 				}))
 			},
-			function (cb) { 
+			function (cb) {
 				getAssets(req.session.apiToken, 0, assetsTypes, data, safe.sure_result(cb, function (res) {
 					assets = res;
 				}))
 			},
-			function (cb) { 
+			function (cb) {
 				getAssets(req.session.apiToken, 0, liabilitiesTypes, data, safe.sure_result(cb, function (res) {
 					liabilities = res;
 				}))
-			},			
+			},
 			function render () {
 				settings.views = __dirname+"/../views";
 				var rdata = {
@@ -136,7 +136,7 @@ module.exports = function account(webapp) {
 				rdata.liabilitiesSum = webapp.i18n_cmdtytext(req.session.apiToken,repCmdty,_(liabilities).reduce(function (m,e) {return m+e.value;},0));
 				rdata.assets = assets;
 				rdata.liabilities = liabilities;
-				
+
 				res.render(__dirname+"/../views/index", rdata);
 			}],
 			next

@@ -10,7 +10,7 @@ module.exports.getAccountRegister = function (token, accId, offset, limit, cb ) 
 				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
 				function (cb) { self._waitForData(cb) }
 			],cb);
-		}, 
+		},
 		safe.trap(function (cb) {
 			var accStats = self._stats[accId];
 			if (limit==null) {
@@ -37,7 +37,7 @@ module.exports.getTransaction = function (token, trId, cb) {
 				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
 				function (cb) { self._waitForData(cb) }
 			],cb);
-		}, 
+		},
 		function (cb1) {
 			self._cash_transactions.get(trId, cb1);
 		}
@@ -46,7 +46,7 @@ module.exports.getTransaction = function (token, trId, cb) {
 	}))
 }
 
-module.exports.saveTransaction = function (token,tr,leadAccId,cb) {	
+module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 	var debug = false;
 	if (debug) { console.log("Received"); console.log(arguments); }
 	if (_.isFunction(leadAccId)) {
@@ -63,7 +63,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
 				function (cb) { self._waitForData(cb) }
 			],cb);
-		}, 
+		},
 		// get lead account, if any
 		function (cb) {
 			if (leadAccId==null) {
@@ -81,11 +81,11 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			self._coreapi.getUser(token,safe.sure_result(cb, function (user) {
 				tr.uid = user.id;
 			}))
-		},				
+		},
 		// sync with existing transaction or get new id for insert
 		// detect also split modify status
-		function (cb) {				
-			if (debug) { console.log("Before sync on update"); console.log(tr); }			
+		function (cb) {
+			if (debug) { console.log("Before sync on update"); console.log(tr); }
 			if (tr.id) {
 				self._cash_transactions.get(tr.id,safe.trap_sure_result(cb,function (tr_) {
 					// get all the missing properties from existing transaction except splits
@@ -95,12 +95,12 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 					// now we have to adjust splits
 					_(trn.splits).forEach(function (split) {
 						split.isModified = true;
-						split.isNew = true;						
+						split.isNew = true;
 						var oldSplit = _(tr_.splits).find(function (split2) { return split2.id==split.id; });
 						if (!oldSplit) return;
 						split.isNew = false;
 						// if both new values are defined and not the same as previous nothing to do
-						if (!_.isUndefined(split.value) && split.value!= oldSplit.value && !_.isUndefined(split.quantity) && split.quantity != oldSplit.quantity) 
+						if (!_.isUndefined(split.value) && split.value!= oldSplit.value && !_.isUndefined(split.quantity) && split.quantity != oldSplit.quantity)
 							return; // changed both split and quantity, nothing to do
 						if (!_.isUndefined(split.value) && split.value != oldSplit.value) {
 							// changed value, adjust quantity
@@ -125,17 +125,17 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 						} else
 							split.isModified = false;
 					})
-				}));		
+				}));
 			} else {
 				self._ctx.getUniqueId(safe.sure_result(cb, function (id) {
 					trn=tr;
 					trn.id = id;
 				}))
 			}
-		}, 
+		},
 		// ensue that transaction has currency, this is required
 		function (cb) {
-			if (trn.currency) return cb(); 
+			if (trn.currency) return cb();
 			if (!trn.currency && !(leadAcc && leadAcc.cmdty.space=="ISO4217") )
 				return cb(new Error("Transaction should have base currency"));
 			trn.currency=_(leadAcc.cmdty).clone();
@@ -158,15 +158,15 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 						spl.value = spl.quantity = val;
 						return cb();
 					}
-					
-					// if split cmdty not equal to trn currency and both values defined, nothing to do 
+
+					// if split cmdty not equal to trn currency and both values defined, nothing to do
 					// except save rate
 					if (!_.isUndefined(spl.value) && !_.isUndefined(spl.quantity)){
 						var rate = (spl.quantity/spl.value).toFixed(5);
 						price = {cmdty:trn.currency,currency:splitAccount.cmdty,date:trn.dateEntered,value:rate,source:"transaction"};
 						self.savePrice(token,price,cb)
 					}
-					else{	
+					else{
 						// otherwise lets try to fill missing value
 						var irate = 1;
 						// value is known
@@ -174,7 +174,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 							if(err && !(err.skilap && err.skilap.subject == "UnknownRate"))
 								return cb(err);
 
-							if (!err && rate!=0) 
+							if (!err && rate!=0)
 								irate = rate;
 
 							// depending on which part are known, restore another part
@@ -182,7 +182,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 								spl.quantity = spl.value*irate;
 							else
 								spl.value = spl.quantity/irate;
-								
+
 							cb()
 						});
 					}
@@ -214,7 +214,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 				} else {
 					var part = nonEditedSplit.value/newVal;
 					if (part==0) part = 1;
-					nonEditedSplit.value=newVal;					
+					nonEditedSplit.value=newVal;
 					nonEditedSplit.quantity/=part;
 				}
 				cb();
@@ -228,7 +228,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			}
 		}),
 		// collapse splits of same accounts
-		safe.trap(function (cb) {		
+		safe.trap(function (cb) {
 			if (debug) { console.log("Before collapse"); console.log(trn); }
 			var newSplits = [];
 			var mgroups = {};
@@ -272,7 +272,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 				}));
 			},cb);
 		},
-		// final verification 
+		// final verification
 		safe.trap(function (cb) {
 			if (!(_.isArray(trn.splits) && trn.splits.length>0))
 				return cb(new Error("Transaction should have splits"));
@@ -293,15 +293,15 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 				if (_.isUndefined(s.value)) {
 					cb(new Error("Every split should have value"));
 					return true;
-				}					
+				}
 				if (_.isUndefined(s.quantity)) {
 					cb(new Error("Every split should have quantity"));
 					return true;
-				}					
+				}
 				if (_.isUndefined(s.accountId)) {
 					cb(new Error("Every split should have accountId"));
 					return true;
-				}					
+				}
 			})
 			if (!fails)
 				cb()
@@ -318,16 +318,16 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 		}),
 		// finally save or update
 		function(cb){
-			if (debug) { console.log("Before save"); console.log(trn);	}			
+			if (debug) { console.log("Before save"); console.log(trn);	}
 			self._cash_transactions.put(trn.id, trn, cb);
-		}			
-	], safe.sure_result(cb,function () {		
+		}
+	], safe.sure_result(cb,function () {
 		self._calcStats(function () {});
 		return trn;
 	}))
 }
 
-module.exports.getTransactionsInDateRange = function (token, range, cb) {	
+module.exports.getTransactionsInDateRange = function (token, range, cb) {
 	var self = this;
 	var res = [];
 	async.series([
@@ -368,7 +368,7 @@ module.exports.clearTransactions = function (token, ids, cb) {
 			},
 			function (cb) {
 				self._cash_transactions.clear(cb);
-			} 
+			}
 		], safe.sure_result(cb, function () {
 			self._calcStats(function () {})
 		}));
@@ -381,10 +381,10 @@ module.exports.clearTransactions = function (token, ids, cb) {
 				],cb);
 			},
 			function(cb){
-				async.forEach(ids, function (e,cb) {					
+				async.forEach(ids, function (e,cb) {
 					self._cash_transactions.put(e,null,cb);
 				},cb);
-			} 
+			}
 		], safe.sure_result(cb, function () {
 			self._calcStats(function () {})
 		}));
@@ -405,13 +405,13 @@ module.exports.importTransactions = function (token, transactions, cb) {
 			self._coreapi.getUser(token,safe.sure_result(cb, function (user) {
 				uid = user.id;
 			}))
-		},					
+		},
 		function (cb) {
 			async.forEach(transactions, function (e,cb) {
 				e.uid = uid;
 				self._cash_transactions.put(e.id,e,cb);
 			},cb);
-		}, 
+		},
 	], safe.sure_result(cb, function () {
 		self._calcStats(function () {})
 	}))
