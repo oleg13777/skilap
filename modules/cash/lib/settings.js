@@ -11,8 +11,7 @@ module.exports.getSettings = function(token, id, defs, cb) {
 			self._coreapi.checkPerm(token, ['cash.view'], cb);
 		},
 		function get(cb) {
-			console.log(id);
-			self._cash_settings.findOne({'id': new self._ctx.ObjectID(id)}, cb);
+			self._cash_settings.findOne({'id': id}, cb);
 		}], function end(err, results) {
 			if (err) return cb(err);
 			var res = results[1];

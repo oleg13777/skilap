@@ -201,8 +201,8 @@ function Skilap() {
 					host : "localhost",
 					port : 27017,
 				};
-				var client = require('mongodb'); var dbc = new client.Db(configObj.db, new client.Server(configObj.host, configObj.port, {}), {safe: true});
-//				var client = require('tingodb')({}); var dbc = new client.Db("./data",{name:'skilap'});	
+//				var client = require('mongodb'); var dbc = new client.Db(configObj.db, new client.Server(configObj.host, configObj.port, {}), {safe: true});
+				var client = require('tingodb')({}); var dbc = new client.Db("./data",{name:'skilap'});	
 				self.ObjectID = client.ObjectID;
 				async.series ([
 					function (cb1) {
