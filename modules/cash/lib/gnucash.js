@@ -5,8 +5,6 @@ var sax = require("sax");
 var util = require("util");
 var zlib = require("zlib");
 var safe = require("safe");
-var ObjectId = require('mongodb').ObjectID;
-
 
 module.exports = function (fileName, cb){
 	var self = this;
@@ -240,7 +238,7 @@ module.exports = function (fileName, cb){
 			function transpondAccounts(cb) {
 				async.forEachSeries(accounts, function (acc,cb) {
 //					self._ctx.getUniqueId(safe.sure(cb,function (id) {
-						var _id = new ObjectId();
+						var _id = new self._ctx.ObjectID();
 						aidMap[acc._id]=_id;
 						acc._id = _id;
 						process.nextTick(cb);
@@ -259,13 +257,13 @@ module.exports = function (fileName, cb){
 					async.forEachSeries(trn.splits, function (split,cb) {
 						split.accountId = aidMap[split.accountId];
 //						self._ctx.getUniqueId(safe.sure(cb,function (id) {
-							var _id = new ObjectId();
+							var _id = new self._ctx.ObjectID();
 							split._id = _id;
 							process.nextTick(cb);
 //						}))
 					}, safe.sure(cb, function () {
 //						self._ctx.getUniqueId(safe.sure_result(cb, function (id) {
-							var _id = new ObjectId();
+							var _id = new self._ctx.ObjectID();
 							trn._id = _id;
 							cb();
 //						}));

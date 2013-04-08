@@ -5,7 +5,6 @@ var _ = require('underscore');
 var async = require('async');
 var events = require("events");
 var safe = require('safe');
-var ObjectId = require('mongodb').ObjectID;
 
 function CashApi (ctx) {
 	var self = this;
@@ -193,7 +192,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 	}
 	function getAccPath (acc, cb) {
 		if (acc._id != acc.parentId && acc.parentId) {
-			self._cash_accounts.findOne({'_id': new ObjectId(acc.parentId)}, function(err, parentAcc) {
+			self._cash_accounts.findOne({'_id': new self._ctx.ObjectID(acc.parentId)}, function(err, parentAcc) {
 				if (parentAcc==null) {
 					cb("");
 				} else {
@@ -213,7 +212,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 			cb(startLevel);
 		}
 		else{			
-			self._cash_accounts.findOne({'_id': new ObjectId(acc.parentId)}, function(err, parentAcc) {
+			self._cash_accounts.findOne({'_id': new self._ctx.ObjectID(acc.parentId)}, function(err, parentAcc) {
 				if (parentAcc==null) {
 					cb(startLevel);
 				} else {
@@ -318,7 +317,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 					console.log(accStats);
 				var act = assetInfo[accStats.type].act;
 				async.forEachSeries(accStats.trDateIndex, function (trs,cb3) {
-					self._cash_transactions.findOne({'_id': new ObjectId(trs._id)}, function (err, tr) {
+					self._cash_transactions.findOne({'_id': new self._ctx.ObjectID(trs._id)}, function (err, tr) {
 						var recv = [];
 						var send = null;
 						tr.splits.forEach(function(split) {

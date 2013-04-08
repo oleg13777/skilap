@@ -5,8 +5,6 @@
 var _ = require('underscore');
 var async = require('async');
 var safe = require('safe');
-var ObjectId = require('mongodb').ObjectID;
-var mongo = require('mongodb');
 var SkilapError = require("skilap-utils").SkilapError;
 
 /**
@@ -183,7 +181,7 @@ CoreApi.prototype.getUserById = function(token, userId, cb) {
 			self.checkPerm(token, ['core.user.view'], cb);
 		}, 
 		function (cb) {
-			self._core_users.findOne({'_id': new ObjectId(userId)}, cb);
+			self._core_users.findOne({'_id': new self._ctx.ObjectID(userId)}, cb);
 		}], function (err, results) {
 			if (err) return cb(err);
 			cb(null, results[1]);
@@ -224,7 +222,7 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 			function checkPermision(cb) { self.checkPerm(token, ['core.user.edit'], cb); },
 			function fetchUser(cb) {
 				if (!newUser._id) return cb();
-				self._core_users.findOne({'_id': new ObjectId(newUser._id)}, function (err, user) {
+				self._core_users.findOne({'_id': new self._ctx.ObjectID(newUser._id)}, function (err, user) {
 					if (err) return cb(err);
 					if (user) {
 						cUser = _.clone(user);
@@ -266,13 +264,13 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 			function checkUserUniq (cb) {
 				var query = {'login': cUser.login };
 				if (cUser._id)
-					query._id = { $ne : new ObjectId(cUser._id) };
+					query._id = { $ne : new self._ctx.ObjectID(cUser._id) };
 				self._core_users.findOne(query, safe.sure(cb, function (user) {
 					user?cb(new SkilapError(self._ctx.i18n(token,'core','User log-in is not unique'),'InvalidData')):cb();
 				}));
 			},
 			function updateUser (cb) {
-				if (cUser._id) cUser._id = new ObjectId(cUser._id);
+				if (cUser._id) cUser._id = new self._ctx.ObjectID(cUser._id);
 				self._core_users.save(cUser, cb);
 			},
 			function updateSessionUser(cb) {
@@ -302,7 +300,7 @@ CoreApi.prototype.loginByPass = function (token, login, password, cb ) {
 
 	// special case, hardcoded admin user
 	if (login == 'admin' && password == 'skilap') {
-		self._sessions[token].user = {type:'admin',permissions:[],screenName:self._ctx.i18n(token,'core','Ski Master'),_id: new ObjectId()};
+		self._sessions[token].user = {type:'admin',permissions:[],screenName:self._ctx.i18n(token,'core','Ski Master'),_id: new self._ctx.ObjectID()};
 		self._ctx.getModule('core',function (err, core) {
 			core.getPermissionsList(token, function (err, perm) {
 				self._sessions[token].user.permissions = _(perm).pluck("id");
@@ -338,7 +336,7 @@ CoreApi.prototype.deleteUser = function(token, userId, cb) {
 			],cb);
 		}, 
 		function (cb) {
-			self._core_users.remove({'_id': new ObjectId(userId)}, cb);
+			self._core_users.remove({'_id': new self._ctx.ObjectID(userId)}, cb);
 		}], function (err, results) {
 			cb(err, true);
 		}
@@ -353,7 +351,7 @@ CoreApi.prototype.getSystemSettings = function(id, cb) {
 
 	async.series ([
 		function get(cb) {
-			self._core_systemSettings.findOne({"_id" : new ObjectId(id)}, cb);
+			self._core_systemSettings.findOne({"_id" : new self._ctx.ObjectID(id)}, cb);
 		}], function end(err, results) {
 			if (err) return cb(err);
 			var res = results[0]||{};

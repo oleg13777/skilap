@@ -2,7 +2,6 @@ var async = require('async');
 var safe = require('safe');
 var _ = require('underscore');
 var SkilapError = require("skilap-utils").SkilapError;
-var ObjectId = require('mongodb').ObjectID;
 
 module.exports.getAccount = function (token, id, cb) {
 	var self = this;
@@ -14,7 +13,7 @@ module.exports.getAccount = function (token, id, cb) {
 			],cb);
 		},
 		function get(cb) {
-			self._cash_accounts.findOne({'_id': new ObjectId(id)}, cb);
+			self._cash_accounts.findOne({'_id': new self._ctx.ObjectID(id)}, cb);
 		}], safe.sure_result(cb, function (result) {
 			return result[1];
 		})
@@ -295,7 +294,7 @@ module.exports.importAccounts = function  (token, accounts, cb) {
 		},
 		function (cb) {
 			async.forEachSeries(accounts, function (e, cb) {
-				e._id = new ObjectId(e._id);
+				e._id = new self._ctx.ObjectID(e._id);
 				self._cash_accounts.save(e,cb);
 			}, cb);
 		},
@@ -409,9 +408,9 @@ module.exports.saveAccount = function (token, account, cb) {
 		},
 		function (t, cb) {
 			if (account._id)
-				cb(null, new ObjectId(account._id));
+				cb(null, new self._ctx.ObjectID(account._id));
 			else
-				cb(null, new ObjectId());
+				cb(null, new self._ctx.ObjectID());
 		},
 		function (id, cb) {
 			console.log('save');

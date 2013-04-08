@@ -1,7 +1,6 @@
 var async = require('async');
 var safe = require('safe');
 var _ = require('underscore');
-var ObjectId = require('mongodb').ObjectID;
 
 module.exports.getAccountRegister = function (token, accId, offset, limit, cb ) {
 	var self = this;
@@ -40,7 +39,7 @@ module.exports.getTransaction = function (token, trId, cb) {
 			],cb);
 		},
 		function (cb1) {
-			self._cash_transactions.findOne({'_id': new ObjectId(trId)}, cb1);
+			self._cash_transactions.findOne({'_id': new self._ctx.ObjectID(trId)}, cb1);
 		}
 	], safe.sure(cb, function (results) {
 		cb(null,results[1]);

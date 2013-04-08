@@ -2,8 +2,6 @@ var async = require('async');
 var safe = require('safe');
 var _ = require('underscore');
 var SkilapError = require("skilap-utils").SkilapError;
-var ObjectId = require('mongodb').ObjectID;
-
 
 module.exports.getSettings = function(token, id, defs, cb) {
 	var self = this;
@@ -14,7 +12,7 @@ module.exports.getSettings = function(token, id, defs, cb) {
 		},
 		function get(cb) {
 			console.log(id);
-			self._cash_settings.findOne({'id': new ObjectId(id)}, cb);
+			self._cash_settings.findOne({'id': new self._ctx.ObjectID(id)}, cb);
 		}], function end(err, results) {
 			if (err) return cb(err);
 			var res = results[1];
@@ -71,7 +69,7 @@ module.exports.clearSettings = function (token, ids, cb) {
 				],cb);
 			},
 			function(cb){
-				self._cash_settings.remove(_.map(ids, function(id) { return new ObjectId(id); }),cb);
+				self._cash_settings.remove(_.map(ids, function(id) { return new self._ctx.ObjectID(id); }),cb);
 			} 
 		], safe.sure_result(cb, function () {
 			self._calcStats(function () {});

@@ -5,7 +5,6 @@ var fs = require("fs");
 var path = require("path");
 var _ = require('underscore');
 
-var mongo = require('mongodb');
 var async = require('async');
 var Step = require("step");
 var events = require("events");
@@ -202,7 +201,9 @@ function Skilap() {
 					host : "localhost",
 					port : 27017,
 				};
-				var dbc = new mongo.Db(configObj.db, new mongo.Server(configObj.host, configObj.port, {}), {safe: true});
+				var client = require('mongodb'); var dbc = new client.Db(configObj.db, new client.Server(configObj.host, configObj.port, {}), {safe: true});
+//				var client = require('tingodb')({}); var dbc = new client.Db("./data",{name:'skilap'});	
+				self.ObjectID = client.ObjectID;
 				async.series ([
 					function (cb1) {
 						dbc.open(cb1);
