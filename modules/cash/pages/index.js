@@ -5,21 +5,21 @@ var _ = require('underscore');
 module.exports = function account(webapp) {
 	var app = webapp.web;
 	var cashapi = webapp.api;
-	var prefix = webapp.prefix
+	var prefix = webapp.prefix;
 	var assetsTypes = ["BANK", "CASH", "ASSET", "STOCK", "MUTUAL", "CURENCY"];
 	var liabilitiesTypes = ["CREDIT", "LIABILITY", "RECEIVABLE", "PAYABLE"];
 	var repCmdty = {space:"ISO4217",id:"USD"};
 
 	function getAssets(token, id, types, data, cb) {
 		// filter this level data
-		var level = _(data.accounts).filter(function (e) { return e.parentId == id && _(types).include(e.type); });
+		var level = _(data.accounts).filter(function (e) { return e.parentId.toString() == id.toString() && _(types).include(e.type); });
 		var res = [];
 		_(level).forEach (function (acc) {
 			var det = {};
 			det.cmdty = acc.cmdty;
 			det.name = acc.name;
 			det._id = acc._id;
-			getAssets(token, acc._id,types,data, function (err,childs) {
+			getAssets(token, acc._id, types,data, function (err,childs) {
 				if (err) return cb(err);
 				if (!_(repCmdty).isEqual(det.cmdty))
 					det.quantity = acc.value;
@@ -112,7 +112,6 @@ module.exports = function account(webapp) {
 				}
 				webapp.ctx.runBatch(batch,safe.sure_result(cb, function (_data) {
 					data = _data;
-					console.log(data);
 				}))
 			},
 			function (cb) {

@@ -14,7 +14,6 @@ module.exports = function account(webapp) {
 
 	app.get(webapp.prefix+'/account', function(req, res, next) {		
 		var count = 0, verbs=0;
-		console.log(req.query);
 		async.waterfall([
 			function (cb1) {
 				cashapi.getAccountInfo(req.session.apiToken,req.query.id,['count','path','verbs'], cb1);
@@ -48,7 +47,7 @@ module.exports = function account(webapp) {
 	
 	app.post(webapp.prefix+'/account/:id/updaterow', function(req, res, next) {	
 		var tr = createTransactionFromData(req.body);
-		cashapi.saveTransaction(req.session.apiToken, tr, req.params._id, function(err,trn){
+		cashapi.saveTransaction(req.session.apiToken, tr, req.params.id, function(err,trn){
 			if(err){				
 				return next(err);
 			}
@@ -59,7 +58,7 @@ module.exports = function account(webapp) {
 	
 	app.post(webapp.prefix+'/account/:id/addrow', function(req, res, next) {
 		var tr = createTransactionFromData(req.body);
-		cashapi.saveTransaction(req.session.apiToken, tr, req.params._id, function(err,trn){
+		cashapi.saveTransaction(req.session.apiToken, tr, req.params.id, function(err,trn){
 			if(err){				
 				return next(err);
 			}
@@ -110,7 +109,7 @@ module.exports = function account(webapp) {
 	app.get(webapp.prefix+'/account/:id/getdesc', function(req, res) {
 		async.waterfall([
 			function (cb1) {
-				cashapi.getAccountRegister(req.session.apiToken, req.params._id,0,null, cb1);
+				cashapi.getAccountRegister(req.session.apiToken, req.params.id,0,null, cb1);
 			},
 			function (register,cb1) {
 				var tmp = [];
@@ -137,15 +136,16 @@ module.exports = function account(webapp) {
 		var data = {sEcho:req.query.sEcho,iTotalRecords:0,iTotalDisplayRecords:0,aaData:[]};
 		var idx=Math.max(req.query.idisplayStart,0);
 		var count = 0, currentAccountPath = "";
+		
 		async.waterfall([
 			function (cb1) {
-				cashapi.getAccountInfo(req.session.apiToken, req.params._id,["count","path"], cb1);
+				cashapi.getAccountInfo(req.session.apiToken, req.params.id,["count","path"], cb1);
 			},
 			function (data,cb1) {
 				count = data.count;
 				currentAccountPath = data.path;				
 				var limit = Math.min(count-idx,req.query._idisplayLength);
-				cashapi.getAccountRegister(req.session.apiToken, req.params._id,idx,limit, cb1);
+				cashapi.getAccountRegister(req.session.apiToken, req.params.id,idx,limit, cb1);
 			},
 			function (register,cb1) {
 				var aids = {}; 
@@ -154,7 +154,7 @@ module.exports = function account(webapp) {
 						aids[recv.accountId] = recv.accountId;
 					});					
 				});
-				aids[req.params._id]	= currentAccountPath;
+				aids[req.params.id]	= currentAccountPath;
 				async.parallel([
 					function (cb2) {
 						var transactions = [];
@@ -193,7 +193,7 @@ module.exports = function account(webapp) {
 					var splitsInfo=[];
 					var multicurr = 0;
 					_.forEach(tr.splits,function(split){
-						if(accInfo[split.accountId].currency != accInfo[req.params._id].currency){
+						if(accInfo[split.accountId].currency != accInfo[req.params.id].currency){
 							multicurr = 1;
 						}						
 						split.path = accInfo[split.accountId].path;
@@ -217,7 +217,7 @@ module.exports = function account(webapp) {
 						num:tr.num ? tr.num : '',
 						description:tr.description,
 						path:path,
-						path_curr: (recv.length==1 && accInfo[recv[0].accountId].currency != accInfo[req.params._id].currency ? accInfo[recv[0].accountId].currency :null),
+						path_curr: (recv.length==1 && accInfo[recv[0].accountId].currency != accInfo[req.params.id].currency ? accInfo[recv[0].accountId].currency :null),
 						rstate: (send.rstate ? send.rstate:"n"),
 						deposit:(send.value>0?sprintf("%.2f",send.value):''),
 						deposit_quantity: (recv.length == 1 && recv[0].quantity<=0?sprintf("%.2f",recv[0].quantity*-1):''),
@@ -232,7 +232,7 @@ module.exports = function account(webapp) {
 				data.iTotalRecords = count;
 				data.iTotalDisplayRecords = count;
 				data.currentDate = df.format(new Date());
-				data.currentAccount = {id:req.params._id,path:currentAccountPath,currency:accInfo[req.params._id].currency};
+				data.currentAccount = {id:req.params.id,path:currentAccountPath,currency:accInfo[req.params.id].currency};
 				res.send(data);
 			})
 		], function (err) {

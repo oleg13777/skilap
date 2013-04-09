@@ -117,8 +117,8 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 			],cb);
 		},
 		function (cb) {
+			console.log(accId);
 			accStats = self._stats[accId];
-			console.log(accStats);
 			if (accStats==null)
 				return cb(new Error("Invalid account Id: "+accId));
 			cb();
@@ -294,7 +294,7 @@ module.exports.importAccounts = function  (token, accounts, cb) {
 		},
 		function (cb) {
 			async.forEachSeries(accounts, function (e, cb) {
-				e._id = new self._ctx.ObjectID(e._id);
+				e._id = e._id;
 				self._cash_accounts.save(e,cb);
 			}, cb);
 		},
