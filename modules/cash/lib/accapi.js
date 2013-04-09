@@ -117,8 +117,8 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 			],cb);
 		},
 		function (cb) {
+			console.log(accId);
 			accStats = self._stats[accId];
-			console.log(accStats);
 			if (accStats==null)
 				return cb(new Error("Invalid account Id: "+accId));
 			cb();
