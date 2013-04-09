@@ -16,12 +16,13 @@ module.exports = function account(webapp) {
 		var count = 0, verbs=0;
 		async.waterfall([
 			function (cb1) {
-				cashapi.getAccountInfo(req.session.apiToken,req.query.id,['count','path','verbs'], cb1);
+				cashapi.getAccountInfo(req.session.apiToken, req.query.id,['count','path','verbs'], cb1);
 			},
-			function (data, cb1) {				
+			function (data, cb1) {	
+				console.log(data);
 				count = data.count;
 				verbs = data.verbs;
-				webapp.guessTab(req, {pid:'acc'+req.query.id,name:data.path,url:req.url}, cb1);
+				webapp.guessTab(req, {pid:'acc'+req.query.id, name:data.path,url:req.url}, cb1);
 			},
 			safe.trap(function (vtabs,cb1) {				
 				var pageSize = 25;
@@ -57,6 +58,7 @@ module.exports = function account(webapp) {
 	
 	
 	app.post(webapp.prefix+'/account/:id/addrow', function(req, res, next) {
+		console.log(req.body);
 		var tr = createTransactionFromData(req.body);
 		cashapi.saveTransaction(req.session.apiToken, tr, req.params.id, function(err,trn){
 			if(err){				
@@ -90,7 +92,7 @@ module.exports = function account(webapp) {
 				async.forEach(accounts, function (acc, cb2) {					
 					cashapi.getAccountInfo(req.session.apiToken, acc._id, ["path"], safe.trap_sure_result(cb2,function (info) {
 						if ((info.path.search(req.query.term)!=-1) && !(acc.hidden) && !(acc.placeholder))
-							tmp[info.path] = {currency:acc.cmdty._id,id:acc._id};
+							tmp[info.path] = {currency:acc.cmdty._id, _id:acc._id};
 						cb2();
 					}));
 				}, function (err) {
@@ -134,7 +136,7 @@ module.exports = function account(webapp) {
 
 	app.get(webapp.prefix+'/account/:id/getgrid', function(req, res, next) {
 		var data = {sEcho:req.query.sEcho,iTotalRecords:0,iTotalDisplayRecords:0,aaData:[]};
-		var idx=Math.max(req.query.idisplayStart,0);
+		var idx = Math.max(req.query.iDisplayStart,0);
 		var count = 0, currentAccountPath = "";
 		
 		async.waterfall([
@@ -144,8 +146,8 @@ module.exports = function account(webapp) {
 			function (data,cb1) {
 				count = data.count;
 				currentAccountPath = data.path;				
-				var limit = Math.min(count-idx,req.query._idisplayLength);
-				cashapi.getAccountRegister(req.session.apiToken, req.params.id,idx,limit, cb1);
+				var limit = Math.min(count-idx, req.query.iDisplayLength);
+				cashapi.getAccountRegister(req.session.apiToken, req.params.id, idx, limit, cb1);
 			},
 			function (register,cb1) {
 				var aids = {}; 

@@ -13,7 +13,7 @@ module.exports.getAccount = function (token, id, cb) {
 			],cb);
 		},
 		function get(cb) {
-			self._cash_accounts.findOne({'_id': new self._ctx.ObjectID(id)}, cb);
+			self._cash_accounts.findOne({'_id': new self._ctx.ObjectID(id.toString())}, cb);
 		}], safe.sure_result(cb, function (result) {
 			return result[1];
 		})
@@ -117,7 +117,6 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 			],cb);
 		},
 		function (cb) {
-			console.log(accId);
 			accStats = self._stats[accId];
 			if (accStats==null)
 				return cb(new Error("Invalid account Id: "+accId));

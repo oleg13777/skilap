@@ -98,7 +98,6 @@ CashApi.prototype._unLockData = function (cb) {
 CashApi.prototype._loadData = function (cb) {
 	var self = this;
 	var adb = null;
-	console.log('test3');
 	async.series([
 		function openDb(cb) {
 			self._ctx.getDB(function (err, _adb) {
