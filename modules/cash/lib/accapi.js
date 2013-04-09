@@ -294,7 +294,7 @@ module.exports.importAccounts = function  (token, accounts, cb) {
 		},
 		function (cb) {
 			async.forEachSeries(accounts, function (e, cb) {
-				e._id = new self._ctx.ObjectID(e._id);
+				e._id = e._id;
 				self._cash_accounts.save(e,cb);
 			}, cb);
 		},
