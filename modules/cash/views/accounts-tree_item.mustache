@@ -1,11 +1,11 @@
-<li id="{{id}}">
+<li id="{{_id}}">
 	{{#hidden}}* {{/hidden}}	
-	<a id="open{{id}}" {{^placeholder}}href='{{prefix}}/account?id={{id}}'{{/placeholder}}>
+	<a id="open{{_id}}" {{^placeholder}}href='{{prefix}}/account?id={{_id}}'{{/placeholder}}>
 		<i {{#childs}}class="icon-hand-down expand-collapse"{{/childs}}>{{^childs}}&nbsp;{{/childs}}</i>
 		{{name}}
 		<span class="nav-item-hint">{{#fquantity}}( {{fquantity}} ) {{/fquantity}}{{fvalue}} &nbsp;&nbsp;&nbsp;
-			<i class="icon-edit editAcc" data-aid="{{id}}" title="{{#i18n}}edit{{/i18n}}" ></i> 
-			<i class="icon-trash deleteAcc" data-aid="{{id}}" title="{{#i18n}}delete{{/i18n}}" ></i>
+			<i class="icon-edit editAcc" data-aid="{{_id}}" title="{{#i18n}}edit{{/i18n}}" ></i> 
+			<i class="icon-trash deleteAcc" data-aid="{{_id}}" title="{{#i18n}}delete{{/i18n}}" ></i>
 		</span>
 	</a>		
 

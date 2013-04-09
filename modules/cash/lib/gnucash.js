@@ -5,6 +5,8 @@ var sax = require("sax");
 var util = require("util");
 var zlib = require("zlib");
 var safe = require("safe");
+var ObjectId = require('mongodb').ObjectID;
+
 
 module.exports = function (fileName, cb){
 	var self = this;
@@ -15,11 +17,11 @@ module.exports = function (fileName, cb){
 	saxStream.on("error", function (e) {
 		// unhandled errors will throw, since this is a proper node
 		// event emitter.
-		console.error("error!", e)
+		console.error("error!", e);
 		// clear the error
-		this._parser.error = null
-		this._parser.resume()
-	})
+		this._parser.error = null;
+		this._parser.resume();
+	});
 
 	var tr;
 	var acc;
@@ -71,9 +73,9 @@ module.exports = function (fileName, cb){
 		"GNC:ACCOUNT":function(){
 			if (acc.type != "ROOT") {
 				accounts.push (acc);
-				accMap[acc.id]=acc;
+				accMap[acc._id]=acc;
 			} else {
-				rootId = acc.id;
+				rootId = acc._id;
 			}
 		},
 		"TRN:SPLIT":function(){
@@ -90,7 +92,7 @@ module.exports = function (fileName, cb){
 		},
 		"TRN:ID":function(){
 			gluMap[nodetext]=gluid;
-			tr.id = gluid;
+			tr._id = gluid;
 			gluid++;
 		},		
 		"TS:DATE":function(){
@@ -114,7 +116,7 @@ module.exports = function (fileName, cb){
 		},
 		"ACT:ID":function(){
 			gluMap[nodetext]=gluid;
-			acc.id = gluid; 
+			acc._id = gluid; 
 			gluid++;
 		},
 		"ACT:PARENT":function(){
@@ -125,19 +127,19 @@ module.exports = function (fileName, cb){
 		"CMDTY:ID":function(){
 			switch(path[path.length-1]){
 				case "ACT:COMMODITY":
-					acc.cmdty.id = nodetext;
+					acc.cmdty._id = nodetext;
 				break;
 				case "TRN:CURRENCY":
-					tr.currency.id = nodetext;
+					tr.currency._id = nodetext;
 				break;
 				case "PRICE:COMMODITY":
-					price.cmdty.id = nodetext;
+					price.cmdty._id = nodetext;
 				break;
 				case "PRICE:CURRENCY":
-					price.currency.id = nodetext;
+					price.currency._id = nodetext;
 				break;
 				case "CUST:CURRENCY":
-					defCurrency.id = nodetext;
+					defCurrency._id = nodetext;
 				break;				
 			}			
 		},
@@ -180,7 +182,7 @@ module.exports = function (fileName, cb){
 		},
 		"SPLIT:ID":function(){
 			gluMap[nodetext]=gluid;
-			split.id = gluid; 
+			split._id = gluid; 
 			gluid++;
 		},
 		"SPLIT:ACCOUNT":function(){
@@ -237,44 +239,48 @@ module.exports = function (fileName, cb){
 		async.series([
 			function transpondAccounts(cb) {
 				async.forEachSeries(accounts, function (acc,cb) {
-					self._ctx.getUniqueId(safe.sure(cb,function (id) {
-						aidMap[acc.id]=id;
-						acc.id = id;
+//					self._ctx.getUniqueId(safe.sure(cb,function (id) {
+						var _id = new ObjectId();
+						aidMap[acc._id]=_id;
+						acc._id = _id;
 						process.nextTick(cb);
-					}))
-				},cb)
+//					}));
+				},cb);
 			},
 			function transpondAccountsTree(cb) {
 				_(accounts).forEach(function (acc) {
 					if (acc.parentId!=0)
 						acc.parentId=aidMap[acc.parentId];
-				})
+				});
 				cb();
 			},
 			function transpondTransactions(cb) {
 				async.forEachSeries(transactions, function (trn,cb) {
 					async.forEachSeries(trn.splits, function (split,cb) {
 						split.accountId = aidMap[split.accountId];
-						self._ctx.getUniqueId(safe.sure(cb,function (id) {
-							split.id = id;
+//						self._ctx.getUniqueId(safe.sure(cb,function (id) {
+							var _id = new ObjectId();
+							split._id = _id;
 							process.nextTick(cb);
-						}))
+//						}))
 					}, safe.sure(cb, function () {
-						self._ctx.getUniqueId(safe.sure_result(cb, function (id) {
-							trn.id = id;
-						}))
-					}))
-				},cb)
+//						self._ctx.getUniqueId(safe.sure_result(cb, function (id) {
+							var _id = new ObjectId();
+							trn._id = _id;
+							cb();
+//						}));
+					}));
+				},cb);
 			}
 		], safe.sure(cb, function () {
 			var settings = {};
 			if (defCurrency)
-				settings['currency'] = defCurrency;
+				settings['currency____'] = defCurrency;
 			var ret = {tr:transactions, acc:accounts, prices:prices, settings:settings};
 			process.nextTick(function(){
 				cb(null,ret);
 			});
-		}))
+		}));
 	});
 	
 	try {
@@ -284,10 +290,10 @@ module.exports = function (fileName, cb){
 		fs.closeSync(fd);
 
 		if (buffer[0] == 31 && buffer[1] == 139 && buffer[2] == 8)
-			fs.createReadStream(fileName).pipe(zlib.createUnzip()).pipe(saxStream)
+			fs.createReadStream(fileName).pipe(zlib.createUnzip()).pipe(saxStream);
 		else 
 			fs.createReadStream(fileName).pipe(saxStream);
 	} catch (err) {
-		cb(err)
+		cb(err);
 	}
-}
+};

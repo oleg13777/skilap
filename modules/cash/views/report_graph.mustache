@@ -99,7 +99,7 @@ st.forEach(function(e) {
 		else
 			link = $("#rev");
 
-		link.append("<li><a style='display:inline;' href='/cash/account?id=" + e.id + "'>" + e.name + "</a><span>{{reportSettings.reportCurrency}} " + e.lost.toFixed(2) + "</span><ul data-pid='" + e.id + "'></ul></li>");
+		link.append("<li><a style='display:inline;' href='/cash/account?id=" + e._id + "'>" + e.name + "</a><span>{{reportSettings.reportCurrency}} " + e.lost.toFixed(2) + "</span><ul data-pid='" + e._id + "'></ul></li>");
 	}
 
 	if (e.add) {
@@ -109,7 +109,7 @@ st.forEach(function(e) {
 		else
 			link = $("#exp");
 
-		link.append("<li><a style='display:inline;' href='/cash/account?id=" + e.id + "'>" + e.name + "</a><span>{{reportSettings.reportCurrency}} " + e.add.toFixed(2) + "</span><ul data-pid='" + e.id + "'></ul></li>");
+		link.append("<li><a style='display:inline;' href='/cash/account?id=" + e._id + "'>" + e.name + "</a><span>{{reportSettings.reportCurrency}} " + e.add.toFixed(2) + "</span><ul data-pid='" + e._id + "'></ul></li>");
 	}
 });
 

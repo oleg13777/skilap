@@ -63,7 +63,7 @@ saxStream.on("closetag", function (name) {
 		tr.description = nodetext;
 	} else if (node.name == "TRN:ID") {
 		gluMap[nodetext]=gluid;
-		tr.id = gluid; gluid++;
+		tr._id = gluid; gluid++;
 	} else if (node.name == "TS:DATE") {
 		if (path[path.length-1]=="TRN:DATE-ENTERED") {
 			tr.dateEntered = new Date(nodetext);
@@ -75,7 +75,7 @@ saxStream.on("closetag", function (name) {
 		acc.type = nodetext;
 	} else if (node.name == "ACT:ID") {
 		gluMap[nodetext]=gluid;
-		acc.id = gluid; gluid++;
+		acc._id = gluid; gluid++;
 	} else if (node.name == "ACT:PARENT") {
 		acc.parent = gluMap[nodetext];
 	} else if (node.name == "CMDTY:ID") {
@@ -87,7 +87,7 @@ saxStream.on("closetag", function (name) {
 	} else if (node.name == "GNC:ACCOUNT") {
 		if (acc.type != "ROOT") {
 			accounts.push (acc);
-			accMap[acc.id]=acc;
+			accMap[acc._id]=acc;
 		}
 	} else if (node.name == "SPLIT:QUANTITY") {
 		split.quantity = eval(nodetext);
@@ -97,7 +97,7 @@ saxStream.on("closetag", function (name) {
 		split.memo = nodetext;
 	} if (node.name == "SPLIT:ID") {
 		gluMap[nodetext]=gluid;
-		split.id = gluid; gluid++;
+		split._id = gluid; gluid++;
 	}  if (node.name == "SPLIT:ACCOUNT") {
 		split.accountId = gluMap[nodetext];
 	} else if (node.name == "TRN:SPLIT") {
@@ -112,10 +112,10 @@ saxStream.on("closetag", function (name) {
 
 saxStream.on("end", function (node) {
 	transactions.forEach(function (e) {
-		cash_transactions.put(e.id,e,function (err) {if (err) { throw err; }});
+		cash_transactions.put(e._id,e,function (err) {if (err) { throw err; }});
 	})
 	accounts.forEach(function (e) {
-		cash_accounts.put(e.id,e,function (err) {if (err) { throw err; }});
+		cash_accounts.put(e._id,e,function (err) {if (err) { throw err; }});
 	})
 	console.log(accounts.length);
 	console.log(transactions.length);

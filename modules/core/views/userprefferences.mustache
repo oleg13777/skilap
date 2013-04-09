@@ -9,7 +9,7 @@ $(document).ready(function() {
 			"{{#i18n}}Apply{{/i18n}}": function() {
 				var self = $(this);
 				var updUser = {
-					id: $("#uid").val(),
+					_id: $("#uid").val(),
 					firstName: $("#firstName").val(),
 					lastName: $("#lastName").val(),
 					login: $("#login").val(),
@@ -62,7 +62,7 @@ $(document).ready(function() {
 	function displayMessage(event){			
 		if(event.data.name == 'setEditUserDialogData') {
 			var user = event.data.data;
-			$('#uid').val(user.id);
+			$('#uid').val(user._id);
 			$('#firstName').val(user.firstName);
 			$('#lastName').val(user.lastName);
 			$('#login').val(user.login);
@@ -82,7 +82,7 @@ $(document).ready(function() {
 <div id="editPrefferences" title="{{#i18n}}Account prefferences{{/i18n}}" class="dialog" style="width: 600; height: 200px;">
 	<form>
 	<input id="token" type="hidden" value="{{apiToken}}">
-	<input id="uid" type="hidden" value="{{id}}">
+	<input id="uid" type="hidden" value="{{_id}}">
 	<table>
 		{{#user.loggedin}}	
 		<tr>

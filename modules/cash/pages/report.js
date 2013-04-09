@@ -142,7 +142,7 @@ module.exports = function account(webapp) {
 
 				accKeys = _.reduce(accounts, function (memo, acc) {
 					if (acc.type == 'INCOME' || acc.type == 'EXPENSE')
-						memo[acc.id] = {name:acc.name, id:acc.id, parentId:acc.parentId, add:0, lost:0, type:acc.type};
+						memo[acc._id] = {name:acc.name, id:acc._id, parentId:acc.parentId, add:0, lost:0, type:acc.type};
 					return memo;
 				}, {});
 				cashapi.getTransactionsInDateRange(token, [params.startDate, params.endDate, true, false], cb1);
@@ -192,7 +192,7 @@ module.exports = function account(webapp) {
 											memo[item.parentId] = {add:0, lost:0, ids:[]};
 										memo[item.parentId].add += item.add;
 										memo[item.parentId].lost += item.lost;
-										memo[item.parentId].ids.push(item.id);
+										memo[item.parentId]._ids.push(item._id);
 									});
 									return memo;
 								}, {})
@@ -203,7 +203,7 @@ module.exports = function account(webapp) {
 								.values()
 								.filter(function(item){return item.level <= params.accLevel;})
 								.reduce(function(memo,item){
-									memo[item.id] = item;
+									memo[item._id] = item;
 									return memo;
 								},{})
 								.value();
@@ -230,7 +230,7 @@ module.exports = function account(webapp) {
 				// transform into report form
 				var report = _.chain(accKeys)
 					.map(function(accKey) {
-						return {id:accKey.id, pid:accKey.parentId, name:accKey.name, add:accKey.add, lost:accKey.lost};
+						return {_id:accKey._id, pid:accKey.parentId, name:accKey.name, add:accKey.add, lost:accKey.lost};
 					}).filter(function(accKey) {
 						return (accKey.add || accKey.lost);
 					}).sortBy(function(accKey){
@@ -273,9 +273,9 @@ module.exports = function account(webapp) {
 				}
 				accKeys = _(accounts).reduce(function (memo, acc) {
 					if (acc.type == params.accType){
-						memo[acc.id] = {name:acc.name, id:acc.id, parentId:acc.parentId,summ:0};
+						memo[acc._id] = {name:acc.name, id:acc._id, parentId:acc.parentId,summ:0};
 						if(periods)
-							memo[acc.id].periods = _(periods).map(function (p) { return _.clone(p); });
+							memo[acc._id].periods = _(periods).map(function (p) { return _.clone(p); });
 					}
 					return memo;
 				}, {});
@@ -330,7 +330,7 @@ module.exports = function account(webapp) {
 										if(!_.has(memo,item.parentId))
 											memo[item.parentId] = {summ:0,ids:[]};
 										memo[item.parentId].summ += item.summ;
-										memo[item.parentId].ids.push(item.id);
+										memo[item.parentId]._ids.push(item._id);
 									});
 									return memo;
 								}, {})
@@ -341,7 +341,7 @@ module.exports = function account(webapp) {
 								.values()
 								.filter(function(item){	return item.level <= params.accLevel})
 								.reduce(function(memo,item){
-									memo[item.id] = item;
+									memo[item._id] = item;
 									return memo;
 								},{})
 								.value();
@@ -366,19 +366,19 @@ module.exports = function account(webapp) {
 			function(cb1){
 				var total = 0;
 				// find important accounts (with biggest summ over entire period)
-				var iacs = _(accKeys).chain().map(function (acs) { return {id:acs.id, summ:acs.summ}})
+				var iacs = _(accKeys).chain().map(function (acs) { return {_id:acs._id, summ:acs.summ}})
 					.sortBy(function (acs) {return acs.summ}).last(params.maxAcc)
-					.reduce(function (memo, acs) { memo[acs.id]=1; return memo; }, {}).value();
+					.reduce(function (memo, acs) { memo[acs._id]=1; return memo; }, {}).value();
 				// colapse non important
 				var final = _(accKeys).reduce( function (memo, accKey) {
 					total += accKey.summ;
-					if (_(iacs).has(accKey.id))
-						memo[accKey.id] = accKey;
+					if (_(iacs).has(accKey._id))
+						memo[accKey._id] = accKey;
 					else {
 						var other = memo['other'];
 						if (other==null) {
 							accKey.name = "Other";
-							accKey.id = 'other';
+							accKey._id = 'other';
 							memo['other'] = accKey;
 						} else {
 							other.summ+=accKey.summ;
@@ -442,7 +442,7 @@ module.exports = function account(webapp) {
 				accLevel:2,
 				accLevelOptions:[{name:'All'},{name:1},{name:2},{name:3},{name:4},{name:5},{name:6}],
 				version: reportSettingsVersion,
-				reportCurrency:repCmdty.id
+				reportCurrency:repCmdty._id
 			};
 		return defaultSettings;
 	}

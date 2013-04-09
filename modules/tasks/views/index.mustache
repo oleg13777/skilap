@@ -86,12 +86,12 @@ $(document).ready(function(){
 	{{#tasks}}
 	<tr>
 		<td>{{dt}}</td>
-		<td id="task_{{id}}">{{name}}</td>
+		<td id="task_{{_id}}">{{name}}</td>
 		<td>{{description}}</td>
 		<td>
-		{{#to_resolve}}<i class="icon-ok-circle resolveTask" data-id="{{id}}" title="{{#i18n}}mark as resolved{{/i18n}}" ></i>{{/to_resolve}}
-			<i class="icon-edit editTask" data-id="{{id}}" title="{{#i18n}}edit{{/i18n}}" ></i> 
-			<i class="icon-trash deleteTask" data-id="{{id}}" title="{{#i18n}}delete{{/i18n}}" ></i>
+		{{#to_resolve}}<i class="icon-ok-circle resolveTask" data-id="{{_id}}" title="{{#i18n}}mark as resolved{{/i18n}}" ></i>{{/to_resolve}}
+			<i class="icon-edit editTask" data-id="{{_id}}" title="{{#i18n}}edit{{/i18n}}" ></i> 
+			<i class="icon-trash deleteTask" data-id="{{_id}}" title="{{#i18n}}delete{{/i18n}}" ></i>
 		</td>
 	</tr>
 	{{/tasks}}

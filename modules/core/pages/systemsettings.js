@@ -15,7 +15,7 @@ module.exports = function account(ctx, app, api, prefix) {
 			_(r[1]).each(function(info){
 				var tmp = {name:info.name, perm:[]};
 				_(info.permissions).each(function(perm){
-					perm.selected = _(guest.permissions).indexOf(perm.id) >= 0;
+					perm.selected = _(guest.permissions).indexOf(perm._id) >= 0;
 					tmp.perm.push(perm);
 				});
 				permissions.push(tmp);

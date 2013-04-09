@@ -1,14 +1,15 @@
 var async = require('async');
 var safe = require('safe');
 var _ = require('underscore');
+var ObjectId = require('mongodb').ObjectID;
 
 module.exports.getAccountRegister = function (token, accId, offset, limit, cb ) {
 	var self = this;
 	async.series ([
 		function (cb) {
 			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
-				function (cb) { self._waitForData(cb) }
+				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
+				function (cb) { self._waitForData(cb); }
 			],cb);
 		},
 		safe.trap(function (cb) {
@@ -24,30 +25,30 @@ module.exports.getAccountRegister = function (token, accId, offset, limit, cb ) 
 				else
 					cb(null, accStats.trDateIndex.slice(offset, offset + limit));
 		})], safe.sure(cb,function (results) {
-			process.nextTick(function () { cb(null,results[1]); })
+			cb(null,results[1]);
 		})
-	)
-}
+	);
+};
 
 module.exports.getTransaction = function (token, trId, cb) {
 	var self = this;
 	async.series ([
 		function (cb) {
 			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
-				function (cb) { self._waitForData(cb) }
+				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
+				function (cb) { self._waitForData(cb); }
 			],cb);
 		},
 		function (cb1) {
-			self._cash_transactions.get(trId, cb1);
+			self._cash_transactions.findOne({'_id': new ObjectId(trId)}, cb1);
 		}
 	], safe.sure(cb, function (results) {
 		cb(null,results[1]);
-	}))
-}
+	}));
+};
 
 module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
-	var debug = false;
+	var debug = true;
 	if (debug) { console.log("Received"); console.log(arguments); }
 	if (_.isFunction(leadAccId)) {
 		cb = leadAccId;
@@ -60,8 +61,8 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 		// wait for data lock
 		function (cb) {
 			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
-				function (cb) { self._waitForData(cb) }
+				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
+				function (cb) { self._waitForData(cb); }
 			],cb);
 		},
 		// get lead account, if any
@@ -79,15 +80,17 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 		// fix current user id
 		function (cb) {
 			self._coreapi.getUser(token,safe.sure_result(cb, function (user) {
-				tr.uid = user.id;
-			}))
+				tr.uid = user._id;
+			}));
 		},
 		// sync with existing transaction or get new id for insert
 		// detect also split modify status
 		function (cb) {
 			if (debug) { console.log("Before sync on update"); console.log(tr); }
-			if (tr.id) {
-				self._cash_transactions.get(tr.id,safe.trap_sure_result(cb,function (tr_) {
+			console.log(tr);
+			if (tr._id) {
+				self._cash_transactions.findOne({'id': parseInt(tr._id)}, safe.trap_sure_result(cb,function (tr_) {
+					console.log(tr_);
 					// get all the missing properties from existing transaction except splits
 					var fprops = _.without(_(tr_).keys(),"splits");
 					var ftr = _.pick(tr_,fprops);
@@ -96,7 +99,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 					_(trn.splits).forEach(function (split) {
 						split.isModified = true;
 						split.isNew = true;
-						var oldSplit = _(tr_.splits).find(function (split2) { return split2.id==split.id; });
+						var oldSplit = _(tr_.splits).find(function (split2) { return split2._id==split._id; });
 						if (!oldSplit) return;
 						split.isNew = false;
 						// if both new values are defined and not the same as previous nothing to do
@@ -124,13 +127,13 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 							}
 						} else
 							split.isModified = false;
-					})
+					});
 				}));
 			} else {
 				self._ctx.getUniqueId(safe.sure_result(cb, function (id) {
 					trn=tr;
-					trn.id = id;
-				}))
+					trn._id = id;
+				}));
 			}
 		},
 		// ensue that transaction has currency, this is required
@@ -163,14 +166,14 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 					// except save rate
 					if (!_.isUndefined(spl.value) && !_.isUndefined(spl.quantity)){
 						var rate = (spl.quantity/spl.value).toFixed(5);
-						price = {cmdty:trn.currency,currency:splitAccount.cmdty,date:trn.dateEntered,value:rate,source:"transaction"};
-						self.savePrice(token,price,cb)
+						price = {cmdty: trn.currency, currency: splitAccount.cmdty, date: trn.dateEntered, value: rate, source: "transaction"};
+						self.savePrice(token, price, cb);
 					}
 					else{
 						// otherwise lets try to fill missing value
 						var irate = 1;
 						// value is known
-						self.getCmdtyPrice(token,trn.currency,splitAccount.cmdty,null,null,function(err,rate){
+						self.getCmdtyPrice(token, trn.currency, splitAccount.cmdty, null, null, function(err,rate){
 							if(err && !(err.skilap && err.skilap.subject == "UnknownRate"))
 								return cb(err);
 
@@ -183,11 +186,11 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 							else
 								spl.value = spl.quantity/irate;
 
-							cb()
+							cb();
 						});
 					}
-				}))
-			}, cb)
+				}));
+			}, cb);
 		},
 		// avoid dis-balance
 		safe.trap(function (cb) {
@@ -195,17 +198,17 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			// check what we have
 			var value=0; var leadSplit = false; var nonEditedSplit = false;
 			_(trn.splits).forEach(function (split) {
-				if (leadAcc && split.accountId==leadAcc.id)
+				if (leadAcc && split.accountId==leadAcc._id)
 					leadSplit = split;
 				if (split.isModified==false)
 					nonEditedSplit = split;
-				value+=split.value;
-			})
+				value += split.value;
+			});
 			// simplest, put dis-ballance to missing lead split
 			if (leadAcc && !leadSplit) {
 				self._ctx.getUniqueId(safe.trap_sure_result(cb,function (id) {
-					trn.splits.push({value:-1*value,quantity:-1*value,accountId:leadAcc.id,id:id,description:""});
-				}))
+					trn.splits.push({value:-1*value,quantity:-1*value,accountId:leadAcc._id,_id:_id,description:""});
+				}));
 			}  // when we have two splits we can compensate thru non modified one
 			else if (trn.splits.length==2 && nonEditedSplit ) {
 				var newVal = nonEditedSplit.value-value;
@@ -222,9 +225,9 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 				if (value==0) return cb();
 				self.getSpecialAccount(token,"disballance",trn.currency, safe.sure(cb, function(acc) {
 					self._ctx.getUniqueId(safe.trap_sure_result(cb, function (id) {
-						trn.splits.push({value:-1*value,quantity:-1*value,accountId:acc.id,id:id,description:""});
-					}))
-				}))
+						trn.splits.push({value:-1*value,quantity:-1*value,accountId:acc._id,_id:_id,description:""});
+					}));
+				}));
 			}
 		}),
 		// collapse splits of same accounts
@@ -250,13 +253,13 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 					newSplit.quantity+=e.quantity;
 				}
 				newSplits.push(newSplit);
-			})
+			});
 			// filter splits with zero values
-			var meaningSplits = _(newSplits).filter(function (s) { return s.value!=0; })
+			var meaningSplits = _(newSplits).filter(function (s) { return s.value!=0; });
 			// check if we have some splits at the end, if not restore split from leading account
 			// when possible
 			if (meaningSplits.length==0 && leadAcc) {
-				var lSplit = _(newSplits).find(function (s) {return s.id = leadAcc.id} );
+				var lSplit = _(newSplits).find(function (s) {return s._id = leadAcc._id;} );
 				if (lSplit)	meaningSplits.push(lSplit);
 			}
 			trn.splits = meaningSplits;
@@ -266,9 +269,9 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 		function (cb) {
 			if (debug) { console.log("Before split ids"); console.log(trn);	}
 			async.forEachSeries(trn.splits,function(split,cb){
-				if(split.id) return cb();
+				if(split._id) return cb();
 				self._ctx.getUniqueId(safe.sure_result(cb, function (id) {
-					split.id = id;
+					split._id = id;
 				}));
 			},cb);
 		},
@@ -278,7 +281,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 				return cb(new Error("Transaction should have splits"));
 			if (!(_.isObject(trn.currency)))
 				return cb(new Error("Transaction should have currency"));
-			if (_.isUndefined(trn.id))
+			if (_.isUndefined(trn._id))
 				return cb(new Error("Transaction should have id"));
 			if (!(_.isDate(trn.datePosted) || !_.isNaN(Date.parse(trn.datePosted))))
 				return cb(new Error("Transaction should have date posted"));
@@ -286,7 +289,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 				return cb(new Error("Transaction should have date entered"));
 			// check splits
 			var fails = _(trn.splits).find(function (s) {
-				if (_.isUndefined(s.id)) {
+				if (_.isUndefined(s._id)) {
 					cb(new Error("Every split should have an id"));
 					return true;
 				}
@@ -302,9 +305,9 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 					cb(new Error("Every split should have accountId"));
 					return true;
 				}
-			})
+			});
 			if (!fails)
-				cb()
+				cb();
 		}),
 		// sanify transaction
 		safe.trap(function (cb) {
@@ -319,13 +322,13 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 		// finally save or update
 		function(cb){
 			if (debug) { console.log("Before save"); console.log(trn);	}
-			self._cash_transactions.put(trn.id, trn, cb);
+			self._cash_transactions.save(trn, cb);
 		}
 	], safe.sure_result(cb,function () {
 		self._calcStats(function () {});
 		return trn;
-	}))
-}
+	}));
+};
 
 module.exports.getTransactionsInDateRange = function (token, range, cb) {
 	var self = this;
@@ -333,20 +336,15 @@ module.exports.getTransactionsInDateRange = function (token, range, cb) {
 	async.series([
 		function start(cb1) {
 			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
-				function (cb) { self._waitForData(cb) }
+				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
+				function (cb) { self._waitForData(cb); }
 			],cb1);
 		},
 		safe.trap(function (cb) {
 			var startDate = _(range[0]).isDate() ? range[0] : new Date(range[0]);
 			var endDate = _(range[1]).isDate() ? range[1] : new Date(range[1]);
-			var stream = self._cash_transactions.find({datePosted: {$range: [startDate.valueOf(),endDate.valueOf(),range[2],range[3]]}}).stream();
-
-			stream.on('record', function (key,tr) {
-				res.push(tr);
-			});
-			stream.on('end',cb);
-			stream.on('error',cb);
+			self._cash_transactions.find({datePosted: {$gt: startDate, $lt: endDate}}).toArray(cb);
+//			var stream = self._cash_transactions.find({datePosted: {$range: [startDate.valueOf(),endDate.valueOf(),range[2],range[3]]}}).stream();
 		})],
 		safe.sure(cb, function () {
 			process.nextTick(function () {
@@ -354,7 +352,7 @@ module.exports.getTransactionsInDateRange = function (token, range, cb) {
 			});
 		})
 	);
-}
+};
 
 module.exports.clearTransactions = function (token, ids, cb) {
 	var self = this;
@@ -362,34 +360,32 @@ module.exports.clearTransactions = function (token, ids, cb) {
 		async.series ([
 			function (cb) {
 				async.parallel([
-					function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
-					function (cb) { self._waitForData(cb) }
+					function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
+					function (cb) { self._waitForData(cb); }
 				],cb);
 			},
 			function (cb) {
-				self._cash_transactions.clear(cb);
+				self._cash_transactions.remove(cb);
 			}
 		], safe.sure_result(cb, function () {
-			self._calcStats(function () {})
+			self._calcStats(function () {});
 		}));
 	} else {
 		async.series ([
 			function (cb) {
 				async.parallel([
-					function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
-					function (cb) { self._waitForData(cb) }
+					function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
+					function (cb) { self._waitForData(cb); }
 				],cb);
 			},
 			function(cb){
-				async.forEach(ids, function (e,cb) {
-					self._cash_transactions.put(e,null,cb);
-				},cb);
+				self._cash_transactions.remove({'id': {$in: _.map(ids, function (e) {return parseInt(e); })}}, cb);
 			}
 		], safe.sure_result(cb, function () {
-			self._calcStats(function () {})
+			self._calcStats(function () {});
 		}));
 	}
-}
+};
 
 module.exports.importTransactions = function (token, transactions, cb) {
 	var self = this;
@@ -397,22 +393,22 @@ module.exports.importTransactions = function (token, transactions, cb) {
 	async.series ([
 		function (cb1) {
 			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb) },
-				function (cb) { self._waitForData(cb) }
+				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
+				function (cb) { self._waitForData(cb); }
 			],cb1);
 		},
 		function (cb) {
 			self._coreapi.getUser(token,safe.sure_result(cb, function (user) {
-				uid = user.id;
-			}))
+				uid = user._id;
+			}));
 		},
 		function (cb) {
 			async.forEach(transactions, function (e,cb) {
 				e.uid = uid;
-				self._cash_transactions.put(e.id,e,cb);
+				self._cash_transactions.save(e, cb);
 			},cb);
 		},
 	], safe.sure_result(cb, function () {
-		self._calcStats(function () {})
-	}))
-}
+		self._calcStats(function () {});
+	}));
+};

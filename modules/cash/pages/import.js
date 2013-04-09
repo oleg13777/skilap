@@ -95,6 +95,7 @@ module.exports = function account(webapp) {
 					webapp.removeTabs(req.session.apiToken, null, cb1);
 				},
 				function render (cb1) {
+					console.log(accounts);
 					res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:tabs, step2:true, transactions:transactions.length, accounts:accounts.length,GnuCash:1});
 				}],
 				next

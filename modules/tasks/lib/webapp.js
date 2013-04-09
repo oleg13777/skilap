@@ -20,8 +20,8 @@ function TasksWeb (ctx) {
 			web.use(skconnect.vstatic(__dirname + '/../public',{vpath:"/tasks"}));
 			require("../pages/index.js")(self);
 			require("../pages/settings.js")(self);			
-		})
-	})
+		});
+	});
 }
 
 TasksWeb.prototype._init = function (cb) {
@@ -30,25 +30,25 @@ TasksWeb.prototype._init = function (cb) {
 		function (cb) {
 			self.ctx.getModule("core",safe.sure_result(cb, function (module) {
 				self._coreapi = module.api;
-			}))
+			}));
 		},
 		function (cb) {
 			self.ctx.getDB(safe.sure(function (adb) {
 				async.parallel({
 					_tasks_userviews:function (cb) {
-						adb.ensure("tasks_userviews",{type:'cached_key_map',buffered:false},cb);
+						adb.collection('tasks_userviews',cb);
 					}
 				}, safe.sure_result(cb, function (results) {
 					_.extend(self,results);
-				}))
-			}))
+				}));
+			}));
 	}], 
 	cb);
-}
+};
 
 TasksWeb.prototype.guessTab = function (req, ti,cb) {
 	var self = this;
-	var vtabs=[], user;
+	var vtabs=[], user=null;
 	async.waterfall ([
 		// we need user first
 		function (cb) {
@@ -57,13 +57,13 @@ TasksWeb.prototype.guessTab = function (req, ti,cb) {
 		function (user_, cb) {
 			user = user_;
 			if (user.type!='guest')
-				self._tasks_userviews.get(user.id,cb);
+				self._tasks_userviews.findOne({'id': user._id}, cb);
 			else
 				cb(null,{});
 		},
 		safe.trap(function (views, cb) {
 			if (views==null) views = {tabs:[]};			
-			var tab;
+			var tab = null;
 			// search current tabs
 			_.forEach(views.tabs, function (t) {
 				var vtab = {name:t.name,url:t.url,pid:t.pid};
@@ -79,21 +79,21 @@ TasksWeb.prototype.guessTab = function (req, ti,cb) {
 				tab = {name:ti.name, pid:ti.pid, url:ti.url};
 				vtabs.push({name:ti.name, selected:true, url:ti.url, pid:ti.pid, activeTabClass: "active"});
 				views.tabs.push(tab);
-				if (user.type!='guest')
-					self._tasks_userviews.put(user.id,views,cb)
-				else
+				if (user.type!='guest') {
+					self._tasks_userviews.save(views,cb);
+				} else
 					cb();
 			} else
-				cb()
+				cb();
 		})], safe.sure_result(cb, function (results) {
 			return vtabs;
 		})
-	)
-}
+	);
+};
 
 TasksWeb.prototype.removeTabs = function (token, tabIds, cb) {
 	var self = this;
-	var user;
+	var user = null;
 	async.waterfall ([
 		// we need user first
 		function (cb) {
@@ -101,23 +101,24 @@ TasksWeb.prototype.removeTabs = function (token, tabIds, cb) {
 		},
 		function (user_, cb) {
 			user = user_;
-			self._tasks_userviews.get(user.id, cb);
+			self._tasks_userviews.findOne({'id': user._id}, cb);
 		},
 		safe.trap(function (views, cb) {
 			if (views==null)
-				views={tabs:[]}
+				views={tabs:[]};
 			if (tabIds==null)
 				views.tabs = [];
 			else
-				views.tabs = _.reject(views.tabs, function (t) { return _(tabIds).include(t.id); } )
-			self._tasks_userviews.put(user.id,views,cb);
+				views.tabs = _.reject(views.tabs, function (t) { return _(tabIds).include(t._id); } );
+			views._id = parseInt(user._id);
+			self._tasks_userviews.save(views,cb);
 		})], cb
-	)
-}
+	);
+};
 
 TasksWeb.prototype.saveTabSettings = function(token, tabId, settings, cb) {
 	var self = this;
-	var user;
+	var user = null;
 	async.waterfall ([
 		// we need user first
 		function (cb) {
@@ -125,16 +126,17 @@ TasksWeb.prototype.saveTabSettings = function(token, tabId, settings, cb) {
 		},
 		function (_user, cb) {
 			user = _user;
-			self._tasks_userviews.get(user.id,cb);
+			self._tasks_userviews.get(user._id, cb);
 		},
 		function (views, cb) {
 			var t = _.find(views.tabs,function (t) {return t.pid == tabId; });
 			if (!t) return cb();
-			t.settings = settings
-			self._tasks_userviews.put(user.id, views, cb);
+			t.settings = settings;
+			views._id = parseInt(user._id);
+			self._tasks_userviews.put(views, cb);
 		}], cb
-	)
-}
+	);
+};
 
 TasksWeb.prototype.getTabSettings = function(token, tabId, cb) {
 	var self = this;
@@ -144,19 +146,19 @@ TasksWeb.prototype.getTabSettings = function(token, tabId, cb) {
 			self._coreapi.getUser(token, cb);
 		},
 		function (user, cb) {
-			self._tasks_userviews.get(user.id,cb);
+			self._tasks_userviews.findOne({'_id': user._id}, cb);
 		},
 		function (views, cb) {
 			var ret = _.find(views.tabs,function (t) {return t.pid == tabId; });
 			if (ret) 
-				cb(null, ret.settings)
+				cb(null, ret.settings);
 			else
-				cb(null, {})
+				cb(null, {});
 		}], safe.sure(cb, function (ret) {
 			cb(null, ret);
 		})
-	)
-}
+	);
+};
 
 module.exports.init = function (ctx,cb) {
 	async.parallel ([
@@ -180,17 +182,17 @@ module.exports.init = function (ctx,cb) {
 				res.push({id:'task.add', desc:ctx.i18n(token, 'tasks', 'Add new tasks')});
 				res.push({id:'task.edit', desc:ctx.i18n(token, 'tasks', 'Edit tasks data')});
 				cb(null,res);
-			}
+			};
 			m.getModuleInfo = function (token, cb) {
 				var i = {};
-				i.name = ctx.i18n(token, 'tasks', 'Tasks module')
-				i.desc = ctx.i18n(token, 'tasks', 'Personal task manager.')
+				i.name = ctx.i18n(token, 'tasks', 'Tasks module');
+				i.desc = ctx.i18n(token, 'tasks', 'Personal task manager.');
 				i.url = "/tasks/";
-				i.id = 'tasks';
+				i._id = 'tasks';
 				cb(null,i);
-			}
+			};
 
 			cb(null, m);
 		})
-	)
-}
+	);
+};

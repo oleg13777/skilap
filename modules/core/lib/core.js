@@ -5,7 +5,7 @@ var fs = require("fs");
 var path = require("path");
 var _ = require('underscore');
 
-var alfred = require('alfred');
+var mongo = require('mongodb');
 var async = require('async');
 var Step = require("step");
 var events = require("events");
@@ -28,21 +28,21 @@ var tmpl = {
 		tc.rp = function (name, context, partials, indent) {
 			var partial = partials[name];
 			if (partial==null) {
-				var partialFileName = views + '/' + name + (options.extension || '.mustache')
+				var partialFileName = views + '/' + name + (options.extension || '.mustache');
 				partial = path.existsSync(partialFileName) ? fs.readFileSync(partialFileName, "utf-8") : "";
 				partials[name]=hogan.compile(partial.toString());
 			}
 			return orp.call(this,name, context,partials, indent);
-		}
+		};
 		return function (options) {
 			var html = tc.render(options,options.partials);
 			if (options.body!=null) {
 				html = html.replace("<content/>",options.body);
 			}
 			return html;
-		}
+		};
 	}
-}
+};
 
 function Skilap() {
 	var self = this;
@@ -50,9 +50,9 @@ function Skilap() {
 	var i18l = {};
 	var _adb = null;
 	var tmodules = [
-		{name:"core",require:"./coreapi"},
-		{name:"cash",require:"skilap-cash"},
-		{name:"tasks",require:"skilap-tasks"}
+		{name:"core", require:"./coreapi"},
+		{name:"cash", require:"skilap-cash"},
+		{name:"tasks", require:"skilap-tasks"}
 		];
 	var self = this;
 	var modules = {};
@@ -66,7 +66,7 @@ function Skilap() {
 		process.on('uncaughException', function (e) {
 			console.log(e);
 			console.trace();
-		})
+		});
 		console.time("startApp");
 		storepath = storepath_;
 		async.series([
@@ -85,15 +85,20 @@ function Skilap() {
 					app.use(skconnect.vstatic(__dirname + '/../../../public',{vpath:"/common"}));
 					app.use(skconnect.vstatic(__dirname + '/../public',{vpath:"/core"}));
 					app.use(function (req, res, next) {
-						if (req.cookies['skilapid']==null) {
-							var clientId; self.getRandomString(128, function (err, rnd) { clientId = rnd; });
+						if (!req.cookies['skilapid']) {
+							var clientId; 
+							console.log('generate');
+							self.getRandomString(128, function (err, rnd) { clientId = rnd; });
 							res.cookie('skilapid',clientId, { maxAge: 1000*60*60*24*5, path: '/' });
 							res.cookie('sguard','1', { maxAge: 1000*60*60*24*5, path: '/', secure:true });
+//							console.log(clientId);
 						}
 						async.series([
 							function ensureToken (cb3) {
 								if (req.session.apiToken==null) {
-									modules['core'].api.getApiToken('default',req.cookies['skilapid'],'fake',function (err, apiToken) {
+									console.log('cookies');
+									console.log(req.cookies['skilapid']);
+									modules['core'].api.getApiToken('default',req.cookies['skilapid']||clientId,'fake',function (err, apiToken) {
 										req.session.apiToken = apiToken;
 										cb3();
 									});
@@ -106,7 +111,7 @@ function Skilap() {
 									} else */next();
 								});
 							}
-						)
+						);
 					});
 					// common data grabber
 					app.use(function (req, res, next) {
@@ -151,13 +156,13 @@ function Skilap() {
 							domain = re?re[1]:"core";
 							return function () { return function (text, render) {
 								return self.i18n(req.session.apiToken, req.skilap.ldomain || domain, text);
-							}};
+							};};
 						},
 						i18n_domain: function(req, res){
 							return function () { return function (text, render) {
 								req.skilap.ldomain = text;
 								return '';
-							}};
+							};};
 						},						
 						apiToken: function (req,res) {
 							return req.session.apiToken;
@@ -178,8 +183,7 @@ function Skilap() {
 						url: function (req, res) {
 							return req.url;
 						}
-
-					})
+					});
 				});
 
 				app.configure('development', function(){
@@ -193,16 +197,21 @@ function Skilap() {
 				self.webapp = webapp = app;
 
 				console.time("OpenDB");
+				var configObj ={
+					db : "skilap",
+					host : "localhost",
+					port : 27017,
+				};
+				var dbc = new mongo.Db(configObj.db, new mongo.Server(configObj.host, configObj.port, {}), {safe: true});
 				async.series ([
 					function (cb1) {
-						alfred.open(storepath+'db',{}, cb1);
+						dbc.open(cb1);
 					}], function (err, results) {
 						console.timeEnd("OpenDB");
 						if (err) return cb1(err);
 						_adb = results[0];
 						cb1();
-					}
-				);
+					});
 				
 				app.get("/login", function (req, res, next) {
 					if (req.cookies['sguard']==null) {
@@ -215,13 +224,12 @@ function Skilap() {
 
 				app.post("/login", function (req,res,next) {
 					async.series([
-						function (cb) { modules['core'].api.loginByPass(req.session.apiToken, req.body.name, req.body.password, cb) }
+						function (cb) { modules['core'].api.loginByPass(req.session.apiToken, req.body.name, req.body.password, cb); }
 					], function (err, user) {
 						if (err) {
 							console.log(err);
 							res.redirect(req.body.success);
-						}
-						else
+						} else
 							res.redirect(req.body.success);
 					});
 				});
@@ -233,7 +241,7 @@ function Skilap() {
 						req.session.destroy(function () {
 							var r = req.param.success || '/';
 							res.redirect(r);
-						})
+						});
 					});
 				});
 				
@@ -259,7 +267,7 @@ function Skilap() {
 							var jsonres = {};
 							if (arguments[0]) {
 								var err = arguments[0];
-								jsonres.error = {message:err.message,subject:err.skilap?err.skilap.subject:"GenericError"}
+								jsonres.error = {message: err.message, subject: err.skilap?err.skilap.subject:"GenericError"};
 								jsonres.result = null;
 							} else {
 								jsonres.error = null;
@@ -274,8 +282,8 @@ function Skilap() {
 					} catch (err) {
 						console.log(err);
 						if (!out) 
-							res.send({error:{message:err.message,subject:err.skilap?err.skilap.subject:"GenericError"}, result:null, id:id});
-					}
+							res.send({error:{message:err.message, subject:err.skilap?err.skilap.subject:"GenericError"}, result: null, id:id});
+					};
 				};
 
 				app.get("/jsonrpc", function (req, res, next) {
@@ -309,9 +317,9 @@ function Skilap() {
 										domain = parsed[""]["domain"];
 										rv[domain] = parsed;
 										gt.parse_locale_data(rv);
-									}
-								}
-							})
+									};
+								};
+							});
 						}
 						console.timeEnd(minfo.name);
 						cb2();
@@ -329,12 +337,12 @@ function Skilap() {
 						calls = true;
 				}
 				if (!debug) return cb();
-				var profile = {count:0,total:0,fstat:{}};
+				var profile = {count:0, total:0, fstat:{}};
 				var po = [];
 				_.forEach(modules, function (m,mname) {
 					po.push({obj:m.api.constructor.prototype,name:mname});
 				})
-				po.push({obj:self,name:"ctx"});
+				po.push({obj:self, name:"ctx"});
 				
 				_.forEach(po, function (m) {
 					var mname = m.name;
@@ -348,9 +356,9 @@ function Skilap() {
 							function logend() {
 									var end = new Date().valueOf();
 									if (calls) console.log(fname + " " + (end-start)+"ms");
-									var st = profile.fstat[fname]
+									var st = profile.fstat[fname];
 									if (!st) {
-										profile.fstat[fname]=st={name:fname,count:0,total:0};
+										profile.fstat[fname]=st={name:fname, count:0, total:0};
 									}
 									st.count++;
 									st.total+=(end-start);
@@ -367,7 +375,7 @@ function Skilap() {
 									}
 									logend();
 									cb.apply(this,arguments);
-								}
+								};
 							}
 							var r = f.apply(this, arguments);
 							if (!_.isFunction(cb)) {
@@ -384,11 +392,10 @@ function Skilap() {
 					profile.count = profile.total = 0;
 					_.forEach(profile.fstat, function (e) {
 						console.log(e);
-					})
+					});
 				}, 10000);
 				cb();
-			}
-			],
+			}],
 			function end(err) {
 				console.timeEnd("startApp");
 				if (err) cb(err);
@@ -411,8 +418,7 @@ function Skilap() {
 				 //console.log("Express server listening on port %d in %s mode", webapp.address().port, webapp.settings.env);
 				self.emit("WebStarted");
 				cb();
-			}
-		);
+			});
 	}
 
 	this.getDB = function (cb) {
@@ -432,13 +438,13 @@ function Skilap() {
 		async.forEachSeries(_(modules).values(), function (module,cb) {
 			module.getModuleInfo(langtoken, function (err, mi) {
 				module.getPermissionsList(langtoken, function (err, perm) {
-					ret.push({id:mi.id, name:mi.name, desc:mi.desc, url:mi.url, permissions:perm});
+					ret.push({id:mi._id, name:mi.name, desc:mi.desc, url:mi.url, permissions:perm});
 					cb();
-				})
-			})
+				});
+			});
 		}, function () {
 			cb(null, ret);
-		})
+		});
 	}
 
 	this.getWebApp = function (cb) {
@@ -448,29 +454,30 @@ function Skilap() {
 	var id = null; var saveTimer = null;
 	this.getUniqueId = function(cb) {
 		if (id==null) 
-			id = parseInt(fs.readFileSync(storepath+"unique.id","utf-8"));
+			id = parseInt(fs.readFileSync(storepath+"unique._id","utf-8"));
 		id++; 
 		// save the id, but not right away, not often than once a second
 		if (saveTimer==null) {
 			saveTimer = setTimeout(function () {
-				fs.writeFileSync(storepath+"unique.id",id.toString());
+				fs.writeFileSync(storepath+"unique._id",id.toString());
 				saveTimer=null;
 			}, 1000);
 		}
 		cb(null,id);
 	}
 
-	this.getRandomString = function (bits,cb) {
-		var chars,rand,i,ret;
-		chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-		ret='';
+	this.getRandomString = function (bits, cb) {
+		var chars, rand, i, ret;
+		chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+		ret = '';
 		// in v8, Math.random() yields 32 pseudo-random bits (in spidermonkey it gives 53)
 		while (bits > 0) {
-			rand=Math.floor(Math.random()*0x100000000) // 32-bit integer
+			rand = Math.floor(Math.random()*0x100000000); // 32-bit integer
 			// base 64 means 6 bits per character, so we use the top 30 bits from rand to give 30/6=5 characters.
-			for(i=26; i>0 && bits>0; i-=6, bits-=6) ret+=chars[0x3F & rand >>> i]
+			for(i=26; i>0 && bits>0; i-=6, bits-=6) 
+				ret += chars[0x3F & rand >>> i];
 		}
-		return cb(null,ret);
+		cb(null,ret);
 	}
 
 	this.i18n = function (langtoken,domain,text1,text2,n)  {
@@ -492,7 +499,7 @@ function Skilap() {
 			return text1;
 	}
 	
-	this.i18n_cytext = function(langtoken,curId,value) {
+	this.i18n_cytext = function(langtoken, curId, value) {
 		var cur = i18n.currency(curId);
 		var res = cur.format(value);
 		var m = res.match(/([^0123456789., ]*)([0123456789., ]*)([^0123456789., ]*)/);
@@ -519,7 +526,7 @@ function Skilap() {
 			var sa = cur.format(0);
 			sa= sa.replace(/[0123456789. ]/g,'');
 			res.push({iso:cid,name:cur.getName(),symbol:sa,country:cur.getCountry()});
-		})
+		});
 		currencies = res;
 		cb(null, res);
 	}
@@ -527,11 +534,11 @@ function Skilap() {
 	this.runBatch = function (tasks,cb) {
 		batch = new ApiBatch(this);
 		batch.run(tasks,cb);
-	}
+	};
 }
 
 util.inherits(Skilap, events.EventEmitter);
 
 module.exports.createApp = function () {
 	return new Skilap();
-}
+};

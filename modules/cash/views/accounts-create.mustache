@@ -59,8 +59,8 @@ $(function() {
 		if (event.origin === "https://{{host}}") {		
 			if(event.data.name == 'setAccountDialogData'){									
 				var acc = event.data.data;
-				if(acc.id){			
-					$('#acc_id').val(acc.id);
+				if(acc._id){			
+					$('#acc_id').val(acc._id);
 				}
 				if(acc.name){
 					$('#acc_name').val(acc.name);
@@ -72,7 +72,7 @@ $(function() {
 					$('#acc_type option[value="'+acc.type+'"]').attr('selected', 'selected');
 				}
 				if(acc.cmdty){
-					$('#acc_curency option[value="'+acc.cmdty.id+'"]').attr('selected', 'selected');
+					$('#acc_curency option[value="'+acc.cmdty._id+'"]').attr('selected', 'selected');
 				}
 				if(acc.hidden){
 					$('#hidden').attr('checked', 'checked');

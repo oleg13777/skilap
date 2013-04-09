@@ -48,7 +48,7 @@ module.exports = function account(webapp) {
 
 	app.post(prefix+"/update", function(req, res, next) {
 		var task = {};
-		task.id = req.body.id;
+		task._id = req.body.id;
 		task.name = req.body.name;
 		task.status = req.body.status;
 		task.description = req.body.description;

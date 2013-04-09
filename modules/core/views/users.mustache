@@ -7,12 +7,11 @@ $(document).ready(function() {
 		rpc.call('core.getUserById', '{{apiToken}}', uid, {
 			success: function (data) {
 				var user = data[0];				
-				console.log(user);				
 				$("#ski_editUser").iframeContainer("triggerEvent",{name:'setEditUserDialogData',data:user});
 			},
 			failure: function (reason) {
-			},
-		});		
+			}
+		});
 		$("#ski_editUser").iframeContainer("open");
 	});
 	$("a[name=\"editPerm\"]").click(function(){
@@ -22,7 +21,6 @@ $(document).ready(function() {
 		rpc.call('core.getUserById', '{{apiToken}}', uid, {
 			success: function (data) {
 				var user = data[0];								
-				console.log(user);
 				$("#ski_editPermissions").iframeContainer("triggerEvent",{name:'setEditPermDialogData',data:{uid: uid, permissions: user.permissions}});
 			},
 			failure: function (reason) {
@@ -59,7 +57,7 @@ $(document).ready(function() {
 			"{{#i18n}}Apply{{/i18n}}": function() {
 				var self = $(this);
 				var newUser = {
-					id: $("#uid").val(),
+					_id: $("#uid").val(),
 					firstName: $("#firstName").val(),
 					lastName: $("#lastName").val(),
 					login: $("#login").val(),
@@ -125,7 +123,7 @@ $(document).ready(function() {
 			<tbody>
 			{{#users}}
 				<tr>
-					<td >{{id}}</td>
+					<td >{{_id}}</td>
 					<td>{{firstName}}</td>
 					<td>{{lastName}}</td>
 					<td>{{login}}</td>
@@ -133,9 +131,9 @@ $(document).ready(function() {
 						<div class="btn-group">
 						  <button data-toggle="dropdown" class="btn dropdown-toggle"><i class="icon-cog"></i>{{#i18n}}Action{{/i18n}}<span class="caret"></span></button>
 						  <ul class="dropdown-menu">
-							<li><a href="javascript:void(0);" name="editUser" uid="{{id}}" >{{#i18n}}Edit{{/i18n}}</a></li>
-							<li><a href="javascript:void(0);" name="editPerm" uid="{{id}}" >{{#i18n}}Permissions{{/i18n}}</a></li>
-							<li><a href="javascript:void(0);" name="deleteUser" uid="{{id}}" >{{#i18n}}Delete{{/i18n}}</a></li>						
+							<li><a href="javascript:void(0);" name="editUser" uid="{{_id}}" >{{#i18n}}Edit{{/i18n}}</a></li>
+							<li><a href="javascript:void(0);" name="editPerm" uid="{{_id}}" >{{#i18n}}Permissions{{/i18n}}</a></li>
+							<li><a href="javascript:void(0);" name="deleteUser" uid="{{_id}}" >{{#i18n}}Delete{{/i18n}}</a></li>						
 						  </ul>
 						</div>						
 					</td>

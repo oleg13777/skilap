@@ -4,7 +4,7 @@ var sprintf = require('sprintf').sprintf;
 var _ = require('underscore');
 var async = require('async');
 var safe = require('safe');
-var sanitize = require('validator').sanitize
+var sanitize = require('validator').sanitize;
 var SkilapError = require("skilap-utils").SkilapError;
 
 module.exports = function account(webapp) {
@@ -13,9 +13,8 @@ module.exports = function account(webapp) {
 	var prefix = webapp.prefix;
 
 	app.get(webapp.prefix+'/account', function(req, res, next) {		
-		var idx=0,c=0;
-		var pageSize = 20;
-		var count,verbs;
+		var count = 0, verbs=0;
+		console.log(req.query);
 		async.waterfall([
 			function (cb1) {
 				cashapi.getAccountInfo(req.session.apiToken,req.query.id,['count','path','verbs'], cb1);
@@ -29,7 +28,6 @@ module.exports = function account(webapp) {
 				var pageSize = 25;
 				var firstVisible = Math.max(0, count-pageSize);
 				var scrollGap = pageSize*5;
-				var firstDelivered = Math.max(0, count-pageSize-scrollGap);
 				res.render(__dirname+"/../views/account", {
 					settings:{views:__dirname+"/../views"},
 					tabs:vtabs,
@@ -50,7 +48,7 @@ module.exports = function account(webapp) {
 	
 	app.post(webapp.prefix+'/account/:id/updaterow', function(req, res, next) {	
 		var tr = createTransactionFromData(req.body);
-		cashapi.saveTransaction(req.session.apiToken, tr, req.params.id, function(err,trn){
+		cashapi.saveTransaction(req.session.apiToken, tr, req.params._id, function(err,trn){
 			if(err){				
 				return next(err);
 			}
@@ -61,7 +59,7 @@ module.exports = function account(webapp) {
 	
 	app.post(webapp.prefix+'/account/:id/addrow', function(req, res, next) {
 		var tr = createTransactionFromData(req.body);
-		cashapi.saveTransaction(req.session.apiToken, tr, req.params.id, function(err,trn){
+		cashapi.saveTransaction(req.session.apiToken, tr, req.params._id, function(err,trn){
 			if(err){				
 				return next(err);
 			}
@@ -86,20 +84,19 @@ module.exports = function account(webapp) {
 	});	
 
 	app.get(webapp.prefix+'/account/:id/getaccounts', function(req, res, next) {
-		var tmp = [];		
 		async.waterfall([
-			function (cb) { cashapi.getAllAccounts(req.session.apiToken, cb) },
+			function (cb) { cashapi.getAllAccounts(req.session.apiToken, cb); },
 			function (accounts,cb1) {
 				var tmp = {};
 				async.forEach(accounts, function (acc, cb2) {					
-					cashapi.getAccountInfo(req.session.apiToken, acc.id, ["path"], safe.trap_sure_result(cb2,function (info) {
+					cashapi.getAccountInfo(req.session.apiToken, acc._id, ["path"], safe.trap_sure_result(cb2,function (info) {
 						if ((info.path.search(req.query.term)!=-1) && !(acc.hidden) && !(acc.placeholder))
-							tmp[info.path] = {currency:acc.cmdty.id,id:acc.id};
+							tmp[info.path] = {currency:acc.cmdty._id,id:acc._id};
 						cb2();
 					}));
 				}, function (err) {
 					cb1(err, tmp);
-				})
+				});
 			},
 			function (hints, cb1) {				
 				res.send(hints);
@@ -111,15 +108,14 @@ module.exports = function account(webapp) {
 	});
 
 	app.get(webapp.prefix+'/account/:id/getdesc', function(req, res) {
-		var tmp = [];		
 		async.waterfall([
 			function (cb1) {
-				cashapi.getAccountRegister(req.session.apiToken, req.params.id,0,null, cb1);
+				cashapi.getAccountRegister(req.session.apiToken, req.params._id,0,null, cb1);
 			},
 			function (register,cb1) {
 				var tmp = [];
 				async.forEach(register, function (trs,cb2) {
-					cashapi.getTransaction(req.session.apiToken,trs.id, safe.trap_sure_result(cb2,function(tr) {
+					cashapi.getTransaction(req.session.apiToken,trs._id, safe.trap_sure_result(cb2,function(tr) {
 						if (tr.description && tr.description.search(req.query.term)!=-1)
 							tmp.push(tr.description);
 						cb2();
@@ -139,17 +135,17 @@ module.exports = function account(webapp) {
 
 	app.get(webapp.prefix+'/account/:id/getgrid', function(req, res, next) {
 		var data = {sEcho:req.query.sEcho,iTotalRecords:0,iTotalDisplayRecords:0,aaData:[]};
-		var idx=Math.max(req.query.iDisplayStart,0);
-		var count,register,currentAccountPath,accountCurrency;
+		var idx=Math.max(req.query.idisplayStart,0);
+		var count = 0, currentAccountPath = "";
 		async.waterfall([
 			function (cb1) {
-				cashapi.getAccountInfo(req.session.apiToken, req.params.id,["count","path"], cb1);
+				cashapi.getAccountInfo(req.session.apiToken, req.params._id,["count","path"], cb1);
 			},
 			function (data,cb1) {
 				count = data.count;
 				currentAccountPath = data.path;				
-				var limit = Math.min(count-idx,req.query.iDisplayLength);
-				cashapi.getAccountRegister(req.session.apiToken, req.params.id,idx,limit, cb1);
+				var limit = Math.min(count-idx,req.query._idisplayLength);
+				cashapi.getAccountRegister(req.session.apiToken, req.params._id,idx,limit, cb1);
 			},
 			function (register,cb1) {
 				var aids = {}; 
@@ -158,33 +154,33 @@ module.exports = function account(webapp) {
 						aids[recv.accountId] = recv.accountId;
 					});					
 				});
-				aids[req.params.id]	= currentAccountPath;
+				aids[req.params._id]	= currentAccountPath;
 				async.parallel([
 					function (cb2) {
 						var transactions = [];
 						async.forEach(register, function (trs, cb3) {
-							cashapi.getTransaction(req.session.apiToken,trs.id,safe.trap_sure_result(cb3,function (tr) {
+							cashapi.getTransaction(req.session.apiToken,trs._id,safe.trap_sure_result(cb3,function (tr) {
 								transactions.push(tr);								
 							}));
 						}, function (err) {							
-							cb2(err, transactions);
+							cb2(err, _.clone(transactions));
 						});
 					},					
 					function (cb2) {
 						var accInfo = {};											
 						async.forEach(_.keys(aids), function (aid, cb3) {
-							cashapi.getAccount(req.session.apiToken, aid,safe.trap_sure_result(cb3,function(acc) {
-								cashapi.getAccountInfo(req.session.apiToken,aid,['path'], safe.trap_sure_result(cb3,function(info) {
-									accInfo[acc.id] = {id:acc.id,path:info.path,currency:acc.cmdty.id};	
+							cashapi.getAccount(req.session.apiToken, aid, safe.trap_sure(cb3, function(acc) {
+								cashapi.getAccountInfo(req.session.apiToken,aid,['path'], safe.trap_sure_result(cb3, function(info) {
+									accInfo[acc._id] = {_id:acc._id, path:info.path, currency:acc.cmdty._id};	
 								}));														
 							}));
 						}, function (err) {
-							cb2(err, accInfo);
+							cb2(err, _.clone(accInfo));
 						});
 					}
 				], function (err, results) {
-					cb1(err, register, results[0], results[1])
-				})
+					cb1(err, register, results[0], results[1]);
+				});
 			},
 			safe.trap(function (register, transactions, accInfo, cb1) {				
 				var i;
@@ -197,7 +193,7 @@ module.exports = function account(webapp) {
 					var splitsInfo=[];
 					var multicurr = 0;
 					_.forEach(tr.splits,function(split){
-						if(accInfo[split.accountId].currency != accInfo[req.params.id].currency){
+						if(accInfo[split.accountId].currency != accInfo[req.params._id].currency){
 							multicurr = 1;
 						}						
 						split.path = accInfo[split.accountId].path;
@@ -216,12 +212,12 @@ module.exports = function account(webapp) {
 						path += ']';
 					}
 					data.aaData.push({
-						id:tr.id,
+						id:tr._id,
 						date:df.format(dp),
 						num:tr.num ? tr.num : '',
 						description:tr.description,
 						path:path,
-						path_curr: (recv.length==1 && accInfo[recv[0].accountId].currency != accInfo[req.params.id].currency ? accInfo[recv[0].accountId].currency :null),
+						path_curr: (recv.length==1 && accInfo[recv[0].accountId].currency != accInfo[req.params._id].currency ? accInfo[recv[0].accountId].currency :null),
 						rstate: (send.rstate ? send.rstate:"n"),
 						deposit:(send.value>0?sprintf("%.2f",send.value):''),
 						deposit_quantity: (recv.length == 1 && recv[0].quantity<=0?sprintf("%.2f",recv[0].quantity*-1):''),
@@ -236,7 +232,7 @@ module.exports = function account(webapp) {
 				data.iTotalRecords = count;
 				data.iTotalDisplayRecords = count;
 				data.currentDate = df.format(new Date());
-				data.currentAccount = {id:req.params.id,path:currentAccountPath,currency:accInfo[req.params.id].currency};
+				data.currentAccount = {id:req.params._id,path:currentAccountPath,currency:accInfo[req.params._id].currency};
 				res.send(data);
 			})
 		], function (err) {
@@ -247,8 +243,8 @@ module.exports = function account(webapp) {
 	
 	var createTransactionFromData = function(data){
 		var tr={};
-		if(data.id){
-			tr.id = data.id;
+		if(data._id){
+			tr._id = data._id;
 		}
 		var dateFormat = new DateFormat(DateFormat.W3C);
 		var datePosted = dateFormat.format(new Date());	
@@ -282,8 +278,8 @@ module.exports = function account(webapp) {
 				};	
 				if (spl.deposit_quantity != "" || spl.withdrawal_quantity != "")
 					modifiedSplit.quantity = splitQuantity;			
-				if(spl.id && spl.id!=-1){
-					modifiedSplit.id = spl.id;
+				if(spl._id && spl._id!=-1){
+					modifiedSplit._id = spl._id;
 				}
 				tr['splits'].push(modifiedSplit);
 			});			

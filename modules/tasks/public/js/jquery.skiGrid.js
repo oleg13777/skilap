@@ -392,7 +392,7 @@
 					var splitId = -1;
 					var accountId = -1;
 					if(j < splitsLength){	
-						splitId = splits[j].id;
+						splitId = splits[j]._id;
 						accountId = splits[j].accountId;
 						var td = $tr.find('td[name="num"]')[0];
 						var $tdContent = objSettings.colContainerRef.clone();
@@ -692,7 +692,7 @@
 				
 				/* sync split rows with main row data */
 				if($oldSelectedTD.parent().hasClass('mainRow')){										
-					$splitRow = $(rowsContainer.find('tr.splitRow[recordid="'+recordId+'"][accountid!="'+objSettings.currentAccount.id+'"]')[0]);
+					$splitRow = $(rowsContainer.find('tr.splitRow[recordid="'+recordId+'"][accountid!="'+objSettings.currentAccount._id+'"]')[0]);
 					
 					if(oldSelectedName == 'deposit' || oldSelectedName == 'withdrawal'){					
 						var splitColumnName = oldSelectedName == 'deposit' ? 'withdrawal' : 'deposit';
@@ -714,7 +714,7 @@
 							}	
 						}
 						else if(oldSelectedName == 'rstate'){
-							$splitRow = $(rowsContainer.find('tr.splitRow[recordid="'+recordId+'"][accountid="'+objSettings.currentAccount.id+'"]')[0]);
+							$splitRow = $(rowsContainer.find('tr.splitRow[recordid="'+recordId+'"][accountid="'+objSettings.currentAccount._id+'"]')[0]);
 							
 						}
 						$($splitRow.find('td[name="'+oldSelectedName+'"]')[0]).find('.tdContent').text(newColumnVal);
@@ -726,7 +726,7 @@
 						rowsContainer.find('tr.mainRow[recordid="'+recordId+'"] td[name="path"] .tdContent').text('--Multiple--');
 					}
 					else{
-						if(oldSelectedName == 'path' && $oldSelectedTD.parent().attr('accountid') != objSettings.currentAccount.id){
+						if(oldSelectedName == 'path' && $oldSelectedTD.parent().attr('accountid') != objSettings.currentAccount._id){
 							var $mainRowCol = $(rowsContainer.find('tr.mainRow[recordid="'+recordId+'"] td[name="path"]')[0]);
 							$mainRowCol.find('.tdContent').text(newColumnVal);
 							if(objSettings.accounts[newColumnVal].currency != objSettings.currentAccount.currency){
@@ -735,7 +735,7 @@
 							}	
 					
 						}
-						else if(oldSelectedName == 'rstate' && $oldSelectedTD.parent().attr('accountid') == objSettings.currentAccount.id){
+						else if(oldSelectedName == 'rstate' && $oldSelectedTD.parent().attr('accountid') == objSettings.currentAccount._id){
 							rowsContainer.find('tr.mainRow[recordid="'+recordId+'"] td[name="rstate"] .tdContent').text(newColumnVal);
 						}
 						/* add code for sync deposit and withdrawal */

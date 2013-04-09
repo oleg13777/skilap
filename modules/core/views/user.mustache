@@ -7,7 +7,7 @@ $(document).ready(function() {
 			$(".pass").hide();
 		$("#ski_editUser").iframeContainer({src:"{{prefix}}/userprefferences", host:"{{host}}"});
 		{{#user}}
-		$("#ski_editUser").iframeContainer("triggerEvent",{name:'setEditUserDialogData',data:{id:"{{id}}", firstName:"{{firstName}}", lastName:"{{lastName}}", login:"{{login}}"}});
+		$("#ski_editUser").iframeContainer("triggerEvent",{name:'setEditUserDialogData',data:{id:"{{_id}}", firstName:"{{firstName}}", lastName:"{{lastName}}", login:"{{login}}"}});
 		{{/user}}
 		$("#ski_editUser").iframeContainer("open");
 	});
@@ -17,7 +17,7 @@ $(document).ready(function() {
 
 	$("#ski_editPermissions").iframeContainer({src:"{{prefix}}/userpermisions", host:"{{host}}"});
 	$("a[name=\"editPerm\"]").click(function(){
-		$("#ski_editPermissions").iframeContainer("triggerEvent",{name:'setEditPermDialogData',data:{uid:"{{user.id}}", permissions:{{{userPermissions}}} } });
+		$("#ski_editPermissions").iframeContainer("triggerEvent",{name:'setEditPermDialogData',data:{uid:"{{user._id}}", permissions:{{{userPermissions}}} } });
 		$("#ski_editPermissions").iframeContainer("open");
 	})
 

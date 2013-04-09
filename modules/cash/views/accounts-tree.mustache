@@ -41,7 +41,7 @@ $(function() {
 	$(document).on("click", ".deleteAcc", function(e){
 		var accountId = $(this).data('aid');
 		var accName = $('#open'+accountId).text();
-		$("#ski_deleteAccount").iframeContainer("triggerEvent",{name:'setAccountDeleteDialogData',data:{id:accountId,name:accName}});	
+		$("#ski_deleteAccount").iframeContainer("triggerEvent",{name:'setAccountDeleteDialogData',data:{_id:accountId,name:accName}});	
 		$("#ski_deleteAccount").iframeContainer("open");		
 		return false;
 	});

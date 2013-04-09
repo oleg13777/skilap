@@ -19,7 +19,7 @@
 		},
 
 		_create: function() {	
-			//console.log(this.element.attr('id'));
+			console.log(this.element.attr('id'));
 			if(!this.iframeContainer){
 				this.iframeContainer = {};
 			}	
@@ -122,12 +122,12 @@
 			self._isOpen = true;		
 			iframeContainer.show();
 			self.triggerEvent({name:'showDialog'});	
-			$(document).scrollTop(0);
+			$(document).scrollTop(0);		
 			return self;
 		},
 		
-		triggerEvent:function(event){
-			var self = this;
+		triggerEvent:function(event){			
+			var self = this;			
 			if(self._isDialogLoad[self.element.attr('id')]){
 				self._waitLoadCounter[self.element.attr('id')] = 0;	
 				self.iframeContent[self.element.attr('id')].get(0).contentWindow.postMessage(event, "https://"+self.options.host);

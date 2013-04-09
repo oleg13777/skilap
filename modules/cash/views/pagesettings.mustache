@@ -79,7 +79,7 @@ $(function() {
 						options.append($("<option />").val(this.iso).text(this.iso + ' - '+this.country));
 					});			
 					if (res.settings.cmdty)
-						$('#currency option[value="'+res.settings.cmdty.id+'"]').attr('selected', 'selected');
+						$('#currency option[value="'+res.settings.cmdty._id+'"]').attr('selected', 'selected');
 				},
 				failure: function (reason) {
 					alert(reason);

@@ -5,7 +5,7 @@ $(function() {
 		buttons: {
 			"{{#i18n}}Apply{{/i18n}}": function() {
 				var params = {
-						key: 'currency',
+						key: 'currency____',
 						data: {cmdty: {space:"ISO4217",id:$('#acc_curency option:selected').val()}},
 					};
 				var jqXHR = $.ajax({
@@ -33,7 +33,7 @@ $(function() {
 			var p = $(this).parent().position();
 			$(this).parent().css({"top":0,"left":0,"padding":0,"border":0});
 			window.parent.$("body .iframeContainer-ski_editSettings").trigger('openDialog',[w,h,p]);
-			$('#acc_curency option[value="{{values.currency.id}}"]').attr('selected', 'selected');
+			$('#acc_curency option[value="{{values.currency._id}}"]').attr('selected', 'selected');
 		},
 		close:function(e,ui){
 			window.parent.$("body .iframeContainer").trigger('closeDialog');

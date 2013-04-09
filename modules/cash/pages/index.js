@@ -18,16 +18,16 @@ module.exports = function account(webapp) {
 			var det = {};
 			det.cmdty = acc.cmdty;
 			det.name = acc.name;
-			det.id = acc.id;
-			getAssets(token, acc.id,types,data, function (err,childs) {
+			det._id = acc._id;
+			getAssets(token, acc._id,types,data, function (err,childs) {
 				if (err) return cb(err);
 				if (!_(repCmdty).isEqual(det.cmdty))
 					det.quantity = acc.value;
 				var rate = 1;
-				var r = _(data.cmdty).find(function (e) { return e.id==acc.cmdty.id });
+				var r = _(data.cmdty).find(function (e) { return e._id==acc.cmdty._id });
 				if (r!=null)
 					rate = r.rate;
-				det.value = parseFloat(webapp.i18n_cmdtyval(det.cmdty.id,acc.value*rate));
+				det.value = parseFloat(webapp.i18n_cmdtyval(det.cmdty._id,acc.value*rate));
 				det.childs = childs;
 				_(childs).forEach (function (e) {
 					det.value+=e.value;
@@ -63,7 +63,7 @@ module.exports = function account(webapp) {
 					}
 					else {
 						// when absent get default
-						cashapi.getSettings(req.session.apiToken, 'currency', repCmdty, safe.sure(cb, function (defCmdty) {
+						cashapi.getSettings(req.session.apiToken, 'currency____', repCmdty, safe.sure(cb, function (defCmdty) {
 							repCmdty = defCmdty;
 							cb()
 						}))
@@ -93,7 +93,7 @@ module.exports = function account(webapp) {
 						"dep":"filter",
 						"cmd":"api",
 						"ctx":{"a":"each","v":"accounts"},
-						"prm":["cash.getAccountInfo","token","id",["value"]],
+						"prm":["cash.getAccountInfo","token","_id",["value"]],
 						"res":{"a":"merge"}
 					},
 					"cmdty":{
@@ -112,6 +112,7 @@ module.exports = function account(webapp) {
 				}
 				webapp.ctx.runBatch(batch,safe.sure_result(cb, function (_data) {
 					data = _data;
+					console.log(data);
 				}))
 			},
 			function (cb) {

@@ -4,8 +4,8 @@ $(document).ready(function() {
 		position: ["center","center"],
 		buttons: {
 			"{{#i18n}}Apply{{/i18n}}": function() {
-				var id = $("#userid").attr("value");
-				var newUser = { id:id };
+				var _id = $("#userid").attr("value");
+				var newUser = { _id: _id };
 				var perms = [];
 				$('.perm').filter(":checkbox:checked").each(function(index, checkbox) {
 					perms.push($(checkbox).attr("value"));
@@ -45,6 +45,7 @@ $(document).ready(function() {
 	function displayMessage(event){			
 		if(event.data.name == 'setEditPermDialogData') {
 			var permissions = event.data.data.permissions;
+			console.log(permissions);
 			if (permissions) {
 				permissions.forEach(function(perm) {
 					$(".perm[value='"+perm+"']").attr("checked", "checked");

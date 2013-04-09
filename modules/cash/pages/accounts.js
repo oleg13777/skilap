@@ -17,19 +17,19 @@ module.exports = function account(webapp) {
 			var det = {};
 			det.cmdty = acc.cmdty;
 			det.name = acc.name;
-			det.id = acc.id;			
+			det._id = acc._id;			
 			det.path = acc.path.split('::');
 			det.placeholder = acc.placeholder;
 			det.hidden = acc.hidden;
-			getAccountTree(token, acc.id, data, function (err,childs) {
+			getAccountTree(token, acc._id, data, function (err,childs) {
 				if (err) return cb(err);
 				if (!_(repCmdty).isEqual(det.cmdty)) 
 					det.quantity = acc.value;
 				var rate = 1;
-				var r = _(data.cmdty).find(function (e) { return e.id==acc.cmdty.id });
+				var r = _(data.cmdty).find(function (e) { return e._id==acc.cmdty._id });
 				if (r!=null)
 					rate = r.rate;
-				det.value = parseFloat(webapp.i18n_cmdtyval(det.cmdty.id,acc.value*rate));
+				det.value = parseFloat(webapp.i18n_cmdtyval(det.cmdty._id,acc.value*rate));
 				det.childs = childs;
 				_(childs).forEach (function (e) {
 					det.value+=e.value;
@@ -96,7 +96,7 @@ module.exports = function account(webapp) {
 					}
 					else {
 						// when absent get default
-						cashapi.getSettings(req.session.apiToken, 'currency', repCmdty, safe.sure(cb, function (defCmdty) {
+						cashapi.getSettings(req.session.apiToken, 'currency_____', repCmdty, safe.sure(cb, function (defCmdty) {
 							repCmdty = defCmdty;
 							cb()
 						}))
@@ -166,7 +166,7 @@ module.exports = function account(webapp) {
 
 	app.post(prefix+"/accounts/update", function(req, res, next) {
 		var acc = {};
-		acc.id = req.body.id;
+		acc._id = req.body._id;
 		acc.name=req.body.name;
 		acc.parentId=req.body.parentId;
 		acc.type=req.body.type;

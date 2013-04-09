@@ -7,7 +7,7 @@ var df = new DateFormat("MM/dd/yyyy");
 module.exports = function priceeditor(webapp) {
 	var app = webapp.web;
 	var cashapi = webapp.api;
-	var prefix = webapp.prefix
+	var prefix = webapp.prefix;
 	var ctx = webapp.ctx;
 	
 	app.get(prefix + "/priceeditor", safe.trap(function(req, res, next) {	
@@ -15,8 +15,8 @@ module.exports = function priceeditor(webapp) {
 			if(req.query.firstCurr && req.query.secondCurr){				
 				cashapi.getPricesByPair(req.session.apiToken,{from:req.query.firstCurr,to:req.query.secondCurr},safe.trap_sure(next, function(prices) {
 					_.forEach(prices, function (e) {
-						e.fvalue = webapp.i18n_cmdtytext(req.session.apiToken,e.currency,e.value)
-					})
+						e.fvalue = webapp.i18n_cmdtytext(req.session.apiToken,e.currency,e.value);
+					});
 					var paging,pagingPrices;
 					var offset = parseInt(req.query.offset ? req.query.offset : 0);
 					var limit = 10;
@@ -59,8 +59,8 @@ module.exports = function priceeditor(webapp) {
 				var cmdty = {space:"ISO4217",id:req.query.from};
 				var currency = {space:"ISO4217",id:req.query.to};	
 				price = {cmdty:cmdty,currency:currency,date:date,value:req.query.value,source:"edit"};
-				if(req.query.id != 0){
-					price.id = req.query.id;
+				if(req.query._id != 0){
+					price._id = req.query._id;
 				}							
 				cashapi.savePrice(req.session.apiToken,price,safe.trap_sure(next, function(pricen) {
 					pricen.date = df.format(new Date(pricen.date));
@@ -72,10 +72,11 @@ module.exports = function priceeditor(webapp) {
 			}
 			else if(req.query.redrawGraph) {
 				cashapi.getPricesByPair(req.session.apiToken,{from:req.query.from,to:req.query.to},safe.trap_sure(next,function(prices){
+					console.log(prices);
 					var result={};
 					result.data=[];
 					_.forEach(prices,function(price){
-						result.data.push([new Date(price.date).valueOf(),price.value])							
+						result.data.push([new Date(price.date).valueOf(),price.value]);						
 					});	
 					maxPrice = _.max(prices,function(price){
 						return price.value;
@@ -89,7 +90,7 @@ module.exports = function priceeditor(webapp) {
 		else{
 			async.series([
 				function (cb) { 
-					webapp.getUseRangedCurrencies(req.session.apiToken,cb)
+					webapp.getUseRangedCurrencies(req.session.apiToken,cb);
 				},
 				function(cb){
 					webapp.guessTab(req, {pid:'priceeditor',name:ctx.i18n(req.session.apiToken, 'cash', 'Rate Currency Editor'), url:req.url}, cb);

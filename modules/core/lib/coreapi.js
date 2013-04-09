@@ -5,6 +5,8 @@
 var _ = require('underscore');
 var async = require('async');
 var safe = require('safe');
+var ObjectId = require('mongodb').ObjectID;
+var mongo = require('mongodb');
 var SkilapError = require("skilap-utils").SkilapError;
 
 /**
@@ -24,26 +26,26 @@ CoreApi.prototype.getLanguageSync = function(token) {
 	var s = self._sessions[token];
 	if (s!=null)
 		return s.user.language;
-}
+};
 
 CoreApi.prototype.loadData = function (cb) {
 	var self = this;
 	self._ctx.getDB(safe.sure(cb, function (adb) {
 		async.parallel({
 			_core_users:function (cb) {
-				adb.ensure('core_users',{type:'cached_key_map',buffered:true},cb);
+				adb.collection('core_users',cb);
 			},
 			_core_clients:function (cb) {
-				adb.ensure('core_clients',{type:'cached_key_map',buffered:true},cb);
+				adb.collection('core_clients',cb);
 			},
 			_core_systemSettings:function (cb) {
-				adb.ensure('core_system_settings',{type:'cached_key_map',buffered:true},cb);
+				adb.collection('core_system_settings',cb);
 			}
 		}, safe.sure_result(cb, function (results) {
 			_.extend(self,results);
-		}))
-	}))
-}
+		}));
+	}));
+};
 
 /**
  * This should be first call to API. Function will return token that 
@@ -62,7 +64,8 @@ CoreApi.prototype.getApiToken = function (appId, clientId, signature, cb) {
 	// this will later also check that app is known and so on
 	
 	var apiToken = null;
-	var user;
+	var user = null;
+	console.log('clientId ' + clientId);
 
 	async.waterfall([
 		// generate unique id
@@ -73,19 +76,21 @@ CoreApi.prototype.getApiToken = function (appId, clientId, signature, cb) {
 					self._ctx.getRandomString(64, function (err, rnd) {
 						apiToken = rnd;
 						cb2();
-					})
+					});
 				}, function (err) {
 					cb1(err);
-				})
+				});
 		},
 		function (cb1) {
-			self._core_clients.get(clientId,cb1);
+			self._core_clients.findOne({"clientId" : clientId},cb1);
 		},
 		function (client,cb1) {
+			console.log(client);
 			if (client==null) return cb1(null,null);
-			self._core_users.get(client.uid,cb1);
+			self._core_users.findOne({"_id" : client.uid},cb1);
 		},
 		function (user_, cb1) {
+			console.log(user_);
 			if (user_==null) {
 				// guest case
 				self.getSystemSettings("guest", function (err, defaults) {
@@ -93,7 +98,7 @@ CoreApi.prototype.getApiToken = function (appId, clientId, signature, cb) {
 					user = {type:'guest'};
 					_.defaults(user,defaults);
 					cb1();
-				})
+				});
 			} else {
 				user = user_;
 				user.type = 'user';
@@ -102,11 +107,12 @@ CoreApi.prototype.getApiToken = function (appId, clientId, signature, cb) {
 		}
 	], function (err) {
 		if (err) return cb(err);
-		var session = {user:user,clientId:clientId,appId:appId};
+		console.log(user);
+		var session = {user:user, clientId:clientId,appId:appId};
 		self._sessions[apiToken] = session;
 		cb(null, apiToken);
 	});
-}
+};
 
 /**
  * Check permission based on requested options. Option is coma delimited
@@ -120,16 +126,15 @@ CoreApi.prototype.getApiToken = function (appId, clientId, signature, cb) {
  */ 
 CoreApi.prototype.checkPerm = function (token, opts, cb) {
 	var self = this;
-	var perm = opts[0];
 	var session = self._sessions[token];
 	if (!session) 
 		return cb(new SkilapError('Wrong access token','InvalidToken'));
 	if (_.intersection(opts, session.user.permissions).length>0) 
-		cb()
+		cb();
 	else
 		cb(new SkilapError(self._ctx.i18n(token, 'core', 'Access denied')
 			,'AccessDenied'));
-}
+};
 
 /**
  * Get all users
@@ -137,29 +142,23 @@ CoreApi.prototype.checkPerm = function (token, opts, cb) {
  * @param {String} token api token
  * @returns {Array} list of all users
  */
-CoreApi.prototype.getAllUsers = 	function (token, cb) {
+CoreApi.prototype.getAllUsers = function (token, cb) {
 	var self = this;
 
 	async.series ([
-		function start(cb1) {
+		function (cb) {
 			async.parallel([
-				function (cb) { self.checkPerm(token,['core.user.view'],cb) }
-			],cb1);
+				function (cb) { self.checkPerm(token,['core.user.view'],cb); }
+			],cb);
 		}, 
-		function get(cb1) {
-			var users = [];
-			self._core_users.scan(function (err, key, acc) {
-				if (err) cb1(err);
-				if (key) users.push(acc);
-					else cb1(null, users);
-				},
-			true);
-		}], function end(err, results) {
+		function (cb) {
+			self._core_users.find({}).toArray(cb);
+		}], function (err, results) {
 			if (err) return cb(err);
 			cb(null, results[1]);
 		}
-	)
-}
+	);
+};
 
 /**
  * Get session user
@@ -173,28 +172,24 @@ CoreApi.prototype.getUser = function (token, cb) {
 	if (!session) 
 		return cb(new SkilapError('Wrong access token','InvalidToken'));
 	cb(null, _(session.user).clone());
-}
+};
 
 CoreApi.prototype.getUserById = function(token, userId, cb) {
+	console.log('id: ', userId);
 	var self = this;
 
 	async.series ([
-		function start(cb1) {
-			async.parallel([
-				function(cb1) { self.checkPerm(token, ['core.user.view'], cb1) }
-			],cb1);
+		function (cb) {
+			self.checkPerm(token, ['core.user.view'], cb);
 		}, 
-		function get(cb1) {
-			self._core_users.get(userId, function (err, user) {
-				if (err) cb1(err);
-				cb1(null, user);
-			});
-		}], function end(err, results) {
+		function (cb) {
+			self._core_users.findOne({'_id': new ObjectId(userId)}, cb);
+		}], function (err, results) {
 			if (err) return cb(err);
 			cb(null, results[1]);
 		}
-	)
-}
+	);
+};
 
 /**
  * Save user or create new if id is absent
@@ -205,6 +200,8 @@ CoreApi.prototype.getUserById = function(token, userId, cb) {
  * @returns {User} Updated or created user
  */
 CoreApi.prototype.saveUser = function (token, newUser, cb) {
+	console.log('saveUser');
+	console.log(newUser);
 	var self = this;
 	var cUser = null;
 	
@@ -224,36 +221,32 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 		cb();
 	} else {
 		async.series([
-			function checkPermision(cb) { self.checkPerm(token, ['core.user.edit'], cb) },
+			function checkPermision(cb) { self.checkPerm(token, ['core.user.edit'], cb); },
 			function fetchUser(cb) {
-				if (!newUser.id) return cb();
-				self._core_users.get(newUser.id, function (err, user) {
+				if (!newUser._id) return cb();
+				self._core_users.findOne({'_id': new ObjectId(newUser._id)}, function (err, user) {
 					if (err) return cb(err);
 					if (user) {
-						cUser = _(user).clone();
-						cb()
+						cUser = _.clone(user);
+						cb();
 					} else
 						cb(new SkilapError("Invalid user", "GenericError"));
 				});
 			},
 			function makeUser(cb) {
-				if (cUser==null) {
-					self._ctx.getUniqueId(function (err, id) {
-						if (err) return cb(err);
-						cUser = _(newUser).clone();
-						cUser.id = id;
-						cb();
-					})
+				if (cUser == null) {
+					cUser = _(newUser).clone();
 				} else {
 					// if screenName doesn't provided, delete it to recreate automatically
 					var screenName = _.isUndefined(newUser.screenName);
 					_(cUser).extend(newUser);					
 					if (screenName && !_.isUndefined(cUser.screenName) )
 						delete cUser.screenName;
-					cb();
 				}
+				cb();
 			},
 			function validateUser(cb) {
+				console.log(cUser);
 				if (_(cUser.password).isUndefined())
 					return cb(new SkilapError(self._ctx.i18n(token,'core','User must have non empty password'),'InvalidData'));
 				if (cUser.password.length<6)
@@ -268,24 +261,22 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 				if (_(cUser.screenName).isUndefined())
 					// Pupkin V.
 					cUser.screenName = cUser.lastName + " " + cUser.firstName[0] + ".";
-				cb()
+				cb();
 			},
-			function checkUserUniq (cb1) {
-				var unique = true;
-				self._core_users.scan(function (err, key, user) {
-					if (key==null)
-						unique?cb1():cb1(new SkilapError(self._ctx.i18n(token,'core','User log-in is not unique'),'InvalidData'));
-					else {
-						if (user.login == cUser.login && cUser.id!=user.id)
-							unique = false;
-					}
-				},true)
+			function checkUserUniq (cb) {
+				var query = {'login': cUser.login };
+				if (cUser._id)
+					query._id = { $ne : new ObjectId(cUser._id) };
+				self._core_users.findOne(query, safe.sure(cb, function (user) {
+					user?cb(new SkilapError(self._ctx.i18n(token,'core','User log-in is not unique'),'InvalidData')):cb();
+				}));
 			},
 			function updateUser (cb) {
-				self._core_users.put(cUser.id, cUser, cb);
+				if (cUser._id) cUser._id = new ObjectId(cUser._id);
+				self._core_users.save(cUser, cb);
 			},
 			function updateSessionUser(cb) {
-				if (cUser.id==session.user.id) {
+				if (cUser._id == session.user._id) {
 					session.user = cUser;
 				}
 				cb();
@@ -294,7 +285,7 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 			cb(err);
 		});
 	}
-}
+};
 
 /**
  * Log-in user by pass. If succeeded next calls to API will be done
@@ -309,77 +300,70 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 CoreApi.prototype.loginByPass = function (token, login, password, cb ) {
 	var self = this;
 
-	var won = false;
-	self._core_users.scan(function (err, key, user) {
-		if (err) cb1(err);
-		if (key) {
-			if (user.login == login && user.password == password) {
-				user.type = 'user';
-				var s = self._sessions[token];
-				s.user = user;
-				self._core_clients.put(s.clientId,
-					{uid:s.user.id,date:new Date(),appId:s.appId}, function () {});
-				cb(null, user);
-				won = true;
-			}
-		} else {
-			// special case, hardcoded admin user
-			if (login == 'admin' && password == 'skilap') {
-				self._sessions[token].user = {type:'admin',permissions:[],screenName:self._ctx.i18n(token,'core','Ski Master')};
-				self._ctx.getModule('core',function (err, core) {
-					core.getPermissionsList(token, function (err, perm) {
-						self._sessions[token].user.permissions = _(perm).pluck("id");
-						cb(null, self._sessions[token].user);
-					})
-				})
-			} else if (!won)
-				cb(new SkilapError(self._ctx.i18n(token,'core','Log-in failed')
+	// special case, hardcoded admin user
+	if (login == 'admin' && password == 'skilap') {
+		self._sessions[token].user = {type:'admin',permissions:[],screenName:self._ctx.i18n(token,'core','Ski Master'),_id: new ObjectId()};
+		self._ctx.getModule('core',function (err, core) {
+			core.getPermissionsList(token, function (err, perm) {
+				self._sessions[token].user.permissions = _(perm).pluck("id");
+				cb(null, self._sessions[token].user);
+			});
+		});
+		return;
+	}
+	self._core_users.findOne({"login": login, "password": password}, function (err, user) {
+		if (err) return cb(err);
+		if (!user)
+			return cb(new SkilapError(self._ctx.i18n(token,'core','Log-in failed')
 					,'InvalidData'));
-		}
-	},true);
-}
+		user.type = 'user';
+		var s = self._sessions[token];
+		s.user = user;
+		self._core_clients.insert({clientId: s.clientId, uid: s.user._id, date: new Date(), appId: s.appId}, function () { cb(null, user); });
+	});
+};
 
 CoreApi.prototype.logOut = function (token, cb) {
 	var self = this;
 	delete self._sessions[token];
 	cb();
-}
+};
 
 CoreApi.prototype.deleteUser = function(token, userId, cb) {
 	var self = this;
 	async.series ([
-		function start(cb1) {
+		function (cb) {
 			async.parallel([
-				function (cb2) { self.checkPerm(token, ['core.user.edit'], cb2)}
-			],cb1);
+				function (cb) { self.checkPerm(token, ['core.user.edit'], cb); }
+			],cb);
 		}, 
-		function get(cb1) {
-			self._core_users.put(userId, null, cb1);
-		}], function end(err, results) {
-			if (err) return cb(err);
-			cb(null, true);
+		function (cb) {
+			self._core_users.remove({'_id': new ObjectId(userId)}, cb);
+		}], function (err, results) {
+			cb(err, true);
 		}
-	)
-}
+	);
+};
 
 CoreApi.prototype.getSystemSettings = function(id, cb) {
 	var self = this;
 
+	if (id == "guest")
+		return cb(null, {timeZone:0,language:"en_US",permissions:[]});
+
 	async.series ([
 		function get(cb) {
-			self._core_systemSettings.get(id, cb);
+			self._core_systemSettings.findOne({"_id" : new ObjectId(id)}, cb);
 		}], function end(err, results) {
 			if (err) return cb(err);
-			var res = results[0];
-			if (!res) res = {};
-			// TODO: not need to be gardcoded, probably every module have to provide defaults
+			var res = results[0]||{};
+			// TODO: not need to be hardcoded, probably every module have to provide defaults
 			// for setting, but now lets leave it this way
-			if (id=="guest")
-				res = _.defaults(res, {timeZone:0,language:"en_US",permissions:[]});
+			res = _.defaults(res, {timeZone:0,language:"en_US",permissions:[]});
 			cb(null, res);
 		}
-	)
-}
+	);
+};
 
 CoreApi.prototype.saveSystemSettings = function(token, id, settings, cb) {
 	var self = this;
@@ -388,15 +372,15 @@ CoreApi.prototype.saveSystemSettings = function(token, id, settings, cb) {
 			self.checkPerm(token, ['core.sysadmin'], cb);
 		},
 		function (cb) {
-			self.getSystemSettings(id, cb)
+			self.getSystemSettings(id, cb);
 		},
 		function (old, cb) {
 			var s = _.clone(old); 
-			_.extend(s,settings);
-			self._core_systemSettings.put(id, s, cb);
+			_.extend(s, settings);
+			self._core_systemSettings.save(s, cb);
 		}], cb
-	)
-}
+	);
+};
 
 /**
  * Internal init function
@@ -416,17 +400,17 @@ module.exports.init = function (ctx, cb) {
 			res.push({id:'core.user.edit', desc:ctx.i18n(token, 'core', 'Edit system users')});
 			res.push({id:'core.sysadmin', desc:ctx.i18n(token, 'core', 'Edit system parameters')});
 			cb(null,res);
-		}
+		};
 		
 		m.getModuleInfo = function (token, cb) {
 			var i = {};
-			i.name = ctx.i18n(token, 'core', 'Core module')
-			i.desc = ctx.i18n(token, 'core', 'Primary system module. Provides system with common functionality and allows to administer it')
+			i.name = ctx.i18n(token, 'core', 'Core module');
+			i.desc = ctx.i18n(token, 'core', 'Primary system module. Provides system with common functionality and allows to administer it');
 			i.url = '/core/';
-			i.id = 'core';
+			i._id = 'core';
 			cb(null,i);
-		}		
+		};		
 		
 		cb(null, m);
-	})
-}
+	});
+};

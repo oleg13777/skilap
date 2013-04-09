@@ -29,7 +29,6 @@ $(function() {
 			},			
 			"{{#i18n}}Close{{/i18n}}": function() {
 				//$(this).dialog("close");
-				//console.log('closeDialog');
 				window.parent.$("body .iframeContainer").trigger('closeDialog');
 			}
 		},
@@ -55,8 +54,8 @@ $(function() {
 		if (event.origin === "https://{{host}}") {		
 			if(event.data.name == 'setTaskDialogData'){
 				var task = event.data.data[0];
-				if(task.id){			
-					$('#task_id').val(task.id);
+				if(task._id){			
+					$('#task_id').val(task._id);
 				}
 				if(task.dt){
 					$('#task_dt').val(task.dt);

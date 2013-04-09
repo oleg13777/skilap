@@ -3,9 +3,8 @@ var async = require("async");
 module.exports = function account(ctx, app, api, prefix) {
 
 	app.get(prefix+"/users", function(req, res, next) {
-		var t = [];
 		async.waterfall([
-			function (cb) { api.getAllUsers(req.session.apiToken,cb) },
+			function (cb) { api.getAllUsers(req.session.apiToken,cb); },
 			function render (users) {
 				res.render(__dirname+"/../views/users", {prefix:prefix, users: users, header:true, tittle: "Sistem users", host:req.headers.host,pageUsersActive:1});
 			}],
@@ -19,6 +18,6 @@ module.exports = function account(ctx, app, api, prefix) {
 			async.apply(api.saveUser,req.session.apiToken,user),
 		], function (err) {
 			res.redirect(prefix+"/users");
-		})
+		});
 	});
-}
+};

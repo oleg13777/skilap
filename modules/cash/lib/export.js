@@ -72,8 +72,8 @@ module.exports.import = function (fileName, cb){
 		function transpondAccounts(cb) {
 			async.forEachSeries(accounts, function (acc,cb) {
 				self._ctx.getUniqueId(safe.sure(cb, function (id) {
-					aidMap[acc.id]=id;
-					acc.id = id;
+					aidMap[acc._id]=id;
+					acc._id = id;
 					process.nextTick(cb);
 				}))
 			},cb)
@@ -90,12 +90,12 @@ module.exports.import = function (fileName, cb){
 				async.forEachSeries(trn.splits, function (split,cb) {
 					split.accountId = aidMap[split.accountId];
 					self._ctx.getUniqueId(safe.sure(cb, function (id) {
-						split.id = id;
+						split._id = id;
 						process.nextTick(cb);
 					}))
 				}, safe.sure(cb, function () {
 					self._ctx.getUniqueId(safe.sure(cb, function (id) {
-						trn.id = id;
+						trn._id = id;
 						process.nextTick(cb);
 					}))
 				}))
@@ -104,7 +104,7 @@ module.exports.import = function (fileName, cb){
 		function transpondPrices(cb) {
 			async.forEachSeries(prices, function (price,cb) {
 				self._ctx.getUniqueId(safe.sure(function (id) {
-					price.id = id;
+					price._id = id;
 					process.nextTick(cb);
 				}))
 			},cb)
