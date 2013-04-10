@@ -58,6 +58,7 @@ module.exports = function account(webapp) {
 	
 	
 	app.post(webapp.prefix+'/account/:id/addrow', function(req, res, next) {
+		console.log(req.body);
 		var tr = createTransactionFromData(req.body);
 		cashapi.saveTransaction(req.session.apiToken, tr, req.params.id, function(err,trn){
 			if(err){				
@@ -91,7 +92,7 @@ module.exports = function account(webapp) {
 				async.forEach(accounts, function (acc, cb2) {					
 					cashapi.getAccountInfo(req.session.apiToken, acc._id, ["path"], safe.trap_sure_result(cb2,function (info) {
 						if ((info.path.search(req.query.term)!=-1) && !(acc.hidden) && !(acc.placeholder))
-							tmp[info.path] = {currency:acc.cmdty._id,id:acc._id};
+							tmp[info.path] = {currency:acc.cmdty._id, _id:acc._id};
 						cb2();
 					}));
 				}, function (err) {

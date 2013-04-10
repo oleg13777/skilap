@@ -13,7 +13,7 @@ module.exports.getAccount = function (token, id, cb) {
 			],cb);
 		},
 		function get(cb) {
-			self._cash_accounts.findOne({'_id': new self._ctx.ObjectID(id)}, cb);
+			self._cash_accounts.findOne({'_id': new self._ctx.ObjectID(id.toString())}, cb);
 		}], safe.sure_result(cb, function (result) {
 			return result[1];
 		})

@@ -74,6 +74,8 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			}
 			self.getAccount(token,leadAccId,safe.sure_result(cb, function(acc) {
 				leadAcc = acc;
+				console.log(leadAccId);
+				console.log(leadAcc);
 			}));
 		},
 		// fix current user id
@@ -88,7 +90,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			if (debug) { console.log("Before sync on update"); console.log(tr); }
 			console.log(tr);
 			if (tr._id) {
-				self._cash_transactions.findOne({'id': parseInt(tr._id)}, safe.trap_sure_result(cb,function (tr_) {
+				self._cash_transactions.findOne({'id': tr._id}, safe.trap_sure_result(cb,function (tr_) {
 					console.log(tr_);
 					// get all the missing properties from existing transaction except splits
 					var fprops = _.without(_(tr_).keys(),"splits");
@@ -129,10 +131,10 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 					});
 				}));
 			} else {
-				self._ctx.getUniqueId(safe.sure_result(cb, function (id) {
-					trn=tr;
-					trn._id = id;
-				}));
+				trn=tr;
+				trn._id = new self._ctx.ObjectID();
+				console.log(trn);
+				cb();
 			}
 		},
 		// ensue that transaction has currency, this is required
@@ -205,9 +207,8 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			});
 			// simplest, put dis-ballance to missing lead split
 			if (leadAcc && !leadSplit) {
-				self._ctx.getUniqueId(safe.trap_sure_result(cb,function (id) {
-					trn.splits.push({value:-1*value,quantity:-1*value,accountId:leadAcc._id,_id:_id,description:""});
-				}));
+				trn.splits.push({value:-1*value, quantity:-1*value, accountId:leadAcc._id, _id:new self._ctx.ObjectID(), description:""});
+				return cb();
 			}  // when we have two splits we can compensate thru non modified one
 			else if (trn.splits.length==2 && nonEditedSplit ) {
 				var newVal = nonEditedSplit.value-value;
@@ -269,9 +270,8 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			if (debug) { console.log("Before split ids"); console.log(trn);	}
 			async.forEachSeries(trn.splits,function(split,cb){
 				if(split._id) return cb();
-				self._ctx.getUniqueId(safe.sure_result(cb, function (id) {
-					split._id = id;
-				}));
+				split._id = new self._ctx.ObjectID();
+				cb();
 			},cb);
 		},
 		// final verification
