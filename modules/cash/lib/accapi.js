@@ -13,6 +13,7 @@ module.exports.getAccount = function (token, id, cb) {
 			],cb);
 		},
 		function get(cb) {
+			console.log(id);
 			self._cash_accounts.findOne({'_id': new self._ctx.ObjectID(id.toString())}, cb);
 		}], safe.sure_result(cb, function (result) {
 			return result[1];
@@ -188,7 +189,7 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 				cursor.each(safe.trap_sure(cb, function (tr) {
 					if (tr == null) {
 						// scan done, propagate changes
-						self._cash_transactions.remove({'id': { $in: updates }}, cb);
+						self._cash_transactions.remove({'_id': { $in: updates }}, cb);
 					} else {
 						// collecte transactions that need to be altered
 						_(tr.splits).forEach(function (split) {
@@ -223,7 +224,7 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 							cursor.each(safe.trap_sure(cb, function (tr) {
 								if (tr == null) {
 									// scan done, propagate changes
-									self._cash_transactions.remove({'id': { $in: updates }}, cb);
+									self._cash_transactions.remove({'_id': { $in: updates }}, cb);
 								} else {
 									// collecte transactions that need to be altered
 									_(tr.splits).forEach(function (split) {
@@ -239,13 +240,13 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 						}));
 					},
 					function (cb) {
-						self._cash_accounts.remove({'id': { $in: _.map(childs, function(ch) { return ch._id;}) }}, cb);
+						self._cash_accounts.remove({'_id': { $in: _.map(childs, function(ch) { return ch._id;}) }}, cb);
 					}
 				],cb1);
 			}
 		},
 		function deleteAcc(cb1) {
-			self._cash_accounts.remove({'id': parseInt(accId)}, cb1);
+			self._cash_accounts.remove({'_id': new self._ctx.ObjectID(accId)}, cb1);
 		}
 	], safe.sure_result(cb, function () {
 		self._calcStats(function () {});
