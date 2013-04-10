@@ -57,7 +57,7 @@ TasksWeb.prototype.guessTab = function (req, ti,cb) {
 		function (user_, cb) {
 			user = user_;
 			if (user.type!='guest')
-				self._tasks_userviews.findOne({'id': user._id}, cb);
+				self._tasks_userviews.findOne({'_id': user._id}, cb);
 			else
 				cb(null,{});
 		},
@@ -101,7 +101,7 @@ TasksWeb.prototype.removeTabs = function (token, tabIds, cb) {
 		},
 		function (user_, cb) {
 			user = user_;
-			self._tasks_userviews.findOne({'id': user._id}, cb);
+			self._tasks_userviews.findOne({'_id': user._id}, cb);
 		},
 		safe.trap(function (views, cb) {
 			if (views==null)

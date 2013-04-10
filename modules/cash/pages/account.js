@@ -46,7 +46,7 @@ module.exports = function account(webapp) {
 		});
 	});	
 	
-	app.post(webapp.prefix+'/account/:id/updaterow', function(req, res, next) {	
+	app.post(webapp.prefix+'/account/:id/updaterow', function(req, res, next) {
 		var tr = createTransactionFromData(req.body);
 		cashapi.saveTransaction(req.session.apiToken, tr, req.params.id, function(err,trn){
 			if(err){				
@@ -245,8 +245,8 @@ module.exports = function account(webapp) {
 	
 	var createTransactionFromData = function(data){
 		var tr={};
-		if(data._id){
-			tr._id = data._id;
+		if(data.id){
+			tr._id = data.id;
 		}
 		var dateFormat = new DateFormat(DateFormat.W3C);
 		var datePosted = dateFormat.format(new Date());	
@@ -280,8 +280,8 @@ module.exports = function account(webapp) {
 				};	
 				if (spl.deposit_quantity != "" || spl.withdrawal_quantity != "")
 					modifiedSplit.quantity = splitQuantity;			
-				if(spl._id && spl._id!=-1){
-					modifiedSplit._id = spl._id;
+				if(spl.id && spl.id!=-1){
+					modifiedSplit._id = spl.id;
 				}
 				tr['splits'].push(modifiedSplit);
 			});			

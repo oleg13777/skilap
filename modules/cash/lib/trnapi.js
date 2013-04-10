@@ -74,8 +74,6 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			}
 			self.getAccount(token,leadAccId,safe.sure_result(cb, function(acc) {
 				leadAcc = acc;
-				console.log(leadAccId);
-				console.log(leadAcc);
 			}));
 		},
 		// fix current user id
@@ -90,7 +88,8 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			if (debug) { console.log("Before sync on update"); console.log(tr); }
 			console.log(tr);
 			if (tr._id) {
-				self._cash_transactions.findOne({'id': tr._id}, safe.trap_sure_result(cb,function (tr_) {
+				self._cash_transactions.findOne({'_id': new self._ctx.ObjectID(tr._id)}, safe.trap_sure_result(cb,function (tr_) {
+					console.log('found!!!!!!!!!!!!');
 					console.log(tr_);
 					// get all the missing properties from existing transaction except splits
 					var fprops = _.without(_(tr_).keys(),"splits");
@@ -133,6 +132,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			} else {
 				trn=tr;
 				trn._id = new self._ctx.ObjectID();
+				console.log('Not found!!!!!!!!!');
 				console.log(trn);
 				cb();
 			}
@@ -310,9 +310,9 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 		}),
 		// sanify transaction
 		safe.trap(function (cb) {
-			var str = _(trn).pick(["id","datePosted","dateEntered","currency","splits","description","num"]);
+			var str = _(trn).pick(["_id","datePosted","dateEntered","currency","splits","description","num"]);
 			for (var i=0; i<str.splits.length; i++) {
-				var split = _(str.splits[i]).pick("id","value","quantity","rstate","description","accountId","num");
+				var split = _(str.splits[i]).pick("_id","value","quantity","rstate","description","accountId","num");
 				str.splits[i]= split;
 			}
 			trn = str;
@@ -378,7 +378,7 @@ module.exports.clearTransactions = function (token, ids, cb) {
 				],cb);
 			},
 			function(cb){
-				self._cash_transactions.remove({'id': {$in: _.map(ids, function (e) {return parseInt(e); })}}, cb);
+				self._cash_transactions.remove({'_id': {$in: ids}}, cb);
 			}
 		], safe.sure_result(cb, function () {
 			self._calcStats(function () {});

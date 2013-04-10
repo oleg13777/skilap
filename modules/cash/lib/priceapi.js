@@ -78,7 +78,7 @@ module.exports.savePrice = function (token,price,cb) {
 		}, 
 		function (cb) {					
 			if (price._id) {
-				self._cash_transactions.findOne({'id': parseInt(price._id)},safe.sure_result(cb, function (price_) {
+				self._cash_transactions.findOne({'_id': new self._ctx.ObjectID(price._id)},safe.sure_result(cb, function (price_) {
 					pricen = _.extend(price,price_);
 				}));		
 			} else {
@@ -122,7 +122,7 @@ module.exports.clearPrices = function (token, ids, cb) {
 				],cb);
 			},
 			function(cb){
-				self._cash_prices.remove({'id': {$in: ids}}, cb);
+				self._cash_prices.remove({'_id': {$in: ids}}, cb);
 			} 
 		], safe.sure_result(cb, function () {
 			self._calcStats(function () {});

@@ -175,7 +175,6 @@
 			var activeDepositVal = '';
 			var activeWithdrawalVal = '';
 			if(path_currency == activeCurrency){
-				console.log(activeCurrency);
 				$(this).text(objSettings.currentAccount.currency);
 				activeDepositVal = $depositCol.attr('data-value');
 				activeWithdrawalVal = $withdrawalCol.attr('data-value');				
@@ -393,6 +392,7 @@
 					var splitId = -1;
 					var accountId = -1;
 					if(j < splitsLength){	
+						console.log(splits[j]);
 						splitId = splits[j]._id;
 						accountId = splits[j].accountId;
 						var td = $tr.find('td[name="num"]')[0];
@@ -583,9 +583,7 @@
 		var $prevInput = $(objSettings.gridWrapper.find('td.ski_selected input')[0]);		
 		if($prevInput && $prevInput.parents('td.account').length > 0 && !$col.hasClass('ski_selected')){
 			if(objSettings.accounts){
-				console.log(objSettings.accounts);				
 				var currentAcc = $prevInput.val();	
-				console.log(currentAcc);
 				console.log($col.parent().data('multisplit'));			
 				if(currentAcc != "" && !objSettings.accounts[currentAcc] && (!$col.parent().data('multisplit') ||  $col.parent().data('multisplit') && $col.parent().data('multisplit')*1 != 1)){									
 					$("#ski_dialog-confirm-create-account p.text").text('The account "'+currentAcc+'" does not exist. Would you like to create it?');
@@ -693,7 +691,7 @@
 				
 				/* sync split rows with main row data */
 				if($oldSelectedTD.parent().hasClass('mainRow')){										
-					$splitRow = $(rowsContainer.find('tr.splitRow[recordid="'+recordId+'"][accountid!="'+objSettings.currentAccount._id+'"]')[0]);
+					$splitRow = $(rowsContainer.find('tr.splitRow[recordid="'+recordId+'"][accountid!="'+objSettings.currentAccount.id+'"]')[0]);
 					
 					if(oldSelectedName == 'deposit' || oldSelectedName == 'withdrawal'){					
 						var splitColumnName = oldSelectedName == 'deposit' ? 'withdrawal' : 'deposit';
@@ -708,7 +706,7 @@
 					}
 					else if(oldSelectedName != 'description' && oldSelectedName != 'num'){						
 						if(oldSelectedName == 'path'){
-							$splitRow.attr('accountid',objSettings.accounts[newColumnVal]._id);
+							$splitRow.attr('accountid',objSettings.accounts[newColumnVal].id);
 							if(objSettings.accounts[newColumnVal].currency != objSettings.currentAccount.currency){
 								$pathCol = $($splitRow.find('td[name="path"]')[0]);
 								$pathCol.attr('data-path_curr',objSettings.accounts[newColumnVal].currency);
@@ -716,7 +714,7 @@
 							}	
 						}
 						else if(oldSelectedName == 'rstate'){
-							$splitRow = $(rowsContainer.find('tr.splitRow[recordid="'+recordId+'"][accountid="'+objSettings.currentAccount._id+'"]')[0]);
+							$splitRow = $(rowsContainer.find('tr.splitRow[recordid="'+recordId+'"][accountid="'+objSettings.currentAccount.id+'"]')[0]);
 							
 						}
 						$($splitRow.find('td[name="'+oldSelectedName+'"]')[0]).find('.tdContent').text(newColumnVal);
@@ -731,7 +729,7 @@
 						if(oldSelectedName == 'path'){
 							$oldSelectedTD.parent().attr('accountid',objSettings.accounts[newColumnVal]);
 						}
-						if(oldSelectedName == 'path' && $oldSelectedTD.parent().attr('accountid') != objSettings.currentAccount._id){
+						if(oldSelectedName == 'path' && $oldSelectedTD.parent().attr('accountid') != objSettings.currentAccount.id){
 							var $mainRowCol = $(rowsContainer.find('tr.mainRow[recordid="'+recordId+'"] td[name="path"]')[0]);
 							$mainRowCol.find('.tdContent').text(newColumnVal);
 							if(objSettings.accounts[newColumnVal].currency != objSettings.currentAccount.currency){
@@ -740,12 +738,14 @@
 							}	
 					
 						}
-						else if(oldSelectedName == 'rstate' && $oldSelectedTD.parent().attr('accountid') == objSettings.currentAccount._id){
+						else if(oldSelectedName == 'rstate' && $oldSelectedTD.parent().attr('accountid') == objSettings.currentAccount.id){
 							rowsContainer.find('tr.mainRow[recordid="'+recordId+'"] td[name="rstate"] .tdContent').text(newColumnVal);
 						}
 						/* add code for sync deposit and withdrawal */
 					}
 				}
+				console.log('zxc');
+				console.log(oldSelectedName);
 				switch(oldSelectedName){
 					case 'date':									
 						rowData[oldSelectedName] = newColumnVal;
@@ -769,7 +769,6 @@
 					applyColumnAttrsForSplitRow($tr,parseInt($oldSelectedTD.parent().attr('splitid'))-1,null,objSettings);
 					$oldSelectedTD.parent().after($tr.addClass('splitRow').attr('recordId',$oldSelectedTD.parent().attr('recordId')));
 				}
-				console.log(rowData);			
 			}						
 		}
 	};	
@@ -798,7 +797,9 @@
 		});				
 	};
 	
-	function processRowUpdate(objSettings,cb){		
+	function processRowUpdate(objSettings,cb){	
+		console.log('aaaa');
+		console.log(objSettings.rowEditedData);
 		var rowEditedData = $.extend({},objSettings.rowEditedData);
 		var isNotNeededUpdate = true;
 		for(key in rowEditedData){
