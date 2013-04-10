@@ -12,7 +12,7 @@ module.exports.getAccountRegister = function (token, accId, offset, limit, cb ) 
 			],cb);
 		},
 		safe.trap(function (cb) {
-			var accStats = self._stats[accId];
+			var accStats = self._stats[new self._ctx.ObjectID(accId)];
 			if (limit==null) {
 				if (offset==0 || offset == null)
 					cb(null, accStats.trDateIndex);
@@ -39,7 +39,7 @@ module.exports.getTransaction = function (token, trId, cb) {
 			],cb);
 		},
 		function (cb1) {
-			self._cash_transactions.findOne({'_id': new self._ctx.ObjectID(trId)}, cb1);
+			self._cash_transactions.findOne({'_id': trId}, cb1);
 		}
 	], safe.sure(cb, function (results) {
 		cb(null,results[1]);
