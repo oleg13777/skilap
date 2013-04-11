@@ -95,6 +95,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 					var fprops = _.without(_(tr_).keys(),"splits");
 					var ftr = _.pick(tr_,fprops);
 					trn = _(tr).defaults(ftr);
+					trn._id = new self._ctx.ObjectID(tr._id);
 					// now we have to adjust splits
 					_(trn.splits).forEach(function (split) {
 						split.isModified = true;

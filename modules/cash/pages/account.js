@@ -19,7 +19,6 @@ module.exports = function account(webapp) {
 				cashapi.getAccountInfo(req.session.apiToken, req.query.id,['count','path','verbs'], cb1);
 			},
 			function (data, cb1) {	
-				console.log(data);
 				count = data.count;
 				verbs = data.verbs;
 				webapp.guessTab(req, {pid:'acc'+req.query.id, name:data.path,url:req.url}, cb1);
@@ -58,7 +57,6 @@ module.exports = function account(webapp) {
 	
 	
 	app.post(webapp.prefix+'/account/:id/addrow', function(req, res, next) {
-		console.log(req.body);
 		var tr = createTransactionFromData(req.body);
 		cashapi.saveTransaction(req.session.apiToken, tr, req.params.id, function(err,trn){
 			if(err){				
@@ -160,11 +158,11 @@ module.exports = function account(webapp) {
 				async.parallel([
 					function (cb2) {
 						var transactions = [];
-						async.forEach(register, function (trs, cb3) {
+						async.forEachSeries(register, function (trs, cb3) {
 							cashapi.getTransaction(req.session.apiToken,trs._id,safe.trap_sure_result(cb3,function (tr) {
 								transactions.push(tr);								
 							}));
-						}, function (err) {							
+						}, function (err) {				
 							cb2(err, _.clone(transactions));
 						});
 					},					

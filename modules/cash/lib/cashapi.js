@@ -231,7 +231,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 	async.auto({
 		price_tree: function (cb1) {
 			self._stats.priceTree = {};
-			self._cash_prices.find({}, function(err, cursor) {
+			self._cash_prices.find({}, {sort: {_id: 1}}, function(err, cursor) {
 				if (err) return cb1(err);
 				cursor.each(function(err, price) {
 					if (err || !price) return cb1(err);
@@ -273,7 +273,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 			});
 		},
 		account_paths: function (cb1) {
-			self._cash_accounts.find({}, function(err, cursor) {
+			self._cash_accounts.find({}, {sort: {_id: 1}}, function(err, cursor) {
 				if (err) return cb1(err);
 				cursor.each(function(err, acc) {
 					if (err || !acc) return cb1(err);
@@ -289,7 +289,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		},
 		transaction_stats: ['account_paths',function (cb1) {
 			console.time("Test");
-			self._cash_transactions.find({}, function (err, cursor) {
+			self._cash_transactions.find({}, {sort: {dateEntered: 1}}, function (err, cursor) {
 				if (err) return cb1(err);
 				cursor.each(function (err, tr) {
 					if (err || !tr) return cb1(err);
@@ -298,7 +298,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 						var act = assetInfo[accStats.type].act;								
 						accStats.value+=split.quantity*act;
 						accStats.count++;
-						accStats.trDateIndex.push({_id:tr._id,date:(new Date(tr.dateEntered))});
+						accStats.trDateIndex.push({_id:tr._id, date:(new Date(tr.dateEntered))});
 					});
 				});
 			});
@@ -309,8 +309,6 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 				var accStats = self._stats[accId];
 				if (_.isUndefined(accStats.type))
 					return cb2(); // not an account stats
-				// sort by date
-				accStats.trDateIndex = _.sortBy(accStats.trDateIndex,function (e) { return e.date.valueOf(); });
 				var ballance = 0;
 				if (assetInfo[accStats.type]==null)
 					console.log(accStats);

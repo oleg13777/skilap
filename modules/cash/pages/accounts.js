@@ -11,7 +11,7 @@ module.exports = function account(webapp) {
 
 	function getAccountTree(token, id, data, cb) {
 		// filter this level data
-		var level = _(data.accounts).filter(function (e) { return e.parentId == id; });
+		var level = _(data.accounts).filter(function (e) { return e.parentId.toString() == id.toString(); });
 		var res = [];
 		_(level).forEach (function (acc) {
 			var det = {};
@@ -60,7 +60,7 @@ module.exports = function account(webapp) {
 				"dep":"accounts",
 				"cmd":"api",
 				"ctx":{"a":"each","v":"accounts"},
-				"prm":["cash.getAccountInfo","token","id",["value","path"]],
+				"prm":["cash.getAccountInfo","token","_id",["value","path"]],
 				"res":{"a":"merge"}
 			},
 			"cmdty":{
@@ -84,7 +84,7 @@ module.exports = function account(webapp) {
 		var assets,curencies,assetsTypes;		
 		var settings = {key:'accounts_tree_page'};
 		async.series({
-			tabs:function (cb) {				
+			tabs:function (cb) {	
 				webapp.guessTab(req, {pid:'accounts-tree',name:ctx.i18n(req.session.apiToken, 'cash', 'Accounts'), url:req.url},cb);
 			},
 			currency:function getPageCurrency(cb) {
@@ -98,15 +98,15 @@ module.exports = function account(webapp) {
 						// when absent get default
 						cashapi.getSettings(req.session.apiToken, 'currency_____', repCmdty, safe.sure(cb, function (defCmdty) {
 							repCmdty = defCmdty;
-							cb()
-						}))
+							cb();
+						}));
 					}
 				}));
 			},
 			assets:function (cb) {
 				getAccountList(req.session.apiToken, safe.sure(cb, function (data) {
 					getAccountTree(req.session.apiToken,0,data, cb);
-				}))
+				}));
 			}
 		}, function (err, r) {
 			if (err) return next(err);
