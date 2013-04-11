@@ -180,7 +180,7 @@
 						var to =  $(this).find("#to").val();
 						var jqXHR = $.ajax({
 							url:"{{prefix}}/priceeditor",
-							data:{mode:mode,date:date,value:rate,from:from,to:to,_id:_id},
+							data:{mode:mode,date:date,value:rate,from:from,to:to,id:id},
 							dataType:"html"
 						});
 						jqXHR.done(function(data){
@@ -220,7 +220,7 @@
 					"{{#i18n}}Delete{{/i18n}}": function() {
 						var jqXHR = $.ajax({
 							url:"{{prefix}}/priceeditor",
-							data:{deleteId:_id},
+							data:{deleteId:id},
 							dataType:"json"								
 						});
 						jqXHR.done(function(data){

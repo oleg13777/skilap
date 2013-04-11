@@ -125,19 +125,19 @@ module.exports = function (fileName, cb){
 		"CMDTY:ID":function(){
 			switch(path[path.length-1]){
 				case "ACT:COMMODITY":
-					acc.cmdty._id = nodetext;
+					acc.cmdty.id = nodetext;
 				break;
 				case "TRN:CURRENCY":
-					tr.currency._id = nodetext;
+					tr.currency.id = nodetext;
 				break;
 				case "PRICE:COMMODITY":
-					price.cmdty._id = nodetext;
+					price.cmdty.id = nodetext;
 				break;
 				case "PRICE:CURRENCY":
-					price.currency._id = nodetext;
+					price.currency.id = nodetext;
 				break;
 				case "CUST:CURRENCY":
-					defCurrency._id = nodetext;
+					defcurrency.id = nodetext;
 				break;				
 			}			
 		},

@@ -442,7 +442,7 @@ module.exports = function account(webapp) {
 				accLevel:2,
 				accLevelOptions:[{name:'All'},{name:1},{name:2},{name:3},{name:4},{name:5},{name:6}],
 				version: reportSettingsVersion,
-				reportCurrency:repCmdty._id
+				reportCurrency:repcmdty.id
 			};
 		return defaultSettings;
 	}

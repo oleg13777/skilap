@@ -270,6 +270,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 		function (cb) {
 			if (debug) { console.log("Before split ids"); console.log(trn);	}
 			async.forEachSeries(trn.splits,function(split,cb){
+				if (split.accountId) split.accountId = new self._ctx.ObjectID(split.accountId.toString());
 				if(split._id) return cb();
 				split._id = new self._ctx.ObjectID();
 				cb();
@@ -311,7 +312,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 		}),
 		// sanify transaction
 		safe.trap(function (cb) {
-			var str = _(trn).pick(["_id","datePosted","dateEntered","currency","splits","description","num"]);
+			var str = _(trn).pick(["_id","datePosted","dateEntered","currency","splits","description","num","uid"]);
 			for (var i=0; i<str.splits.length; i++) {
 				var split = _(str.splits[i]).pick("_id","value","quantity","rstate","description","accountId","num");
 				str.splits[i]= split;
@@ -321,6 +322,8 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 		}),
 		// finally save or update
 		function(cb){
+			trn.datePosted = new Date(trn.datePosted);
+			trn.dateEntered = new Date(trn.dateEntered);
 			if (debug) { console.log("Before save"); console.log(trn);	}
 			self._cash_transactions.save(trn, cb);
 		}

@@ -7,7 +7,7 @@ module.exports.getCmdtyPrice = function (token,cmdty,currency,date,method,cb) {
 	var self = this;
 	if (_(cmdty).isEqual(currency)) return cb(null,1);
 	// not sure what template means
-	if (cmdty._id=='template') return cb(null,1);
+	if (cmdty.id=='template') return cb(null,1);
 	async.series ([
 		function start(cb) {
 			async.parallel([
@@ -16,7 +16,7 @@ module.exports.getCmdtyPrice = function (token,cmdty,currency,date,method,cb) {
 			],cb);
 		}, 
 		function get(cb) {
-			var key = (cmdty.space+cmdty._id+currency.space+currency._id);			
+			var key = (cmdty.space+cmdty.id+currency.space+currency.id);			
 			//console.log(key);
 			var ptree = self._stats.priceTree[key];
 			if (ptree==null) {
@@ -42,22 +42,7 @@ module.exports.getPricesByPair = function (token,pair,cb) {
 			], cb);
 		}, 
 		function get(cb) {
-			self._cash_prices.find({'cmdty._id': pair.from, 'currency._id': pair.to}).sort({'date': -1}).toArray(cb);
-			/*
-			var prices = [];
-			self._cash_prices.scan(function (err, key, price) {
-				if (err) cb(err);
-				if (key) { 
-					if (price.cmdty._id == pair.from && price.currency._id == pair.to){
-						prices.push(price);							
-					}
-				}
-				else {
-					prices = _.sortBy(prices, function(price){ return -new Date(price.date).valueOf() });
-					cb(null, prices);
-				}
-			}, true);
-			*/
+			self._cash_prices.find({'cmdty.id': pair.from, 'currency.id': pair.to}).sort({'date': -1}).toArray(cb);
 		}], safe.sure(cb, function (results) {
 			process.nextTick( function () {
 				cb(null, results[1]);
@@ -80,12 +65,11 @@ module.exports.savePrice = function (token,price,cb) {
 			if (price._id) {
 				self._cash_transactions.findOne({'_id': new self._ctx.ObjectID(price._id)},safe.sure_result(cb, function (price_) {
 					pricen = _.extend(price,price_);
+					pricen._id = new self._ctx.ObjectID(price._id);
 				}));		
 			} else {
-				self._ctx.getUniqueId(safe.sure_result(cb,function (id) {
-					pricen = price;					
-					pricen._id = id;
-				}));
+				pricen = price;					
+				pricen._id = new self._ctx.ObjectID();
 			}
 		}, 
 		function (cb) {			

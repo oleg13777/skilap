@@ -26,10 +26,10 @@ module.exports = function account(webapp) {
 				if (!_(repCmdty).isEqual(det.cmdty)) 
 					det.quantity = acc.value;
 				var rate = 1;
-				var r = _(data.cmdty).find(function (e) { return e._id==acc.cmdty._id });
+				var r = _(data.cmdty).find(function (e) { return e._id==acc.cmdty.id });
 				if (r!=null)
 					rate = r.rate;
-				det.value = parseFloat(webapp.i18n_cmdtyval(det.cmdty._id,acc.value*rate));
+				det.value = parseFloat(webapp.i18n_cmdtyval(det.cmdty, acc.value*rate));
 				det.childs = childs;
 				_(childs).forEach (function (e) {
 					det.value+=e.value;

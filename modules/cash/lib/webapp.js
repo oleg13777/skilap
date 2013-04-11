@@ -204,10 +204,10 @@ CashWeb.prototype.getUseRangedCurrencies = function(token, cb) {
 CashWeb.prototype.i18n_cmdtytext = function(langtoken,cmdty,value) {
 	var self = this;
 	if (cmdty.space == 'ISO4217')
-		return self.ctx.i18n_cytext(langtoken,cmdty._id,value);
+		return self.ctx.i18n_cytext(langtoken,cmdty.id,value);
 	else {
 		var res = self.ctx.i18n_cytext(langtoken,'USD',value);
-		res.replace('USD',cmdty._id);
+		res.replace('USD',cmdty.id);
 		return res;
 	}
 };
@@ -215,7 +215,7 @@ CashWeb.prototype.i18n_cmdtytext = function(langtoken,cmdty,value) {
 CashWeb.prototype.i18n_cmdtyval = function(cmdty,value) {
 	var self = this;
 	if (cmdty.space == 'ISO4217')
-		return self.ctx.i18n_cyval(cmdty._id,value);
+		return self.ctx.i18n_cyval(cmdty.id,value);
 	else 
 		return self.ctx.i18n_cyval('USD',value);
 };

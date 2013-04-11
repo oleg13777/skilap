@@ -11,7 +11,8 @@ module.exports = function priceeditor(webapp) {
 	var ctx = webapp.ctx;
 	
 	app.get(prefix + "/priceeditor", safe.trap(function(req, res, next) {	
-		if(req.xhr){				
+		if(req.xhr){	
+			console.log(req.query);
 			if(req.query.firstCurr && req.query.secondCurr){				
 				cashapi.getPricesByPair(req.session.apiToken,{from:req.query.firstCurr,to:req.query.secondCurr},safe.trap_sure(next, function(prices) {
 					_.forEach(prices, function (e) {
@@ -59,9 +60,10 @@ module.exports = function priceeditor(webapp) {
 				var cmdty = {space:"ISO4217",id:req.query.from};
 				var currency = {space:"ISO4217",id:req.query.to};	
 				price = {cmdty:cmdty,currency:currency,date:date,value:req.query.value,source:"edit"};
-				if(req.query._id != 0){
-					price._id = req.query._id;
-				}							
+				if(req.query.id != 0){
+					price._id = req.query.id;
+				}	
+				console.log(price);
 				cashapi.savePrice(req.session.apiToken,price,safe.trap_sure(next, function(pricen) {
 					pricen.date = df.format(new Date(pricen.date));
 					res.partial(__dirname+"/../views/priceeditor_tr",pricen);

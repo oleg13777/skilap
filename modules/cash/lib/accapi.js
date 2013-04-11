@@ -84,7 +84,7 @@ module.exports.getSpecialAccount = function (token,type,cmdty,cb) {
 	var self = this;
 	var name = "";
 	if (type == "disballance")
-		name = self._ctx.i18n(token, 'cash', 'Disballance') + "_" + cmdty._id;
+		name = self._ctx.i18n(token, 'cash', 'Disballance') + "_" + cmdty.id;
 	else
 		return cb(new Error("Unsupported type"));
 
@@ -415,6 +415,7 @@ module.exports.saveAccount = function (token, account, cb) {
 		function (id, cb) {
 			console.log('save');
 			account._id = id;
+			if (account.parentId) account.parentId = new self._ctx.ObjectID(account.parentId.toString());
 			console.log(account);
 			self._cash_accounts.save(account, cb);
 		}], safe.sure_result(cb,function (result) {
@@ -444,7 +445,7 @@ module.exports.getAllCurrencies = function(token,cb){
 					self._cash_accounts.find({}, safe.trap_sure(cb, function (cursor) {
 						cursor.each(safe.trap_sure(cb, function (acc) {
 							if (acc)
-								usedCurrencies[acc.cmdty._id] = acc.cmdty;
+								usedCurrencies[acc.cmdty.id] = acc.cmdty;
 							else 
 								cb(null, usedCurrencies);
 						}));
