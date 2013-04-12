@@ -71,6 +71,7 @@ module.exports.savePrice = function (token,price,cb) {
 				pricen = price;					
 				pricen._id = new self._ctx.ObjectID();
 			}
+			cb();
 		}, 
 		function (cb) {			
 			self._cash_prices.save(pricen, cb);			

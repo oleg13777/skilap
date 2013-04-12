@@ -31,7 +31,6 @@ module.exports = function (fileName, cb){
 	var prices = [];
 	var accMap = {};
 	var path = [];
-	var gluid = 1;
 	var gluMap = {};
 	var rootId = null;
 	var slot = {};
@@ -53,8 +52,7 @@ module.exports = function (fileName, cb){
 			split = {};
 		},
 		"PRICE":function(){
-			price = {id:gluid,cmdty:{},currency:{}};
-			gluid++;
+			price = {_id:new self._ctx.ObjectID(),cmdty:{},currency:{}};
 		},
 		"SLOT":function(){
 			slot = {};
@@ -89,9 +87,9 @@ module.exports = function (fileName, cb){
 			tr.num = nodetext;
 		},
 		"TRN:ID":function(){
-			gluMap[nodetext]=gluid;
-			tr._id = gluid;
-			gluid++;
+			var _id = new self._ctx.ObjectID();
+			gluMap[nodetext]=_id;
+			tr._id = _id;
 		},		
 		"TS:DATE":function(){
 			switch(path[path.length-1]) {
@@ -113,9 +111,9 @@ module.exports = function (fileName, cb){
 			acc.type = nodetext;
 		},
 		"ACT:ID":function(){
-			gluMap[nodetext]=gluid;
-			acc._id = gluid; 
-			gluid++;
+			var _id = new self._ctx.ObjectID();
+			gluMap[nodetext]=_id;
+			acc._id = _id; 
 		},
 		"ACT:PARENT":function(){
 			acc.parentId = gluMap[nodetext];
@@ -179,9 +177,9 @@ module.exports = function (fileName, cb){
 			split.memo = nodetext;
 		},
 		"SPLIT:ID":function(){
-			gluMap[nodetext]=gluid;
-			split._id = gluid; 
-			gluid++;
+			var _id = new self._ctx.ObjectID();
+			gluMap[nodetext]=_id;
+			split._id = _id; 
 		},
 		"SPLIT:ACCOUNT":function(){
 			split.accountId = gluMap[nodetext];

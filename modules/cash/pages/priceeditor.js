@@ -63,6 +63,7 @@ module.exports = function priceeditor(webapp) {
 				if(req.query.id != 0){
 					price._id = req.query.id;
 				}	
+				console.log("price");
 				console.log(price);
 				cashapi.savePrice(req.session.apiToken,price,safe.trap_sure(next, function(pricen) {
 					pricen.date = df.format(new Date(pricen.date));
@@ -74,6 +75,7 @@ module.exports = function priceeditor(webapp) {
 			}
 			else if(req.query.redrawGraph) {
 				cashapi.getPricesByPair(req.session.apiToken,{from:req.query.from,to:req.query.to},safe.trap_sure(next,function(prices){
+					console.log("prices");
 					console.log(prices);
 					var result={};
 					result.data=[];
