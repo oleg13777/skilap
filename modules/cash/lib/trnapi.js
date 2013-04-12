@@ -349,9 +349,9 @@ module.exports.getTransactionsInDateRange = function (token, range, cb) {
 			self._cash_transactions.find({datePosted: {$gt: startDate, $lt: endDate}}).toArray(cb);
 //			var stream = self._cash_transactions.find({datePosted: {$range: [startDate.valueOf(),endDate.valueOf(),range[2],range[3]]}}).stream();
 		})],
-		safe.sure(cb, function () {
+		safe.sure(cb, function (res) {
 			process.nextTick(function () {
-				cb(null, res);
+				cb(null, res[1]);
 			});
 		})
 	);

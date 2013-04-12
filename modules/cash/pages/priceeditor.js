@@ -12,7 +12,6 @@ module.exports = function priceeditor(webapp) {
 	
 	app.get(prefix + "/priceeditor", safe.trap(function(req, res, next) {	
 		if(req.xhr){	
-			console.log(req.query);
 			if(req.query.firstCurr && req.query.secondCurr){				
 				cashapi.getPricesByPair(req.session.apiToken,{from:req.query.firstCurr,to:req.query.secondCurr},safe.trap_sure(next, function(prices) {
 					_.forEach(prices, function (e) {
@@ -63,8 +62,6 @@ module.exports = function priceeditor(webapp) {
 				if(req.query.id != 0){
 					price._id = req.query.id;
 				}	
-				console.log("price");
-				console.log(price);
 				cashapi.savePrice(req.session.apiToken,price,safe.trap_sure(next, function(pricen) {
 					pricen.date = df.format(new Date(pricen.date));
 					res.partial(__dirname+"/../views/priceeditor_tr",pricen);
@@ -75,8 +72,6 @@ module.exports = function priceeditor(webapp) {
 			}
 			else if(req.query.redrawGraph) {
 				cashapi.getPricesByPair(req.session.apiToken,{from:req.query.from,to:req.query.to},safe.trap_sure(next,function(prices){
-					console.log("prices");
-					console.log(prices);
 					var result={};
 					result.data=[];
 					_.forEach(prices,function(price){
