@@ -1,0 +1,26 @@
+<div class="row">
+	<div class="span6 offset3">
+		<form id='login' class="form-horizontal" method='post' action='/login'>
+			<legend>{{#i18n}}Please login{{/i18n}}</legend>
+		
+			<input type='hidden' name='success' value='{{success}}'/>
+			<div class="control-group">
+				<label class="control-label">{{#i18n}}Login{{/i18n}}:</label>
+				<div class="controls">
+					<input type='text' name='name' >		
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">{{#i18n}}Password{{/i18n}}:</label>
+				<div class="controls">
+					<input type='password' name='password'>
+				</div>
+			</div>
+			<div class="controls">			
+				<div class="btn-group">
+					<button type='submit' class="btn clear" >{{#i18n}}Login{{/i18n}}</button>
+				</div>
+			</div>			
+		</form>
+	</div>
+</div>

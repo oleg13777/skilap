@@ -1,0 +1,23 @@
+{{#with user}}
+<table class="table" id="user_prefs">
+	<tbody>
+		{{#when type '!=' 'guest'}}	
+		<tr>
+			<td>{{#i18n}}First name{{/i18n}}</td><td>{{firstName}}</td>
+		</tr>
+		<tr>
+			<td>{{#i18n}}Last name{{/i18n}}</td><td>{{lastName}}</td>
+		</tr>
+		<tr>
+			<td>{{#i18n}}Login{{/i18n}}</td><td>{{login}}</td>
+		</tr>
+		{{/when}}
+		<tr>
+			<td>{{#i18n}}Gui language{{/i18n}}</td><td>{{language}}</td>
+		</tr>
+		<tr>
+			<td>{{#i18n}}Timezone{{/i18n}}</td><td>{{timeZone}}</td>
+		</tr>
+	</tbody>
+</table>
+{{/with}}

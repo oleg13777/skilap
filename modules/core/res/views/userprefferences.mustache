@@ -1,0 +1,153 @@
+<script type="text/javascript">
+$(document).ready(function() {
+	$("#changePass").click(function(){
+		$(".pass").toggle();
+	});
+	$("#editPrefferences").dialog({
+		position: ["left","top"],
+		buttons: {
+			"{{#i18n}}Apply{{/i18n}}": function() {
+				var self = $(this);
+				var updUser = {
+					_id: $("#uid").val(),
+					firstName: $("#firstName").val(),
+					lastName: $("#lastName").val(),
+					login: $("#login").val(),
+					timeZone: $("#timezone option:selected").val(),
+					language: $("#language option:selected").val()
+				};
+				if ($("#changePass").is(":checked")) {
+					updUser.password = $("#password").val();
+				}
+				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
+				rpc.call('core.saveUser', $("#token").val(), updUser, {
+					success: function (data) {
+						window.parent.$("body").trigger('accountEditSuccess');
+					},
+					failure: function (reason) {
+						alert(reason);
+					}
+				});
+				window.parent.$("body .iframeContainer").trigger('closeDialog');
+			},			
+			"{{#i18n}}Close{{/i18n}}": function() {
+				window.parent.$("body .iframeContainer").trigger('closeDialog');
+			}
+		},
+		open:function(e,ui){			
+			if ($("#changePass").is(":checked"))
+				$(".pass").show();
+			else
+				$(".pass").hide();
+			var w = $(this).parent().width();
+			var h = $(this).parent().height();
+			var p = $(this).parent().position();
+			console.log(w);
+			console.log(h);
+			console.log(p);
+			$(this).parent().css({"top":0,"left":0,"padding":0,"border":0});
+			window.parent.$("body .iframeContainer-ski_editUser").trigger('openDialog',[w,h,p]);						
+		},
+		close:function(e,ui){
+			window.parent.$("body .iframeContainer").trigger('closeDialog');			
+		},
+		autoOpen: true,
+		resizable: false,
+		height: 400,
+		width: 620,
+		modal: true,
+		draggable: false
+	});	
+	
+	function displayMessage(event){			
+		if(event.data.name == 'setEditUserDialogData') {
+			var user = event.data.data;
+			$('#uid').val(user._id);
+			$('#firstName').val(user.firstName);
+			$('#lastName').val(user.lastName);
+			$('#login').val(user.login);
+		}
+		else if(event.data.name == 'showDialog') {		
+			$("#editPrefferences").dialog('open');
+		}
+	}
+	if (window.addEventListener) {	
+		window.addEventListener("message", displayMessage, false);
+	}
+	else {
+		window.attachEvent("onmessage", displayMessage);
+	}
+});
+</script>
+<div id="editPrefferences" title="{{#i18n}}Account prefferences{{/i18n}}" class="dialog" style="width: 600; height: 200px;">
+	<form>
+	<input id="token" type="hidden" value="{{apiToken}}">
+	<input id="uid" type="hidden" value="{{_id}}">
+	<table>
+		{{#user.loggedin}}	
+		<tr>
+			<td>{{#i18n}}First name{{/i18n}}</td><td><input id="firstName" type="text"></td>
+		</tr>
+		<tr>
+			<td>{{#i18n}}Last name{{/i18n}}</td><td><input id="lastName" type="text"></td>
+		</tr>
+		<tr>
+			<td>{{#i18n}}Login{{/i18n}}</td><td><input id="login" type="text"></td>
+		</tr>
+		<tr>
+			<td>{{#i18n}}Change password{{/i18n}}</td><td><input type="checkbox" id="changePass"></td>
+		</tr>
+		<tr class="pass">
+			<td>{{#i18n}}Password{{/i18n}}</td><td><input id="password" type="password"></td>
+		</tr>
+		{{/user.loggedin}}				
+		<tr>
+			<td>{{#i18n}}Gui language{{/i18n}}</td>
+			<td>
+				<select id="language">
+					<option value="ru_RU">{{#i18n}}Russian{{/i18n}}</option>
+					<option value="en_US">{{#i18n}}English{{/i18n}}</option>
+				<select>
+			</td>
+		</tr>
+		<tr>
+			<td>{{#i18n}}Timezone{{/i18n}}</td>
+			<td>
+				<select id="timezone">
+					  <option value="-12.0">(GMT -12:00) Eniwetok, Kwajalein</option>
+					  <option value="-11.0">(GMT -11:00) Midway Island, Samoa</option>
+					  <option value="-10.0">(GMT -10:00) Hawaii</option>
+					  <option value="-9.0">(GMT -9:00) Alaska</option>
+					  <option value="-8.0">(GMT -8:00) Pacific Time (US &amp; Canada)</option>
+					  <option value="-7.0">(GMT -7:00) Mountain Time (US &amp; Canada)</option>
+					  <option value="-6.0">(GMT -6:00) Central Time (US &amp; Canada), Mexico City</option>
+					  <option value="-5.0">(GMT -5:00) Eastern Time (US &amp; Canada), Bogota, Lima</option>
+					  <option value="-4.0">(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz</option>
+					  <option value="-3.5">(GMT -3:30) Newfoundland</option>
+					  <option value="-3.0">(GMT -3:00) Brazil, Buenos Aires, Georgetown</option>
+					  <option value="-2.0">(GMT -2:00) Mid-Atlantic</option>
+					  <option value="-1.0">(GMT -1:00 hour) Azores, Cape Verde Islands</option>
+					  <option value="0.0">(GMT) Western Europe Time, London, Lisbon, Casablanca</option>
+					  <option value="1.0">(GMT +1:00 hour) Brussels, Copenhagen, Madrid, Paris</option>
+					  <option value="2.0">(GMT +2:00) Kaliningrad, South Africa</option>
+					  <option value="3.0">(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburg</option>
+					  <option value="3.5">(GMT +3:30) Tehran</option>
+					  <option value="4.0">(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi</option>
+					  <option value="4.5">(GMT +4:30) Kabul</option>
+					  <option value="5.0">(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent</option>
+					  <option value="5.5">(GMT +5:30) Bombay, Calcutta, Madras, New Delhi</option>
+					  <option value="5.75">(GMT +5:45) Kathmandu</option>
+					  <option value="6.0">(GMT +6:00) Almaty, Dhaka, Colombo</option>
+					  <option value="7.0">(GMT +7:00) Bangkok, Hanoi, Jakarta</option>
+					  <option value="8.0">(GMT +8:00) Beijing, Perth, Singapore, Hong Kong</option>
+					  <option value="9.0">(GMT +9:00) Tokyo, Seoul, Osaka, Sapporo, Yakutsk</option>
+					  <option value="9.5">(GMT +9:30) Adelaide, Darwin</option>
+					  <option value="10.0">(GMT +10:00) Eastern Australia, Guam, Vladivostok</option>
+					  <option value="11.0">(GMT +11:00) Magadan, Solomon Islands, New Caledonia</option>
+					  <option value="12.0">(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka</option>
+				</select>
+			</td>
+		</tr>
+	</table>
+	</form>
+</div>

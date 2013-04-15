@@ -1,0 +1,52 @@
+<div class="row">
+	<div class="span6">
+		<h2>{{#i18n}}Your prefferences{{/i18n}}</h2>
+		{{#user.perm.core_me_edit}}<a href="javascript:void(0):" id="edit-pref">{{#i18n}}edit{{/i18n}}</a>{{/user.perm.core_me_edit}}
+		{{>user_prefs}}
+	</div>
+	<div class="span6">
+		<h2>{{#i18n}}Your permissions{{/i18n}}</h2>
+		{{#user.perm.core_user_edit}}<a href="javascript:void(0);" name="editPerm">{{#i18n}}edit{{/i18n}}</a>{{/user.perm.core_user_edit}}
+		<hr class="no-margin-top">
+		{{#permissions}}
+			<h4>{{module}}:</h4>
+			{{#perm}}
+				&nbsp;&nbsp;&nbsp;{{.}}<br />
+			{{/perm}}
+		{{/permissions}}
+	</div>
+</div>
+<script>
+require(["jquery","jquery-block"], function($){
+	$(function(e) {
+		$("#edit-pref").on("click", function() {
+			$this = $(this);
+			var $me = $(this).parent()
+			$me.block();
+			(function (cb) {
+				require(['api','clitpl','safe','bootstrap'], function (api,tf,safe) {
+					api.call('core.getUser', safe.sure(cb, function (user) {
+						tf.render('user_prefs_edit', {luser:user}, safe.sure(cb,function(text, ctx) {
+							$me.unblock();														
+							$("body").append(text);
+							var $modal = $("#"+ctx.uniq).modal();
+							$modal.on("frm-saved", function (user) {
+								tf.render('user_prefs',{}, safe.sure(cb, function(text) {
+									$me.find("#user_prefs").remove();
+									$this.after(text)
+									$modal.modal('hide')
+									cb();									
+								}))
+							})
+						}))
+					}))
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$me.unblock();
+			})
+			return false;
+		})
+	})
+})
+</script>
