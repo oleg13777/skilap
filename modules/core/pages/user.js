@@ -1,9 +1,13 @@
 var async = require("async");
 var _ = require('underscore');
 
-module.exports = function account(ctx, app, api, prefix) {
+module.exports = function account(webapp) {
+	var app = webapp.web;
+	var ctx = webapp._ctx;
+	var prefix = webapp.prefix;
+	var api = webapp;		
 
-	app.get(prefix+"/userprefferences", function(req, res, next) {
+	app.get(prefix+"/userprefferences", webapp.layout(), function(req, res, next) {
 		async.waterfall([
 			function render () {
 				var rdata = {
@@ -11,7 +15,7 @@ module.exports = function account(ctx, app, api, prefix) {
 						mainLayoutHide:1,
 						host:req.headers.host						
 					};
-				res.render(__dirname+"/../views/userprefferences", rdata);
+				res.render(__dirname+"/../res/views/userprefferences", rdata);
 			}],
 			next
 		);
@@ -32,13 +36,13 @@ module.exports = function account(ctx, app, api, prefix) {
 						host:req.headers.host,
 						mInfo:mInfo
 					};
-				res.render(__dirname+"/../views/userpermisions", rdata);
+				res.render(__dirname+"/../res/views/userpermisions", rdata);
 			}],
 			next
 		);
 	});
 	
-	app.get(prefix+"/user", function(req, res, next) {
+	app.get(prefix+"/user", webapp.layout(), function(req, res, next) {
 		async.waterfall([
 			function (cb1) {
 				async.parallel([
@@ -60,12 +64,11 @@ module.exports = function account(ctx, app, api, prefix) {
 				cb1(null, permissions, modulesInfo, user.permissions);
 			},
 			function (permissions, mInfo, userPerm, cb1) {
-				var rdata = {prefix:prefix, header:true, token:req.session.apiToken, host:req.headers.host, permissions:permissions, mInfo:mInfo, userPermissions:JSON.stringify(userPerm),pageUserActive:1};
+				var rdata = {permissions:permissions, mInfo:mInfo, userPermissions:JSON.stringify(userPerm),pageUserActive:1};
 				cb1(null, rdata);
 			},
 			function render (data) {
-				console.log(data);
-				res.render(__dirname+"/../views/user", data);
+				res.render(__dirname+"/../res/views/user", data);
 			}],
 			next
 		);

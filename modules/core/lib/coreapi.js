@@ -6,6 +6,9 @@ var _ = require('underscore');
 var async = require('async');
 var safe = require('safe');
 var SkilapError = require("skilap-utils").SkilapError;
+var vstatic = require('pok_utils').vstatic;
+var handlebarsMiddleware = require('pok_utils').handlebarsMiddleware;
+var lessMiddleware = require('less-middleware');
 
 /**
  * Private helper class to store context
@@ -17,6 +20,7 @@ function CoreApi(ctx) {
 	this._core_users = null;
 	this._core_clients = null;
 	this._core_systemSettings = null;
+	this.prefix = "/core";
 }
 
 CoreApi.prototype.getLanguageSync = function(token) {
@@ -83,12 +87,10 @@ CoreApi.prototype.getApiToken = function (appId, clientId, signature, cb) {
 			self._core_clients.findOne({"clientId" : clientId},cb1);
 		},
 		function (client,cb1) {
-			console.log(client);
 			if (client==null) return cb1(null,null);
 			self._core_users.findOne({"_id" : client.uid},cb1);
 		},
 		function (user_, cb1) {
-			console.log(user_);
 			if (user_==null) {
 				// guest case
 				self.getSystemSettings("guest", function (err, defaults) {
@@ -105,7 +107,6 @@ CoreApi.prototype.getApiToken = function (appId, clientId, signature, cb) {
 		}
 	], function (err) {
 		if (err) return cb(err);
-		console.log(user);
 		var session = {user:user, clientId:clientId,appId:appId};
 		self._sessions[apiToken] = session;
 		cb(null, apiToken);
@@ -198,8 +199,6 @@ CoreApi.prototype.getUserById = function(token, userId, cb) {
  * @returns {User} Updated or created user
  */
 CoreApi.prototype.saveUser = function (token, newUser, cb) {
-	console.log('saveUser');
-	console.log(newUser);
 	var self = this;
 	var cUser = null;
 	
@@ -244,7 +243,6 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 				cb();
 			},
 			function validateUser(cb) {
-				console.log(cUser);
 				if (_(cUser.password).isUndefined())
 					return cb(new SkilapError(self._ctx.i18n(token,'core','User must have non empty password'),'InvalidData'));
 				if (cUser.password.length<6)
@@ -274,7 +272,7 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 				self._core_users.save(cUser, cb);
 			},
 			function updateSessionUser(cb) {
-				if (cUser._id == session.user._id) {
+				if (cUser._id.toString() == session.user._id.toString()) {
 					session.user = cUser;
 				}
 				cb();
@@ -380,6 +378,15 @@ CoreApi.prototype.saveSystemSettings = function(token, id, settings, cb) {
 	);
 };
 
+CoreApi.prototype.layout = function () {
+	var self = this;
+	return function (req,res,next) {
+		res.locals.layout = "layout";
+		res.locals.prefix = "/core";
+		next()
+	}
+}
+
 /**
  * Internal init function
  * @ignore
@@ -408,6 +415,19 @@ module.exports.init = function (ctx, cb) {
 			i._id = 'core';
 			cb(null,i);
 		};		
+		
+		m.initWeb = function (webapp, cb) {
+			var self = api;
+			self.web = webapp;
+			self.web.use(lessMiddleware({dest: __dirname + '/../public/css', src: __dirname + '/../res/less', prefix:'/core/css/'}));
+			self.web.use(handlebarsMiddleware({dest: __dirname + '/../public/hbs', src: __dirname + '/../res/views', prefix:'/core/hbs/'}));
+			self.web.use(vstatic(__dirname + '/../public',{vpath:"/core"}));
+			require("../pages/index")(self);	
+			require("../pages/user")(self);	
+			require("../pages/users")(self);	
+			require("../pages/systemsettings")(self);	
+			cb();
+		}		
 		
 		cb(null, m);
 	});
