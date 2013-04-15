@@ -13,7 +13,6 @@ module.exports.getAccount = function (token, id, cb) {
 			],cb);
 		},
 		function get(cb) {
-			console.log(id);
 			self._cash_accounts.findOne({'_id': new self._ctx.ObjectID(id.toString())}, cb);
 		}], safe.sure_result(cb, function (result) {
 			return result[1];
@@ -413,10 +412,8 @@ module.exports.saveAccount = function (token, account, cb) {
 				cb(null, new self._ctx.ObjectID());
 		},
 		function (id, cb) {
-			console.log('save');
 			account._id = id;
 			if (account.parentId) account.parentId = new self._ctx.ObjectID(account.parentId.toString());
-			console.log(account);
 			self._cash_accounts.save(account, cb);
 		}], safe.sure_result(cb,function (result) {
 			self._calcStats(function () {});

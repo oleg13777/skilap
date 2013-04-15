@@ -67,7 +67,6 @@ CoreApi.prototype.getApiToken = function (appId, clientId, signature, cb) {
 	
 	var apiToken = null;
 	var user = null;
-	console.log('clientId ' + clientId);
 
 	async.waterfall([
 		// generate unique id
@@ -174,7 +173,6 @@ CoreApi.prototype.getUser = function (token, cb) {
 };
 
 CoreApi.prototype.getUserById = function(token, userId, cb) {
-	console.log('id: ', userId);
 	var self = this;
 
 	async.series ([

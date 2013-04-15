@@ -175,7 +175,6 @@
 			var activeDepositVal = '';
 			var activeWithdrawalVal = '';
 			if(path_currency == activeCurrency){
-				console.log(activeCurrency);
 				$(this).text(objSettings.currentAccount.currency);
 				activeDepositVal = $depositCol.attr('data-value');
 				activeWithdrawalVal = $withdrawalCol.attr('data-value');				
@@ -582,10 +581,7 @@
 		var $prevInput = $(objSettings.gridWrapper.find('td.ski_selected input')[0]);		
 		if($prevInput && $prevInput.parents('td.account').length > 0 && !$col.hasClass('ski_selected')){
 			if(objSettings.accounts){
-				console.log(objSettings.accounts);				
 				var currentAcc = $prevInput.val();	
-				console.log(currentAcc);
-				console.log($col.parent().data('multisplit'));			
 				if(currentAcc != "" && !objSettings.accounts[currentAcc] && (!$col.parent().data('multisplit') ||  $col.parent().data('multisplit') && $col.parent().data('multisplit')*1 != 1)){									
 					$("#ski_dialog-confirm-create-account p.text").text('The account "'+currentAcc+'" does not exist. Would you like to create it?');
 					$("#ski_dialog-confirm-create-account").dialog({
@@ -764,7 +760,6 @@
 					applyColumnAttrsForSplitRow($tr,parseInt($oldSelectedTD.parent().attr('splitid'))-1,null,objSettings);
 					$oldSelectedTD.parent().after($tr.addClass('splitRow').attr('recordId',$oldSelectedTD.parent().attr('recordId')));
 				}
-				console.log(rowData);			
 			}						
 		}
 	};	
@@ -1211,7 +1206,6 @@
 	};
 	
 	function getSelectedCurrency($col){
-		console.log('currency= '+$col.parents('tr').find('td[name="path"] .ski_currencyFlag').text());
 		return $col.parents('tr').find('td[name="path"] .ski_currencyFlag').text();
 	};
 	
@@ -1249,7 +1243,6 @@
 	};
 	
 	function checkToNeedSaveNewTr($col,objSettings){
-		console.log('checkToNeed');		
 		if($col.parents('.ski_newTrContainer').length > 0){							
 			objSettings.needSaveNewTr = true;
 		}		

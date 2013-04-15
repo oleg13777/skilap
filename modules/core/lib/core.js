@@ -64,13 +64,11 @@ function Skilap() {
 							self.getRandomString(128, function (err, rnd) { clientId = rnd; });
 							res.cookie('skilapid',clientId, { maxAge: 1000*60*60*24*5, path: '/' });
 							res.cookie('sguard','1', { maxAge: 1000*60*60*24*5, path: '/', secure:true });
-//							console.log(clientId);
 						}
 						async.series([
 							function ensureToken (cb3) {
 								if (req.session.apiToken==null) {
 									console.log('cookies');
-									console.log(req.cookies['skilapid']);
 									modules['core'].api.getApiToken('default',req.cookies['skilapid']||clientId,'fake',function (err, apiToken) {
 										req.session.apiToken = apiToken;
 										cb3();
@@ -125,7 +123,6 @@ function Skilap() {
 							var result = false;
 							
 							try {
-								console.log(JSON.stringify(lvalue)+op+JSON.stringify(rvalue));
 								result = eval(JSON.stringify(lvalue)+op+JSON.stringify(rvalue));
 							} catch (err) {
 							}

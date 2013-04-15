@@ -231,7 +231,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 	async.auto({
 		price_tree: function (cb1) {
 			self._stats.priceTree = {};
-			self._cash_prices.find({}, {sort: {_id: 1}}, function(err, cursor) {
+			self._cash_prices.find({}, function(err, cursor) {
 				if (err) return cb1(err);
 				cursor.each(function(err, price) {
 					if (err || !price) return cb1(err);
@@ -273,7 +273,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 			});
 		},
 		account_paths: function (cb1) {
-			self._cash_accounts.find({}, {sort: {_id: 1}}, function(err, cursor) {
+			self._cash_accounts.find({}, function(err, cursor) {
 				if (err) return cb1(err);
 				cursor.each(function(err, acc) {
 					if (err || !acc) return cb1(err);
@@ -289,6 +289,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		},
 		transaction_stats: ['account_paths',function (cb1) {
 			console.time("Test");
+			var ballances = [];
 			self._cash_transactions.find({}, {sort: {dateEntered: 1}}, function (err, cursor) {
 				if (err) return cb1(err);
 				cursor.each(function (err, tr) {
@@ -298,13 +299,31 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 						var act = assetInfo[accStats.type].act;								
 						accStats.value+=split.quantity*act;
 						accStats.count++;
-						accStats.trDateIndex.push({_id:tr._id, date:(new Date(tr.dateEntered))});
+						var trs = {_id:tr._id, date:new Date(tr.dateEntered), ballance: 0};
+						accStats.trDateIndex.push(trs);
+						//!!!!
+						var accId = split.accountId;
+						if (!ballances[accId])
+							ballances[accId] = 0;
+						var recv = [];
+						var send = null;
+						tr.splits.forEach(function(split) {
+							if (split.accountId == accId)
+								send = split;
+							else
+								recv.push(split);
+						});
+						trs.recv = recv; trs.send = send;
+						ballances[accId] += send.quantity*act;
+						trs.ballance = ballances[accId];
+						//!!!!
 					});
 				});
 			});
-		}],
+		}]},
+		/*
 		build_register:['transaction_stats', function (cb1) {
-			console.timeEnd("Test");
+			console.time("Test1");
 			async.forEach (_.keys(self._stats), function (accId, cb2) {
 				var accStats = self._stats[accId];
 				if (_.isUndefined(accStats.type))
@@ -331,7 +350,9 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 				},cb2);
 			},cb1);
 		}]},
+		*/
 		function done (err) {
+			console.timeEnd("Test");
 			console.timeEnd("Stats");
 			if (err) console.log(err);
 			self._dataReady=true;
