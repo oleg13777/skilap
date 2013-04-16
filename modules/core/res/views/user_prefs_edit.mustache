@@ -119,10 +119,12 @@ require(["jquery","jquery-block"],function($){
 						timeZone: $("#timeZone option:selected").val(),
 						language: $("#language option:selected").val()
 					};		
+					if (user._id.length==0)
+						delete user._id;
 					if ($("#changePass").is(":checked")) {
 						user.password = $form.find("#password").val();
 					}					
-					api.call('core.saveUser', user, safe.sure(cb, function () {
+					api.call('core.saveUser', user, safe.sure(cb, function (user) {
 						$form.trigger("frm-saved",user);
 					}))
 				},cb)

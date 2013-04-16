@@ -276,7 +276,7 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 				cb();
 			}
 		], function (err,res) {
-			cb(err);
+			cb(err,cUser);
 		});
 	}
 };
