@@ -55,9 +55,10 @@ module.exports = function account(webapp) {
 				_(modulesInfo).each(function(info){
 					var tmp = {module:info.name, perm:[]};
 					_(info.permissions).each(function(perm){
-						if (_(user.permissions).indexOf(perm.id) >= 0) {
-							tmp.perm.push(perm.desc);
-						}
+						if (_(user.permissions).indexOf(perm.id) >= 0)
+							tmp.perm.push({id: perm.id, desc: perm.desc, val: true});
+						else
+							tmp.perm.push({id: perm.id, desc: perm.desc, val: false});
 					});
 					permissions.push(tmp);
 				});

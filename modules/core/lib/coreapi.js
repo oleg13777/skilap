@@ -383,7 +383,39 @@ CoreApi.prototype.layout = function () {
 		res.locals.prefix = "/core";
 		next()
 	}
-}
+};
+
+CoreApi.prototype.getUserPermissions = function(token, userId, cb) {
+	var self = this;
+
+	async.waterfall([
+ 		function (cb) {
+			self.checkPerm(token, ['core.user.view'], cb);
+		}, 
+		function (cb1) {
+			async.parallel([
+				function (cb2) { self._ctx.getModulesInfo(token, cb2) },
+				function (cb2) { self._core_users.findOne({'_id': new self._ctx.ObjectID(userId)}, cb2) }
+			], function (err, result) { cb1(err, result[0], result[1])});
+		},
+		function (modulesInfo, user, cb1) {
+			var permissions = [];
+			_(modulesInfo).each(function(info){
+				var tmp = {module:info.name, perm:[]};
+				_(info.permissions).each(function(perm){
+					if (_(user.permissions).indexOf(perm.id) >= 0)
+						tmp.perm.push({id: perm.id, desc: perm.desc, val: true});
+					else
+						tmp.perm.push({id: perm.id, desc: perm.desc, val: false});
+				});
+				permissions.push(tmp);
+			});
+			cb1(null, permissions);
+		}], cb
+	);
+};
+
+
 
 /**
  * Internal init function

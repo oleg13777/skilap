@@ -6,14 +6,8 @@
 	</div>
 	<div class="span6">
 		<h2>{{#i18n}}Your permissions{{/i18n}}</h2>
-		{{#user.perm.core_user_edit}}<a href="javascript:void(0);" name="editPerm">{{#i18n}}edit{{/i18n}}</a>{{/user.perm.core_user_edit}}
-		<hr class="no-margin-top">
-		{{#permissions}}
-			<h4>{{module}}:</h4>
-			{{#perm}}
-				&nbsp;&nbsp;&nbsp;{{.}}<br />
-			{{/perm}}
-		{{/permissions}}
+		{{#user.perm.core_user_edit}}<a href="javascript:void(0);" id="edit-perm">{{#i18n}}edit{{/i18n}}</a>{{/user.perm.core_user_edit}}
+		{{>user_perm}}
 	</div>
 </div>
 <script>
@@ -38,6 +32,38 @@ require(["jquery","jquery-block"], function($){
 									cb();									
 								}))
 							})
+						}))
+					}))
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$me.unblock();
+			})
+			return false;
+		})
+		$("#edit-perm").on("click", function() {
+			$this = $(this);
+			var $me = $(this).parent()
+			$me.block();
+			(function (cb) {
+				require(['api','clitpl','safe','bootstrap'], function (api,tf,safe) {
+					api.call('core.getUser', safe.sure(cb, function (user) {
+						api.call('core.getUserPermissions', user._id, safe.sure(cb, function (permissions) {
+							tf.render('user_perm_edit', {permissions: permissions, luser: user}, safe.sure(cb,function(text, ctx) {
+								$me.unblock();														
+								$("body").append(text);
+								var $modal = $("#"+ctx.uniq).modal();
+								$modal.on("frm-saved", function (permissions) {
+									api.call('core.getUserPermissions', user._id, safe.sure(cb, function (permissions) {
+										tf.render('user_perm',{permissions: permissions, user: user}, safe.sure(cb, function(text) {
+											$me.find("#user_perm").remove();
+											$this.after(text)
+											$modal.modal('hide')
+											cb();									
+										}))
+									}))
+								})
+							}))
 						}))
 					}))
 				},cb)
