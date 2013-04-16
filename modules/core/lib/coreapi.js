@@ -63,7 +63,6 @@ CoreApi.prototype.getApiToken = function (appId, clientId, signature, cb) {
 	
 	var apiToken = null;
 	var user = null;
-	console.log('clientId ' + clientId);
 
 	async.waterfall([
 		// generate unique id
@@ -83,12 +82,10 @@ CoreApi.prototype.getApiToken = function (appId, clientId, signature, cb) {
 			self._core_clients.findOne({"clientId" : clientId},cb1);
 		},
 		function (client,cb1) {
-			console.log(client);
 			if (client==null) return cb1(null,null);
 			self._core_users.findOne({"_id" : client.uid},cb1);
 		},
 		function (user_, cb1) {
-			console.log(user_);
 			if (user_==null) {
 				// guest case
 				self.getSystemSettings("guest", function (err, defaults) {
@@ -105,7 +102,6 @@ CoreApi.prototype.getApiToken = function (appId, clientId, signature, cb) {
 		}
 	], function (err) {
 		if (err) return cb(err);
-		console.log(user);
 		var session = {user:user, clientId:clientId,appId:appId};
 		self._sessions[apiToken] = session;
 		cb(null, apiToken);
@@ -173,7 +169,6 @@ CoreApi.prototype.getUser = function (token, cb) {
 };
 
 CoreApi.prototype.getUserById = function(token, userId, cb) {
-	console.log('id: ', userId);
 	var self = this;
 
 	async.series ([
@@ -244,7 +239,6 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 				cb();
 			},
 			function validateUser(cb) {
-				console.log(cUser);
 				if (_(cUser.password).isUndefined())
 					return cb(new SkilapError(self._ctx.i18n(token,'core','User must have non empty password'),'InvalidData'));
 				if (cUser.password.length<6)

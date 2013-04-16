@@ -64,7 +64,6 @@ module.exports = function account(ctx, app, api, prefix) {
 				cb1(null, rdata);
 			},
 			function render (data) {
-				console.log(data);
 				res.render(__dirname+"/../views/user", data);
 			}],
 			next

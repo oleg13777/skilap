@@ -47,7 +47,7 @@ module.exports.getTransaction = function (token, trId, cb) {
 };
 
 module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
-	var debug = true;
+	var debug = false;
 	if (debug) { console.log("Received"); console.log(arguments); console.log(arguments[1].splits); }
 	if (_.isFunction(leadAccId)) {
 		cb = leadAccId;
@@ -86,11 +86,8 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 		// detect also split modify status
 		function (cb) {
 			if (debug) { console.log("Before sync on update"); console.log(tr); }
-			console.log(tr);
 			if (tr._id) {
 				self._cash_transactions.findOne({'_id': new self._ctx.ObjectID(tr._id)}, safe.trap_sure_result(cb,function (tr_) {
-					console.log('found!!!!!!!!!!!!');
-					console.log(tr_);
 					// get all the missing properties from existing transaction except splits
 					var fprops = _.without(_(tr_).keys(),"splits");
 					var ftr = _.pick(tr_,fprops);
@@ -133,8 +130,6 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			} else {
 				trn=tr;
 				trn._id = new self._ctx.ObjectID();
-				console.log('Not found!!!!!!!!!');
-				console.log(trn);
 				cb();
 			}
 		},
