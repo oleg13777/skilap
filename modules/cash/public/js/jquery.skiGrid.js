@@ -798,8 +798,6 @@
 	};
 	
 	function processRowUpdate(objSettings,cb){	
-		console.log('aaaa');
-		console.log(objSettings.rowEditedData);
 		var rowEditedData = $.extend({},objSettings.rowEditedData);
 		var isNotNeededUpdate = true;
 		for(key in rowEditedData){
@@ -1122,6 +1120,7 @@
 	
 	function clearDataForNewTransaction(objSettings){
 		objSettings.newTrContainer.find('td[name!="date"] .tdContent').html('&nbsp;');
+		objSettings.newTrContainer.find('td[name!="date"]').removeAttr('data-value');
 		objSettings.rowNewData = {};		
 	};
 	

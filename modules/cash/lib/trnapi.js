@@ -48,7 +48,7 @@ module.exports.getTransaction = function (token, trId, cb) {
 
 module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 	var debug = true;
-	if (debug) { console.log("Received"); console.log(arguments); }
+	if (debug) { console.log("Received"); console.log(arguments); console.log(arguments[1].splits); }
 	if (_.isFunction(leadAccId)) {
 		cb = leadAccId;
 		leadAccId = null;
