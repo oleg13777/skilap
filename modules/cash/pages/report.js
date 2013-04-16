@@ -268,12 +268,12 @@ module.exports = function account(webapp) {
 				//check selected accounts
 				if(_.isArray(params.accIds) && accounts.length != params.accIds.length){
 					accounts = _(accounts).filter(function(item){
-						return _.indexOf(params.accIds,item['id']) != -1;
+						return _.indexOf(params.accIds, item['_id']) != -1;
 					});
 				}
 				accKeys = _(accounts).reduce(function (memo, acc) {
 					if (acc.type == params.accType){
-						memo[acc._id] = {name:acc.name, id:acc._id, parentId:acc.parentId,summ:0};
+						memo[acc._id] = {name:acc.name, _id:acc._id, parentId:acc.parentId,summ:0};
 						if(periods)
 							memo[acc._id].periods = _(periods).map(function (p) { return _.clone(p); });
 					}
