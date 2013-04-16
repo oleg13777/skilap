@@ -18,8 +18,9 @@ var vstatic = require('pok_utils').vstatic;
 var handlebarsEngine = require('pok_utils').handlebarsEngine;
 var Handlebars = require('handlebars');
 var safe = require('safe')
+var deepExtend = require('deep-extend');
 
-function Skilap() {
+function Skilap(config_) {
 	var self = this;
 	var sessions = {};
 	var i18l = {};
@@ -179,25 +180,7 @@ function Skilap() {
 
 				self.webapp = webapp = app;
 
-				console.time("OpenDB");
-				var configObj ={
-					db : "skilap",
-					host : "localhost",
-					port : 27017,
-				};
-				var client = require('mongodb'); var dbc = new client.Db(configObj.db, new client.Server(configObj.host, configObj.port, {}), {safe: true});
-//				var client = require('tingodb')({}); var dbc = new client.Db("./data",{name:'skilap'});	
-				self.ObjectID = client.ObjectID;
-				async.series ([
-					function (cb1) {
-						dbc.open(cb1);
-					}], function (err, results) {
-						console.timeEnd("OpenDB");
-						if (err) return cb1(err);
-						_adb = results[0];
-						cb1();
-					});
-				
+			
 				app.get("/login", function (req, res, next) {
 /*					if (req.cookies['sguard']==null) {
 						console.log('Log-in should be secure');
@@ -277,6 +260,7 @@ function Skilap() {
 				app.post("/jsonrpc", function (req,res,next) {
 					handleJsonRpc(req.body, req, res, next);
 				})
+				cb1();
 			},
 			function initModules(cb) {
 				async.forEachSeries(tmodules, function (minfo, cb) {
@@ -409,15 +393,15 @@ function Skilap() {
 			function end(err) {
 				console.timeEnd("startApp");
 				if (err) cb(err);
-				var options = {
+/*				var options = {
 					key: fs.readFileSync(path.resolve('./privatekey.pem')),
 					cert: fs.readFileSync(path.resolve('./certificate.pem'))
 				};
-				var https = express(options);
+				var https = express(options);*/
 				var http = express();
-				https.use(webapp);
+//				https.use(webapp);
 				http.use(webapp);
-				https.listen(443);
+//				https.listen(443);
 				http.listen(80);
 
 				 //console.log("Express server listening on port %d in %s mode", webapp.address().port, webapp.settings.env);
@@ -426,8 +410,22 @@ function Skilap() {
 			});
 	}
 
+	var _db = null;
 	this.getDB = function (cb) {
-		cb(null,_adb);
+		var self = this;
+		// return db if we already have it
+		if (_db) return cb(null,_db);
+		this.getConfig(safe.sure(cb, function (cfg) {
+			// open and remember it
+			var mongo = require("mongodb")
+			var dbc = new mongo.Db(cfg.mongo.db,
+				new mongo.Server(cfg.mongo.host, cfg.mongo.port, cfg.mongo.opts), {native_parser: false, safe:true});
+			self.ObjectID = mongo.ObjectID;				
+			dbc.open(safe.sure(cb,function(db) {
+				_db = db;
+				cb(null,_db);
+			}))
+		}))
 	}
 
 	this.getModule = function (name, cb) {
@@ -540,10 +538,33 @@ function Skilap() {
 		batch = new ApiBatch(this);
 		batch.run(tasks,cb);
 	};
+	
+	var config=null;
+	this.getConfig = function(cb) {
+		if (config) return cb(null, config);
+		fs.readFile(__dirname + "/../../../config.json", safe.trap_sure(cb, function (defconfig) {
+			config = JSON.parse(defconfig);
+			(function (cb) {
+				if (config_)
+					cb(null,config_)
+				else
+					fs.readFile(__dirname + "/../../../local-config.json", safe.trap(cb, function (err, localconfig) {
+						if (!err)
+							cb(null,JSON.parse(localconfig))
+						else
+							cb(null,{})
+					}))
+			})(function (err,lcfg) {
+				config=deepExtend(config,lcfg);
+				console.log(config);
+				cb(null,config);
+			})
+		}))
+	}	
 }
 
 util.inherits(Skilap, events.EventEmitter);
 
-module.exports.createApp = function () {
-	return new Skilap();
+module.exports.createApp = function (cfg) {
+	return new Skilap(cfg);
 };

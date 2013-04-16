@@ -3,3 +3,10 @@ node_modules
 *.css
 data
 docs
+local-config.json
+css
+hbs
+*.mo
+screenshot_err.png
+snapshots
+chromedriver.log
