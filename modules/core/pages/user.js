@@ -48,7 +48,7 @@ module.exports = function account(webapp) {
 				api.getUser(req.session.apiToken, cb);
 			},
 			function (user, cb) {
-				api.getUserPermissions(req.session.apiToken, user._id.toString(), cb);
+				api.getUserPermissions(req.session.apiToken, user._id, cb);
 			},
 			function (permissions) {
 				res.render(__dirname+"/../res/views/user", {permissions:permissions});

@@ -395,7 +395,8 @@ CoreApi.prototype.getUserPermissions = function(token, userId, cb) {
 		function (cb1) {
 			async.parallel([
 				function (cb2) { self._ctx.getModulesInfo(token, cb2) },
-				function (cb2) { self._core_users.findOne({'_id': new self._ctx.ObjectID(userId)}, cb2) }
+//				function (cb2) { self._core_users.findOne({'_id': new self._ctx.ObjectID(userId)}, cb2) }
+				function (cb2) { self.getUser(token, cb2) }
 			], function (err, result) { cb1(err, result[0], result[1])});
 		},
 		function (modulesInfo, user, cb1) {
