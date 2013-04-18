@@ -1,7 +1,8 @@
 {
 	"app":{
-		"secret":"heidelberg",
-		"cookie":"hdbid"
+		"secret":"skilap",
+		"cookie":"skiid",
+		"engine":"tingo"
 	},
 	"mongo":{
 		"host":"127.0.0.1",
@@ -12,5 +13,8 @@
 			"poolSize": 40,
 			"safe": true
 		}
+	},
+	"tingo":{
+		"path":"./data"
 	}
 }

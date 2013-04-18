@@ -416,11 +416,19 @@ function Skilap(config_) {
 		// return db if we already have it
 		if (_db) return cb(null,_db);
 		this.getConfig(safe.sure(cb, function (cfg) {
-			// open and remember it
-			var mongo = require("mongodb")
-			var dbc = new mongo.Db(cfg.mongo.db,
-				new mongo.Server(cfg.mongo.host, cfg.mongo.port, cfg.mongo.opts), {native_parser: false, safe:true});
-			self.ObjectID = mongo.ObjectID;				
+			if (cfg.app.engine=="mongodb") {
+				// open and remember it
+				var mongo = require("mongodb")
+				var dbc = new mongo.Db(cfg.mongo.db,
+					new mongo.Server(cfg.mongo.host, cfg.mongo.port, cfg.mongo.opts), {native_parser: false, safe:true});
+				self.ObjectID = mongo.ObjectID;				
+			} else {
+				var tingo = require("tingodb")({});
+				var store = cfg.tingo.path;
+				store = path.resolve(store);
+				var dbc = new tingo.Db(store, {});
+				self.ObjectID = tingo.ObjectID;
+			}
 			dbc.open(safe.sure(cb,function(db) {
 				_db = db;
 				cb(null,_db);

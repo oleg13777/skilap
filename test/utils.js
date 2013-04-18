@@ -10,7 +10,7 @@ var _ = require('lodash');
 var mutils = require('mongo-utils');
 var async = require('async');
 var fs = require('fs');
-var exc = {"date" : "2013/04/16" ,"EURUSD" : 1.312 ,"EURBRL" : 2.6091 ,	"BRLUSD" : 0.5029 ,	"USDEUR" : 0.7622 ,	"USDBRL" : 1.9886 ,	"BRLEUR" : 0.3833}
+var wrench = require('wrench')
 
 var childs = [];
 process.on('uncaughtException', function(err) {
@@ -30,31 +30,49 @@ process.on('exit', function () {
 	})
 })
 
+var cfg = {db:"mongodb",browser:"chrome", silent:"true"} 
+module.exports.setConfig = function (cfg_) {
+	_.defaults(cfg_,cfg);
+	cfg = cfg_;
+}
+
 module.exports.getApp = function (opts,cb) {
 	var fixture = opts.fixture || false;
 	var tag = "skilapqa";
-	var dbs = new Db(tag, new Server('localhost', 27017),{w:1});
-	(function(cb) {
+	var acfg = {};
+	function doMongo(cb) {
+		var dbs = require("mongodb").Db(tag, new Server('localhost', 27017),{w:1});
+		acfg = {
+			"app":{engine:"mongodb"},
+			"mongo":{"host":"127.0.0.1","port":27017,"db":tag}
+		}
 		dbs.open(safe.sure(cb, function (db) {
-			if (fixture=="empty") {
-				db.dropDatabase(safe.sure(cb, function () {
-					var dbs = new Db(tag, new Server('localhost', 27017),{w:1});
-					dbs.open(safe.sure(cb, function (db) {
-						db.collection('exchange').insert(exc, cb);
-					}))
-				}))
-			} else
-				cb(null,db)
+			db.dropDatabase(cb)
 		}))
+	}
+	function doTingo(cb) {
+		acfg = {
+			"app":{engine:"tingodb"},
+			"tingo":{"path":__dirname+"/snapshots/__tingodb"}
+		}
+		safe.trap(cb, function () {
+			wrench.mkdirSyncRecursive(acfg.tingo.path)
+			wrench.rmdirSyncRecursive(acfg.tingo.path);
+			wrench.mkdirSyncRecursive(acfg.tingo.path)
+			cb();
+		})()
+	}
+	(function (cb) {
+		if (cfg.db=="mongodb")
+			doMongo(cb)
+		else if (cfg.db=="tingodb")
+			doTingo(cb)
+		else 
+			cb(new Error("Unknown db engine"))
 	})(safe.sure(cb,function () {
-		var app = childProcess.fork(__dirname+"/../app.js",['automated'],{silent:true});
+		var app = childProcess.fork(__dirname+"/../app.js",['automated'], cfg.silent==true?{silent:true}:{});
 		app.send({c:'startapp',
-			data:{"mongo":{
-				"host":"127.0.0.1",
-				"port":27017,
-				"db":tag
-				}
-			}
+			data:acfg
 		})
 		app.on('message',function (msg) {
 			if (msg.c=='startapp_repl')
@@ -64,9 +82,9 @@ module.exports.getApp = function (opts,cb) {
 	}))
 }
 
-var browser = "chrome";
 module.exports.getBrowser = function(cb) {
 	(function(cb) {
+		var browser = cfg.browser;
 		if (browser=="firefox") {
 			var server = new SeleniumServer({
 			  jar: __dirname + "/selenium/selenium-server-standalone-2.32.0.jar",
