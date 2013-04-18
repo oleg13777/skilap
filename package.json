@@ -20,8 +20,16 @@
     , "qs": ">= 0.3.1"
     , "mime": ">= 0.0.1"  
 	, "temp" : "0.4.0"
-	, "v8-profiler" : ""
 	, "validator" : ""
 	, "mongodb" : ""
+	, "lodash" : ""
+	, "handlebars" : ""
+	, "send" :""
+	, "deep-extend": ""
+	, "less-middleware": ""
+	, "selenium-webdriver": ""
+	, "phantomjs":""
+	, "mongo-utils":""
+	, "tingodb": "git://github.com/sergeyksv/tingodb.git"
     }
 }
