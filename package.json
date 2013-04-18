@@ -31,5 +31,8 @@
 	, "phantomjs":""
 	, "mongo-utils":""
 	, "tingodb": "git://github.com/sergeyksv/tingodb.git"
+	, "wrench" : ""
+	, "optimist" : ""
+	, "mocha" : ""
     }
 }
