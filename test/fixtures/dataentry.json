@@ -1,0 +1,17 @@
+{
+	"superuser":{
+		"login":"admin",
+		"password":"skilap"
+	},
+	"users":[
+		{
+			"firstName":"Tester",
+			"lastName":"One",
+			"login":"tester1",
+			"password":"123456",
+			"language":"English",
+			"permissions":[
+			]
+		}
+	]
+}
