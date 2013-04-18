@@ -1,0 +1,16 @@
+<tr class="users_row">
+	<td >{{_id}}</td>
+	<td>{{firstName}}</td>
+	<td>{{lastName}}</td>
+	<td>{{login}}</td>
+	<td>
+		<div class="btn-group">
+		  <button data-toggle="dropdown" class="btn dropdown-toggle"><i class="icon-cog"></i>{{#i18n}}Actions{{/i18n}}<span class="caret"></span></button>
+		  <ul class="dropdown-menu">
+			<li><a href="javascript:void(0);" name="editUser" uid="{{_id}}" >{{#i18n}}Edit{{/i18n}}</a></li>
+			<li><a href="javascript:void(0);" name="editPerm" uid="{{_id}}" >{{#i18n}}Permissions{{/i18n}}</a></li>
+			<li><a href="javascript:void(0);" name="deleteUser" uid="{{_id}}" >{{#i18n}}Delete{{/i18n}}</a></li>						
+		  </ul>
+		</div>						
+	</td>
+</tr>
