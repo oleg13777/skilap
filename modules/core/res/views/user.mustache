@@ -6,14 +6,8 @@
 	</div>
 	<div class="span6">
 		<h2>{{#i18n}}Your permissions{{/i18n}}</h2>
-		{{#user.perm.core_user_edit}}<a href="javascript:void(0);" name="editPerm">{{#i18n}}edit{{/i18n}}</a>{{/user.perm.core_user_edit}}
-		<hr class="no-margin-top">
-		{{#permissions}}
-			<h4>{{module}}:</h4>
-			{{#perm}}
-				&nbsp;&nbsp;&nbsp;{{.}}<br />
-			{{/perm}}
-		{{/permissions}}
+		{{#user.perm.core_user_edit}}<a href="javascript:void(0);" id="edit-perm">{{#i18n}}edit{{/i18n}}</a>{{/user.perm.core_user_edit}}
+		{{>user_perm}}
 	</div>
 </div>
 <script>
@@ -33,6 +27,35 @@ require(["jquery","jquery-block"], function($){
 							$modal.on("frm-saved", function (user) {
 								tf.render('user_prefs',{}, safe.sure(cb, function(text) {
 									$me.find("#user_prefs").remove();
+									$this.after(text)
+									$modal.modal('hide')
+									cb();									
+								}))
+							})
+						}))
+					}))
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$me.unblock();
+			})
+			return false;
+		})
+		$("#edit-perm").on("click", function() {
+			$this = $(this);
+			var $me = $(this).parent()
+			$me.block();
+			(function (cb) {
+				require(['api','clitpl','safe','bootstrap'], function (api,tf,safe) {
+					api.call('core.getUser', safe.sure(cb, function (user) {
+						tf.render('user_perm_edit', {luser:user}, safe.sure(cb,function(text, ctx) {
+							$me.unblock();														
+							$("body").append(text);
+							var $modal = $("#"+ctx.uniq).modal();
+							$modal.on("frm-saved", function (permissions) {
+								var _permissions = [{module: 'Test', perm: ['a', 'b']}, {module: 'Test1', perm: ['a', 'b']}];
+								tf.render('user_perm',{permissions: _permissions}, safe.sure(cb, function(text) {
+									$me.find("#user_perm").remove();
 									$this.after(text)
 									$modal.modal('hide')
 									cb();									
