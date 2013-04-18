@@ -6,6 +6,9 @@ var _ = require('underscore');
 var async = require('async');
 var safe = require('safe');
 var SkilapError = require("skilap-utils").SkilapError;
+var vstatic = require('pok_utils').vstatic;
+var handlebarsMiddleware = require('pok_utils').handlebarsMiddleware;
+var lessMiddleware = require('less-middleware');
 
 /**
  * Private helper class to store context
@@ -17,6 +20,7 @@ function CoreApi(ctx) {
 	this._core_users = null;
 	this._core_clients = null;
 	this._core_systemSettings = null;
+	this.prefix = "/core";
 }
 
 CoreApi.prototype.getLanguageSync = function(token) {
@@ -193,8 +197,6 @@ CoreApi.prototype.getUserById = function(token, userId, cb) {
  * @returns {User} Updated or created user
  */
 CoreApi.prototype.saveUser = function (token, newUser, cb) {
-	console.log('saveUser');
-	console.log(newUser);
 	var self = this;
 	var cUser = null;
 	
@@ -268,7 +270,7 @@ CoreApi.prototype.saveUser = function (token, newUser, cb) {
 				self._core_users.save(cUser, cb);
 			},
 			function updateSessionUser(cb) {
-				if (cUser._id == session.user._id) {
+				if (cUser._id.toString() == session.user._id.toString()) {
 					session.user = cUser;
 				}
 				cb();
@@ -374,6 +376,15 @@ CoreApi.prototype.saveSystemSettings = function(token, id, settings, cb) {
 	);
 };
 
+CoreApi.prototype.layout = function () {
+	var self = this;
+	return function (req,res,next) {
+		res.locals.layout = "layout";
+		res.locals.prefix = "/core";
+		next()
+	}
+}
+
 /**
  * Internal init function
  * @ignore
@@ -402,6 +413,19 @@ module.exports.init = function (ctx, cb) {
 			i._id = 'core';
 			cb(null,i);
 		};		
+		
+		m.initWeb = function (webapp, cb) {
+			var self = api;
+			self.web = webapp;
+			self.web.use(lessMiddleware({dest: __dirname + '/../public/css', src: __dirname + '/../res/less', prefix:'/core/css/'}));
+			self.web.use(handlebarsMiddleware({dest: __dirname + '/../public/hbs', src: __dirname + '/../res/views', prefix:'/core/hbs/'}));
+			self.web.use(vstatic(__dirname + '/../public',{vpath:"/core"}));
+			require("../pages/index")(self);	
+			require("../pages/user")(self);	
+			require("../pages/users")(self);	
+			require("../pages/systemsettings")(self);	
+			cb();
+		}		
 		
 		cb(null, m);
 	});

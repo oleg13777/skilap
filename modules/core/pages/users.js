@@ -1,12 +1,16 @@
 var async = require("async");
 
-module.exports = function account(ctx, app, api, prefix) {
+module.exports = function account(webapp) {
+	var app = webapp.web;
+	var ctx = webapp._ctx;
+	var prefix = webapp.prefix;
+	var api = webapp;		
 
-	app.get(prefix+"/users", function(req, res, next) {
+	app.get(prefix+"/users", webapp.layout(), function(req, res, next) {
 		async.waterfall([
 			function (cb) { api.getAllUsers(req.session.apiToken,cb); },
 			function render (users) {
-				res.render(__dirname+"/../views/users", {prefix:prefix, users: users, header:true, tittle: "Sistem users", host:req.headers.host,pageUsersActive:1});
+				res.render(__dirname+"/../res/views/users", {prefix:prefix, users: users, header:true, tittle: "Sistem users", host:req.headers.host,pageUsersActive:1});
 			}],
 			next
 		);

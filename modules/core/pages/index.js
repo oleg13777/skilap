@@ -1,16 +1,22 @@
 var async = require("async");
 
-module.exports = function (ctx, app, api, prefix) {
+module.exports = function (webapp) {
+	var app = webapp.web;
+	var ctx = webapp._ctx;
+	var prefix = webapp.prefix;
+	var api = webapp;	
 	
 	app.get(prefix, function (req, res, next) {
 		res.redirect(prefix+"/user");
 	})
 
-	app.get("/", function(req, res, next) {
+	app.get("/", webapp.layout(), function(req, res, next) {
+		console.log("root");
 		async.waterfall([
 			async.apply(ctx.getModulesInfo,req.session.apiToken),
 			function render (modules) {
-				res.render(__dirname+"/../views/index", {prefix:prefix, modules: modules});
+				console.log(res.locals);
+				res.render(__dirname+"/../res/views/index", {modules: modules});
 			}],
 			next
 		);

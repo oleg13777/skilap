@@ -12,36 +12,12 @@ var util = require("util");
 var express = require('express');
 var SkilapError = require("skilap-utils").SkilapError;
 var Gettext = require("../vendor/Gettext");
-var hogan=require('hogan.js');
 var i18n = require('jsorm-i18n');
 var ApiBatch = require('./batch.js');
-var skconnect = require('skilap-connect');
-
-var tmpl = {
-    compile: function (source, options) {	
-		views = (options && options.settings && options.settings.views) || './views';
-		var tc = hogan.compile(source);
-		// we need overwrite for this specific template
-		// rp (RenderPartials) function to provide partial content
-		var orp = tc.rp;
-		tc.rp = function (name, context, partials, indent) {
-			var partial = partials[name];
-			if (partial==null) {
-				var partialFileName = views + '/' + name + (options.extension || '.mustache');
-				partial = path.existsSync(partialFileName) ? fs.readFileSync(partialFileName, "utf-8") : "";
-				partials[name]=hogan.compile(partial.toString());
-			}
-			return orp.call(this,name, context,partials, indent);
-		};
-		return function (options) {
-			var html = tc.render(options,options.partials);
-			if (options.body!=null) {
-				html = html.replace("<content/>",options.body);
-			}
-			return html;
-		};
-	}
-};
+var vstatic = require('pok_utils').vstatic;
+var handlebarsEngine = require('pok_utils').handlebarsEngine;
+var Handlebars = require('handlebars');
+var safe = require('safe')
 
 function Skilap() {
 	var self = this;
@@ -70,19 +46,17 @@ function Skilap() {
 		storepath = storepath_;
 		async.series([
 			function initBasics(cb1) {
-				var app = module.exports = express.createServer();
+				var app = module.exports = express();
 
 				// Configuration
 				app.configure(function(){
-					app.set('view engine', 'mustache');
-					app.set('view options',{layout:true});					
-					app.register(".mustache", tmpl);
+					app.set('view engine', 'mustache');				
+					app.engine('mustache', handlebarsEngine(Handlebars,{dest:"../../public/hbs",debug:false}));
 					app.use(express.bodyParser());
 					app.use(express.methodOverride());
 					app.use(express.cookieParser());
 					app.use(express.session({ secret: 'PushOk' }));
-					app.use(skconnect.vstatic(__dirname + '/../../../public',{vpath:"/common"}));
-					app.use(skconnect.vstatic(__dirname + '/../public',{vpath:"/core"}));
+					app.use(vstatic(__dirname + '/../../../public',{vpath:"/common"}));
 					app.use(function (req, res, next) {
 						if (!req.cookies['skilapid']) {
 							var clientId; 
@@ -128,59 +102,71 @@ function Skilap() {
 							}
 							if (user.password) delete user.password;
 							user.loggedin = user.type!='guest';
-							req.skilap = {user:user};
+							res.locals.user = user;
 							next();
 						});
 					});					
-					app.use(app.router);
+					app.use(function (req, res, next) {
+						var domain, re = req.url.match(/\/(\w+)[/?#]?/i);						
+						domain = re?re[1]:"core";												
+						Handlebars.registerHelper('i18n', function(options) {
+							return self.i18n(req.session.apiToken, res.locals.ldomain || domain, options.fn(this));						
+						});
+												
+						Handlebars.registerHelper('i18n_date', function(options) {
+							return options.fn(this);																									
+						});			
+						Handlebars.registerHelper('when', function(lvalue, op, rvalue, options) {
+							if (arguments.length < 4)
+								throw new Error("Handlerbars Helper 'compare' needs 3 parameters");
+
+							var result = false;
+							
+							try {
+								result = eval(JSON.stringify(lvalue)+op+JSON.stringify(rvalue));
+							} catch (err) {
+							}
+
+							return result?options.fn(this):options.inverse(this);
+						});														
+						
+						res.locals.uniq = (new Date()).valueOf();
+						var user = res.locals.user;
+						user.perm = {};
+						if (!user.permissions)
+							user.permissions = ['core.me.view'];
+						_.reduce(user.permissions,function (ctx,val) {
+							var fname=val.replace(/\./g,'_');
+							ctx[fname]=1;
+							return ctx;
+						},user.perm);
+						delete user.permissions;
+						res.locals.user = user;
+						res.locals.url = req.url;
+						res.locals.apiToken = req.session.apiToken;
+						next();
+					})		
+					
+					app.use(app.router);		
 					app.use(function (err,req,res,next) {
-						if (err.skilap) {
-							if (err.skilap.subject = 'AccessDenied') {
-								if (req.cookies['sguard']==null) {
-									console.log('Log-in should be secure');
-									res.redirect('https://'+req.headers.host+req.url);
-								} else { 
-									console.log(err);
-									res.render(__dirname+'/../views/accessDenied', {layout:false, prefix:'',success:req.url});
-								}
-							} else next(err);
-						} else
-							next(err);
-					});
-					app.dynamicHelpers({
-						i18n: function(req, res){
-							var domain, re = req.url.match(/\/(\w+)[/?#]?/i);
-							domain = re?re[1]:"core";
-							return function () { return function (text, render) {
-								return self.i18n(req.session.apiToken, req.skilap.ldomain || domain, text);
-							};};
-						},
-						i18n_domain: function(req, res){
+						if (err instanceof SkilapError && err.data.subject == 'AccessDenied') {
+/*							if (req.cookies['sguard']==null) {
+								console.log('Log-in should be secure');
+								res.redirect('https://'+req.headers.host+req.url);
+							} else {  */
+								res.render(__dirname+'/../res/views/accessDenied', {layout:"layout"}, safe.sure(next, function (text) {
+									res.send(403,text);
+								}))
+/*							} */
+						} else next(err);
+					});					
+											
+/*						i18n_domain: function(req, res){
 							return function () { return function (text, render) {
 								req.skilap.ldomain = text;
 								return '';
 							};};
-						},						
-						apiToken: function (req,res) {
-							return req.session.apiToken;
-						},
-						user: function (req, res) {
-							var user = _(req.skilap.user).clone();
-							user.perm = {};
-							if (!user.permissions)
-								user.permissions = ['core.me.view'];
-							_(user.permissions).reduce(function (ctx,val) {
-								var fname=val.replace(/\./g,'_');
-								ctx[fname]=1;
-								return ctx;
-							},user.perm);
-							delete user.permissions;
-							return user;
-						},
-						url: function (req, res) {
-							return req.url;
-						}
-					});
+						},						*/
 				});
 
 				app.configure('development', function(){
@@ -213,12 +199,12 @@ function Skilap() {
 					});
 				
 				app.get("/login", function (req, res, next) {
-					if (req.cookies['sguard']==null) {
+/*					if (req.cookies['sguard']==null) {
 						console.log('Log-in should be secure');
 						res.redirect('https://'+req.headers.host+req.url);
-					} else { 
-						res.render(__dirname+'/../views/login', {prefix:'/core',success:req.params.success || '/'});
-					}
+					} else { */
+						res.render(__dirname+'/../res/views/login', {prefix:'/core',layout:"layout",success:req.params.success || '/'});
+/*					} 	*/
 				})
 
 				app.post("/login", function (req,res,next) {
@@ -292,12 +278,12 @@ function Skilap() {
 					handleJsonRpc(req.body, req, res, next);
 				})
 			},
-			function initModules(cb1) {
-				async.forEachSeries(tmodules, function (minfo, cb2) {
+			function initModules(cb) {
+				async.forEachSeries(tmodules, function (minfo, cb) {
 					console.time(minfo.name);
 					var module = require(minfo.require);
 					module.init(self,function (err, moduleObj) {
-						if (err) return cb2(err);
+						if (err) return cb(err);
 						modules[minfo.name]=moduleObj;
 						if (moduleObj.localePath) {
 							_.forEach(fs.readdirSync(moduleObj.localePath), function (file) {
@@ -321,9 +307,34 @@ function Skilap() {
 							});
 						}
 						console.timeEnd(minfo.name);
-						cb2();
+						cb();
 					});
-				},cb1);
+				},safe.sure(cb, function () {
+					// second pass, allow to set links between modules, all modules are there
+					// so they can link to each other					
+					async.forEachSeries(_.keys(modules), function (mname, cb) {
+						var module = modules[mname];
+						if (module.init2) {
+							console.time("Init2 "+mname);
+							module.init2(safe.sure_result(cb,function () {
+								console.timeEnd("Init2 "+mname);
+							}))
+						}
+						else cb();
+					},safe.sure(cb, function () {						
+						// and now we can init modules that need express app
+						async.forEachSeries(_.keys(modules), function (mname, cb) {
+							var module = modules[mname];							
+							if (module.initWeb) {
+								console.time("InitWeb "+mname);
+								module.initWeb(webapp,safe.sure_result(cb,function () {
+									console.timeEnd("InitWeb "+mname);
+								}))
+							}
+							else cb();
+						},cb);
+					}))
+				}))
 			}, 
 			function instrumenApi(cb) {
 				// comment the line below to get some profile info
@@ -398,17 +409,12 @@ function Skilap() {
 			function end(err) {
 				console.timeEnd("startApp");
 				if (err) cb(err);
-				require("../pages/user")(self,webapp,modules['core'].api,"/core");
-				require("../pages/users")(self,webapp,modules['core'].api,"/core");
-				require("../pages/index")(self,webapp,modules['core'].api,"/core");
-				require("../pages/systemsettings")(self,webapp,modules['core'].api,"/core");
-
 				var options = {
 					key: fs.readFileSync(path.resolve('./privatekey.pem')),
 					cert: fs.readFileSync(path.resolve('./certificate.pem'))
 				};
-				var https = express.createServer(options);
-				var http = express.createServer();
+				var https = express(options);
+				var http = express();
 				https.use(webapp);
 				http.use(webapp);
 				https.listen(443);
