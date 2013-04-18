@@ -48,19 +48,22 @@ require(["jquery","jquery-block"], function($){
 			(function (cb) {
 				require(['api','clitpl','safe','bootstrap'], function (api,tf,safe) {
 					api.call('core.getUser', safe.sure(cb, function (user) {
-						tf.render('user_perm_edit', {luser:user}, safe.sure(cb,function(text, ctx) {
-							$me.unblock();														
-							$("body").append(text);
-							var $modal = $("#"+ctx.uniq).modal();
-							$modal.on("frm-saved", function (permissions) {
-								var _permissions = [{module: 'Test', perm: ['a', 'b']}, {module: 'Test1', perm: ['a', 'b']}];
-								tf.render('user_perm',{permissions: _permissions}, safe.sure(cb, function(text) {
-									$me.find("#user_perm").remove();
-									$this.after(text)
-									$modal.modal('hide')
-									cb();									
-								}))
-							})
+						api.call('core.getUserPermissions', user._id, safe.sure(cb, function (permissions) {
+							tf.render('user_perm_edit', {permissions: permissions, luser: user}, safe.sure(cb,function(text, ctx) {
+								$me.unblock();														
+								$("body").append(text);
+								var $modal = $("#"+ctx.uniq).modal();
+								$modal.on("frm-saved", function (permissions) {
+									api.call('core.getUserPermissions', user._id, safe.sure(cb, function (permissions) {
+										tf.render('user_perm',{permissions: permissions, user: user}, safe.sure(cb, function(text) {
+											$me.find("#user_perm").remove();
+											$this.after(text)
+											$modal.modal('hide')
+											cb();									
+										}))
+									}))
+								})
+							}))
 						}))
 					}))
 				},cb)
