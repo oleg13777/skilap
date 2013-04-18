@@ -44,32 +44,14 @@ module.exports = function account(webapp) {
 	
 	app.get(prefix+"/user", webapp.layout(), function(req, res, next) {
 		async.waterfall([
-			function (cb1) {
-				async.parallel([
-					function (cb2) { ctx.getModulesInfo(req.session.apiToken, cb2) },
-					function (cb2) { api.getUser(req.session.apiToken, cb2) }
-				], function (err, result) { cb1(err, result[0], result[1])});
+			function (cb) {
+				api.getUser(req.session.apiToken, cb);
 			},
-			function (modulesInfo, user, cb1) {
-				var permissions = [];
-				_(modulesInfo).each(function(info){
-					var tmp = {module:info.name, perm:[]};
-					_(info.permissions).each(function(perm){
-						if (_(user.permissions).indexOf(perm.id) >= 0)
-							tmp.perm.push({id: perm.id, desc: perm.desc, val: true});
-						else
-							tmp.perm.push({id: perm.id, desc: perm.desc, val: false});
-					});
-					permissions.push(tmp);
-				});
-				cb1(null, permissions, modulesInfo, user.permissions);
+			function (user, cb) {
+				api.getUserPermissions(req.session.apiToken, user._id.toString(), cb);
 			},
-			function (permissions, mInfo, userPerm, cb1) {
-				var rdata = {permissions:permissions, mInfo:mInfo, userPermissions:JSON.stringify(userPerm),pageUserActive:1};
-				cb1(null, rdata);
-			},
-			function render (data) {
-				res.render(__dirname+"/../res/views/user", data);
+			function (permissions) {
+				res.render(__dirname+"/../res/views/user", {permissions:permissions});
 			}],
 			next
 		);
