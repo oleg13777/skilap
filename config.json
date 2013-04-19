@@ -2,7 +2,7 @@
 	"app":{
 		"secret":"skilap",
 		"cookie":"skiid",
-		"engine":"tingo"
+		"engine":"mongodb"
 	},
 	"mongo":{
 		"host":"127.0.0.1",

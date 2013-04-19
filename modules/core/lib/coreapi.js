@@ -180,7 +180,15 @@ CoreApi.prototype.getUserById = function(token, userId, cb) {
 			self.checkPerm(token, ['core.user.view'], cb);
 		}, 
 		function (cb) {
-			self._core_users.findOne({'_id': new self._ctx.ObjectID(userId)}, cb);
+			if (!userId)
+				self.getSystemSettings("guest", function (err, defaults) {
+					if (err) return cb(err);
+					user = {type:'guest'};
+					_.defaults(user,defaults);
+					cb();
+				});
+			else
+				self._core_users.findOne({'_id': new self._ctx.ObjectID(userId.toString())}, cb);
 		}], function (err, results) {
 			if (err) return cb(err);
 			cb(null, results[1]);
@@ -385,7 +393,7 @@ CoreApi.prototype.layout = function () {
 	}
 };
 
-CoreApi.prototype.getUserPermissions = function(token, userId, cb) {
+CoreApi.prototype.getUserPermissions = function(token, user, cb) {
 	var self = this;
 
 	async.waterfall([
@@ -395,8 +403,11 @@ CoreApi.prototype.getUserPermissions = function(token, userId, cb) {
 		function (cb1) {
 			async.parallel([
 				function (cb2) { self._ctx.getModulesInfo(token, cb2) },
-//				function (cb2) { self._core_users.findOne({'_id': new self._ctx.ObjectID(userId)}, cb2) }
-				function (cb2) { self.getUser(token, cb2) }
+				function (cb2) { 
+					if (user.type=='guest' || user.type=='admin')
+						cb2(null, user);
+					else
+						self.getUserById(token, user._id, cb2) }
 			], function (err, result) { cb1(err, result[0], result[1])});
 		},
 		function (modulesInfo, user, cb1) {

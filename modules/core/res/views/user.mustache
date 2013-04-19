@@ -48,13 +48,13 @@ require(["jquery","jquery-block"], function($){
 			(function (cb) {
 				require(['api','clitpl','safe','bootstrap'], function (api,tf,safe) {
 					api.call('core.getUser', safe.sure(cb, function (user) {
-						api.call('core.getUserPermissions', user._id, safe.sure(cb, function (permissions) {
+						api.call('core.getUserPermissions', user, safe.sure(cb, function (permissions) {
 							tf.render('user_perm_edit', {permissions: permissions, luser: user}, safe.sure(cb,function(text, ctx) {
 								$me.unblock();														
 								$("body").append(text);
 								var $modal = $("#"+ctx.uniq).modal();
 								$modal.on("frm-saved", function (permissions) {
-									api.call('core.getUserPermissions', user._id, safe.sure(cb, function (permissions) {
+									api.call('core.getUserPermissions', user, safe.sure(cb, function (permissions) {
 										tf.render('user_perm',{permissions: permissions, user: user}, safe.sure(cb, function(text) {
 											$me.find("#user_perm").remove();
 											$this.after(text)
