@@ -6,7 +6,8 @@ var assert = require('assert');
 var tutils = require('./utils');
 var safe = require('safe');
 var _ = require('lodash');
-var helpers = require('./helpers')
+var helpers = require('./helpers');
+var assert = require('assert');
 
 /*
  * Some notices:
@@ -66,8 +67,42 @@ describe("Core module",function () {
 			self.browser.findElement(By.xpath("//*[contains(.,'"+u.login+"')]"));			
 			self.done();
 		})
-		it("Assign permissions")
-	})
+		it("Assign permissions", function(done) {
+			this.trackError(done);
+			var self = this;
+			this.browser.findElement(By.linkText("Manage users")).click();	
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editPerm']")).click();	
+			
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElements(By.xpath("//input")).then(function (elements) {
+					for (var key in elements)
+						elements[key].click(); 
+				});
+				modal.findElement(By.id("save")).click();
+			});
+			self.done();
+
+		});
+		it("Check permissions", function(done) {
+			this.trackError(done);
+			var self = this;
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editPerm']")).click();	
+			
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElements(By.xpath("//input")).then(function (elements) {
+					for (var key in elements)
+						elements[key].isSelected().then(function (val) {
+							assert.ok(val, "Permission not set");
+						});
+				});
+				modal.findElement(By.id("save")).click();
+			});
+
+			self.done();
+		});
+	});
 	describe("Edit users", function () {
 		it("Edit pereferences")
 		it("Edit permissions")

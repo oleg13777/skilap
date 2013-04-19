@@ -64,6 +64,37 @@ $(document).ready(function() {
 	});
 	$page.on("click", "a[name=\"editPerm\"]",function(evt){
 		evt.preventDefault();		
+		$this = $(this);
+        var uid = $this.attr('uid');  		
+		var $me = $(this).closest(".users_row");
+		$me.block();
+		(function (cb) {
+			require(['api','clitpl','safe'], function (api,tf,safe) {
+				api.call('core.getUserById', uid, safe.sure(cb, function (user) {
+					api.call('core.getUserPermissions', user, safe.sure(cb, function (permissions) {
+						tf.render('user_perm_edit', {permissions: permissions, luser: user}, safe.sure(cb,function(text, ctx) {
+							$me.unblock();														
+							$("body").append(text);
+							var $modal = $("#"+ctx.uniq).modal();
+							$modal.on("frm-saved", function (evt, user) {
+								api.call('core.getUserById', uid, safe.sure(cb, function (user) {							
+									tf.render('users_row',user, safe.sure(cb, function(text) {
+										$me.before(text)
+										$me.remove()
+										$modal.modal('hide')
+										cb();									
+									}))
+								}))
+							})
+						}))
+					}))
+				}))
+			},cb)
+		})(function (err) {
+			if (err) appError(err);
+			$me.unblock();
+		})
+		return false;
 	})
 	$page.on("click", "a[name=\"deleteUser\"]",function(evt) {
 		evt.preventDefault();

@@ -34,6 +34,24 @@ module.exports.waitModalLoad = function (selector) {
 	return modal;
 }
 
+module.exports.runModal = function (selector, run) {
+	var self = this;
+	selector = selector || By.css('.modal');
+	self.browser.wait(function () {
+		return self.browser.isElementPresent(selector)
+	});
+	this.browser.findElement(selector).then(function (modal) {
+		self.browser.wait(function () {
+			return modal.getCssValue("opacity").then(function (v) { return v==1; });
+		});
+		run(modal);
+		
+		self.browser.wait(function () {
+			return self.browser.isElementPresent(selector).then(function (v) { return !v; })
+		});	
+	});
+}
+
 module.exports.waitModalUnload = function (selector) {
 	var self = this;
 	selector = selector || By.css('.modal');
