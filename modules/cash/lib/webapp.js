@@ -1,8 +1,10 @@
 var _ = require('underscore');
-var skconnect = require('skilap-connect');
 var async = require('async');
 var safe = require('safe');
 var SkilapError = require("skilap-utils").SkilapError;
+var vstatic = require('pok_utils').vstatic;
+var handlebarsMiddleware = require('pok_utils').handlebarsMiddleware;
+var lessMiddleware = require('less-middleware');
 
 function CashWeb (ctx) {
 	var self = this;
@@ -13,23 +15,6 @@ function CashWeb (ctx) {
 	this.tabs = [];
 	this._cash_userviews = null;
 	this._coreapi = null;
-
-	self.ctx.once("WebStarted", function (err) {
-		self.ctx.getWebApp(function (err, web) {
-			self.web = web;
-			web.use(skconnect.vstatic(__dirname + '/../../../public',{vpath:"/common"}));
-			web.use(skconnect.vstatic(__dirname + '/../public',{vpath:"/cash"}));
-			require("../pages/account.js")(self);
-			require("../pages/index.js")(self);
-			require("../pages/import.js")(self);
-			require("../pages/report.js")(self);
-			require("../pages/accounts.js")(self);
-			require("../pages/restoredefaults.js")(self);
-			require("../pages/export.js")(self);
-			require("../pages/priceeditor.js")(self);
-			require("../pages/settings.js")(self);			
-		});
-	});
 }
 
 CashWeb.prototype._init = function (cb) {
@@ -52,6 +37,14 @@ CashWeb.prototype._init = function (cb) {
 			}));
 	}], 
 	cb);
+};
+
+CashWeb.prototype.layout = function () {
+	var self = this;
+	return function (req,res,next) {
+		res.locals.layout = "layout";
+		next()
+	}
 };
 
 CashWeb.prototype.guessTab = function (req, ti,cb) {
@@ -221,6 +214,7 @@ CashWeb.prototype.i18n_cmdtyval = function(cmdty,value) {
 };
 
 module.exports.init = function (ctx,cb) {
+	var self = this;
 	async.parallel ([
 		function createApi(cb) {
 			var api = require("./cashapi.js");
@@ -263,6 +257,24 @@ module.exports.init = function (ctx,cb) {
 				i._id = 'cash';
 				cb(null,i);
 			};
+			
+			m.initWeb = function (webapp, cb) {
+				var self = m.web;
+				self.web = webapp;
+				self.web.use(lessMiddleware({dest: __dirname + '/../public/css', src: __dirname + '/../res/less', prefix:'/cash/css/'}));
+				self.web.use(handlebarsMiddleware({dest: __dirname + '/../public/hbs', src: __dirname + '/../res/views', prefix:'/cash/hbs/'}));
+				self.web.use(vstatic(__dirname + '/../public',{vpath:"/cash"}));
+				require("../pages/account.js")(self);
+				require("../pages/index.js")(self);
+				require("../pages/import.js")(self);
+				require("../pages/report.js")(self);
+				require("../pages/accounts.js")(self);
+				require("../pages/restoredefaults.js")(self);
+				require("../pages/export.js")(self);
+				require("../pages/priceeditor.js")(self);
+				require("../pages/settings.js")(self);	
+				cb();
+			}				
 
 			cb(null, m);
 		})

@@ -12,15 +12,15 @@ module.exports = function account(webapp) {
 	var ctx = webapp.ctx;
 	var reportSettingsVersion = 2;
 
-	app.get(prefix + "/reports/barflow", function (req, res, next ) {
+	app.get(prefix + "/reports/barflow", webapp.layout(), function (req, res, next ) {
 		report1(req, res, next, "barflow");
 	});
 
-	app.get(prefix + "/reports/pieflow", function (req, res, next ) {
+	app.get(prefix + "/reports/pieflow", webapp.layout(), function (req, res, next ) {
 		report1(req, res, next, "pieflow");
 	});
 
-	app.get(prefix + "/reports/statment", function (req, res, next ) {
+	app.get(prefix + "/reports/statment", webapp.layout(), function (req, res, next ) {
 		report1(req, res, next, "statment");
 	});
 
@@ -114,12 +114,10 @@ module.exports = function account(webapp) {
 					memo.push(item);
 					return memo;
 				},[]);
-
-				//fix without res.partial doesn't render reportsettings accounts tree
-				res.partial(__dirname+"/../views/reportsettings",{},cb1);
+				cb1()
 			},
 			function(somedata,cb1){
-				res.render(__dirname+"/../views/report", _.extend({settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, usedCurrencies:currencies.used, notUsedCurrencies:currencies.unused},data));
+				res.render(__dirname+"/../views/res/report", _.extend({settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, usedCurrencies:currencies.used, notUsedCurrencies:currencies.unused},data));
 			}],
 			next
 		);
@@ -282,6 +280,7 @@ module.exports = function account(webapp) {
 				cashapi.getTransactionsInDateRange(token,[params.startDate,params.endDate,true,false],cb1);
 			},
 			function(trns,cb1){
+				console.log(trns.length);
 				_.forEach(trns, function (tr) {
 					cashapi.getCmdtyPrice(token,tr.currency,{space:"ISO4217",id:params.reportCurrency},null,'safe',function(err,rate){
 						if(err && !(err.skilap && err.skilap.subject == "UnknownRate"))
@@ -432,8 +431,8 @@ module.exports = function account(webapp) {
 
 	function getDefaultSettings(reportName) {
 		var defaultSettings = {
-				startDate:dfW3C.format(new Date(new Date().getFullYear(), 0, 1)),
-				endDate:dfW3C.format(new Date(new Date().getFullYear(), 11, 31)),
+				startDate:dfW3C.format(new Date(new Date().getFullYear()-2, 0, 1)),
+				endDate:dfW3C.format(new Date(new Date().getFullYear()-2, 11, 31)),
 				accIsVisible:1,
 				accType:"EXPENSE",
 				maxAcc:10,

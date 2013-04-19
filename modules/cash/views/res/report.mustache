@@ -1,5 +1,5 @@
-<script type="text/javascript" src="/common/js/highcharts/highcharts.js"></script>
-<script type="text/javascript" defer>
+<script type="text/javascript">
+require(["jquery","highcharts"], function ($) {
 	var chart;
 	$(function() {
 		$(window).on('resize',function(){
@@ -13,9 +13,8 @@
 
 		{{>report_graph}}
 	});
-
+})
 </script>
-{{>reportsettings}}
 <a class="report-settings" href="javascript:void(0);" title="{{#i18n}}Report settings{{/i18n}}"></a>
 <div id="container" style="width: 100%; height: 700px;"></div>
 

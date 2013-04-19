@@ -125,7 +125,7 @@ module.exports.getBrowser = function(cb) {
 			});
 		}
 		else {
-			var phantom = childProcess.spawn(__dirname+"/selenium/phantomjs", ["--webdriver=9134"]);
+			var phantom = childProcess.spawn(phantomjs.path, ["--webdriver=9134"]);
 			var driver = null;
 			var error = null;
 			phantom.stdout.on('data', function (data) {
@@ -140,7 +140,6 @@ module.exports.getBrowser = function(cb) {
 					} else if (/Error/.test(line))
 						cb(new Error("Browser can't be started"));
 				} else {
-					console.log(line);
 					if (error)
 						error+=line;
 					if (/Error/.test(line)) {

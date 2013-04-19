@@ -109,7 +109,12 @@ function Skilap(config_) {
 					});					
 					app.use(function (req, res, next) {
 						var domain, re = req.url.match(/\/(\w+)[/?#]?/i);						
-						domain = re?re[1]:"core";												
+						domain = re?re[1]:"core";		
+						
+						Handlebars.registerHelper('prefix', function(options) {
+							return "/"+domain;
+						});
+																
 						Handlebars.registerHelper('i18n', function(options) {
 							return self.i18n(req.session.apiToken, res.locals.ldomain || domain, options.fn(this));						
 						});

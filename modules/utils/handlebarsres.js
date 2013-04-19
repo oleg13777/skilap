@@ -61,7 +61,7 @@ function ensureTemplate (sourceFile, options, cb) {
 	function getPartials(files,cb) {
 		var partials = [];	
 		// limit possible partials recursion
-		rc++; if (rc>5) return cb(new Error("Hogan thinks that partials recursion detected"));
+		rc++; if (rc>10) return cb(new Error("Hogan thinks that partials recursion detected"));
 		async.forEach(files, function (file,cb) {
 			var ofile = file;
 			// very special kase for layout and its partial meaning
@@ -88,6 +88,7 @@ function ensureTemplate (sourceFile, options, cb) {
 							var partials = _(scan)
 								.filter(function(item) { return item.tag == '>'; })
 								.map(function(item) { return item.n.replace(' this',''); })
+								.without(file)
 							.value();						
 							var tpl = handlebars.precompile(ttext);														
 							scans[ofile]={p:ofile,tf:tpl,mt:sta.mtime.valueOf(),pt:partials};							

@@ -41,7 +41,8 @@ module.exports = function account(webapp) {
 		cb(null, res);
 	}
 
-	app.get(prefix, function(req, res, next) {
+	app.get(prefix, webapp.layout(), function(req, res, next) {
+		console.log("Index");
 		var data;
 		var settings = {};
 		var assets = [];
@@ -137,7 +138,7 @@ module.exports = function account(webapp) {
 				rdata.assets = assets;
 				rdata.liabilities = liabilities;
 
-				res.render(__dirname+"/../views/index", rdata);
+				res.render(__dirname+"/../views/res/index", rdata);
 			}],
 			next
 		);

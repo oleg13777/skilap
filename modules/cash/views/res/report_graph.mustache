@@ -1,4 +1,4 @@
-{{#barflow}}
+{{#if barflow}}
 	chart = new Highcharts.Chart({
 		chart: {
 			renderTo: 'container',
@@ -45,9 +45,9 @@
 		},
 		series: {{{series}}}
 	});
-{{/barflow}}
+{{/if}}
 
-{{#pieflow}}
+{{#if pieflow}}
 chart = new Highcharts.Chart({
 	chart: {
 		renderTo: 'container',
@@ -81,9 +81,9 @@ chart = new Highcharts.Chart({
 	},
 	series: [{{{series}}}]
 });
-{{/pieflow}}
+{{/if}}
 
-{{#statment}}
+{{#if statment}}
 var st = {{{series}}};
 $("#container").append("<ul id='rev' style='width:80%;'><li><b>{{#i18n}}Revenues{{/i18n}}</b></li></ul><br/><ul id='exp' style='width:80%;'><li><b>{{#i18n}}Expenses{{/i18n}}</b></li></ul><br/>");
 
@@ -120,4 +120,4 @@ $("#container").append("<ul style='width:80%;'><li><b>{{#i18n}}Net loss for Peri
 $("#container ul").addClass("nav nav-list").css("padding-right","0").filter(":empty").remove();
 $("#container span").css({"width":"300px", "float":"right"});
 
-{{/statment}}
+{{/if}}

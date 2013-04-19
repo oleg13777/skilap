@@ -5,6 +5,7 @@ var SkilapError = require("skilap-utils").SkilapError;
 
 module.exports.getSettings = function(token, id, defs, cb) {
 	var self = this;
+	console.log("getSettings", arguments);
 
 	async.series ([
 		function (cb) {
@@ -22,6 +23,7 @@ module.exports.getSettings = function(token, id, defs, cb) {
 };
 
 module.exports.saveSettings = function(token, id, settings, cb) {
+	console.log("saveSettings", arguments);
 	var self = this;
 	async.waterfall ([
 		function (cb) {
@@ -44,6 +46,8 @@ module.exports.saveSettings = function(token, id, settings, cb) {
 };
 
 module.exports.clearSettings = function (token, ids, cb) {
+	console.log("clearSettings", arguments);
+	
 	var self = this;
 	if (ids == null) {
 		async.series ([
@@ -77,6 +81,7 @@ module.exports.clearSettings = function (token, ids, cb) {
 };
 
 module.exports.importSettings = function  (token, settings, cb) {
+	console.log("importSettings", arguments);	
 	var self = this;
 	async.series ([
 		function (cb) {

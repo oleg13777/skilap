@@ -388,7 +388,6 @@ CoreApi.prototype.layout = function () {
 	var self = this;
 	return function (req,res,next) {
 		res.locals.layout = "layout";
-		res.locals.prefix = "/core";
 		next()
 	}
 };

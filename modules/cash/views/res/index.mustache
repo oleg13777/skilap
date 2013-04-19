@@ -1,4 +1,3 @@
-{{>pagesettings}}
 <a class="report-settings" href="javascript:void(0);" title="{{#i18n}}Settings{{/i18n}}"></a>
 <div class="row">
 <div class="span6">
@@ -6,9 +5,9 @@
 <hr size="2" noshade />
 <div class="well">
 <ul class="nav nav-list">
-	{{#assets}}
-		{{>index_account}}
-	{{/assets}}
+	{{#each assets}}
+		{{> index_account}}
+	{{/each}}
 </ul>
 </div>
 </div>
@@ -18,7 +17,7 @@
 <div class="well">
 	<ul class="nav nav-list">
 	{{#liabilities}}
-		{{>index_account}}
+		{{> index_account}}
 	{{/liabilities}}
 	</ul>
 </div>

@@ -127,18 +127,17 @@ CashApi.prototype._loadData = function (cb) {
 				self._cash_settings = results.cash_settings;	
 			}));
 		}, 
-		/*
 		function ensureIndexes(cb) {
 			async.parallel([
 				function (cb) {
-					self._cash_accounts.addIndex("parentId",function (acc) { return acc.parentId; }, cb);
+					self._cash_accounts.ensureIndex("parentId",cb);
 				},
 				function (cb) {
-					self._cash_transactions.addIndex("datePosted",function (trn) { return (new Date(trn.datePosted)).valueOf(); }, cb);
+					self._cash_transactions.ensureIndex("datePosted",cb);
 				}
+				
 			], cb)
 		}
-		*/
 	],cb);
 }; 
 
@@ -290,7 +289,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		transaction_stats: ['account_paths',function (cb1) {
 			console.time("Test");
 			var ballances = [];
-			self._cash_transactions.find({}, {sort: {dateEntered: 1}}, function (err, cursor) {
+			self._cash_transactions.find({}, {sort: {datePosted: 1}}, function (err, cursor) {
 				if (err) return cb1(err);
 				cursor.each(function (err, tr) {
 					if (err || !tr) return cb1(err);
@@ -299,7 +298,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 						var act = assetInfo[accStats.type].act;								
 						accStats.value+=split.quantity*act;
 						accStats.count++;
-						var trs = {_id:tr._id, date:new Date(tr.dateEntered), ballance: 0};
+						var trs = {_id:tr._id, date:new Date(tr.datePosted), ballance: 0};
 						accStats.trDateIndex.push(trs);
 						//!!!!
 						var accId = split.accountId;
