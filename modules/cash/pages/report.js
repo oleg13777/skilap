@@ -117,7 +117,7 @@ module.exports = function account(webapp) {
 				cb1()
 			},
 			function(somedata,cb1){
-				res.render(__dirname+"/../views/res/report", _.extend({settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, usedCurrencies:currencies.used, notUsedCurrencies:currencies.unused},data));
+				res.render(__dirname+"/../res/views/report", _.extend({settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, usedCurrencies:currencies.used, notUsedCurrencies:currencies.unused},data));
 			}],
 			next
 		);

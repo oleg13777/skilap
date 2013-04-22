@@ -80,7 +80,7 @@ module.exports = function account(webapp) {
 		webapp.ctx.runBatch(batch,cb);
 	}
 
-	app.get(prefix+"/accounts/tree", function(req, res, next) {
+	app.get(prefix+"/accounts/tree", webapp.layout(), function(req, res, next) {
 		var assets,curencies,assetsTypes;		
 		var settings = {key:'accounts_tree_page'};
 		async.series({
@@ -120,7 +120,7 @@ module.exports = function account(webapp) {
 					settings: settings,
 					host: req.headers.host
 				};
-			res.render(__dirname+"/../views/accounts-tree", rdata);
+			res.render(__dirname+"/../res/views/accounts-tree", rdata);
 		})
 	});
 	
@@ -152,7 +152,7 @@ module.exports = function account(webapp) {
 					mainLayoutHide:1,
 					host:req.headers.host						
 				};
-			res.render(__dirname+"/../views/"+tplName, rdata);
+			res.render(__dirname+"/../res/views/"+tplName, rdata);
 		});
 	};
 

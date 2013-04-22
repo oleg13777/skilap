@@ -7,7 +7,7 @@ module.exports = function account(webapp) {
 	var prefix = webapp.prefix
 	var ctx = webapp.ctx;
 	
-	app.get(prefix + "/new/register", function(req, res, next) {
+	app.get(prefix + "/new/register", webapp.layout(), function(req, res, next) {
 		if (_.isEmpty(req.query)) {
 			async.series([
 				function (cb1) {
@@ -18,8 +18,8 @@ module.exports = function account(webapp) {
 				},				
 			], function (err, r) {
 				if (err) return next(err);
-				var rdata = {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:r[0], curencies:r[1]};
-				res.render(__dirname+"/../views/restoredefaults", rdata);
+				var rdata = {settings:{views:__dirname+"/../res/views"},prefix:prefix, tabs:r[0], curencies:r[1]};
+				res.render(__dirname+"/../res/views/restoredefaults", rdata);
 			});
 		} else if (req.query.confirm == 'true') {
 			async.waterfall([

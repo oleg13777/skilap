@@ -25,19 +25,19 @@ module.exports = function account(webapp) {
 		);
 	});
 	
-	app.get(prefix + "/import/raw", function(req, res, next) {
+	app.get(prefix + "/import/raw", webapp.layout(), function(req, res, next) {
 		async.waterfall([
 			function (cb1) {
 				webapp.guessTab(req, {pid:'import-raw',name:ctx.i18n(req.session.apiToken, 'cash','Raw import'),url:req.url}, cb1);
 			},
 			function render (vtabs) {
-				res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, upload:true,SkilapCash:1 });
+				res.render(__dirname+"/../res/views/import", {settings:{views:__dirname+"/../res/views"},prefix:prefix, tabs:vtabs, upload:true,SkilapCash:1 });
 			}],
 			next
 		);
 	});
 	
-	app.post(prefix + "/import/raw", function(req, res, next) {
+	app.post(prefix + "/import/raw", webapp.layout(), function(req, res, next) {
 		var step = req.query.step;
 		var path;
 		if (step == 1) {
@@ -60,7 +60,7 @@ module.exports = function account(webapp) {
 					webapp.guessTab(req, {pid:'import-raw',name:ctx.i18n(req.session.apiToken, 'cash','Raw import'),url:req.url}, cb1);
 				},
 				function render (vtabs) {
-					res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, step1:true, transactions:tr_count, accounts:acc_count, path:path,SkilapCash:1});
+					res.render(__dirname+"/../res/views/import", {settings:{views:__dirname+"/../res/views"},prefix:prefix, tabs:vtabs, step1:true, transactions:tr_count, accounts:acc_count, path:path,SkilapCash:1});
 				}],
 				next
 			);
@@ -112,7 +112,7 @@ module.exports = function account(webapp) {
 					webapp.removeTabs(req.session.apiToken, null, cb1);
 				},
 				function render (cb1) {
-					res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:tabs, step2:true, transactions:transactions.length, accounts:accounts.length,SkilapCash:1});
+					res.render(__dirname+"/../res/views/import", {settings:{views:__dirname+"/../res/views"},prefix:prefix, tabs:tabs, step2:true, transactions:transactions.length, accounts:accounts.length,SkilapCash:1});
 				}],
 				next
 			);
@@ -122,7 +122,7 @@ module.exports = function account(webapp) {
 					webapp.guessTab(req, {pid:'import-raw',name:ctx.i18n(req.session.apiToken, 'cash','Raw import'),url:req.url}, cb1);
 				},
 				function render (vtabs) {
-					res.render(__dirname+"/../views/import", {settings:{views:__dirname+"/../views"},prefix:prefix, tabs:vtabs, form:elseForm, transactions:transactions.length, accounts:accounts.length,SkilapCash:1});
+					res.render(__dirname+"/../res/views/import", {settings:{views:__dirname+"/../res/views"},prefix:prefix, tabs:vtabs, form:elseForm, transactions:transactions.length, accounts:accounts.length,SkilapCash:1});
 				}],
 				next
 			);

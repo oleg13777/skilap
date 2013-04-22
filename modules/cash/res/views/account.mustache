@@ -1,4 +1,5 @@
 <script type="text/javascript">
+require(["jquery","skigrid"], function ($) {
 $(function(){	
 	$('#acc').skiGrid({
 		"sAjaxSource": "{{prefix}}/account/{{accountId}}/getgrid",	
@@ -21,9 +22,8 @@ $(function(){
 		}		
 	});
 	
-	$("#ski_createAccount").iframeContainer({src:"{{prefix}}/accounts/create",host:"{{host}}"});	
-	
 });
+})
 </script>
 <div id="ski_createAccount"></div>
 <table id="acc" cellspacing="0" cellpadding="5" width="100%">	

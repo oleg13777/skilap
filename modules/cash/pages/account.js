@@ -12,7 +12,7 @@ module.exports = function account(webapp) {
 	var cashapi = webapp.api;
 	var prefix = webapp.prefix;
 
-	app.get(webapp.prefix+'/account', function(req, res, next) {		
+	app.get(webapp.prefix+'/account', webapp.layout(), function(req, res, next) {		
 		var count = 0, verbs=0;
 		async.waterfall([
 			function (cb1) {
@@ -27,8 +27,7 @@ module.exports = function account(webapp) {
 				var pageSize = 25;
 				var firstVisible = Math.max(0, count-pageSize);
 				var scrollGap = pageSize*5;
-				res.render(__dirname+"/../views/account", {
-					settings:{views:__dirname+"/../views"},
+				res.render(__dirname+"/../res/views/account", {
 					tabs:vtabs,
 					prefix:prefix,
 					accountId:req.query.id,

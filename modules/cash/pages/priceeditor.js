@@ -10,7 +10,7 @@ module.exports = function priceeditor(webapp) {
 	var prefix = webapp.prefix;
 	var ctx = webapp.ctx;
 	
-	app.get(prefix + "/priceeditor", safe.trap(function(req, res, next) {	
+	app.get(prefix + "/priceeditor", webapp.layout(), safe.trap(function(req, res, next) {	
 		if(req.xhr){	
 			if(req.query.firstCurr && req.query.secondCurr){				
 				cashapi.getPricesByPair(req.session.apiToken,{from:req.query.firstCurr,to:req.query.secondCurr},safe.trap_sure(next, function(prices) {
@@ -44,7 +44,7 @@ module.exports = function priceeditor(webapp) {
 					var lastRate;
 					if(firstPrice)
 						lastRate = firstPrice.value;
-					res.partial(__dirname+"/../views/priceeditor_table",{
+					res.partial(__dirname+"/../res/views/priceeditor_table",{
 						prices:pagingPrices,
 						firstCurr:req.query.firstCurr,
 						secondCurr:req.query.secondCurr,
@@ -64,7 +64,7 @@ module.exports = function priceeditor(webapp) {
 				}	
 				cashapi.savePrice(req.session.apiToken,price,safe.trap_sure(next, function(pricen) {
 					pricen.date = df.format(new Date(pricen.date));
-					res.partial(__dirname+"/../views/priceeditor_tr",pricen);
+					res.partial(__dirname+"/../res/views/priceeditor_tr",pricen);
 				}));				
 			}
 			else if(req.query.deleteId){
@@ -96,13 +96,13 @@ module.exports = function priceeditor(webapp) {
 				}
 			], safe.trap_sure(next, function render (r) {	
 				var rdata = {
-					settings:{views:__dirname+"/../views/"},
+					settings:{views:__dirname+"/../res/views/"},
 					prefix:prefix, 
 					tabs:r[1], 						
 					usedCurrencies:r[0].used,
 					notUsedCurrencies:r[0].unused						
 				};
-				res.render(__dirname+"/../views/priceeditor", rdata);
+				res.render(__dirname+"/../res/views/priceeditor", rdata);
 			}));
 		}		
 	}));

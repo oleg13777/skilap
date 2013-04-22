@@ -8,7 +8,8 @@ require.config({
 		"jquery-ui": "/common/js/jquery-ui-1.8.17.custom.min",	
 		"jquery-block": "/common/js/jquery.blockUI",			
 		"bootstrap": "/common/js/bootstrap.min",
-		"highcharts": "/common/js/highcharts/highcharts"
+		"highcharts": "/common/js/highcharts/highcharts",
+		"skigrid": _prefix+"/js/jquery.skiGrid"
 	},
 	shim:{
 		"gettext": {
@@ -27,6 +28,9 @@ require.config({
 			deps:["jquery"]
 		},
 		"jquery-block": {
+			deps:["jquery"]
+		},	
+		"skigrid": {
 			deps:["jquery"]
 		}		
 	},

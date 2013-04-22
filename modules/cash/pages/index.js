@@ -126,7 +126,6 @@ module.exports = function account(webapp) {
 				}))
 			},
 			function render () {
-				settings.views = __dirname+"/../views";
 				var rdata = {
 					settings: settings,
 					prefix: prefix,
@@ -138,7 +137,7 @@ module.exports = function account(webapp) {
 				rdata.assets = assets;
 				rdata.liabilities = liabilities;
 
-				res.render(__dirname+"/../views/res/index", rdata);
+				res.render(__dirname+"/../res/views/index", rdata);
 			}],
 			next
 		);

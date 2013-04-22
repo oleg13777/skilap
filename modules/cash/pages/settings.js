@@ -10,7 +10,7 @@ module.exports = function priceeditor(webapp) {
 	var prefix = webapp.prefix
 	var ctx = webapp.ctx;
 	
-	app.get(prefix + "/settings", safe.trap(function(req, res, next) {	
+	app.get(prefix + "/settings", webapp.layout(), safe.trap(function(req, res, next) {	
 		async.series({
 			currency:function (cb) { 
 				webapp.getUseRangedCurrencies(req.session.apiToken,cb)
@@ -20,14 +20,14 @@ module.exports = function priceeditor(webapp) {
 			}
 		}, safe.trap_sure(next, function render (r) {	
 			var rdata = {
-				settings:{views:__dirname+"/../views/"},
+				settings:{views:__dirname+"/../res/views/"},
 				prefix:prefix, 
 				values:{currency:r.defCurrency},
 				usedCurrencies:r.currency.used,
 				notUsedCurrencies:r.currency.unused,
 				mainLayoutHide:1
 			};
-			res.render(__dirname+"/../views/settings", rdata);
+			res.render(__dirname+"/../res/views/settings", rdata);
 		}));
 	}));
 	
