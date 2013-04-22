@@ -351,9 +351,9 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		}]},
 		*/
 		function done (err) {
-			console.timeEnd("Test");
-			console.timeEnd("Stats");
 			if (err) console.log(err);
+			console.timeEnd("Test");
+			console.timeEnd("Stats");			
 			self._dataReady=true;
 			self._dataInCalc=false;
 			self._pumpWaitQueue();

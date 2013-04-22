@@ -51,23 +51,13 @@
     </div>   
     <div class="container-fluid">		
 		<div class="row-fluid">
-			<div class="span2 hidden-phone">				
-					<ul class="nav nav-tabs nav-stacked ski_nav-tabs">
+			<div class="span2">				
+					<ul class="nav nav-tabs nav-stacked">
 					  {{#tabs}}
 					  <li {{#selected}}class="active"{{/selected}}>
-						<a href="{{url}}" data-pid="{{pid}}">{{name}} <i class="icon-remove closeTab"></i></a>						
+						<button class="close">&times;</button>						  
+						<a href="{{url}}" data-pid="{{pid}}">{{name}}</a>						
 					  </li>
-					  {{/tabs}}
-					</ul>					
-			</div>
-			<div class="span2 visible-phone">				
-					<ul class="nav nav-tabs nav-stacked ski_nav-tabs">
-					  {{#tabs}}
-					  {{#selected}}
-					  <li class="active">
-						<a href="{{url}}" data-pid="{{pid}}">{{name}} <i class="icon-remove closeTab"></i></a>						
-					  </li>
-					  {{/selected}}
 					  {{/tabs}}
 					</ul>					
 			</div>
@@ -78,7 +68,7 @@
 		</div>			
 		<hr>
 		<footer>
-			<p>&copy; {{#i18n}}Copyright by PushOk Software{{/i18n}} 2011-2012</p>
+			<p>&copy; {{#i18n}}Copyright by PushOk Software{{/i18n}} 2011-2013</p>
 		</footer>
     </div> 	
 </body>

@@ -42,7 +42,6 @@ module.exports = function account(webapp) {
 	}
 
 	app.get(prefix, webapp.layout(), function(req, res, next) {
-		console.log("Index");
 		var data;
 		var settings = {};
 		var assets = [];
