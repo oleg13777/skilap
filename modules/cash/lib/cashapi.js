@@ -40,6 +40,7 @@ function CashApi (ctx) {
 CashApi.prototype.getAccount = require('./accapi.js').getAccount;
 CashApi.prototype.getAllAccounts = require('./accapi.js').getAllAccounts;
 CashApi.prototype.getChildAccounts = require('./accapi.js').getChildAccounts;
+CashApi.prototype._getAllChildsId = require('./accapi.js')._getAllChildsId; 
 CashApi.prototype.getAccountByPath = require('./accapi.js').getAccountByPath;
 CashApi.prototype.getAccountInfo = require('./accapi.js').getAccountInfo;
 CashApi.prototype.deleteAccount = require('./accapi.js').deleteAccount;
@@ -55,6 +56,7 @@ CashApi.prototype.createAccountsTree = require('./accapi.js').createAccountsTree
 CashApi.prototype.importPrices = require('./priceapi.js').importPrices;
 CashApi.prototype.clearPrices = require('./priceapi.js').clearPrices;
 CashApi.prototype.getCmdtyPrice = require('./priceapi.js').getCmdtyPrice;
+CashApi.prototype.getCmdtyLastPrices = require('./priceapi.js').getCmdtyLastPrices;
 CashApi.prototype.getPricesByPair = require('./priceapi.js').getPricesByPair;
 CashApi.prototype.savePrice = require('./priceapi.js').savePrice;
 CashApi.prototype.parseGnuCashXml = require('./gnucash.js');

@@ -111,6 +111,24 @@ safe.sure_result = function (callback,fn) {
 	}	
 }
 
+safe.inherits = (function(){
+    function noop(){}
+ 
+    function ecma3(ctor, superCtor) {
+        noop.prototype = superCtor.prototype;
+        ctor.prototype = new noop;
+        ctor.prototype.constructor = superCtor;
+    }
+    
+    function ecma5(ctor, superCtor) {
+        ctor.prototype = Object.create(superCtor.prototype, {
+            constructor: { value: ctor, enumerable: false }
+        });
+    }
+    
+    return Object.create ? ecma5 : ecma3;
+}());
+
 if (typeof module !== 'undefined' && module.exports)
 	// commonjs module
 	module.exports = safe;

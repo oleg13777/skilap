@@ -12,7 +12,7 @@ var util = require("util");
 var express = require('express');
 var SkilapError = require("skilap-utils").SkilapError;
 var Gettext = require("../vendor/Gettext");
-var i18n = require('jsorm-i18n');
+var i18n = require('pok_utils');
 var ApiBatch = require('./batch.js');
 var vstatic = require('pok_utils').vstatic;
 var handlebarsEngine = require('pok_utils').handlebarsEngine;
@@ -121,7 +121,12 @@ function Skilap(config_) {
 												
 						Handlebars.registerHelper('i18n_date', function(options) {
 							return options.fn(this);																									
-						});			
+						});		
+							
+						Handlebars.registerHelper('i18n_currency', function(iso, value, options) {
+							return self.i18n_cytext(req.session.apiToken, iso, value);																									
+						});								
+						
 						Handlebars.registerHelper('when', function(lvalue, op, rvalue, options) {
 							if (arguments.length < 4)
 								throw new Error("Handlerbars Helper 'compare' needs 3 parameters");

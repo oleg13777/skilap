@@ -2,7 +2,7 @@ require.config({
 	baseUrl: "/common/js",
 	paths: {		
 		"hbs": _prefix+"/hbs",
-		"admin": _prefix+"/js",
+		"cash": _prefix+"/js",
 		"jquery": "jquery-1.9.0.min",		
 		"jquery-form": "/common/js/jquery.form",		
 		"jquery-ui": "/common/js/jquery-ui-1.8.17.custom.min",	

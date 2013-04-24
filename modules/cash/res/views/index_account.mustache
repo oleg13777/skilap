@@ -1,8 +1,10 @@
 {{#if value}}
-<li><a href='{{prefix}}/account?id={{_id}}'>{{name}} <span class="nav-item-hint" >{{#fquantity}}( {{fquantity}} ) {{/fquantity}}{{fvalue}}</span></a></li>
+<span class="pull-right" >{{#if fquantity}}( {{fquantity}} ) {{/if}}{{fvalue}}</span>
+<li><a href='{{prefix}}/account?id={{_id}}'>{{name}}</a>
 <ul class="nav nav-list">
 {{#each childs}}
 {{>index_account}}
 {{/each}}
 </ul>
+</li>
 {{/if}}

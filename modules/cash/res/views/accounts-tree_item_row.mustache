@@ -1,0 +1,10 @@
+<div id="acc_row">
+{{#hidden}}* {{/hidden}}	
+	<span class="pull-right">{{i18n_cost cmdty value}}
+		<a href="#"><i class="icon-edit editAcc" data-aid="{{_id}}" title="{{#i18n}}edit{{/i18n}}" ></i></a>
+		<a href="#"><i class="icon-trash deleteAcc" data-aid="{{_id}}" title="{{#i18n}}delete{{/i18n}}" ></i></a>
+	</span>	
+	{{^placeholder}}<a href='{{prefix}}/account?id={{_id}}'>{{/placeholder}}
+		{{name}}&nbsp;
+	{{^placeholder}}</a>{{/placeholder}}
+</div>

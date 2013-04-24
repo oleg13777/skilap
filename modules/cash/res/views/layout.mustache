@@ -51,17 +51,17 @@
     </div>   
     <div class="container-fluid">		
 		<div class="row-fluid">
-			<div class="span2">				
-					<ul class="nav nav-tabs nav-stacked">
+			<div class="span3">				
+					<ul class="nav nav-tabs nav-stacked affix">
 					  {{#tabs}}
 					  <li {{#selected}}class="active"{{/selected}}>
-						<button class="close">&times;</button>						  
-						<a href="{{url}}" data-pid="{{pid}}">{{name}}</a>						
+						<button class="close closeTab" data-pid="{{pid}}">&times;&nbsp;</button>						  
+						<a href="{{url}}">{{name}}</a>						
 					  </li>
 					  {{/tabs}}
 					</ul>					
 			</div>
-			<div class="span10">				
+			<div class="span9 context">				
 				{{>content}}
 			</div>
 			 <div id="ski_editSettings"></div>
@@ -71,5 +71,24 @@
 			<p>&copy; {{#i18n}}Copyright by PushOk Software{{/i18n}} 2011-2013</p>
 		</footer>
     </div> 	
+<script>
+require(['jquery'], function ($) { $(function () {
+	$(".closeTab").on("click", function(e){			
+		e.preventDefault();		
+		var self = $(this);
+		(function (cb) {
+			require(['api','safe'], function (api, safe) {
+				api.call('cash.web_removeTabs',self.data('pid'),safe.sure(cb, function () {
+					if (self.parents("li").hasClass("active")){
+						location.href="{{prefix}}";
+					} else {
+						self.parents("li").remove();
+					}					
+				}))
+			}, cb)
+		})(appError)
+	});
+})})
+</script>
 </body>
 </html>

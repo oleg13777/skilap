@@ -12,7 +12,13 @@ module.exports = function account(webapp) {
 
 	function getAssets(token, id, types, data, cb) {
 		// filter this level data
-		var level = _(data.accounts).filter(function (e) { return e.parentId.toString() == id.toString() && _(types).include(e.type); });
+		var level = _(data.accounts).filter(function (e) { 
+			if (!_(types).include(e.type)) return false;
+			if (id==null)
+				return e.parentId==null || e.parentId.toString()==0
+			else
+				return e.parentId && e.parentId.toString() == id.toString(); 
+		})
 		var res = [];
 		_(level).forEach (function (acc) {
 			var det = {};

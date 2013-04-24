@@ -5,6 +5,7 @@ var SkilapError = require("skilap-utils").SkilapError;
 var vstatic = require('pok_utils').vstatic;
 var handlebarsMiddleware = require('pok_utils').handlebarsMiddleware;
 var lessMiddleware = require('less-middleware');
+var Handlebars = require('handlebars');
 
 function CashWeb (ctx) {
 	var self = this;
@@ -42,8 +43,18 @@ CashWeb.prototype._init = function (cb) {
 CashWeb.prototype.layout = function () {
 	var self = this;
 	return function (req,res,next) {
-		res.locals.layout = "layout";
-		next()
+		self.api.getCmdtyLastPrices(req.session.apiToken, safe.sure(next, function (prices) {
+			Handlebars.registerHelper('i18n_cost', function(cmdtySrc, value, options) {
+				var cmdtyDst = res.locals.pageCmdty;
+				var key = (cmdtySrc.space+cmdtySrc.id+cmdtyDst.space+cmdtyDst.id);
+				var price = prices[key] || 1;
+				return (price!=1?"( "+self.ctx.i18n_cytext(req.session.apiToken, cmdtySrc.id, value) + ")":"")
+					+" "+self.ctx.i18n_cytext(req.session.apiToken, cmdtyDst.id, price*value);																									
+			});	
+			res.locals.layout = "layout";
+			res.locals.pageCmdty = {space:"ISO4217",id:"RUB"};
+			next()
+		}))
 	}
 };
 

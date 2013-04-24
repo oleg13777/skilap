@@ -26,6 +26,7 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 				var tpl = new handlebars.template(eval("("+scan.tf+")"))
 				templates[scan.p]=tpl;
 			})
+			handlebars.partials = templates;
 			cb(null, templates);
 		},
 		corectx:function(ctx,opts,cb) {
@@ -58,6 +59,52 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 					});
 				})
 			}
+			if (opts.ctx.i18n_currency) {
+				tasks.push(function (cb) {
+					require(["currency"], function (currency) {
+						var i18n_cytext = function(curId,value) {
+							var cur = currency(curId);
+							var res = cur.format(value);
+							var m = res.match(/([^0123456789., ]*)([0123456789., ]*)([^0123456789., ]*)/);
+							if (m && m.length>3)
+								return (m[1]+" "+m[2]+ " "+m[3]).trim();
+							else
+								return res.trim();
+						}
+						
+						handlebars.registerHelper('i18n_currency',function(iso, value, options) {
+							return i18n_cytext(iso,value);
+						})
+						cb();
+					}, cb)
+				})
+			}			
+			if (opts.ctx.i18n_cost) {
+				tasks.push(function (cb) {
+					require(["currency","api"], function (currency,api) {
+						api.call("cash.getCmdtyLastPrices",safe.sure(cb, function (prices) {
+							var i18n_cytext = function(curId,value) {
+								var cur = currency(curId);
+								var res = cur.format(value);
+								var m = res.match(/([^0123456789., ]*)([0123456789., ]*)([^0123456789., ]*)/);
+								if (m && m.length>3)
+									return (m[1]+" "+m[2]+ " "+m[3]).trim();
+								else
+									return res.trim();
+							}
+						
+							handlebars.registerHelper('i18n_cost',function(cmdtySrc, value, options) {
+								cmdtyDst = {space:"ISO4217",id:"RUB"};
+								var key = (cmdtySrc.space+cmdtySrc.id+cmdtyDst.space+cmdtyDst.id);
+								var price = prices[key] || 1;
+								return (price!=1?"( "+i18n_cytext(cmdtySrc.id, value) + ")":"")
+									+" "+i18n_cytext(cmdtyDst.id, price*value);	
+							})
+							cb();
+						}))
+					},cb)
+				})
+			}				
 			if (opts.ctx.user) {
 				tasks.push(function (cb) {
 					require(["jsonrpc"], function (JsonRpc) {
@@ -90,6 +137,8 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 				if (scan.v) return;
 				opts.ctx.i18n = opts.ctx.i18n || scan.tf.indexOf("helpers.i18n")!=-1;
 				opts.ctx.user = opts.ctx.user || scan.tf.indexOf("depth0.user")!=-1;
+				opts.ctx.i18n_currency = opts.ctx.i18n_currency || scan.tf.indexOf("helpers.i18n_currency")!=-1;				
+				opts.ctx.i18n_cost = opts.ctx.i18n_cost || scan.tf.indexOf("helpers.i18n_cost")!=-1;								
 			})
 			this.compile(scans,opts, function (err, templates) {
 				if (err) return cb(err);

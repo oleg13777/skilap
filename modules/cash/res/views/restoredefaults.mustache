@@ -1,11 +1,11 @@
 <script>
-	$(function() {
+	require(["jquery"], function ($) { $(function() {
 		$(".confirm").click(function () {
 			$("#props").submit();
 			return false;
 		})
 		$('#acc_curency option[value="{{#i18n}}USD{{/i18n}}"]').attr('selected', 'selected');			
-	});
+	})});
 </script>
 <h2>{{#i18n}}Create new cash register{{/i18n}}</h2>
 <div class="alert">{{#i18n}}Attention! Your existing data will be overwritten upon complete.{{/i18n}}</div>
