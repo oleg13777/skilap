@@ -1,5 +1,5 @@
 var async = require('async');
-var webdriver = require('selenium-webdriver')
+var webdriver = require('selenium-webdriver');
 var By = webdriver.By;
 var Key = webdriver.Key;
 var assert = require('assert');
@@ -28,19 +28,19 @@ var assert = require('assert');
 
 describe("Core module",function () {
 	this.timeout(30000);
-	before(tutils.setupContext)
+	before(tutils.setupContext);
 	before(function (done) {
 		this.fixture('dataentry').then(tutils.noerror(done));
 		this.browser.manage().window().setSize(1280,768);
-	})
-	afterEach(tutils.afterEach)
+	});
+	afterEach(tutils.afterEach);
 
 	describe("Register new user", function () {
 		it("Login as superadmin", function (done) {
 			this.trackError(done);
 			helpers.login.call(this, this.fixtures.dataentry.superuser,true);
 			this.done();
-		})
+		});
 		it("Create users", function (done) {
 			this.trackError(done);
 			var self = this;
@@ -57,7 +57,7 @@ describe("Core module",function () {
 			modal.findElement(By.id("language")).sendKeys(u.language);
 			modal.findElement(By.id("changePass")).click();
 			modal.findElement(By.id("password")).sendKeys(u.password);
-			modal.findElement(By.id("save")).click()
+			modal.findElement(By.id("save")).click();
 						
 			helpers.waitModalUnload.call(this);
 			
@@ -66,7 +66,7 @@ describe("Core module",function () {
 			self.browser.findElement(By.xpath("//*[contains(.,'"+u.lastName+"')]"));			
 			self.browser.findElement(By.xpath("//*[contains(.,'"+u.login+"')]"));			
 			self.done();
-		})
+		});
 		it("Assign permissions", function(done) {
 			this.trackError(done);
 			var self = this;
@@ -82,7 +82,6 @@ describe("Core module",function () {
 				modal.findElement(By.id("save")).click();
 			});
 			self.done();
-
 		});
 		it("Check permissions", function(done) {
 			this.trackError(done);
@@ -104,19 +103,183 @@ describe("Core module",function () {
 		});
 	});
 	describe("Edit users", function () {
-		it("Edit pereferences")
-		it("Edit permissions")
-	})
-	describe("Edit self", function () {
-		it("login as user1")
-		it("edit preferences")
-		it("edit permissions")
-	})
+		it("Edit pereferences", function(done) {
+			this.trackError(done);
+			var self = this;
+			var u = this.fixtures.dataentry.users[1];			
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editUser']")).click();	
+			
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElement(By.id("firstName")).clear();	
+		        modal.findElement(By.id("firstName")).sendKeys(u.firstName);
+				modal.findElement(By.id("lastName")).clear();	
+				modal.findElement(By.id("lastName")).sendKeys(u.lastName);	
+				modal.findElement(By.id("login")).clear();	
+				modal.findElement(By.id("login")).sendKeys(u.login);					
+				modal.findElement(By.id("language")).sendKeys(u.language);
+				modal.findElement(By.id("changePass")).click();
+				modal.findElement(By.id("password")).sendKeys(u.password);
+				modal.findElement(By.id("save")).click();
+			});
+
+			// not verify that our user is here
+			self.browser.findElement(By.xpath("//*[contains(.,'"+u.firstName+"')]"));
+			self.browser.findElement(By.xpath("//*[contains(.,'"+u.lastName+"')]"));			
+			self.browser.findElement(By.xpath("//*[contains(.,'"+u.login+"')]"));			
+			self.done();
+		});
+		it("Edit permissions", function(done) {
+			this.trackError(done);
+			var self = this;
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editPerm']")).click();	
+			
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElements(By.xpath("//input")).then(function (elements) {
+					elements[0].click(); 
+				});
+				modal.findElement(By.id("save")).click();
+			});
+
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editPerm']")).click();	
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElements(By.xpath("//input")).then(function (elements) {
+					for (var key in elements)
+						if (key == 0)
+							elements[key].isSelected().then(function (val) {
+								assert.ok(!val, "Permission not edit");
+							});
+						else
+							elements[key].isSelected().then(function (val) {
+								assert.ok(val, "Permission not edit");
+							});
+				});
+				modal.findElement(By.id("save")).click();
+			});
+			
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editPerm']")).click();	
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElements(By.xpath("//input")).then(function (elements) {
+					elements[0].click(); 
+				});
+				modal.findElement(By.id("save")).click();
+			});
+
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editPerm']")).click();	
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElements(By.xpath("//input")).then(function (elements) {
+					for (var key in elements)
+						elements[key].isSelected().then(function (val) {
+							assert.ok(val, "Permission not edit");
+						});
+				});
+				modal.findElement(By.id("save")).click();
+			});
+			self.done();
+		});
+	});
+	describe.skip("Edit self", function (done) {
+		it("logout", function() {
+			this.trackError(done);
+			var self = this;
+			this.browser.findElement(By.xpath("//a[@href='/logout?success=/']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.name("name"));
+			});		
+			self.done();
+		});
+		it("login as user1", function() {
+			helpers.login.call(this, this.fixtures.dataentry.users[0], true);
+			this.done();
+		});
+		it("edit pereferences", function(done) {
+			this.trackError(done);
+			var self = this;
+			var u = this.fixtures.dataentry.users[1];			
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editUser']")).click();	
+			
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElement(By.id("firstName")).clear();	
+		        modal.findElement(By.id("firstName")).sendKeys(u.firstName);
+				modal.findElement(By.id("lastName")).clear();	
+				modal.findElement(By.id("lastName")).sendKeys(u.lastName);	
+				modal.findElement(By.id("login")).clear();	
+				modal.findElement(By.id("login")).sendKeys(u.login);					
+				modal.findElement(By.id("language")).sendKeys(u.language);
+				modal.findElement(By.id("changePass")).click();
+				modal.findElement(By.id("password")).sendKeys(u.password);
+				modal.findElement(By.id("save")).click();
+			});
+
+			// not verify that our user is here
+			self.browser.findElement(By.xpath("//*[contains(.,'"+u.firstName+"')]"));
+			self.browser.findElement(By.xpath("//*[contains(.,'"+u.lastName+"')]"));			
+			self.browser.findElement(By.xpath("//*[contains(.,'"+u.login+"')]"));			
+			self.done();
+		});
+		it("edit permissions", function(done) {
+			this.trackError(done);
+			var self = this;
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editPerm']")).click();	
+			
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElements(By.xpath("//input")).then(function (elements) {
+					elements[0].click(); 
+				});
+				modal.findElement(By.id("save")).click();
+			});
+
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editPerm']")).click();	
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElements(By.xpath("//input")).then(function (elements) {
+					for (var key in elements)
+						if (key == 0)
+							elements[key].isSelected().then(function (val) {
+								assert.ok(!val, "Permission not edit");
+							});
+						else
+							elements[key].isSelected().then(function (val) {
+								assert.ok(val, "Permission not edit");
+							});
+				});
+				modal.findElement(By.id("save")).click();
+			});
+			
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editPerm']")).click();	
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElements(By.xpath("//input")).then(function (elements) {
+					elements[0].click(); 
+				});
+				modal.findElement(By.id("save")).click();
+			});
+
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
+			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editPerm']")).click();	
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElements(By.xpath("//input")).then(function (elements) {
+					for (var key in elements)
+						elements[key].isSelected().then(function (val) {
+							assert.ok(val, "Permission not edit");
+						});
+				});
+				modal.findElement(By.id("save")).click();
+			});
+			self.done();
+		});
+	});
 	describe("Edit system preferences", function () {
-		it("login as superadmin")
-		it("change system settings")
-	})
+		it("login as superadmin");
+		it("change system settings");
+	});
 	describe("Check core permissions", function () {
-		it("not sure yet")
-	})
-})
+		it("not sure yet");
+	});
+});
