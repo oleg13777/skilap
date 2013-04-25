@@ -281,6 +281,8 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 					getAccPath(acc, function (path) { 
 						getAccStats(acc._id).path = path;
 						getAccStats(acc._id).type = acc.type;
+						getAccStats(acc._id).cmdty = acc.cmdty;
+						getAccStats(acc._id).parentId = acc.parentId;
 					});
 					getAccLevel(acc, 1, function(level) { 
 						getAccStats(acc._id).level = level;
@@ -321,38 +323,37 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 					});
 				});
 			});
-		}]},
-		/*
-		build_register:['transaction_stats', function (cb1) {
-			console.time("Test1");
-			async.forEach (_.keys(self._stats), function (accId, cb2) {
-				var accStats = self._stats[accId];
-				if (_.isUndefined(accStats.type))
-					return cb2(); // not an account stats
-				var ballance = 0;
-				if (assetInfo[accStats.type]==null)
-					console.log(accStats);
-				var act = assetInfo[accStats.type].act;
-				async.forEachSeries(accStats.trDateIndex, function (trs,cb3) {
-					self._cash_transactions.findOne({'_id': trs._id}, function (err, tr) {
-						var recv = [];
-						var send = null;
-						tr.splits.forEach(function(split) {
-							if (split.accountId == accId)
-								send = split;
-							else
-								recv.push(split);
-						});
-						trs.recv = recv; trs.send = send;
-						ballance += send.quantity*act;
-						trs.ballance = ballance;
-						process.nextTick(cb3);
-					});
-				},cb2);
-			},cb1);
-		}]},
-		*/
-		function done (err) {
+		}],
+		accounts_tree_sum: ['transaction_stats','price_tree', function (cb) {
+			function getAccountTree(id) {
+				// filter this level data
+				var level = _(self._stats).values().filter(function (e) { 
+					if (!e.type) return false;
+					if (id==null)
+						return e.parentId==null || e.parentId.toString()==0
+					else
+						return e.parentId && e.parentId.toString() == id.toString(); 
+				});
+				var res = [];
+				_(level).forEach (function (acc) {
+					acc.avalue = acc.value;
+					acc.gvalue = acc.avalue;					
+					res.push(acc)
+					var childs = getAccountTree(acc._id);
+					_.each(childs, function (c) {
+						var key = (acc.cmdty.space+acc.cmdty.id+c.space+c.id);			
+						var ptree = self._stats.priceTree[key];
+						var rate = ptree?ptree.last:1;
+						acc.avalue +=c.avalue*rate;
+						acc.gvalue = acc.avalue;
+					})
+				})
+				return res;
+			}			
+			getAccountTree()
+			cb();
+		}]
+		}, function done (err) {
 			if (err) console.log(err);
 			console.timeEnd("Test");
 			console.timeEnd("Stats");			
