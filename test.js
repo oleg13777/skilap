@@ -17,7 +17,8 @@ var mocha = new Mocha({
 	reporter:"spec",
 	bailout:true
 });
-mocha.addFile(path.join("./test/test.js"));
+mocha.addFile(path.join("./test/core-test.js"));
+mocha.addFile(path.join("./test/cash-test.js"));
 
 // Now, you can run the tests.
 mocha.run(function(failures){

@@ -29,6 +29,9 @@ var assert = require('assert');
 describe("Core module",function () {
 	this.timeout(30000);
 	before(tutils.setupContext)
+	after(function (done) {
+		this.saveDb('core-users').then(tutils.noerror(done));
+	})	
 	before(function (done) {
 		this.fixture('dataentry').then(tutils.noerror(done));
 		this.browser.manage().window().setSize(1280,768);
@@ -115,8 +118,5 @@ describe("Core module",function () {
 	describe("Edit system preferences", function () {
 		it("login as superadmin")
 		it("change system settings")
-	})
-	describe("Check core permissions", function () {
-		it("not sure yet")
 	})
 })

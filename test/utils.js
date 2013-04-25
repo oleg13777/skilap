@@ -198,7 +198,11 @@ module.exports.notError = function (v) {
 }
 
 var tutils = module.exports;
+var configured = false;
 module.exports.setupContext = function (done) {
+	if (configured) return done()
+	configured = true;
+	
 	var self = this;
 	this._uncaughtException = function(err){
 		self.browser.takeScreenshot().then(function(text){
@@ -233,7 +237,7 @@ module.exports.setupContext = function (done) {
 		})
 	}
 	this.saveDb = function (tag) {
-		this.browser.controlFlow().execute(function () {
+		return this.browser.controlFlow().execute(function () {
 			return webdriver.promise.checkedNodeCall(function(cb) {
 				tutils.makeDbSnapshot(tag,cb)
 			})
