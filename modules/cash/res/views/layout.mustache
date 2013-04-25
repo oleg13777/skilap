@@ -51,35 +51,44 @@
     </div>   
     <div class="container-fluid">		
 		<div class="row-fluid">
-			<div class="span2 hidden-phone">				
-					<ul class="nav nav-tabs nav-stacked ski_nav-tabs">
+			<div class="span2">				
+					<ul class="nav nav-tabs nav-stacked">
 					  {{#tabs}}
 					  <li {{#selected}}class="active"{{/selected}}>
-						<a href="{{url}}" data-pid="{{pid}}">{{name}} <i class="icon-remove closeTab"></i></a>						
+						<button class="close closeTab" data-pid="{{pid}}">&times;&nbsp;</button>						  
+						<a href="{{url}}">{{name}}</a>						
 					  </li>
 					  {{/tabs}}
 					</ul>					
 			</div>
-			<div class="span2 visible-phone">				
-					<ul class="nav nav-tabs nav-stacked ski_nav-tabs">
-					  {{#tabs}}
-					  {{#selected}}
-					  <li class="active">
-						<a href="{{url}}" data-pid="{{pid}}">{{name}} <i class="icon-remove closeTab"></i></a>						
-					  </li>
-					  {{/selected}}
-					  {{/tabs}}
-					</ul>					
-			</div>
-			<div class="span10">				
+			<div class="span10 context">				
 				{{>content}}
 			</div>
 			 <div id="ski_editSettings"></div>
 		</div>			
 		<hr>
 		<footer>
-			<p>&copy; {{#i18n}}Copyright by PushOk Software{{/i18n}} 2011-2012</p>
+			<p>&copy; {{#i18n}}Copyright by PushOk Software{{/i18n}} 2011-2013</p>
 		</footer>
     </div> 	
+<script>
+require(['jquery'], function ($) { $(function () {
+	$(".closeTab").on("click", function(e){			
+		e.preventDefault();		
+		var self = $(this);
+		(function (cb) {
+			require(['api','safe'], function (api, safe) {
+				api.call('cash.web_removeTabs',self.data('pid'),safe.sure(cb, function () {
+					if (self.parents("li").hasClass("active")){
+						location.href="{{prefix}}";
+					} else {
+						self.parents("li").remove();
+					}					
+				}))
+			}, cb)
+		})(appError)
+	});
+})})
+</script>
 </body>
 </html>

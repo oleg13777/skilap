@@ -20,6 +20,8 @@ module.exports.safeGet = function (obj,defres) {
 		return defres;
 }
 
+module.exports.currency = require("./currency")
+
 function datafix(obj) {
 	_.forEach(_.keys(obj), function (k) {
 		var v = obj[k];

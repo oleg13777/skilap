@@ -47,7 +47,7 @@ module.exports.getChildAccounts = function(token, parentId, cb) {
 			],cb);
 		},
 		function get(cb) {
-			self._cash_accounts.find({'parentId': parseInt(parentId)}, {value: 1, _id: 0}).toArray(cb);
+			self._cash_accounts.find({'parentId': new self._ctx.ObjectID(parentId.toString())}).toArray(cb);
 		}
 		], safe.sure_result(cb,function (results) {
 			return results[1];
@@ -147,6 +147,12 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 					case 'value':
 						res.value = accStats.value;
 						break;
+					case 'avalue':
+						res.avalue = accStats.avalue;
+						break;
+					case 'gvalue':
+						res.gvalue = accStats.gvalue;
+						break;						
 					case 'count':
 						res.count = accStats.count;
 						break;
@@ -321,31 +327,27 @@ module.exports.getDefaultAccounts = function (token, cmdty, cb){
 	];
 
 	var ret = [];
-	async.forEachSeries(accounts, function(acc, cb) {
-		self._ctx.getUniqueId(safe.trap_sure(cb, function (uniqId) {
-			ret.push({parentId:0, cmdty:cmdty, name:acc.name, id:uniqId, type:acc.type});
-
-			async.forEachSeries(acc.ch, function(name, cb) {
-				self._ctx.getUniqueId(safe.trap_sure_result(cb,function(id) {
-					ret.push({parentId:uniqId, cmdty:cmdty, name:name, _id:_id, type:acc.type});
-				}));
-			}, cb);
-		}));
-	}, safe.sure_result(cb, function() {
-		return ret;
-	}));
+	_.each(accounts, function(acc) {
+		var id = new ctx.ObjectID();
+		ret.push({cmdty:cmdty, name:acc.name, _id:id, type:acc.type});
+		_.each(acc.ch, function(name) {
+			ret.push({parentId:id, cmdty:cmdty, name:name, _id:new ctx.ObjectID(), type:acc.type});
+		});
+	})
+	cb(null, ret);
 };
 
 module.exports.restoreToDefaults = function (token, cmdty, type, cb){
 	var self = this;
-	async.waterfall([
+	var accounts = [];
+	async.series([
 		function start(cb) {
 			async.parallel([
 				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 				function (cb) { self._waitForData(cb); }
 			],cb);
 		},
-		function (results ,cb) {
+		function (cb) {
 			self._cash_prices.remove(cb);
 		},
 		function (cb) {
@@ -359,11 +361,13 @@ module.exports.restoreToDefaults = function (token, cmdty, type, cb){
 		},
 		function (cb) {
 			if (type == "default")
-				self.getDefaultAccounts(token, cmdty, cb);
+				self.getDefaultAccounts(token, cmdty, safe.sure(cb, function (accounts_) {
+					accounts = accounts_; cb()
+				}))
 			else
-				cb(null, []);
+				cb();
 		},
-		function (accounts, cb) {
+		function (cb) {
 			async.forEachSeries(accounts, function (e, cb) {
 				self._cash_accounts.save(e,cb);
 			},cb);

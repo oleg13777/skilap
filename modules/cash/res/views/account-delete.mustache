@@ -1,0 +1,101 @@
+<div id="{{uniq}}" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h3 id="myModalLabel">{{#i18n}}Delete account{{/i18n}} &lt;{{account.path}}&gt;</h3>
+	</div>
+	<div class="modal-body">
+		<div class='localctx'></div>
+		<form class="form-horizontal" id="{{_id}}" method="POST">
+			<div class="control-group" id="sub_tr">
+				<label class='control-label'>{{#i18n}}Transactions{{/i18n}}:</label>
+				<div class="controls">
+					<span class="help-block">{{#i18n}}If this account contains transactions. What would you like to do with these transactions?{{/i18n}}</span>										
+					<label class='radio inline'>
+						<input type="radio" name="trn_action" id="delete">{{#i18n}}Delete{{/i18n}}
+					</label>
+					<label class='radio inline'>
+						<input type="radio" name="trn_action" id="move" checked>{{#i18n}}Move to{{/i18n}}
+					</label>
+					<select id="tr_parent" class="new_parent">
+						{{#each accounts}}
+							<option {{#when ../account.parentId '==' _id}}selected{{/when}} value="{{_id}}">{{path}}</option>
+						{{/each}}
+					</select>
+				</div>
+			</div>	
+			<div class="control-group" id="sub_acc">
+				<label class='control-label'>{{#i18n}}Sub-accounts{{/i18n}}:</label>
+				<div class="controls">
+					<span class="help-block">{{#i18n}}If this account contains sub-accounts. What would you like to do with these sub-accounts?{{/i18n}}</span>										
+					<label class='radio inline'>
+						<input type="radio" name="sub_acc_action" id="delete">{{#i18n}}Delete{{/i18n}}
+					</label>
+					<label class='radio inline'>
+						<input type="radio" name="sub_acc_action" id="move" checked>{{#i18n}}Move to{{/i18n}}
+					</label>
+					<select id="tr_parent" class="new_parent">
+						{{#each accounts}}
+							<option {{#when ../account.parentId '==' _id}}selected{{/when}} value="{{_id}}">{{path}}</option>
+						{{/each}}
+					</select>
+				</div>
+			</div>	
+			<div class="control-group" id="sub_acc_tr" style="display:none">
+				<label class='control-label'>{{#i18n}}Sub-account transactions{{/i18n}}:</label>
+				<div class="controls">
+					<span class="help-block">{{#i18n}}If one or more sub-account contains transactions. What would you like to do with these transactios?{{/i18n}}</span>										
+					<label class='radio inline'>
+						<input type="radio" name="sub_acc_trn_action" id="delete">{{#i18n}}Delete{{/i18n}}
+					</label>
+					<label class='radio inline'>
+						<input type="radio" name="sub_acc_trn_action" id="move" checked>{{#i18n}}Move to{{/i18n}}
+					</label>
+					<select id="tr_parent" class="new_parent">
+						{{#each accounts}}
+							<option {{#when ../account.parentId '==' _id}}selected{{/when}} value="{{_id}}">{{path}}</option>
+						{{/each}}
+					</select>
+				</div>
+			</div>	
+		</form>			
+	</div>
+	<div class="modal-footer">
+		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		<button class="btn btn-primary" id="delete">Delete</button>
+	</div>			
+</div>
+<script>
+require(["jquery","jquery-block"],function($){$(function() {
+	$form = $("#{{uniq}}");	
+	$form.on('click', '#sub_acc input[type="radio"]', function (e) {
+		if ($(this).attr('id')=="move")
+			$form.find('#sub_acc_tr').hide();
+		else
+			$form.find('#sub_acc_tr').show()			
+	});
+	$form.on('click', "#delete", function (event) {
+		event.preventDefault();
+		$form.block();
+		(function(cb) {
+			require(["api","safe"], function (api,safe) {
+				var options = {};
+				if ($form.find('input:checked[type="radio"][name="trn_action"]').attr('id') == "move") {
+					options.newParent = $form.find('#tr_parent option:selected').val();
+				}
+				if ($form.find('input:checked[type="radio"][name="sub_acc_action"]').attr('id')=="move"){
+					options.newSubParent = $form.find('#sub_acc_parent option:selected').val();
+				}
+				if ($form.find('input:checked[type="radio"][name="sub_acc_trn_action"]').attr('id')=="move") {
+					options.newSubAccTrnParent = $form.find('#sub_acc_trn_parent option:selected').val();
+				}					
+				api.call('cash.deleteAccount', '{{account._id}}', options, safe.sure(cb, function () {
+					$form.trigger("frm-saved",options);
+				}))
+			},cb)
+		})(function (err) {
+			if (err) appError(err);
+			$form.unblock();
+		})
+	})
+})})
+</script>

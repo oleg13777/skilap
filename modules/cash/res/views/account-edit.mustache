@@ -1,0 +1,109 @@
+<div id="{{uniq}}" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h3 id="myModalLabel">{{#i18n}}Account properties{{/i18n}}</h3>
+	</div>
+	<div class="modal-body">
+		<div class='localctx'></div>
+		<form class="form-horizontal" id="{{_id}}" method="POST">
+			<div class="control-group">
+				<label class='control-label'>{{#i18n}}Name{{/i18n}}:</label>
+				<div class="controls">
+					<input id="acc_name" type="text" value="{{account.name}}">
+				</div>
+			</div>	
+			<div class="control-group">
+				<label class='control-label'>{{#i18n}}Parent account{{/i18n}}:</label>
+				<div class="controls">
+					<select name="acc_parent" id="acc_parent">
+						<option value="0" pid="0">{{#i18n}}Root{{/i18n}}</option>
+						{{#each accounts}}
+							<option {{#when ../account.parentId '==' _id}}selected{{/when}} value="{{_id}}">{{path}}</option>
+						{{/each}}
+					</select>
+				</div>
+			</div>	
+			<div class="control-group">
+				<label class='control-label'>{{#i18n}}Curency{{/i18n}}:</label>
+				<div class="controls">
+					<select name="acc_curency" id="acc_curency">
+						{{#each currencies}}
+							{{#if used}} 
+							<option {{#when ../../account.cmdty.id '==' iso}}selected{{/when}} value="{{iso}}">{{iso}} - {{country}}</option>
+							{{/if}}
+						{{/each}}
+						<option class="separator" disabled="disabled"></option>
+						{{#each currencies}}
+							{{^if used}} 
+							<option value="{{iso}}">{{iso}} - {{country}}</option>
+							{{/if}}
+						{{/each}}
+					</select>
+				</div>
+			</div>	
+			<div class="control-group">
+				<label class='control-label'>{{#i18n}}Type{{/i18n}}:</label>
+				<div class="controls">
+					<select name="acc_type" id="acc_type">
+						{{#assetsTypes}}
+							<option {{#when ../account.type '==' value}}selected{{/when}} value="{{value}}">{{name}}</option>
+						{{/assetsTypes}}
+					</select>
+				</div>
+			</div>	
+			<div class="control-group">
+				<label class='control-label'>{{#i18n}}Hidden{{/i18n}}:</label>
+				<div class="controls">
+					<input id="hidden" type="checkbox" {{#if account.hidden}}checked{{/if}}>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class='control-label'>{{#i18n}}Placeholder{{/i18n}}:</label>
+				<div class="controls">
+					<input id="placeholder" type="checkbox" {{#if account.placeholder}}checked{{/if}}>
+				</div>
+			</div>	
+		</form>					
+	</div>
+	<div class="modal-footer">
+		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		<button class="btn btn-primary" id="save">Save</button>
+	</div>			
+</div>
+<script>
+require(["jquery","jquery-block"],function($){
+	$(function(e) {
+		$form = $("#{{uniq}}");
+		$form.on('hidden',function () {
+			$form.remove();
+		});		
+		$form.find("#save").on("click", function (event) {
+			event.preventDefault();
+			$form.block();
+			(function(cb) {
+				require(["api","safe"], function (api,safe) {
+					var acc = {
+						_id: "{{account._id}}",
+						name: $form.find('#acc_name').val(),
+						parentId: $form.find('#acc_parent option:selected').val(),
+						cmdty: {space:'ISO4217',id:$form.find('#acc_curency option:selected').val()},
+						type: $form.find('#acc_type option:selected').val(),	
+						hidden: $form.find('#hidden:checked').length>0,	
+						placeholder: $form.find('#placeholder:checked').length>0
+					};		
+					if (acc._id.length==0)
+						delete acc._id;
+					if (acc.parentId==0)
+						delete acc.parentId;
+					api.call('cash.saveAccount', acc, safe.sure(cb, function (acc) {
+						$form.trigger("frm-saved",acc);
+					}))
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$form.unblock();
+			})
+		})
+	})
+})
+</script>

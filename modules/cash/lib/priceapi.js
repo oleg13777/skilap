@@ -31,6 +31,27 @@ module.exports.getCmdtyPrice = function (token,cmdty,currency,date,method,cb) {
 	);
 };
 
+module.exports.getCmdtyLastPrices = function (token,cb) {
+	var self = this;
+	var res = {};
+	async.series ([
+		function start(cb) {
+			async.parallel([
+				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
+				function (cb) { self._waitForData(cb); }
+			],cb);
+		}, 
+		function get(cb) {
+			_.each(self._stats.priceTree, function (v,k) {
+				res[k]=v.last;
+			})
+			cb();
+		}], safe.sure(cb, function (results) {
+			cb(null, res);
+		})
+	);
+};
+
 module.exports.getPricesByPair = function (token,pair,cb) {
 	var self = this;	
 	async.series ([

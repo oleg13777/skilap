@@ -11,33 +11,18 @@ module.exports = function account(webapp) {
 
 	function getAccountTree(token, id, data, cb) {
 		// filter this level data
-		var level = _(data.accounts).filter(function (e) { return e.parentId.toString() == id.toString(); });
+		var level = _(data.accounts).filter(function (e) { 
+			if (id==null)
+				return e.parentId==null || e.parentId.toString()==0
+			else
+				return e.parentId && e.parentId.toString() == id.toString(); 
+		});
 		var res = [];
 		_(level).forEach (function (acc) {
-			var det = {};
-			det.cmdty = acc.cmdty;
-			det.name = acc.name;
-			det._id = acc._id;			
-			det.path = acc.path.split('::');
-			det.placeholder = acc.placeholder;
-			det.hidden = acc.hidden;
+			res.push(acc)
 			getAccountTree(token, acc._id, data, function (err,childs) {
 				if (err) return cb(err);
-				if (!_(repCmdty).isEqual(det.cmdty)) 
-					det.quantity = acc.value;
-				var rate = 1;
-				var r = _(data.cmdty).find(function (e) { return e._id==acc.cmdty.id });
-				if (r!=null)
-					rate = r.rate;
-				det.value = parseFloat(webapp.i18n_cmdtyval(det.cmdty, acc.value*rate));
-				det.childs = childs;
-				_(childs).forEach (function (e) {
-					det.value+=e.value;
-				})
-				det.fvalue = webapp.i18n_cmdtytext(token,repCmdty,det.value);
-				if (det.quantity)
-					det.fquantity = webapp.i18n_cmdtytext(token,det.cmdty,det.quantity);
-				res.push(det);
+				acc.childs = childs;
 			})
 		})
 		cb(null, _(res).sortBy(function (e) {return e.name; }));
@@ -62,19 +47,6 @@ module.exports = function account(webapp) {
 				"ctx":{"a":"each","v":"accounts"},
 				"prm":["cash.getAccountInfo","token","_id",["value","path"]],
 				"res":{"a":"merge"}
-			},
-			"cmdty":{
-				"dep":"accounts",
-				"cmd":"pluck",
-				"prm":["accounts","cmdty","unique"],
-				"res":{"a":"clone","v":"cmdty"}
-			},
-			"rates":{
-				"dep":"cmdty",
-				"cmd":"api",
-				"ctx":{"a":"each","v":"cmdty"},	
-				"prm":["cash.getCmdtyPrice","token","this","repCmdty",null,"safe"],
-				"res":{"a":"store","v":"rate"}
 			}					
 		}
 		webapp.ctx.runBatch(batch,cb);
@@ -105,12 +77,11 @@ module.exports = function account(webapp) {
 			},
 			assets:function (cb) {
 				getAccountList(req.session.apiToken, safe.sure(cb, function (data) {
-					getAccountTree(req.session.apiToken,0,data, cb);
+					getAccountTree(req.session.apiToken,null,data, cb);
 				}));
 			}
 		}, function (err, r) {
 			if (err) return next(err);
-			settings.views = __dirname+"/../views";
 			var rdata = {
 					prefix: prefix, 
 					tabs: r.tabs, 
@@ -121,62 +92,6 @@ module.exports = function account(webapp) {
 					host: req.headers.host
 				};
 			res.render(__dirname+"/../res/views/accounts-tree", rdata);
-		})
-	});
-	
-	var responseHandler = function(req, res, next, tplName){
-		var assets, curencies, assetsTypes;
-		async.series([
-			function (cb) {
-				getAccountList(req.session.apiToken, safe.trap_sure(function (data) {
-					getAccountTree(req.session.apiToken,0,data,cb);
-				}))
-			},
-			function (cb) {	
-				webapp.getUseRangedCurrencies(req.session.apiToken,cb);
-			},
-			function(cb){
-				cashapi.getAssetsTypes(req.session.apiToken, cb);
-			}
-		], function (err,r) {
-			if (err) return next(err);
-			var rdata = {
-					settings:{views:__dirname+"/../views"},
-					prefix:prefix,						
-					assets:r[0],
-					token: req.session.apiToken,
-					curencies: r[1].all,
-					usedCurrencies:r[1].used,
-					notUsedCurrencies:r[1].unused,							
-					assetsTypes: r[2],
-					mainLayoutHide:1,
-					host:req.headers.host						
-				};
-			res.render(__dirname+"/../res/views/"+tplName, rdata);
-		});
-	};
-
-	app.get(prefix+"/accounts/create",  function(req, res, next) {
-		responseHandler(req,res,next,'accounts-create');
-	});
-	
-	app.get(prefix+"/accounts/delete", function(req, res, next) {
-		responseHandler(req,res,next,'accounts-delete');
-	});		
-
-	app.post(prefix+"/accounts/update", function(req, res, next) {
-		var acc = {};
-		acc._id = req.body._id;
-		acc.name=req.body.name;
-		acc.parentId=req.body.parentId;
-		acc.type=req.body.type;
-		acc.cmdty={space:"ISO4217",id:req.body.curency};
-		_(req.body.slots).forEach(function(slot) {
-			acc[slot.key] = slot.value;
-		});
-		cashapi.saveAccount(req.session.apiToken, acc, function (err, acc) {
-			if (err) return next(err);
-			res.send(acc);
 		})
 	});
 }

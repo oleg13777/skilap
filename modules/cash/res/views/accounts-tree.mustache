@@ -1,61 +1,6 @@
-<script type="text/javascript">
-$(function() {	
-	$(document).on('click','.nav-list .expand-collapse',function(){
-		if($(this).hasClass('icon-hand-down')){
-			$(this).removeClass('icon-hand-down').addClass('icon-hand-right');
-			$(this).parents('li').find('.nav-list').hide();
-		}
-		else{
-			$(this).addClass('icon-hand-down').removeClass('icon-hand-right');
-			$(this).parents('li').find('.nav-list').show();
-		}
-		return false;
-	});
-	
-	$(document).on('click', '#add_new', function(e){		
-		$("#ski_createAccount").iframeContainer("open");	
-		$("#ski_createAccount").iframeContainer("triggerEvent",{name:'resetAccountDialogData'});		
-		return false;
-	});
-	$("body").on('accountUpdatedSuccess',function(e,data){
-		location.reload(true);
-		return false;
-	});
-	$(document).on("click", ".editAcc", function(e){
-		var aid = $(this).data('aid');			
-		var rpc = new jsonrpc.JsonRpc('/jsonrpc');
-		rpc.call('cash.getAccount', '{{token}}', aid, {
-			success: function (data) {
-				var acc = data[0];								
-				$("#ski_createAccount").iframeContainer("triggerEvent",{name:'setAccountDialogData',data:acc});				
-			},
-			failure: function (reason) {
-			},
-		});		
-		$("#ski_createAccount").iframeContainer("open");
-		return false;
-	});	
-	$("#ski_createAccount").iframeContainer({src:"{{prefix}}/accounts/create",host:"{{host}}"});	
-	$("#ski_deleteAccount").iframeContainer({src:"{{prefix}}/accounts/delete",host:"{{host}}"});	
-	
-	$(document).on("click", ".deleteAcc", function(e){
-		var accountId = $(this).data('aid');
-		var accName = $('#open'+accountId).text();
-		$("#ski_deleteAccount").iframeContainer("triggerEvent",{name:'setAccountDeleteDialogData',data:{_id:accountId,name:accName}});	
-		$("#ski_deleteAccount").iframeContainer("open");		
-		return false;
-	});
-	
-	$("body").on('accountDeletedSuccess',function(e,id){
-		location.reload(true);
-	});	
-});
-</script>
-{{>pagesettings}}
+<div id="accounts-tree">
 <a class="report-settings" href="javascript:void(0);" title="{{#i18n}}Settings{{/i18n}}"></a>
-<div id="ski_createAccount"></div>
-<div id="ski_deleteAccount"></div>
-<a id="add_new" href="javascript:void(0);" class="btn btn-primary">{{#i18n}}Add new account{{/i18n}}</a>
+<a id="add_new" href="#" class="btn btn-primary">{{#i18n}}Add new account{{/i18n}}</a>
 <br><br>
 <div id="tree_root" class=" well main tree">
 	<ul class="nav nav-list">
@@ -65,4 +10,91 @@ $(function() {
 	</ul>
 </div>
 <br><p> * - {{#i18n}}denotes hidden accounts{{/i18n}}</p>
+</div>
+<script type="text/javascript">
+require(["jquery","jquery-block","bootstrap"], function ($) {
+$(document).ready(function() {
+	$page = $("#accounts-tree");
+	$page.on("click", "#add_new",function(evt){
+		evt.preventDefault();		
+		$this = $(this);
+		var $me = $page;
+		$me.block();
+		(function (cb) {
+			require(['cash/edit-account-modal','safe','clitpl'], function (Modal,safe,tf) {
+				var modal = new Modal();
+				modal.show();
+				modal.once('shown', function () { $me.unblock(); })
+				modal.once('result', function (type, acc) {
+					if (type!='saved') return;
+					modal.getAccount(acc._id, ["value"], safe.sure(cb, function (acc) {
+						tf.render('accounts-tree_item',acc, safe.sure(cb, function(text) {
+							$page.find("#tree_root ul:first").prepend(text)
+							modal.hide()
+							cb();									
+						}))
+					}))
+				})
+			},cb)
+		})(function (err) {
+			if (err) appError(err);
+			$me.unblock();
+		})
+		return false;		
+	});	
+	$page.on("click", ".editAcc",function(evt){
+		evt.preventDefault();		
+		$this = $(this);
+		var $me = $page;
+		var aid = $this.data('aid');
+		$me.block();
+		(function (cb) {
+			require(['cash/edit-account-modal','safe','clitpl'], function (Modal,safe,tf) {
+				var modal = new Modal();
+				modal.show(aid);
+				modal.once('shown', function () { $me.unblock(); })
+				modal.once('result', function (type, acc) {
+					if (type!='saved') return;
+					modal.getAccount(acc._id, ["value"], safe.sure(cb, function (acc) {
+						tf.render('accounts-tree_item_row',acc, safe.sure(cb, function(text) {
+							$page.find("#tree_root #"+acc._id + " #acc_row").replaceWith(text)
+							modal.hide()
+							cb();									
+						}))
+					}))
+				})
+			},cb)
+		})(function (err) {
+			if (err) appError(err);
+			$me.unblock();
+		})
+		return false;		
+	});	
+	$page.on("click", ".deleteAcc",function(evt){
+		evt.preventDefault();		
+		$this = $(this);
+		var $me = $page;
+		var aid = $this.data('aid');
+		$me.block();
+		(function (cb) {
+			require(['cash/delete-account-modal'], function (Modal) {
+				var modal = new Modal();
+				modal.show(aid);
+				modal.once('shown', function () { $me.unblock(); })
+				modal.once('result', function (type, options) {
+					if (type!='deleted') return;
+					$page.find("#tree_root #"+aid).remove();
+					modal.hide()
+					cb();									
+				})
+			},cb)
+		})(function (err) {
+			if (err) appError(err);
+			$me.unblock();
+		})
+		return false;		
+	});		
+});
+})
+</script>
 
