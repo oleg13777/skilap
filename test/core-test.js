@@ -29,6 +29,8 @@ var assert = require('assert');
 describe("Core module",function () {
 	this.timeout(30000);
 	before(tutils.setupContext);
+	var curUser = 0;
+	var newUser = 0;
 	after(function (done) {
 		this.saveDb('core-users').then(tutils.noerror(done));
 	});
@@ -47,7 +49,8 @@ describe("Core module",function () {
 		it("Create users", function (done) {
 			this.trackError(done);
 			var self = this;
-			var u = this.fixtures.dataentry.users[0];			
+			var u = this.fixtures.dataentry.users[newUser];		
+			newUser = 1;
 			this.browser.findElement(By.linkText("Core module")).click();
 			this.browser.findElement(By.linkText("Manage users")).click();	
 			this.browser.findElement(By.name("addNewUser")).click();	
@@ -109,7 +112,9 @@ describe("Core module",function () {
 		it("Edit pereferences", function(done) {
 			this.trackError(done);
 			var self = this;
-			var u = this.fixtures.dataentry.users[1];			
+			var u = this.fixtures.dataentry.users[newUser];	
+			curUser = newUser;
+			newUser = 1 - newUser;
 			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
 			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editUser']")).click();	
 			
@@ -185,26 +190,34 @@ describe("Core module",function () {
 			self.done();
 		});
 	});
-	describe.skip("Edit self", function (done) {
-		it("logout", function() {
-			this.trackError(done);
+	describe("Edit self", function (done) {
+		it("logout", function(done) {
 			var self = this;
-			this.browser.findElement(By.xpath("//a[@href='/logout?success=/']")).click();	
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//a[contains(@href, '/logout?success=/')]")).click();	
 			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.name("name"));
+				return self.browser.isElementPresent(By.className("modulName"));
 			});		
 			self.done();
 		});
-		it("login as user1", function() {
-			helpers.login.call(this, this.fixtures.dataentry.users[0], true);
-			this.done();
+		it("login as user1", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//a[contains(@href, '/core/')]")).click();	
+			helpers.login.call(self, self.fixtures.dataentry.users[curUser], true);
+			self.browser.findElement(By.xpath("//a[contains(@href, '/core/')]")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.id("edit-pref"));
+			});		
+			self.done();
 		});
 		it("edit pereferences", function(done) {
-			this.trackError(done);
 			var self = this;
-			var u = this.fixtures.dataentry.users[1];			
-			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
-			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editUser']")).click();	
+			self.trackError(done);
+			var u = this.fixtures.dataentry.users[newUser];			
+			curUser = newUser;
+			newUser = 1 - newUser;
+			self.browser.findElement(By.id("edit-pref")).click();	
 			
 			helpers.runModal.call(this, null, function(modal) {
 				modal.findElement(By.id("firstName")).clear();	
@@ -226,60 +239,68 @@ describe("Core module",function () {
 			self.done();
 		});
 		it("edit permissions", function(done) {
-			this.trackError(done);
 			var self = this;
-			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
-			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editPerm']")).click();	
+			self.trackError(done);
 			
-			helpers.runModal.call(this, null, function(modal) {
-				modal.findElements(By.xpath("//input")).then(function (elements) {
-					elements[0].click(); 
-				});
-				modal.findElement(By.id("save")).click();
-			});
+			var oldCount = 0;
+			self.browser.findElements(By.xpath("//div[@id='user_perm']/br")).then(function (elements) {
+				oldCount = elements.length;
 
-			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
-			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editPerm']")).click();	
-			helpers.runModal.call(this, null, function(modal) {
-				modal.findElements(By.xpath("//input")).then(function (elements) {
-					for (var key in elements)
-						if (key == 0)
-							elements[key].isSelected().then(function (val) {
-								assert.ok(!val, "Permission not edit");
-							});
-						else
-							elements[key].isSelected().then(function (val) {
-								assert.ok(val, "Permission not edit");
-							});
+				self.browser.findElement(By.id("edit-perm")).click();	
+				helpers.runModal.call(self, null, function(modal) {
+					modal.findElements(By.xpath("//input")).then(function (elements) {
+						elements[0].click(); 
+					});
+					modal.findElement(By.id("save")).click();
 				});
-				modal.findElement(By.id("save")).click();
-			});
-			
-			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
-			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editPerm']")).click();	
-			helpers.runModal.call(this, null, function(modal) {
-				modal.findElements(By.xpath("//input")).then(function (elements) {
-					elements[0].click(); 
-				});
-				modal.findElement(By.id("save")).click();
-			});
 
-			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
-			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editPerm']")).click();	
-			helpers.runModal.call(this, null, function(modal) {
-				modal.findElements(By.xpath("//input")).then(function (elements) {
-					for (var key in elements)
-						elements[key].isSelected().then(function (val) {
-							assert.ok(val, "Permission not edit");
+				var newCount = 0;
+				self.browser.findElements(By.xpath("//div[@id='user_perm']/br")).then(function (elements) {
+					newCount = elements.length;
+					assert.ok(oldCount == (newCount + 1), "Permission not edit");
+
+					self.browser.findElement(By.id("edit-perm")).click();	
+					helpers.runModal.call(self, null, function(modal) {
+						modal.findElements(By.xpath("//input")).then(function (elements) {
+							elements[0].click(); 
 						});
+						modal.findElement(By.id("save")).click();
+					});
+
+					var newCount = 0;
+					self.browser.findElements(By.xpath("//div[@id='user_perm']/br")).then(function (elements) {
+						newCount = elements.length;
+						assert.ok(oldCount == newCount, "Permission not edit");
+						self.done();
+					});
 				});
-				modal.findElement(By.id("save")).click();
 			});
-			self.done();
 		});
 	});
 	describe("Edit system preferences", function () {
-		it("login as superadmin");
-		it("change system settings");
+		it("logout", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//a[contains(@href, '/logout?success=/')]")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.className("modulName"));
+			});		
+			self.done();
+		});
+		it("login as superadmin", function (done) {
+			this.trackError(done);
+			this.browser.findElement(By.xpath("//a[contains(@href, '/core/')]")).click();	
+			helpers.login.call(this, this.fixtures.dataentry.superuser,true);
+			this.done();
+		});
+		it("change system settings", function (done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//a[contains(@href, '/core/sysset')]")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.id("openEditPref"));
+			});		
+			self.done();
+		});
 	});
 });
