@@ -12,6 +12,13 @@
 			"language":"English",
 			"permissions":[
 			]
+		},
+		{
+			"firstName":"user1",
+			"lastName":"Tester",
+			"login":"tester2",
+			"password":"1234567",
+			"language":"English"
 		}
 	]
 }

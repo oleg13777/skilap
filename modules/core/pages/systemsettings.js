@@ -10,7 +10,7 @@ module.exports = function account(webapp) {
 	
 	app.get(prefix+"/sysset", function(req, res, next) {
 		async.series([
-			function (cb) { api.checkPerm(req.session.apiToken, ["core.sysadm"], cb) },		
+			function (cb) { api.checkPerm(req.session.apiToken, ["core.sysadmin"], cb) },		
 			function (cb) { ctx.getModulesInfo(req.session.apiToken, cb) },
 			function (cb) { api.getSystemSettings("guest", cb) }
 		], function (err, r) {
