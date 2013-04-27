@@ -37,7 +37,7 @@ $(document).ready(function() {
 		var $me = $page;
 		$me.block();
 		(function (cb) {
-			require(['cash/settings','safe','clitpl'], function (Modal,safe,tf) {
+			require(['cash/settings-modal','safe','clitpl'], function (Modal,safe,tf) {
 				var modal = new Modal();
 				modal.show();
 				modal.once('shown', function () { $me.unblock(); })

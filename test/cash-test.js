@@ -49,7 +49,6 @@ describe("Cash module",function () {
 	describe("Manage prices", function () {
 		it("Add price for USD in EUR")
 		it("Edit price of USD in EUR")
-		it("Add another price pair")
 		it("Delete price pair")
 	})
 	describe("Export and import", function () {
@@ -57,7 +56,7 @@ describe("Cash module",function () {
 		it("Home page should have right ballance")
 		it("Export Skilap Cash")
 		it("Import Skilap Cash")
-		it("Home page ballance should be the same as before")
+		it("Home page balance should be the same as before")
 	})
 	describe("Registry input", function () {
 		it("TBD")
