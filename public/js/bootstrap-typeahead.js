@@ -59,9 +59,18 @@
       var pos = $.extend({}, this.$element.offset(), {
         height: this.$element[0].offsetHeight
       })
+      var wind_h = $(window).height();
+      var menu_h = this.$menu.height();
+      console.log(pos);
+      if (pos.top < menu_h || (wind_h - (pos.top - $(document).scrollTop() + pos.height)) > menu_h) {
+		  var menu_top = pos.top + pos.height;
+	  }
+	  else {
+		  var menu_top = pos.top - 16 - menu_h;
+	  }
 
       this.$menu.css({
-        top: pos.top + pos.height
+        top: menu_top
       , left: pos.left
       })
 
