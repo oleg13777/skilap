@@ -281,25 +281,44 @@ describe("Core module",function () {
 		it("logout", function(done) {
 			var self = this;
 			self.trackError(done);
-			self.browser.findElement(By.xpath("//a[contains(@href, '/logout?success=/')]")).click();	
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.className("modulName"));
-			});		
+			self.browser.isElementPresent(By.xpath("//a[contains(@href, '/logout?success=/')]")).then(function (present) { 
+				if (present) {
+					self.browser.findElement(By.xpath("//a[contains(@href, '/logout?success=/')]")).click();	
+					self.browser.wait(function () {
+						return self.browser.isElementPresent(By.className("modulName"));
+					});
+				}
+			});
 			self.done();
 		});
 		it("login as superadmin", function (done) {
-			this.trackError(done);
-			this.browser.findElement(By.xpath("//a[contains(@href, '/core/')]")).click();	
-			helpers.login.call(this, this.fixtures.dataentry.superuser,true);
-			this.done();
+			var self = this;
+			self.trackError(done);
+			self.browser.isElementPresent(By.xpath("//a[contains(@href, '/core/')]")).then(function (present) { 
+				if (present) {
+					self.browser.findElement(By.xpath("//a[contains(@href, '/core/')]")).click();
+				}
+			});
+			helpers.login.call(self, self.fixtures.dataentry.superuser,true);
+			self.done();
 		});
 		it("change system settings", function (done) {
 			var self = this;
 			self.trackError(done);
+			var guest = this.fixtures.dataentry.guest;			
 			self.browser.findElement(By.xpath("//a[contains(@href, '/core/sysset')]")).click();	
 			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.id("openEditPref"));
+				return self.browser.isElementPresent(By.id("edit-pref"));
 			});		
+			self.browser.findElement(By.id("edit-pref")).click();	
+			
+			helpers.runModal.call(this, null, function(modal) {
+		        modal.findElement(By.id("language")).sendKeys(guest.language);
+				modal.findElement(By.id("timeZone")).sendKeys(guest.timezone);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//td[. = 0.0]"));
+			self.browser.findElement(By.xpath("//td[. = 'ru_RU']"));
 			self.done();
 		});
 	});

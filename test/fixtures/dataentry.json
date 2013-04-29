@@ -3,6 +3,10 @@
 		"login":"admin",
 		"password":"skilap"
 	},
+	"guest":{
+		"timezone":"(GMT)",
+		"language":"Russian"
+	},
 	"users":[
 		{
 			"firstName":"Tester",
