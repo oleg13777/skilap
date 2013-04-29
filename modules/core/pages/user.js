@@ -43,15 +43,17 @@ module.exports = function account(webapp) {
 	});
 	
 	app.get(prefix+"/user", webapp.layout(), function(req, res, next) {
+		var user_ = null;
 		async.waterfall([
 			function (cb) {
 				api.getUser(req.session.apiToken, cb);
 			},
 			function (user, cb) {
+				user_ = user;
 				api.getUserPermissions(req.session.apiToken, user, cb);
 			},
 			function (permissions) {
-				res.render(__dirname+"/../res/views/user", {permissions:permissions});
+				res.render(__dirname+"/../res/views/user", {permissions:permissions, user_: user_});
 			}],
 			next
 		);

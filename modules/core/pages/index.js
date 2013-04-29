@@ -11,11 +11,9 @@ module.exports = function (webapp) {
 	})
 
 	app.get("/", webapp.layout(), function(req, res, next) {
-		console.log("root");
 		async.waterfall([
 			async.apply(ctx.getModulesInfo,req.session.apiToken),
 			function render (modules) {
-				console.log(res.locals);
 				res.render(__dirname+"/../res/views/index", {modules: modules});
 			}],
 			next
