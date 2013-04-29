@@ -1,131 +1,53 @@
-<script type="text/javascript">
-$(function() {	
-	$(".report-settings").click(function(){
-		$("#dialog").dialog("open");
-	});
-	$("#dialog").dialog({
-		position: ["center","center"],
-		buttons: {
-			"{{#i18n}}Apply{{/i18n}}": function() {	
-				var rpc = new jsonrpc.JsonRpc('/jsonrpc');
-				var batch = {
-					"setup":{
-						"cmd":"object",
-						"prm":{"token":"{{apiToken}}"},
-						"res":{"a":"merge"}
-					},
-					"get":{
-						"dep":"setup",
-						"cmd":"api",
-						"prm":["cash.web_getTabSettings","token","{{tabId}}"],
-						"res":{"a":"clone","v":"settings"}
-					},		
-					"change":{
-						"dep":"get",					
-						"cmd":"object",
-						"prm":{cmdty:{space:"ISO4217",id:$('#currency option:selected').val()}},
-						"res":{"a":"merge","o":"settings"}
-					},			
-					"set":{
-						"dep":"change",
-						"cmd":"api",
-						"prm":["cash.web_saveTabSettings","token","{{tabId}}","settings"],
-						"res":{"a":"clean"}
-					}
-				}		
-				rpc.call('batch.runBatch', batch, {
-					success: function (data) {
-						location.reload();
-					},
-					failure: function (reason) {
-						alert(reason);
-					}
-				})
-			},
-			"{{#i18n}}Close{{/i18n}}": function() {
-				$(this).dialog("close");
-			}
-		},
-		open:function(e,ui){
-			var rpc = new jsonrpc.JsonRpc('/jsonrpc');
-			var batch = {
-				"setup":{
-					"cmd":"object",
-					"prm":{"token":"{{apiToken}}"},
-					"res":{"a":"merge"}
-				},
-				"settings":{
-					"dep":"setup",
-					"cmd":"api",
-					"prm":["cash.web_getTabSettings","token","{{tabId}}"],
-					"res":{"a":"store","v":"settings"}
-				},					
-				"currencies":{
-					"dep":"setup",
-					"cmd":"api",
-					"prm":["cash.web_getUseRangedCurrencies","token"],
-					"res":{"a":"store","v":"currencies"}
-				}
-			}					
-			rpc.call('batch.runBatch', batch, {
-				success: function (data) {
-					var res = data[0];
-					var options = $("#currency");
-					$.each(res.currencies.used, function() {
-						options.append($("<option />").val(this.iso).text(this.iso + ' - '+this.country));
-					});
-					options.append($('<option class="separator" disabled="disabled"></option>'));
-					$.each(res.currencies.unused, function() {
-						options.append($("<option />").val(this.iso).text(this.iso + ' - '+this.country));
-					});			
-					if (res.settings.cmdty)
-						$('#currency option[value="'+res.settings.cmdty._id+'"]').attr('selected', 'selected');
-				},
-				failure: function (reason) {
-					alert(reason);
-				}
-			})
-		},
-
-		autoOpen: false,
-		resizable: false,
-		height: 200,
-		width: 320,
-		modal: true,
-		dragable: false
-	});	
-	function displayMessage(event){			
-		 if(event.data.name == 'showDialog') {		
-			$("#dialog").dialog('open');						
-		}		
-	}
-	if (window.addEventListener) {	
-		window.addEventListener("message", displayMessage, false);
-	}
-	else {
-		window.attachEvent("onmessage", displayMessage);
-	}
-});
-</script>
-<div id="dialog" title="{{#i18n}}Page settings{{/i18n}}" style="width: 320px; height: 200px;">
-	<form name="properties">
-		<table>
-			<tr>
-				<td>{{#i18n}}Currency{{/i18n}}:</td>
-				<td>
-					<select name="currency" id="currency">
-						{{#usedCurrencies}}
-							<option value="{{iso}}">{{iso}} - {{country}}</option>
-						{{/usedCurrencies}}
-						<option class="separator" disabled="disabled"></option>
-						{{#notUsedCurrencies}}
-							<option value="{{iso}}">{{iso}} - {{country}}</option>
-						{{/notUsedCurrencies}}
-					
-						{{>currencies_list}}
+<div id="{{uniq}}" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h3 id="myModalLabel">{{#i18n}}Cash settings{{/i18n}}</h3>
+	</div>
+	<div class="modal-body">
+		<div class='localctx'></div>
+		<form class="form-horizontal" id="{{_id}}" method="POST">
+			<div class="control-group" id="sub_tr">
+				<label class='control-label'>{{#i18n}}Currency{{/i18n}}:</label>
+				<div class="controls">					
+					<select id="tr_parent" class="new_parent">
+						{{#currencies}}													
+							{{#used}}
+								<option value="{{iso}}">{{iso}} - {{country}}</option>
+							{{/used}}
+								<option class="separator" disabled="disabled"></option>
+							{{#unused}}
+								<option value="{{iso}}">{{iso}} - {{country}}</option>
+							{{/unused}}						
+						{{/currencies}}
 					</select>
-				</td>
-			</tr>
-		</table>
-	</form>
+				</div>
+			</div>				
+		</form>			
+	</div>
+	<div class="modal-footer">
+		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		<button class="btn btn-primary" id="save">Save</button>
+	</div>			
 </div>
+<script>	
+require(["jquery","jquery-block"],function($){$(function() {
+	$form = $("#{{uniq}}");		
+	$form.on('click', "#save", function (event) {
+		event.preventDefault();
+		$form.block();
+		(function(cb) {
+			var cmdty = {space:"ISO4217",id:$('#tr_parent option:selected').val()}				
+			var pid = $(".active button").attr("data-pid");		
+			require(["api","safe"], function (api,safe) {
+				var options = {};							
+				api.call('cash.web_saveTabSettings', pid, {cmdty:cmdty} ,safe.sure(cb, function () {
+					$form.trigger("frm-saved",options);
+				}))
+			},cb)
+		})(function (err) {
+			if (err) appError(err);
+			$form.unblock();
+		})
+	})
+})})
+</script>

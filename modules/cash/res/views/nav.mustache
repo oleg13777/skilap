@@ -13,7 +13,7 @@
 	  <li><a href="/cash/">{{#i18n}}Home{{/i18n}}</a></li>
 	  <li><a href="/cash/accounts/tree">{{#i18n}}Accounts{{/i18n}}</a></li>
 	  <li><a href="/cash/priceeditor">{{#i18n}}Rate Currency Editor{{/i18n}}</a></li>
-	  <li><a id="editSettings" href="javascript:void(0);">{{#i18n}}Settings{{/i18n}}</a></li>
+	  <li><a id="editSettings" href="return false">{{#i18n}}Settings{{/i18n}}</a></li>
 	</ul>
   </li>
   <li class="dropdown">
@@ -24,3 +24,58 @@
 	  <li><a href="/cash/reports/statment">{{#i18n}}Income statement{{/i18n}}</a></li>
 	</ul>
   </li>
+   <li><a id="editPageSettings" href="return false">{{#i18n}}Page settings{{/i18n}}</a></li>
+   
+   {{pid}}
+<script type="text/javascript">
+require(["jquery","jquery-block","bootstrap"], function ($) {
+$(document).ready(function() {	
+	var $page = $("body");	
+	$(document).on("click", "#editSettings",function(evt){		
+		evt.preventDefault();		
+		$this = $(this);
+		var $me = $page;
+		$me.block();
+		(function (cb) {
+			require(['cash/settings','safe','clitpl'], function (Modal,safe,tf) {
+				var modal = new Modal();
+				modal.show();
+				modal.once('shown', function () { $me.unblock(); })
+				modal.once('result', function (type, acc) {
+					if (type!='saved') return;										
+					modal.hide()
+					cb();				
+				})
+			},cb)
+		})(function (err) {
+			if (err) appError(err);
+			$me.unblock();
+		})
+		return false;		
+	});
+	
+	$(document).on("click", "#editPageSettings",function(evt){		
+		evt.preventDefault();		
+		$this = $(this);
+		var $me = $page;
+		$me.block();
+		(function (cb) {
+			require(['cash/pagesettings','safe','clitpl'], function (Modal,safe,tf) {
+				var modal = new Modal();
+				modal.show();
+				modal.once('shown', function () { $me.unblock(); })
+				modal.once('result', function (type, acc) {
+					if (type!='saved') return;										
+					modal.hide()
+					cb();				
+				})
+			},cb)
+		})(function (err) {
+			if (err) appError(err);
+			$me.unblock();
+		})
+		return false;		
+	});
+});
+})
+</script>

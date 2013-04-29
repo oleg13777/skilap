@@ -51,8 +51,8 @@ module.exports = function account(webapp) {
 					}
 					else {
 						// when absent get default
-						cashapi.getSettings(req.session.apiToken, 'currency____', repCmdty, safe.sure(cb, function (defCmdty) {
-							repCmdty = defCmdty;
+						cashapi.getSettings(req.session.apiToken, 'currency', repCmdty, safe.sure(cb, function (defCmdty) {
+							repCmdty = defCmdty.val;
 							cb()
 						}))
 					}

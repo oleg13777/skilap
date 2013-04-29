@@ -16,13 +16,13 @@ module.exports.getSettings = function(token, id, defs, cb) {
 		}], function end(err, results) {
 			if (err) return cb(err);
 			var res = results[1];
-			if (!res) res = defs;
+			if (!res) res = defs;		
 			cb(null, res);
 		}
 	);
 };
 
-module.exports.saveSettings = function(token, id, settings, cb) {
+module.exports.saveSettings = function(token, id, settings, cb) {	
 	console.log("saveSettings", arguments);
 	var self = this;
 	async.waterfall ([
@@ -32,12 +32,10 @@ module.exports.saveSettings = function(token, id, settings, cb) {
 		function (cb) {
 			self.getSettings(token, id, settings, cb);
 		},
-		function (old, cb) {
-			var s = _.clone(old); 
-			var _id = old._id;
-			_.extend(s, settings);
-			s._id = _id;
-			self._cash_settings.save(s, cb);
+		function (old, cb) {			
+			_.extend(old, settings);
+			old.id = id;
+			self._cash_settings.save(old, cb);
 		}], 
 		safe.sure(cb, function () {
 			process.nextTick(cb);
