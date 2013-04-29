@@ -40,10 +40,16 @@ require(["jquery","jquery-block"],function($){
 					$('.perm').filter(":checkbox:checked").each(function(index, checkbox) {
 						user.permissions.push($(checkbox).attr("value"));
 					});
-
-					api.call('core.saveUser', user, safe.sure(cb, function (user) {
-						$form.trigger("frm-saved",user);
-					}))
+					
+					if ('{{type}}' == 'guest') {
+						api.call('core.saveSystemSettings', 'guest', user, safe.sure(cb, function (user) {
+							$form.trigger("frm-saved",user);
+						}))
+					} else {
+						api.call('core.saveUser', user, safe.sure(cb, function (user) {
+							$form.trigger("frm-saved",user);
+						}))
+					}
 				},cb)
 			})(function (err) {
 				if (err) appError(err);

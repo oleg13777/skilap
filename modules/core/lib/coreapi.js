@@ -185,7 +185,7 @@ CoreApi.prototype.getUserById = function(token, userId, cb) {
 					if (err) return cb(err);
 					user = {type:'guest'};
 					_.defaults(user,defaults);
-					cb();
+					cb(null, user);
 				});
 			else
 				self._core_users.findOne({'_id': new self._ctx.ObjectID(userId.toString())}, cb);
@@ -350,24 +350,27 @@ CoreApi.prototype.deleteUser = function(token, userId, cb) {
 CoreApi.prototype.getSystemSettings = function(id, cb) {
 	var self = this;
 
-	if (id == "guest")
-		return cb(null, {timeZone:0,language:"en_US",permissions:[]});
-
 	async.series ([
 		function get(cb) {
-			self._core_systemSettings.findOne({"_id" : new self._ctx.ObjectID(id)}, cb);
+			if (id == "guest") {
+				self._core_systemSettings.findOne({"type" : id}, cb);
+			} else
+				self._core_systemSettings.findOne({"_id" : new self._ctx.ObjectID(id)}, cb);
 		}], function end(err, results) {
 			if (err) return cb(err);
 			var res = results[0]||{};
+			if (id == "guest")
+				res.type = "guest";
 			// TODO: not need to be hardcoded, probably every module have to provide defaults
 			// for setting, but now lets leave it this way
-			res = _.defaults(res, {timeZone:0,language:"en_US",permissions:[]});
+			res = _.defaults(res, {timeZone:0, language:"en_US", permissions:[]});
 			cb(null, res);
 		}
 	);
 };
 
 CoreApi.prototype.saveSystemSettings = function(token, id, settings, cb) {
+	delete settings._id;
 	var self = this;
 	async.waterfall ([
 		function (cb) {
@@ -403,8 +406,10 @@ CoreApi.prototype.getUserPermissions = function(token, user, cb) {
 			async.parallel([
 				function (cb2) { self._ctx.getModulesInfo(token, cb2) },
 				function (cb2) { 
-					if (user.type=='guest' || user.type=='admin')
+					if (user.type=='admin')
 						cb2(null, user);
+					else if (user.type=='guest')
+						self.getSystemSettings('guest', cb2);
 					else
 						self.getUserById(token, user._id, cb2) }
 			], function (err, result) { cb1(err, result[0], result[1])});

@@ -9,14 +9,14 @@ module.exports.login = function (user, check) {
 	this.browser.get("http://localhost/login");
 	// wait for page load
 	self.browser.wait(function () {
-		return self.browser.isElementPresent(By.name("name"));
+		return self.browser.isElementPresent(By.name("name")).then(function (v) {return v; });
 	});		
 	this.browser.findElement(By.name("name")).sendKeys(user.login)
 	this.browser.findElement(By.name("password")).sendKeys(user.password)
 	this.browser.findElement(By.css("button[name='dologin']")).click()
 	// wait for page reload
 	self.browser.wait(function () {
-		return self.browser.isElementPresent(By.name("name")).then(function (v) {return !v; })
+		return self.browser.isElementPresent(By.name("name")).then(function (v) {return !v; });
 	});
 }
 

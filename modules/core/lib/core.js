@@ -61,7 +61,6 @@ function Skilap(config_) {
 					app.use(function (req, res, next) {
 						if (!req.cookies['skilapid']) {
 							var clientId; 
-							console.log('generate');
 							self.getRandomString(128, function (err, rnd) { clientId = rnd; });
 							res.cookie('skilapid',clientId, { maxAge: 1000*60*60*24*5, path: '/' });
 							res.cookie('sguard','1', { maxAge: 1000*60*60*24*5, path: '/', secure:true });
@@ -69,7 +68,6 @@ function Skilap(config_) {
 						async.series([
 							function ensureToken (cb3) {
 								if (req.session.apiToken==null) {
-									console.log('cookies');
 									modules['core'].api.getApiToken('default',req.cookies['skilapid']||clientId,'fake',function (err, apiToken) {
 										req.session.apiToken = apiToken;
 										cb3();
@@ -574,7 +572,6 @@ function Skilap(config_) {
 					}))
 			})(function (err,lcfg) {
 				config=deepExtend(config,lcfg);
-				console.log(config);
 				cb(null,config);
 			})
 		}))
