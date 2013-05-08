@@ -1,151 +1,166 @@
-<script type="text/javascript" defer>
-	$(function() {
-		var datePickerOptions = {
-			changeMonth: true,
-			changeYear: true
-		};
-
-		$("#startDate, #endDate").datepicker(datePickerOptions);
-
-		$(".report-settings").click(function(){
-			$("#dialog").dialog("open");
-		});
-
-		$("#dialog .tabs-settings").tabs();
-		$("#dialog").dialog({
-			position: ["center","center"],
-			buttons: {
-				"{{#i18n}}Apply{{/i18n}}": function() {
-					var accIds = [];
-					$(".settingsForm .accountTreeItem .name.selected").each(function(index,item){
-						accIds.push($(item).parent().data('accountid'));
-					});
-
-					var jqXHR = $.ajax({
-						"type":"POST",
-						"data":$(".settingsForm").serialize() + '&' + $.param({accIds:accIds}) + '&version=2',
-						"url":location.pathname + location.search,
-						"dataType":"text"
-					});
-
-					jqXHR.done(function(data){
-						location.href=data;
-					});
-
-					jqXHR.fail(function(data){});
-				},
-				"{{#i18n}}Close{{/i18n}}": function() {
-					$(this).dialog("close");
-				}
-			},
-			open:function(e,ui){
-				$('#reportCurrency option[value="{{reportSettings.reportCurrency}}"]').attr('selected', 'selected');
-			},
-
-			autoOpen: false,
-			resizable: false,
-			height: 520,
-			width: 400,
-			modal: true,
-			draggable: false
-		});
-
-		$(".accountTreeItem .tree-ico").click(function(){
-			$(this).parent().toggleClass('collapsed');
-		});
-
-		$(".accountTreeItem .name").click(function(){
-			$(this).toggleClass('selected');
-			if ($(this).hasClass("selected")){
-				console.log(1);
-				$(this).parents(".accountTreeItem .name").removeClass("selected");
-			}
-		});		
-
-		$("button[name=\"select-all-tree\"]").click(function(){
-			$(".accountTreeItem .name").addClass("selected");
-		});
-
-		$("button[name=\"clear-all-tree\"]").click(function(){
-			$(".accountTreeItem .name").removeClass("selected");
-		});
-
-		$("button[name='select-all-tree'], button[name='clear-all-tree']").hover(function(){
-			$(this).addClass('ui-state-hover');
-		}, function(){
-			$(this).removeClass('ui-state-hover');
-		});
-	});
-</script>
-<div id="dialog" style="display:none;" title="{{#i18n}}Report settings{{/i18n}}">
-	<form name="properties" class="settingsForm">
-		<div class="tabs-settings">
-			<ul>
-				<li><a href="#tabs-1">{{#i18n}}Accounts{{/i18n}}</a></li>
-				<li><a href="#tabs-2">{{#i18n}}General{{/i18n}}</a></li>
-				<li><a href="#tabs-3">{{#i18n}}Currency{{/i18n}}</a></li>
+<div id="{{uniq}}" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h3 id="myModalLabel">{{#i18n}}Report settings{{/i18n}}</h3>
+	</div>
+	{{#data}}
+	<div class="modal-body">
+		<div class='localctx'></div>
+		<form class="form-horizontal settingsForm" id="{{_id}}" method="POST">
+			<ul class="nav nav-tabs" id="myTab">
+			  <li class="active"><a href="#sub_tr">Accounts tree</a></li>
+			  <li><a href="#general">General</a></li>
+			  <li><a href="#currency">Currency</a></li>			  
 			</ul>
-			<div id="tabs-1">
-				<div class="fieldItem">
-					<div class="accountsTreeContainer">
-						<ul class="accountsTree">
+			<div class="tab-content">				
+				<div class="tab-pane active" id="sub_tr">					
+					<div class = "control-group">					
+						<ul class="accountsTree span3">
 							{{#accountsTree}}
 								{{>accountTreeItem}}
 							{{/accountsTree}}
-						</ul>
+							<button class="btn" type = "button" id="s_all">Select All</button>
+							<button class="btn btn-primary" type = "button" id="clear">Clear All</button>
+						</ul>						
 					</div>
-					<div>
-						<button name="select-all-tree" type="button" class="ui-button ui-state-default ui-corner-all ui-button-text-only ui-widget" role="button"><span class="ui-button-text" >{{#i18n}}Select All{{/i18n}}</span></button>
-						<button name="clear-all-tree" type="button" class="ui-button ui-state-default ui-corner-all ui-button-text-only ui-widget" role="button"><span class="ui-button-text" >{{#i18n}}Clear All{{/i18n}}</span></button>
-					</div>
-				</div>
-				<div class="fieldItem">
-					<label>{{#i18n}}Show accounts until level{{/i18n}}</label>
-					<select name="accLevel" class="textField">
-						{{#reportSettings.accLevelOptions}}
-							<option value="{{name}}" {{#isSelected}}selected{{/isSelected}} >{{name}}</option>
-						{{/reportSettings.accLevelOptions}}
-					</select>
-				</div>
-			</div>
-			<div id="tabs-2">
-				<div class="fieldItemsContainer">
-					<div class="fieldItem">
-						<label for="reportName">{{#i18n}}Report name{{/i18n}}:</label>
-						<input class="textField" type="text" id="reportName" name="reportName" value="{{reportSettings.reportName}}">
-					</div>
-					<div class="fieldItem left half">
-						<label for="startDate">{{#i18n}}Start date{{/i18n}}:</label>
-						<input class="textField" type="text" id="startDate" name="startDate" value="{{reportSettings.startDate}}" tabindex="-1">
-					</div>
-					<div class="fieldItem right half">
-						<label for="endDate">{{#i18n}}End date{{/i18n}}:</label>
-						<input class="textField" type="text" id="endDate" name="endDate" value="{{reportSettings.endDate}}" tabindex="-1">
-					</div>
-					<div class="fieldItem clear left half">
-						<label for="maxAcc">{{#i18n}}Max account{{/i18n}}:</label>
-						<input class="textField" type="text" id="maxAcc" name="maxAcc" value="{{reportSettings.maxAcc}}" >
-					</div>
-					<div class="fieldItem right half" {{#reportSettings.accIsVisible}}style="display:none;"{{/reportSettings.accIsVisible}}>
-						<label for="accType">{{#i18n}}Account type{{/i18n}}:</label>
-						<select class="textField" name="accType" id="accType">
-							{{#reportSettings.accTypeOptions}}
-							<option value="{{value}}" {{#isSelected}}selected{{/isSelected}} >{{name}}</option>
-							{{/reportSettings.accTypeOptions}}
-						</select>
+					</br>
+					<div class="control-group">
+						<label class = "control-label">{{#i18n}}Show accounts until level{{/i18n}}</label>
+						<div class="controls">
+							<select name="accLevel">
+								{{#reportSettings.accLevelOptions}}
+									<option value="{{name}}" {{#if isSelected}}selected{{/if}}>{{name}}</option>
+								{{/reportSettings.accLevelOptions}}
+							</select>
+						</div>
 					</div>
 				</div>
-			</div>
-			<div id="tabs-3">
-				<div class="fieldItemsContainer">
-					<div class="fieldItem">
-						<label for="reportCurrency">{{#i18n}}Report's currency{{/i18n}}:</label>
-						<select name="reportCurrency" id="reportCurrency">
-							{{>currencies_list}}
-						</select>
+				<div id="general" class = "tab-pane">					
+					<div class="control-group">
+						<label class = "control-label">{{#i18n}}Report name{{/i18n}}:</label>
+						<div class="controls">
+							<input class="span2" type="text" id="reportName" name="reportName" value="{{reportSettings.reportName}}">
+						</div>
 					</div>
-				</div>
-			</div>
-		</div>
-	</form>
+						<div  class="control-group">
+						<label class = "control-label">{{#i18n}}Start date{{/i18n}}:</label>
+						<div class="controls">
+							<input class="span2" type="text" id="startDate" name="startDate" value="{{reportSettings.startDate}}">
+						</div>
+					</div>
+					<div  class="control-group">
+						<label class = "control-label">{{#i18n}}End date{{/i18n}}:</label>
+						<div class="controls">
+							<input class="span2" type="text" id="endDate" name="endDate" value="{{reportSettings.endDate}}">
+						</div>
+					</div>
+					<div  class="control-group">
+						<label class = "control-label">{{#i18n}}Max account{{/i18n}}:</label>
+						<div class="controls">
+							<input class="span2" type="text" id="maxAcc" name="maxAcc" value="{{reportSettings.maxAcc}}">
+						</div>
+					</div>					
+					<div class="control-group">
+						<label class = "control-label">{{#i18n}}Account type{{/i18n}}:</label>	
+						<div class="controls">					
+							<select class="span2" name="accType" id="accType">
+								{{#reportSettings.accTypeOptions}}
+								<option value="{{value}}" {{#if isSelected}}selected{{/if}} >{{name}}</option>
+								{{/reportSettings.accTypeOptions}}
+							</select>
+						</div>						
+					</div>					
+				</div>				
+				<div class="control-group tab-pane" id="currency">
+					<div  class="control-group">	
+						<label class= "control-label">{{#i18n}}Report's currency{{/i18n}}:</label>
+						<div class="controls">					
+							<select name="reportCurrency" class="span2" id="tr_parent" class="new_parent">								
+								{{#usedCurrencies}}
+									<option value="{{iso}}"{{#if isSelected}}selected{{/if}}>{{iso}} - {{country}}</option>
+								{{/usedCurrencies}}
+									<option class="separator" disabled="disabled"></option>
+								{{#notUsedCurrencies}}
+									<option value="{{iso}}"{{#if isSelected}}selected{{/if}}>{{iso}} - {{country}}</option>
+								{{/notUsedCurrencies}}						
+							</select>
+						</div>
+					</div>					
+				</div>	
+			</div>					
+		</form>			
+	</div>
+	{{/data}}
+	<div class="modal-footer">
+		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		<button class="btn btn-primary" id="save">Save</button>
+	</div>			
 </div>
+<script>
+$(document).ready(function() {
+	require(["jquery","jquery-block","bootstrap-datepicker"],function($){$(function() {
+		$form = $("#{{uniq}}");	
+		$form.find('#startDate, #endDate').datepicker();		
+
+		$form.find("#btn-cancel").click(function (e) {
+			$form.trigger("frm-cancel");
+			return false;
+		})	
+		$(".accountTreeItem .tree-ico").click(function(){
+			if ($(this).parent().find("ul").children().length)
+				$(this).parent().toggleClass('collapsed');
+		});
+
+		$(".accountTreeItem .name").click(function(){			
+			$(this).toggleClass('selected');			
+			if ($(this).hasClass("selected")){							
+				$(this).parents(".accountTreeItem").find(".name").not($(this).parents("ul:first").find(".name")).removeClass("selected");
+				$(this).parent().find("ul .name").removeClass("selected");
+			}
+		});
+
+		$("#s_all").click(function(){
+			$(".accountTreeItem .name").addClass("selected");
+		});
+
+		$("#clear").click(function(){
+			$(".accountTreeItem .name").removeClass("selected");
+		});
+		
+		$('#myTab a:first').tab('show');		
+		$('#myTab a').click(function (e) {
+			e.preventDefault();
+			$(this).tab('show');
+		})			
+		$form.on('click', "#save", function (event) {
+			event.preventDefault();
+			$form.block();
+			(function(cb) {
+				var accIds = [];
+				$(".settingsForm .accountTreeItem .name.selected").each(function(index,item){
+					accIds.push($(item).parent().data('accountid'));
+				});
+				var tparams = $(".settingsForm").serializeArray();
+				var params = {};
+				_.forEach(tparams, function(elem){
+					params[elem.name] = elem.value;
+				})
+				params.accIds = accIds;	
+				var loc = location.href.split("?");	
+				var type = _.last(loc[0].split("/"))
+				params.oldName = decodeURIComponent(location.search.split("=")[1]);				
+				require(["api","safe"], function (api,safe) {
+					console.log(params);
+					console.log(type);											
+					api.call('cash.web_saveParams', params, type, safe.sure(cb, function (ret) {						
+						location.href = ret;						
+					}))
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$form.unblock();
+			})
+		})
+	})})
+})
+</script>

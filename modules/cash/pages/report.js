@@ -106,18 +106,23 @@ module.exports = function account(webapp) {
 					return memo;
 				});
 
-				data.reportSettings = reportSettings;
-
+				data.reportSettings = reportSettings;							
 				data.accountsTree = _(data.accountsTree).reduce(function(memo,item){
-					if(_.isNull(reportSettings.accIds) || _.indexOf(reportSettings.accIds,item['id']) != -1 )
+					if (_.isNull(reportSettings.accIds)){
 						item.isSelected = 1;
-					memo.push(item);
+						memo.push(item);
+					}										
+					else memo.push(checkIfSelected(reportSettings.accIds, item));
 					return memo;
 				},[]);
 				cb1()
 			},
-			function(somedata,cb1){				
+			function(somedata,cb1){									
 				data = _.extend({settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, usedCurrencies:currencies.used, notUsedCurrencies:currencies.unused},data);
+				_.forEach(data.usedCurrencies, function(elem){
+					if (elem.iso == data.reportSettings.reportCurrency)
+						elem.isSelected = 1;
+				})	
 				data.data = JSON.stringify(data);
 				data.data = data.data.replace(/\]\"/g,"]");
 				data.data = data.data.replace(/\"\[/g,"[");				
@@ -130,6 +135,17 @@ module.exports = function account(webapp) {
 			next
 		);
 	};
+	
+	function checkIfSelected(arr, item){		
+		if(!_.isUndefined(_.find(arr, function(elem){return _.isEqual(elem.toString(), item._id.toString())})))
+			item.isSelected = 1;
+		if (item.childs){
+			_.forEach(item.childs, function(elem){
+				checkIfSelected(arr, elem);
+			})
+		}
+		return item;
+	}
 
 	function calculateStatmentData(token, type, params, cb){
 		var accountsTree, accKeys;
@@ -137,8 +153,7 @@ module.exports = function account(webapp) {
 			function (cb1) {
 				cashapi.getAllAccounts(token, cb1);
 			},
-			function (accounts, cb1) {
-				console.log(accounts);
+			function (accounts, cb1) {				
 				accountsTree = cashapi.createAccountsTree(accounts);
 				//check selected accounts				
 				if(_.isArray(params.accIds) && accounts.length != params.accIds.length){
@@ -277,18 +292,15 @@ module.exports = function account(webapp) {
 					accounts = _(accounts).filter(function(item){
 						return _.indexOf(params.accIds, item['_id']) != -1;
 					});
-				}
-				console.log(params.accType)
-				accKeys = _(accounts).reduce(function (memo, acc) {
-					console.log(acc.type);
+				}				
+				accKeys = _(accounts).reduce(function (memo, acc) {					
 					if (acc.type == params.accType){
 						memo[acc._id] = {name:acc.name, _id:acc._id, parentId:acc.parentId,summ:0};
 						if(periods)
 							memo[acc._id].periods = _(periods).map(function (p) { return _.clone(p); });
 					}
 					return memo;
-				}, {});
-				console.log(accKeys);
+				}, {});				
 				cashapi.getTransactionsInDateRange(token,[params.startDate,params.endDate,true,false],cb1);
 			},
 			function(trns,cb1){					

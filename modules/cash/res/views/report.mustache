@@ -22,7 +22,7 @@ require(["jquery","highcharts"], function ($) {
 var data = '{{data}}'.replace(/&quot;/g,'"');
 data = JSON.parse(data);
 require(["jquery","jquery-block","bootstrap"], function ($) {
-$(document).ready(function() {	
+$(document).ready(function() {		
 	var $page = $("body");	
 	$(document).on("click", ".report-settings",function(evt){		
 		evt.preventDefault();		
