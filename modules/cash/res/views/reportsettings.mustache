@@ -56,7 +56,11 @@
 
 		$(".accountTreeItem .name").click(function(){
 			$(this).toggleClass('selected');
-		});
+			if ($(this).hasClass("selected")){
+				console.log(1);
+				$(this).parents(".accountTreeItem .name").removeClass("selected");
+			}
+		});		
 
 		$("button[name=\"select-all-tree\"]").click(function(){
 			$(".accountTreeItem .name").addClass("selected");
@@ -73,7 +77,6 @@
 		});
 	});
 </script>
-
 <div id="dialog" style="display:none;" title="{{#i18n}}Report settings{{/i18n}}">
 	<form name="properties" class="settingsForm">
 		<div class="tabs-settings">

@@ -16,8 +16,7 @@ define(["jquery","eventemitter2","safe", "jquery-block","bootstrap"], function (
 							"res":{"a":"store","v":"currencies"}
 						}					
 					}				
-					api.batch(batch, safe.sure(cb, function (data) {
-						console.log(data);						
+					api.batch(batch, safe.sure(cb, function (data) {									
 						tf.render('settings', data, safe.sure(cb,function(text, ctx) {
 							self.emit('shown');
 							$("body").append(text);

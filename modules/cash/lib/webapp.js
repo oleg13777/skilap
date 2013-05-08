@@ -6,6 +6,9 @@ var vstatic = require('pok_utils').vstatic;
 var handlebarsMiddleware = require('pok_utils').handlebarsMiddleware;
 var lessMiddleware = require('less-middleware');
 var Handlebars = require('handlebars');
+var DateFormat = require('dateformatjs').DateFormat;
+var df = new DateFormat("MM/dd/yyyy");
+var dfW3C = new DateFormat(DateFormat.W3C);
 
 function CashWeb (ctx) {
 	var self = this;
@@ -58,7 +61,7 @@ CashWeb.prototype.layout = function () {
 	}
 };
 
-CashWeb.prototype.guessTab = function (req, ti,cb) {
+CashWeb.prototype.guessTab = function (req, ti,cb) {	
 	var self = this;
 	var vtabs=[];
 	var user = null;
@@ -83,8 +86,8 @@ CashWeb.prototype.guessTab = function (req, ti,cb) {
 		safe.trap(function (views, cb) {
 			if (views==null) views = {tabs:[], _id: user._id};			
 			var tab = null;
-			// search current tabs
-			_.forEach(views.tabs, function (t) {
+			// search current tabs			
+			_.forEach(views.tabs, function (t) {				
 				var vtab = {name:t.name,url:t.url,pid:t.pid};
 				if (ti.pid==t.pid) {
 					tab = t;
@@ -139,7 +142,7 @@ CashWeb.prototype.removeTabs = function (token, tabIds, cb) {
 	);
 };
 
-CashWeb.prototype.saveTabSettings = function(token, tabId, settings, cb) {
+CashWeb.prototype.saveTabSettings = function(token, tabId, settings, cb) {	
 	var self = this;
 	var user = null;
 	async.waterfall ([
@@ -223,6 +226,61 @@ CashWeb.prototype.i18n_cmdtyval = function(cmdty,value) {
 	else 
 		return self.ctx.i18n_cyval('USD',value);
 };
+
+CashWeb.prototype.saveParams = function(apiToken, params, type, cb) {	
+	console.log(params);	
+	var self = this;
+	var url = self.prefix+"/reports/"+type;
+	var oldpid = "reports-" +type + "-" + params.oldName;
+	var pid = "reports-" +type + "-" + params.reportName;
+	var settings = getDefaultSettings();
+	settings.accType = params.accType;
+	settings.maxAcc = params.maxAcc;
+	settings.startDate = dfW3C.format(new Date(params.startDate));
+	settings.endDate = dfW3C.format(new Date(params.endDate));
+	settings.reportName = params.reportName;
+	settings.accIds = _.isArray(params.accIds) ?_.map(params.accIds, function(item){return new BSON.objectID(item)}) : null;
+	settings.accLevel = params.accLevel;
+	settings.reportCurrency = params.reportCurrency;
+	var steeps = [
+		function(cb) {
+			self.removeTabs(apiToken, oldpid, cb);
+		},
+		function(cb) {
+			var req = {session:{}};
+			req.session.apiToken = apiToken;  
+			self.guessTab(req, {pid:pid, name:settings.reportName, url:url+"?name="+settings.reportName}, cb);
+		},
+		function(cb){
+			self.saveTabSettings(apiToken, pid, settings, cb);
+		}
+	];
+	// if pid the same then not need to recreate tabs
+	if (oldpid==pid)
+		steeps = steeps.slice(2);
+
+	async.series(steeps, function (err) {		
+		if (err) cb(err);		
+		else cb(null,url+"?name="+settings.reportName);		
+	})
+};
+
+function getDefaultSettings(reportName) {
+	var defaultSettings = {
+			startDate:dfW3C.format(new Date(new Date().getFullYear()-2, 0, 1)),
+			endDate:dfW3C.format(new Date(new Date().getFullYear()-2, 11, 31)),
+			accIsVisible:1,
+			accType:"EXPENSE",
+			maxAcc:10,
+			reportName:reportName,
+			accIds:null,
+			accLevel:2,
+			accLevelOptions:[{name:'All'},{name:1},{name:2},{name:3},{name:4},{name:5},{name:6}],
+			version: 2,
+			reportCurrency:"RUB"
+		};
+	return defaultSettings;
+}
 
 module.exports.init = function (ctx,cb) {
 	var self = this;

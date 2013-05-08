@@ -67,7 +67,7 @@ module.exports = function account(webapp) {
 					cb1(null, results[0], results[1], results[2]);
 				});
 			},
-			function (vtabs_, reportSettings_, currencies_, cb1) {
+			function (vtabs_, reportSettings_, currencies_, cb1) {				
 				vtabs = vtabs_;
 				reportSettings = reportSettings_;
 				if (_.isEmpty(reportSettings) || !reportSettings.version || (reportSettings.version != reportSettingsVersion))
@@ -116,8 +116,16 @@ module.exports = function account(webapp) {
 				},[]);
 				cb1()
 			},
-			function(somedata,cb1){
-				res.render(__dirname+"/../res/views/report", _.extend({settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, usedCurrencies:currencies.used, notUsedCurrencies:currencies.unused},data));
+			function(somedata,cb1){				
+				data = _.extend({settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, usedCurrencies:currencies.used, notUsedCurrencies:currencies.unused},data);
+				data.data = JSON.stringify(data);
+				data.data = data.data.replace(/\]\"/g,"]");
+				data.data = data.data.replace(/\"\[/g,"[");				
+				data.data = data.data.replace(/\"\{/g,"{");
+				data.data = data.data.replace(/\}\"/g,"}");
+				data.data = data.data.replace(/'\{/g,"{");
+				data.data = data.data.replace(/\}'/g,"}");					
+				res.render(__dirname+"/../res/views/report", data);
 			}],
 			next
 		);
@@ -130,8 +138,9 @@ module.exports = function account(webapp) {
 				cashapi.getAllAccounts(token, cb1);
 			},
 			function (accounts, cb1) {
+				console.log(accounts);
 				accountsTree = cashapi.createAccountsTree(accounts);
-				//check selected accounts
+				//check selected accounts				
 				if(_.isArray(params.accIds) && accounts.length != params.accIds.length){
 					accounts = _(accounts).filter(function(item){
 						return _.indexOf(params.accIds,item['id']) != -1;
@@ -261,7 +270,7 @@ module.exports = function account(webapp) {
 			function (cb1) {
 				cashapi.getAllAccounts(token, cb1);
 			},
-			function (accounts, cb1) {
+			function (accounts, cb1) {				
 				accountsTree = cashapi.createAccountsTree(accounts);
 				//check selected accounts
 				if(_.isArray(params.accIds) && accounts.length != params.accIds.length){
@@ -269,7 +278,9 @@ module.exports = function account(webapp) {
 						return _.indexOf(params.accIds, item['_id']) != -1;
 					});
 				}
+				console.log(params.accType)
 				accKeys = _(accounts).reduce(function (memo, acc) {
+					console.log(acc.type);
 					if (acc.type == params.accType){
 						memo[acc._id] = {name:acc.name, _id:acc._id, parentId:acc.parentId,summ:0};
 						if(periods)
@@ -277,10 +288,10 @@ module.exports = function account(webapp) {
 					}
 					return memo;
 				}, {});
+				console.log(accKeys);
 				cashapi.getTransactionsInDateRange(token,[params.startDate,params.endDate,true,false],cb1);
 			},
-			function(trns,cb1){
-				console.log(trns.length);
+			function(trns,cb1){					
 				_.forEach(trns, function (tr) {
 					cashapi.getCmdtyPrice(token,tr.currency,{space:"ISO4217",id:params.reportCurrency},null,'safe',function(err,rate){
 						if(err && !(err.skilap && err.skilap.subject == "UnknownRate"))

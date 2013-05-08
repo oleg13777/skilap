@@ -263,3 +263,43 @@ background-color:#eee;
 .ski_gridWrapper .settings .tdContent{
 	overflow:visible;
 }
+
+.accountsTree{
+	display:block;
+	margin-left:30px;
+}
+
+.accountTreeItem{
+	display:block;
+}
+
+.accountTreeItem .name{
+	display:block;
+	margin:3px 0;
+	cursor:pointer;
+}
+
+.accountTreeItem .name.selected{
+	background:#8eb6ff;
+}
+.accountTreeItem .tree-ico{
+	display:block;
+	float:left;
+	width:12px;
+	height:18px;
+	background:url('../img/tree-icons.png')no-repeat 0 -15px;
+	cursor:pointer;
+	margin-left:2px;
+}
+
+.accountTreeItem.hide-tree .tree-ico{
+	background:none;
+}
+
+.accountTreeItem.collapsed .tree-ico{
+	background:url('../img/tree-icons.png')no-repeat 0 8px;
+}
+
+.accountTreeItem.collapsed .accountsTree{
+	display:none;
+}

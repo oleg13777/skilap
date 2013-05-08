@@ -23,10 +23,9 @@
 	  <li><a href="/cash/reports/pieflow">{{#i18n}}Spend/receive pie chart{{/i18n}}</a></li>
 	  <li><a href="/cash/reports/statment">{{#i18n}}Income statement{{/i18n}}</a></li>
 	</ul>
-  </li>
-   <li><a id="editPageSettings" href="return false">{{#i18n}}Page settings{{/i18n}}</a></li>
-   
-   {{pid}}
+  </li>  
+  <li><a id="reportSettings" href="return false">{{#i18n}}Report settings{{/i18n}}</a></li> 
+ 
 <script type="text/javascript">
 require(["jquery","jquery-block","bootstrap"], function ($) {
 $(document).ready(function() {	
@@ -75,7 +74,7 @@ $(document).ready(function() {
 			$me.unblock();
 		})
 		return false;		
-	});
+	});	
 });
 })
 </script>

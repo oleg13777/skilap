@@ -31,20 +31,21 @@
           </a>
          <a href='/' id="logoNew"></a>
 		  <a class="brand" href="#">{{#i18n}}Core{{/i18n}}</a>          
-          <div class="nav-collapse">
-			<ul class="nav nav-pills">
-              {{>nav}}
+          <div class="nav-collapse">			  
+			<ul class="nav nav-pills">			
+              {{>nav}}				
               <li class="dropdown">
-				<a href="javascript:void(0);" data-toggle="dropdown" class="dropdown-toggle">{{#i18n}}Pages{{/i18n}} <b class="caret"></b></a>
+				<a href="javascript:void(0);" data-toggle="dropdown" class="dropdown-toggle">{{#i18n}}Pages{{/i18n}} <b class="caret"></b></a>				
 				<ul class="dropdown-menu">				
 				  {{#tabs}}
 				  <li {{#selected}}class="active"{{/selected}}>
 					<a data-toggle="tab" href="{{url}}" data-pid="{{pid}}">{{name}}</a>						
 				  </li>
-				  {{/tabs}}
-				 </ul>
-			  </li>
-			</ul>          
+				  {{/tabs}}				   
+				 </ul>				
+			  </li>			 
+			</ul> 
+			 <a class = "pull-right btn-large" href = "return false"><i id="editPageSettings" class="icon-cog icon-white"></i></a>         
           </div><!--/.nav-collapse -->
         </div>
       </div>
