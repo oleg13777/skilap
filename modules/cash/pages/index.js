@@ -43,6 +43,7 @@ module.exports = function account(webapp) {
 				}))
 			},
 			function getPageCurrency(cb) {
+				return cb()
 				// get tab settings first
 				webapp.getTabSettings(req.session.apiToken, 'home', safe.sure(cb, function(cfg) {
 					if (cfg && cfg.cmdty) {

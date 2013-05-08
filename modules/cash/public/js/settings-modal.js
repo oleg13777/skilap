@@ -14,7 +14,12 @@ define(["jquery","eventemitter2","safe", "jquery-block","bootstrap"], function (
 							"cmd":"api",
 							"prm":["cash.getAllCurrencies"],
 							"res":{"a":"store","v":"currencies"}
-						}					
+						},
+						"currency":{
+							"cmd":"api",
+							"prm":["cash.getSettings","currency",null],
+							"res":{"a":"store","v":"currency"}
+						}							
 					}				
 					api.batch(batch, safe.sure(cb, function (data) {									
 						tf.render('settings', data, safe.sure(cb,function(text, ctx) {

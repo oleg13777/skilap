@@ -5,42 +5,21 @@ var SkilapError = require("skilap-utils").SkilapError;
 
 module.exports.getSettings = function(token, id, defs, cb) {
 	var self = this;
-	console.log("getSettings", arguments);
-
-	async.series ([
-		function (cb) {
-			self._coreapi.checkPerm(token, ['cash.view'], cb);
-		},
-		function get(cb) {
-			self._cash_settings.findOne({'id': id}, cb);
-		}], function end(err, results) {
-			if (err) return cb(err);
-			var res = results[1];
-			if (!res) res = defs;		
-			cb(null, res);
-		}
-	);
+	self._coreapi.checkPerm(token, ['cash.view'], safe.sure(cb, function () {
+		self._cash_settings.findOne({'id': id}, safe.sure(cb, function (v) {
+			if (!v)
+				cb(null,defs)
+			else
+				cb(null, v.v)
+		}))
+	}))
 };
 
 module.exports.saveSettings = function(token, id, settings, cb) {	
-	console.log("saveSettings", arguments);
 	var self = this;
-	async.waterfall ([
-		function (cb) {
-			self._coreapi.checkPerm(token, ['cash.edit'], cb);
-		},
-		function (cb) {
-			self.getSettings(token, id, settings, cb);
-		},
-		function (old, cb) {			
-			_.extend(old, settings);
-			old.id = id;
-			self._cash_settings.save(old, cb);
-		}], 
-		safe.sure(cb, function () {
-			process.nextTick(cb);
-		})
-	);
+	self._coreapi.checkPerm(token, ['cash.edit'], safe.sure(cb, function () {
+		self._cash_settings.update({'id':id},{$set:{v:settings}},{upsert:true}, cb)
+	}))
 };
 
 module.exports.clearSettings = function (token, ids, cb) {

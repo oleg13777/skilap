@@ -11,7 +11,7 @@
 				<div class="controls">					
 					<select id="tr_parent" class="new_parent">
 						{{#currencies}}							
-							<option value="{{iso}}">{{iso}} - {{country}}</option>							
+							<option {{#when ../currency.id '==' iso}}selected{{/when}} value="{{iso}}">{{iso}} - {{country}}</option>							
 						{{/currencies}}
 					</select>
 				</div>
@@ -30,9 +30,7 @@ require(["jquery","jquery-block"],function($){$(function() {
 		event.preventDefault();
 		$form.block();
 		(function(cb) {
-			var params = {			
-				val: {space:"ISO4217",id:$('#tr_parent option:selected').val()},
-			};			
+			var params = {space:"ISO4217",id:$('#tr_parent option:selected').val()};			
 			require(["api","safe"], function (api,safe) {
 				var options = {};							
 				api.call('cash.saveSettings', "currency", params ,safe.sure(cb, function () {
