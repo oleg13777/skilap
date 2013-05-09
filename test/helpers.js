@@ -59,3 +59,15 @@ module.exports.waitModalUnload = function (selector) {
 		return self.browser.isElementPresent(selector).then(function (v) { return !v; })
 	});	
 }
+
+module.exports.fillInput = function(input,val){
+	input.getAttribute("value").then(function(text){
+		if(text != ""){
+			input.sendKeys(Key.HOME);
+			for(var i=0;i<text.length;i++){
+				input.sendKeys(Key.DELETE);
+			}
+		}
+		input.sendKeys(val);
+	});
+}
