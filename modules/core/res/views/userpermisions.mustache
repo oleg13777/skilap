@@ -45,7 +45,6 @@ $(document).ready(function() {
 	function displayMessage(event){			
 		if(event.data.name == 'setEditPermDialogData') {
 			var permissions = event.data.data.permissions;
-			console.log(permissions);
 			if (permissions) {
 				permissions.forEach(function(perm) {
 					$(".perm[value='"+perm+"']").attr("checked", "checked");

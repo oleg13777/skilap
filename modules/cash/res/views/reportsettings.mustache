@@ -150,8 +150,6 @@ $(document).ready(function() {
 				var type = _.last(loc[0].split("/"))
 				params.oldName = decodeURIComponent(location.search.split("=")[1]);				
 				require(["api","safe"], function (api,safe) {
-					console.log(params);
-					console.log(type);											
 					api.call('cash.web_saveParams', params, type, safe.sure(cb, function (ret) {						
 						location.href = ret;						
 					}))

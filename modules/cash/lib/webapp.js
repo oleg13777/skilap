@@ -48,17 +48,16 @@ CashWeb.prototype.layout = function () {
 	var self = this;
 	return function (req,res,next) {
 		self.api.getCmdtyLastPrices(req.session.apiToken, safe.sure(next, function (prices) {
-			Handlebars.registerHelper('i18n_cost', function(cmdtySrc, value, options) {
-				var cmdtyDst = res.locals.pageCmdty;
+			Handlebars.registerHelper('i18n_cost', function(cmdtyRep, cmdtySrc, value, options) {
+				var cmdtyDst = cmdtyRep;
 				var key = (cmdtySrc.space+cmdtySrc.id+cmdtyDst.space+cmdtyDst.id);
 				var price = prices[key] || 1;
 				return (price!=1?"( "+self.ctx.i18n_cytext(req.session.apiToken, cmdtySrc.id, value) + ")":"")
 					+" "+self.ctx.i18n_cytext(req.session.apiToken, cmdtyDst.id, price*value);																									
 			});	
 			res.locals.layout = "layout";
-			res.locals.pageCmdty = {space:"ISO4217",id:"RUB"};
-			next()
-		}))
+			next();
+		}));
 	}
 };
 
@@ -175,7 +174,7 @@ CashWeb.prototype.getTabSettings = function(token, tabId, cb) {
 			self._cash_userviews.findOne({'_id': user._id} ,cb);
 		},
 		function (views, cb) {
-			var ret = _.find(views.tabs,function (t) {return t.pid == tabId; });
+			var ret = _.find(views.tabs, function (t) {return t.pid == tabId; });
 			if (ret) 
 				cb(null, ret.settings);
 			else
@@ -229,7 +228,6 @@ CashWeb.prototype.i18n_cmdtyval = function(cmdty,value) {
 };
 
 CashWeb.prototype.saveParams = function(apiToken, params, type, cb) {	
-	console.log(params);	
 	var self = this;
 	var url = self.prefix+"/reports/"+type;
 	var oldpid = "reports-" +type + "-" + params.oldName;
