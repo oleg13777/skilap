@@ -49,7 +49,8 @@ CashWeb.prototype.layout = function () {
 	return function (req,res,next) {
 		self.api.getCmdtyLastPrices(req.session.apiToken, safe.sure(next, function (prices) {
 			Handlebars.registerHelper('i18n_cost', function(cmdtyRep, cmdtySrc, value, options) {
-				var cmdtyDst = cmdtyRep;
+				cmdtySrc |= {space:"ISO4217", id:"USD"};
+				var cmdtyDst = cmdtyRep||{space:"ISO4217", id:"USD"};
 				var key = (cmdtySrc.space+cmdtySrc.id+cmdtyDst.space+cmdtyDst.id);
 				var price = prices[key] || 1;
 				return (price!=1?"( "+self.ctx.i18n_cytext(req.session.apiToken, cmdtySrc.id, value) + ")":"")

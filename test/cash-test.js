@@ -36,7 +36,7 @@ describe("Cash module",function () {
 	});
 	afterEach(tutils.afterEach);
 
-	describe("Default dataset", function () {
+	describe.only("Default dataset", function () {
 		var curUser = 0;
 		it("Login as user", function(done) {
 			var self = this;
@@ -66,8 +66,13 @@ describe("Cash module",function () {
 			self.browser.findElement(By.xpath("//*[contains(.,'Other')]"));
 			self.done();
 		});
-		it("Account should have proper currency")
-	})
+		it("Account should have proper currency", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//span[contains(.,'$')]"));
+			self.done();
+		});
+	});
 	describe("Manage prices", function () {
 		it("Add price for USD in EUR")
 		it("Edit price of USD in EUR")
