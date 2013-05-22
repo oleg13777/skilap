@@ -6,7 +6,8 @@ module.exports = function account(webapp) {
 	var app = webapp.web;
 	var cashapi = webapp.api;
 	var prefix = webapp.prefix
-	var repCmdty = {space:"ISO4217",id:"RUB"};
+	var repCmdty = null;
+	var accCmdty = null;
 	var ctx = webapp.ctx;
 
 	function getAccountTree(token, id, data, cb) {
@@ -23,6 +24,7 @@ module.exports = function account(webapp) {
 			getAccountTree(token, acc._id, data, function (err,childs) {
 				if (err) return cb(err);
 				acc.childs = childs;
+				acc.repCmdty = repCmdty;
 			})
 		})
 		cb(null, _(res).sortBy(function (e) {return e.name; }));
@@ -32,7 +34,7 @@ module.exports = function account(webapp) {
 		var batch = {
 			"setup":{
 				"cmd":"object",
-				"prm":{"token":token,"repCmdty":repCmdty},
+				"prm":{"token":token,"repCmdty":repCmdty,"accCmdty":accCmdty},
 				"res":{"a":"merge"}
 			},
 			"accounts":{
@@ -62,17 +64,14 @@ module.exports = function account(webapp) {
 			currency:function getPageCurrency(cb) {
 				// get tab settings first
 				webapp.getTabSettings(req.session.apiToken, 'accounts-tree', safe.sure(cb, function(cfg) {
-					if (cfg && cfg.cmdty) {
+					if (cfg && cfg.cmdty)
 						repCmdty = cfg.cmdty;
-						cb()
-					}
-					else {
-						// when absent get default
-						cashapi.getSettings(req.session.apiToken, 'currency_____', repCmdty, safe.sure(cb, function (defCmdty) {
+					cashapi.getSettings(req.session.apiToken, 'currency', repCmdty, safe.sure(cb, function (defCmdty) {
+						accCmdty = defCmdty;
+						if (!repCmdty)
 							repCmdty = defCmdty;
-							cb();
-						}));
-					}
+						cb();
+					}))
 				}));
 			},
 			assets:function (cb) {

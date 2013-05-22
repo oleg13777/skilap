@@ -8,7 +8,8 @@ module.exports = function account(webapp) {
 	var prefix = webapp.prefix;
 	var assetsTypes = ["BANK", "CASH", "ASSET", "STOCK", "MUTUAL", "CURENCY"];
 	var liabilitiesTypes = ["CREDIT", "LIABILITY", "RECEIVABLE", "PAYABLE"];
-	var repCmdty = {space:"ISO4217",id:"RUB"};
+	var repCmdty = null;
+	var accCmdty = null;
 
 	function getAssets(token, id, types, data, cb) {
 		var level = _(data.accounts).filter(function (e) { 
@@ -24,6 +25,7 @@ module.exports = function account(webapp) {
 			getAssets(token, acc._id, types,data, function (err,childs) {
 				if (err) return cb(err);
 				acc.childs = childs;
+				acc.repCmdty = repCmdty;
 			})
 		})
 		cb(null, res);
@@ -43,20 +45,17 @@ module.exports = function account(webapp) {
 				}))
 			},
 			function getPageCurrency(cb) {
-				return cb()
 				// get tab settings first
 				webapp.getTabSettings(req.session.apiToken, 'home', safe.sure(cb, function(cfg) {
-					if (cfg && cfg.cmdty) {
+					if (cfg && cfg.cmdty)
 						repCmdty = cfg.cmdty;
-						cb()
-					}
-					else {
-						// when absent get default
-						cashapi.getSettings(req.session.apiToken, 'currency', repCmdty, safe.sure(cb, function (defCmdty) {
-							repCmdty = defCmdty.val;
-							cb()
-						}))
-					}
+					// when absent get default
+					cashapi.getSettings(req.session.apiToken, 'currency', repCmdty, safe.sure(cb, function (defCmdty) {
+						accCmdty = defCmdty;
+						if (!repCmdty)
+							repCmdty = defCmdty;
+						cb();
+					}))
 				}));
 			},
 			function (cb) {
@@ -93,12 +92,12 @@ module.exports = function account(webapp) {
 			function (cb) {
 				getAssets(req.session.apiToken, null, assetsTypes, data, safe.sure_result(cb, function (res) {
 					assets = res;
-				}))
+				}));
 			},
 			function (cb) {
 				getAssets(req.session.apiToken, null, liabilitiesTypes, data, safe.sure_result(cb, function (res) {
 					liabilities = res;
-				}))
+				}));
 			},
 			function render () {
 				var rdata = {
@@ -108,6 +107,7 @@ module.exports = function account(webapp) {
 					tabId: 'home'
 				};
 				rdata.cmdty = repCmdty;
+				rdata.acmdty = accCmdty;
 				rdata.assetsSum = _(assets).reduce(function (m,e) {return m+e.gvalue;},0);
 				rdata.liabilitiesSum = _(liabilities).reduce(function (m,e) {return m+e.gvalue;},0);
 				rdata.assets = assets;

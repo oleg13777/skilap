@@ -55,7 +55,6 @@ $(function() {
 		if (event.origin === "https://{{host}}") {		
 			if(event.data.name == 'setAccountDeleteDialogData'){
 				var acc = event.data.data;
-				console.log(acc);
 				$('#del_acc').val(acc._id);
 				$('#deleteDialog').dialog( "option", "title", "{{#i18n}}Delete account{{/i18n}} \"" + acc.name +"\"");			
 			}

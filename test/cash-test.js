@@ -28,79 +28,51 @@ var assert = require('assert');
 
 describe("Cash module",function () {
 	this.timeout(30000);
-	before(tutils.setupContext)
+	before(tutils.setupContext);
 	before(function (done) {
 		this.browser.manage().window().setSize(1280,768);	
 		this.restoreDb('core-users');	
 		this.fixture('dataentry').then(tutils.noerror(done));
-	})
-	afterEach(tutils.afterEach)
+	});
+	afterEach(tutils.afterEach);
 
-	describe("Default dataset", function () {
-		it("Can be created")
-		it("Should have some accounts")
-		it("Account should have proper currency")
-	})
-	describe("Manage accounts", function () {		
-		it("Create new account", function(done){			
-			this.trackError(done);
+	describe.only("Default dataset", function () {
+		var curUser = 0;
+		it("Login as user", function(done) {
 			var self = this;
-			var user = self.fixtures.dataentry.users[0];
-			//login as admin
-			helpers.login.call(self, this.fixtures.dataentry.superuser,true);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.linkText("Logout"))
-			});
-			self.browser.findElement(By.linkText("Manage users")).click()
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.name("addNewUser"))
-			});
-			self.browser.findElement(By.name("addNewUser")).click();
-			helpers.waitModalLoad.call(self);
-			//enter new user data
-			self.browser.findElement(By.id("changePass")).click()
-			helpers.fillInput.call(self,self.browser.findElement(By.id("firstName")),user.firstName);
-			helpers.fillInput.call(self,self.browser.findElement(By.id("lastName")),user.lastName);
-			helpers.fillInput.call(self,self.browser.findElement(By.id("login")),user.login);
-			helpers.fillInput.call(self,self.browser.findElement(By.id("password")),user.password);
-			self.browser.findElement(By.id("save")).click();
-			helpers.waitModalUnload.call(self);	
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".users_row"))
-			});
+			self.trackError(done);
+			helpers.login.call(self, self.fixtures.dataentry.users[curUser], true);
 			self.done();
-		})
-		it("Edit account", function(done){
-			this.trackError(done);
+		});
+		it("Can be created", function(done) {
 			var self = this;
-			var user = self.fixtures.dataentry.users[0];
-			self.browser.findElement(By.css(".dropdown-toggle")).click();
-			self.browser.sleep(1000);
-			self.browser.findElement(By.name("editUser")).click();			
-			helpers.waitModalLoad.call(self);
-			//enter new user data			
-			helpers.fillInput.call(self,self.browser.findElement(By.id("firstName")),user.firstName+"edited");
-			helpers.fillInput.call(self,self.browser.findElement(By.id("lastName")),user.lastName+"edited");
-			self.browser.findElement(By.id("save")).click();
-			helpers.waitModalUnload.call(self);			
-			self.browser.findElement(By.xpath("//td[text()='"+user.firstName+"edited']"))	
-			self.browser.findElement(By.xpath("//td[text()='"+user.lastName+"edited']"))	
-			self.done();				
-		})
-		it("Delete account", function(done){
-			this.trackError(done);
+			self.trackError(done);
+			self.browser.findElement(By.linkText("Cash module")).click();
+			self.browser.findElement(By.xpath("//*[contains(.,'Assets:')]"));
+			self.browser.findElement(By.linkText("Data")).click();	
+			self.browser.findElement(By.linkText("New register")).click();	
+			self.browser.findElement(By.id("acc_curency")).sendKeys("USD");
+			self.browser.findElement(By.xpath("//input[@value='Confirm']")).click();
+			self.done();
+		});
+		it("Should have some accounts", function(done) {
 			var self = this;
-			var user = self.fixtures.dataentry.users[0];
-			self.browser.findElement(By.css(".dropdown-toggle")).click();
-			self.browser.sleep(1000);
-			self.browser.findElement(By.name("deleteUser")).click();
-			self.browser.switchTo().alert().accept();		
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".users_row")).then(function (v) { return !v; })
-			});
-			self.done();	
-		})
-	})	
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//*[contains(.,'Accidental')]"));
+			self.browser.findElement(By.xpath("//*[contains(.,'Car')]"));
+			self.browser.findElement(By.xpath("//*[contains(.,'Fuel')]"));
+			self.browser.findElement(By.xpath("//*[contains(.,'Life')]"));
+			self.browser.findElement(By.xpath("//*[contains(.,'Food')]"));
+			self.browser.findElement(By.xpath("//*[contains(.,'Other')]"));
+			self.done();
+		});
+		it("Account should have proper currency", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//span[contains(.,'$')]"));
+			self.done();
+		});
+	});
 	describe("Manage prices", function () {
 		it("Add price for USD in EUR")
 		it("Edit price of USD in EUR")
