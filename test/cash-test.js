@@ -36,7 +36,7 @@ describe("Cash module",function () {
 	});
 	afterEach(tutils.afterEach);
 
-	describe.only("Default dataset", function () {
+	describe("Default dataset", function () {
 		var curUser = 0;
 		it("Login as user", function(done) {
 			var self = this;
@@ -74,21 +74,77 @@ describe("Cash module",function () {
 		});
 	});
 	describe("Manage prices", function () {
-		it("Add price for USD in EUR")
-		it("Edit price of USD in EUR")
-		it("Delete price pair")
-	})
-	describe("Export and import", function () {
+		it("Add price for USD in EUR", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Rate Currency Editor")).click();	
+			self.browser.findElement(By.id("firstCurrency")).sendKeys("USD");
+			self.browser.findElement(By.id("secondCurrency")).sendKeys("EUR");
+			self.browser.findElement(By.xpath("//button[.='Apply']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//button[.='Add']"));
+			});
+			self.browser.findElement(By.xpath("//button[.='Add']")).click();
+			helpers.runModal.call(this, null, function(modal) {
+		        modal.findElement(By.id("datepicker")).sendKeys("05/20/13");
+				modal.findElement(By.id("newrate")).sendKeys("1.5");	
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//td[@class='date' and contains(.,'20')]"));	
+			self.browser.findElement(By.xpath("//td[@class='rate' and .='1.5']"));	
+			self.done();
+		});
+		it("Edit price of USD in EUR", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//td[@class='rate' and .='1.5']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//button[.='Edit']"));
+			});
+			self.browser.findElement(By.xpath("//button[.='Edit']")).click();
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElement(By.id("datepicker")).clear();	
+		        modal.findElement(By.id("datepicker")).sendKeys("05/21/13");
+				modal.findElement(By.id("newrate")).clear();	
+				modal.findElement(By.id("newrate")).sendKeys("1.6");	
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//td[@class='date' and contains(.,'21')]"));	
+			self.browser.findElement(By.xpath("//td[@class='rate' and .='1.6']"));	
+			self.done();
+		});
+		it("Delete price pair", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//td[@class='rate' and .='1.6']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//button[.='Delete']"));
+			});
+			self.browser.findElement(By.xpath("//button[.='Delete']")).click();
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.isElementPresent(By.xpath("//td[@class='date' and contains(.,'21')]")).then(function (isPresent) {
+				assert.ok(!isPresent, "Not deleted");
+			});
+			self.browser.isElementPresent(By.xpath("//td[@class='rate' and .='1.6']")).then(function (isPresent) {
+				assert.ok(!isPresent, "Not deleted");
+			});
+			self.done();
+		});
+	});
+	describe.skip("Export and import", function () {
 		it("Import sample gnucash file")
 		it("Home page should have right ballance")
 		it("Export Skilap Cash")
 		it("Import Skilap Cash")
 		it("Home page balance should be the same as before")
 	})
-	describe("Registry input", function () {
+	describe.skip("Registry input", function () {
 		it("TBD")
 	})
-	describe("Reports", function () {
+	describe.skip("Reports", function () {
 		it("TBD")
 	})
 	describe("Settings", function () {

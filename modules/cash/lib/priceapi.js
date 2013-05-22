@@ -71,9 +71,25 @@ module.exports.getPricesByPair = function (token,pair,cb) {
 	);
 };
 
+module.exports.getPriceById = function (token,id,cb) {
+	var self = this;	
+	async.series ([
+		function start(cb) {
+			async.parallel([
+				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
+				function (cb) { self._waitForData(cb); }
+			], cb);
+		}, 
+		function get(cb) {
+			self._cash_prices.findOne({'_id': new self._ctx.ObjectID(id)}, cb);
+		}], safe.sure(cb, function (results) {
+			cb(null, results[1]);
+		})
+	);
+};
+
 module.exports.savePrice = function (token,price,cb) {
 	var self = this;
-	var pricen = {};	
 	async.series ([
 		function (cb) {
 			async.parallel([
@@ -81,23 +97,22 @@ module.exports.savePrice = function (token,price,cb) {
 				function (cb) { self._waitForData(cb); }
 			],cb);
 		}, 
-		function (cb) {					
-			if (price._id) {
-				self._cash_transactions.findOne({'_id': new self._ctx.ObjectID(price._id)},safe.sure_result(cb, function (price_) {
-					pricen = _.extend(price,price_);
-					pricen._id = new self._ctx.ObjectID(price._id);
+		function (cb) {
+			if (price._id && price._id != 0) {
+				self._cash_prices.findOne({'_id': new self._ctx.ObjectID(price._id)},safe.sure_result(cb, function (price_) {
+					_.defaults(price,price_);
+					price._id = price_._id;
 				}));		
 			} else {
-				pricen = price;					
-				pricen._id = new self._ctx.ObjectID();
+				price._id = new self._ctx.ObjectID();
+				cb();
 			}
-			cb();
 		}, 
-		function (cb) {			
-			self._cash_prices.save(pricen, cb);			
+		function (cb) {
+			self._cash_prices.save(price, cb);
 		}], safe.sure(cb, function () {			
 			self._calcStats(function () {});
-			cb(null,pricen);
+			cb(null, price);
 		})
 	);
 };
@@ -127,7 +142,7 @@ module.exports.clearPrices = function (token, ids, cb) {
 				],cb);
 			},
 			function(cb){
-				self._cash_prices.remove({'_id': {$in: ids}}, cb);
+				self._cash_prices.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, cb);
 			} 
 		], safe.sure_result(cb, function () {
 			self._calcStats(function () {});

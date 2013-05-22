@@ -1,6 +1,5 @@
-<script type="text/javascript" src="/common/js/highcharts/highcharts.js"></script>
 <script type="text/javascript">	
-	$(function() {	
+require(["jquery","jquery-ui","highcharts"], function ($) {
 		var graphOptions = {
             chart: {
                 renderTo: 'graphContainer',
@@ -153,71 +152,85 @@
 		});
 		
 		$(".add.rateCtrlBtn,.edit.rateCtrlBtn").click(function(){
-			var title,mode;
+			var title, mode, currentDate, rate;
 			var id = 0;
 			if($(this).hasClass('add')){
 				title = '{{#i18n}}Add Rate Currency{{/i18n}}';
 				var mode = 'add';	
-				$("#rate").val($("#rate").data("value"));
-				$("#date").val($("#date").data("value"));			
+				rate = "";
+				currentDate = "";			
 			}
 			else if($(this).hasClass('edit')){
 				title = '{{#i18n}}Edit Rate Currency{{/i18n}}';
 				mode = 'edit';
 				id = $("#rateTable tr.selected").data('id');
-				$("#rate").val($("#rateTable tr.selected td.rate").text());
-				$("#date").val($("#rateTable tr.selected td.date").text());
+				rate = $("#rateTable tr.selected td.rate").text();
+				currentDate = $("#rateTable tr.selected td.date").text();
 			}
-			var $dialog = $("#dialogRateCurrency");			
-			$dialog.attr('data-mode',mode).removeClass('invisible').dialog({
-				title:title,
-				position:'center',
-				buttons: {
-					"{{#i18n}}Apply{{/i18n}}": function() {						
-						var date = $(this).find("#date").val();
-						var rate =  $(this).find("#rate").val();
-						var from =  $(this).find("#from").val();
-						var to =  $(this).find("#to").val();
-						var jqXHR = $.ajax({
-							url:"{{prefix}}/priceeditor",
-							data:{mode:mode,date:date,value:rate,from:from,to:to,id:id},
-							dataType:"html"
-						});
-						jqXHR.done(function(data){
-							if(id != 0){								
-								$("#rateTable tr.selected[data-id='"+id+"']").replaceWith(data);
-							}
-							else{
-								$("#rateTable tbody").prepend(data);
-							}
-							$dialog.dialog("close");
-							redrawPriceGraph();
-						});											
-					},			
-					"{{#i18n}}Close{{/i18n}}": function() {
-						$dialog.dialog("close");					
-					}
-				},							
-				autoOpen: true,
-				resizable: false,
-				height: 280,
-				width: 300,
-				modal: true,
-				draggable: false
-			});	
-			$("#dialogRateCurrency #date").datepicker();
+			var from = $('#firstCurrency option:selected').val();
+			var to = $('#secondCurrency option:selected').val();
+			$this = $(this);
+			var $me = $(this).parent()
+			$me.block();
+			(function (cb) {
+				require(['api','clitpl','safe','bootstrap'], function (api,tf,safe) {
+					tf.render('priceeditor_edit', {title:title, id:id, mode:mode, 
+							currentDate:currentDate, lastRate:rate,
+							firstCurr:from, secondCurr:to}, safe.sure(cb,function(text, ctx) {
+						$me.unblock();
+						$("body").append(text);
+						var $modal = $("#"+ctx.uniq).modal();
+						$modal.on("frm-saved", function (e, pricen) {
+							tf.render('priceeditor_tr', pricen, safe.sure(cb, function(text) {
+								if(id != 0){								
+									$("#rateTable tr.selected[data-id='"+id+"']").replaceWith(text);
+								}
+								else{
+									$("#rateTable tbody").prepend(text);
+								}
+								redrawPriceGraph();
+								$modal.modal('hide')
+								cb();		
+							}))
+						})
+					}))
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$me.unblock();
+			})
 			return false;
 		});
 		$(".delete.rateCtrlBtn").click(function(){
 			var id = $("#rateTable tr.selected").data('id');
+			var $me = $(this).parent()
+			$me.block();
+			(function (cb) {
+				require(['api','clitpl','safe','bootstrap'], function (api,tf,safe) {
+					tf.render('priceeditor_delete', {id:id}, safe.sure(cb,function(text, ctx) {
+						$me.unblock();
+						$("body").append(text);
+						var $modal = $("#"+ctx.uniq).modal();
+						$modal.on("frm-saved", function (e, pricen) {
+							$("#rateTable tr.selected[data-id='"+id+"']").remove();
+							redrawPriceGraph();
+							$modal.modal('hide')
+						})
+					}))
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$me.unblock();
+			})
+			/*
 			var $dialog =$ ("#dialogRateCurrency-delete");
-			$dialog.dialog("destroy");
 			$dialog.removeClass('invisible').dialog({				
 				resizable: false,
 				height:140,
 				modal: true,
 				buttons: {
 					"{{#i18n}}Delete{{/i18n}}": function() {
+				cashapi.clearPrices(req.session.apiToken,[req.query.deleteId],safe.sure(next,function () {res.send({});}));
 						var jqXHR = $.ajax({
 							url:"{{prefix}}/priceeditor",
 							data:{deleteId:id},
@@ -236,6 +249,7 @@
 					}
 				}
 			});
+			*/
 		});		
 	});
 </script>

@@ -56,6 +56,9 @@ CashWeb.prototype.layout = function () {
 				return (price!=1?"( "+self.ctx.i18n_cytext(req.session.apiToken, cmdtySrc.id, value) + ")":"")
 					+" "+self.ctx.i18n_cytext(req.session.apiToken, cmdtyDst.id, price*value);																									
 			});	
+			Handlebars.registerHelper('i18n_cmdtytext', function(cmdty,value) {
+				return self.i18n_cmdtytext(req.session.apiToken,cmdty,value);
+			});
 			res.locals.layout = "layout";
 			next();
 		}));
