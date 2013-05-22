@@ -30,7 +30,7 @@ $(document).ready(function() {
 		var $me = $page;		
 		(function (cb) {			
 			require(['safe','clitpl'], function (safe,tf) {
-				tf.render('new_reportsettings', {data:data}, safe.sure(cb,function(text, ctx) {					
+				tf.render('reportsettings', {data:data}, safe.sure(cb,function(text, ctx) {					
 					$("body").append(text);
 					$modal = $("#"+ctx.uniq).modal();				
 				}))				
