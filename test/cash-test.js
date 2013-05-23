@@ -36,7 +36,7 @@ describe("Cash module",function () {
 	});
 	afterEach(tutils.afterEach);
 
-	describe.only("Default dataset", function () {
+	describe("Default dataset", function () {
 		var curUser = 0;
 		it("Login as user", function(done) {
 			var self = this;
@@ -74,21 +74,30 @@ describe("Cash module",function () {
 		});
 	});
 	describe("Manage prices", function () {
-		it("Add price for USD in EUR")
+		it("Add price for USD in EUR", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Rate Currency Editor")).click();	
+			self.browser.findElement(By.id("firstCurrency")).sendKeys("USD");
+			self.browser.findElement(By.id("firstCurrency")).sendKeys("EUR");
+			self.browser.findElement(By.xpath("//button[.='Apply']")).click();
+			self.done();
+		});
 		it("Edit price of USD in EUR")
 		it("Delete price pair")
 	})
-	describe("Export and import", function () {
+	describe.skip("Export and import", function () {
 		it("Import sample gnucash file")
 		it("Home page should have right ballance")
 		it("Export Skilap Cash")
 		it("Import Skilap Cash")
 		it("Home page balance should be the same as before")
 	})
-	describe("Registry input", function () {
+	describe.skip("Registry input", function () {
 		it("TBD")
 	})
-	describe("Reports", function () {
+	describe.skip("Reports", function () {
 		it("TBD")
 	})
 	describe("Settings", function () {

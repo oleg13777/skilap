@@ -5,7 +5,7 @@ require.config({
 		"cash": _prefix+"/js",
 		"jquery": "jquery-1.9.0.min",		
 		"jquery-form": "/common/js/jquery.form",		
-		"jquery-ui": "/common/js/jquery-ui-1.8.17.custom.min",	
+		"jquery-ui": "/common/js/jquery-ui-1.9.2.custom.min",	
 		"jquery-block": "/common/js/jquery.blockUI",			
 		"bootstrap": "/common/js/bootstrap.min",
 		"highcharts": "/common/js/highcharts/highcharts",
