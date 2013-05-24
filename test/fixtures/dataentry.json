@@ -24,5 +24,11 @@
 			"password":"1234567",
 			"language":"English"
 		}
-	]
+	],
+	"cashimport":{
+		"file": "/samples/home.xml",
+		"parsedtext":"File parsed. It contains: 4320 transactions, 63 accounts",
+		"finishedtext":"Data saved, 4320 transactions and 63 accounts were imported",
+		"sum":"958,589.19"
+	}
 }

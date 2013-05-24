@@ -73,7 +73,7 @@ describe("Cash module",function () {
 			self.done();
 		});
 	});
-	describe("Manage prices", function () {
+	describe.skip("Manage prices", function () {
 		it("Add price for USD in EUR", function(done) {
 			var self = this;
 			self.trackError(done);
@@ -134,9 +134,35 @@ describe("Cash module",function () {
 			self.done();
 		});
 	});
-	describe.skip("Export and import", function () {
-		it("Import sample gnucash file")
-		it("Home page should have right ballance")
+	describe("Export and import", function () {
+		it("Import sample gnucash file", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.linkText("Data")).click();	
+			self.browser.findElement(By.linkText("Import Gnu Cash")).click();	
+			self.browser.executeScript("document.getElementById('upload-file').setAttribute('style', '')");
+			self.browser.findElement(By.id("upload-file")).sendKeys(__dirname+ self.fixtures.dataentry.cashimport.file);
+			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//h3[.='" + self.fixtures.dataentry.cashimport.parsedtext + "']"));
+			});
+			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//*[contains(.,'" + self.fixtures.dataentry.cashimport.finishedtext + "')]"));
+			});
+			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//h2[contains(.,'Assets:')]"));
+			});
+			
+			self.done();
+		});
+		it("Home page should have right ballance", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//*[contains(.,'" + self.fixtures.dataentry.cashimport.sum + "')]"));
+			self.done();
+		});
 		it("Export Skilap Cash")
 		it("Import Skilap Cash")
 		it("Home page balance should be the same as before")
