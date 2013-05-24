@@ -9,11 +9,19 @@
 			<fieldset>
 				<input type="hidden" id="from" name="from" value="{{firstCurr}}" />
 				<input type="hidden" id="to" name="to" value="{{secondCurr}}" />
-				<label for="date">Date</label>
-				<input type="text" name="date" id="datepicker" data-value="{{currentDate}}" value="{{currentDate}}" class="text ui-widget-content ui-corner-all" />
-				<label for="rate">Rate currency</label>
-				<input type="text" name="rate" id="newrate" data-value="{{lastRate}}" value="{{lastRate}}" class="text ui-widget-content ui-corner-all" />
-				<span>1 {{firstCurr}} = x {{secondCurr}}</span>			
+				<div class="control-group">
+					<label class="control-label" for="date">Date</label>
+					<div class="controls">
+						<input type="text" name="date" id="datepicker" data-value="{{currentDate}}" value="{{currentDate}}" class="text ui-widget-content ui-corner-all" />
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="rate">Rate currency</label>
+					<div class="controls">
+						<input type="text" name="rate" id="newrate" data-value="{{lastRate}}" value="{{lastRate}}" class="text ui-widget-content ui-corner-all" />
+						<span>1 {{firstCurr}} = x {{secondCurr}}</span>			
+					</div>
+				</div>
 			</fieldset>
 		</form>
 	</div>

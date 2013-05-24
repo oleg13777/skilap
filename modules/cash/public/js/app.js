@@ -1,6 +1,6 @@
 require.config({
 	baseUrl: "/common/js",
-	paths: {		
+	paths: {
 		"hbs": _prefix+"/hbs",
 		"cash": _prefix+"/js",
 		"jquery": "jquery-1.9.0.min",		
@@ -18,32 +18,32 @@ require.config({
 			init: function () {
 				delete this.Getext;
 			}
-		},		
+		},
 		"bootstrap": {
 			deps:["jquery"]
-		},		
+		},
 		"jquery-form": {
 			deps:["jquery"]
 		},		
 		"jquery-block": {
 			deps:["jquery"]
-		},	
+		},
 		"skigrid": {
 			deps:["jquery"]
-		},		
+		},
 		"bootstrap-datepicker-core": {
 			deps:["jquery","bootstrap"]
 		},
 		"bootstrap-datepicker": {
 			deps:["bootstrap-datepicker-core"]
-		},	
+		},
 	},
 	config: {
         'clitpl': {
             mPath: '/core/',
             mName: 'core'
         }
-    }	
+    }
 });
 
 define("api", function () {
