@@ -46,7 +46,7 @@ module.exports = function (fileName, cb){
 			tr = {currency:{},splits:[]};
 		},
 		"GNC:ACCOUNT":function(){
-			acc = {parentId:0,cmdty:{}};
+			acc = {cmdty:{}};
 		},		
 		"TRN:SPLIT":function(){
 			split = {};
@@ -110,15 +110,15 @@ module.exports = function (fileName, cb){
 		"ACT:TYPE":function(){
 			acc.type = nodetext;
 		},
-		"ACT:ID":function(){
+		"ACT:ID":function() {
 			var _id = new self._ctx.ObjectID();
 			gluMap[nodetext]=_id;
 			acc._id = _id; 
 		},
-		"ACT:PARENT":function(){
+		"ACT:PARENT":function() {
 			acc.parentId = gluMap[nodetext];
 			if (acc.parentId == rootId)
-				acc.parentId = 0;
+				delete acc.parentId; // root account should not have parentId
 		},
 		"CMDTY:ID":function(){
 			switch(path[path.length-1]){
@@ -235,17 +235,15 @@ module.exports = function (fileName, cb){
 		async.series([
 			function transpondAccounts(cb) {
 				async.forEachSeries(accounts, function (acc,cb) {
-//					self._ctx.getUniqueId(safe.sure(cb,function (id) {
-						var _id = new self._ctx.ObjectID();
-						aidMap[acc._id]=_id;
-						acc._id = _id;
-						process.nextTick(cb);
-//					}));
+					var _id = new self._ctx.ObjectID();
+					aidMap[acc._id]=_id;
+					acc._id = _id;
+					process.nextTick(cb);
 				},cb);
 			},
 			function transpondAccountsTree(cb) {
 				_(accounts).forEach(function (acc) {
-					if (acc.parentId!=0)
+					if (acc.parentId)
 						acc.parentId=aidMap[acc.parentId];
 				});
 				cb();
@@ -254,17 +252,13 @@ module.exports = function (fileName, cb){
 				async.forEachSeries(transactions, function (trn,cb) {
 					async.forEachSeries(trn.splits, function (split,cb) {
 						split.accountId = aidMap[split.accountId];
-//						self._ctx.getUniqueId(safe.sure(cb,function (id) {
-							var _id = new self._ctx.ObjectID();
-							split._id = _id;
-							process.nextTick(cb);
-//						}))
+						var _id = new self._ctx.ObjectID();
+						split._id = _id;
+						process.nextTick(cb);
 					}, safe.sure(cb, function () {
-//						self._ctx.getUniqueId(safe.sure_result(cb, function (id) {
-							var _id = new self._ctx.ObjectID();
-							trn._id = _id;
-							cb();
-//						}));
+						var _id = new self._ctx.ObjectID();
+						trn._id = _id;
+						cb();
 					}));
 				},cb);
 			}

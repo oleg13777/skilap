@@ -474,11 +474,11 @@ module.exports.createAccountsTree = function(accounts){
 	},{});
 
 	_.forEach(_.keys(oAccounts),function(key){
-		if(oAccounts[key].parentId != 0){
+		if(oAccounts[key].parentId){
 			oAccounts[oAccounts[key].parentId].childs.push(oAccounts[key]);
 		}
 	});
 	return _.filter(_.values(oAccounts),function(item){
-		return (item.parentId == 0 && !item.hidden);
+		return (!item.parentId && !item.hidden);
 	});
 };
