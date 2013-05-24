@@ -1,5 +1,5 @@
 <script type="text/javascript">	
-require(["jquery","jquery-ui","highcharts"], function ($) {
+require(["jquery","highcharts"], function ($) {
 		var graphOptions = {
             chart: {
                 renderTo: 'graphContainer',
@@ -125,7 +125,6 @@ require(["jquery","jquery-ui","highcharts"], function ($) {
 				dataType:"html"
 			});
 			jqXHR.done(function(data){
-				$("#dialogRateCurrency").dialog("destroy");
 				$(".rateEditorContainer").html(data);
 				$(".rateCtrlBtn").attr('disabled','disabled');
 				$(".add.rateCtrlBtn").removeAttr('disabled');				
