@@ -69,12 +69,12 @@ define(["jquery","eventemitter2","safe", "jquery-block","bootstrap"], function (
 						},{});
 
 						_.forEach(_.keys(oAccounts),function(key){
-							if(oAccounts[key].parentId != 0){
+							if(oAccounts[key].parentId){
 								oAccounts[oAccounts[key].parentId].childs.push(oAccounts[key]);
 							}
 						});
 						data.accounts = _.filter(_.values(oAccounts),function(item){
-							return (item.parentId == 0 && !item.hidden);
+							return (!item.parentId && !item.hidden);
 						});						
 						//set accLevel
 						_.forEach(data.settings.accLevelOptions, function(alO){
