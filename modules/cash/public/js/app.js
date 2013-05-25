@@ -5,6 +5,7 @@ require.config({
 		"cash": _prefix+"/js",
 		"jquery": "jquery-1.9.0.min",		
 		"jquery-form": "/common/js/jquery.form",		
+		"jquery-ui": "/common/js/jquery-ui-1.10.1.custom.min",
 		"jquery-block": "/common/js/jquery.blockUI",			
 		"bootstrap": "/common/js/bootstrap.min",
 		"highcharts": "/common/js/highcharts/highcharts",
@@ -27,6 +28,9 @@ require.config({
 		},		
 		"jquery-block": {
 			deps:["jquery"]
+		},
+		"jquery-ui": {
+		   deps:["jquery"]
 		},
 		"skigrid": {
 			deps:["jquery"]
