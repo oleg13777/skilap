@@ -9,9 +9,10 @@ require(["jquery","highcharts"], function ($) {
 		function adaptHeight() {
 			$("#container").height($(window).height()-$(".navbar.navbar-fixed-top").height()-20);
 		}
-		adaptHeight();
-
 		{{>report_graph}}
+		
+		adaptHeight();
+		
 	});
 })
 </script>
