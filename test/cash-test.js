@@ -73,7 +73,7 @@ describe("Cash module",function () {
 			self.done();
 		});
 	});
-	describe("Manage prices", function () {
+	describe.skip("Manage prices", function () {
 		it("Add price for USD in EUR", function(done) {
 			var self = this;
 			self.trackError(done);
@@ -135,13 +135,14 @@ describe("Cash module",function () {
 		});
 	});
 	describe("Export and import", function () {
+		var sum = '';
 		it("Import sample gnucash file", function(done) {
 			var self = this;
 			self.trackError(done);
 			self.browser.findElement(By.linkText("Data")).click();	
 			self.browser.findElement(By.linkText("Import Gnu Cash")).click();	
 			self.browser.executeScript("document.getElementById('upload-file').setAttribute('style', '')");
-			self.browser.findElement(By.id("upload-file")).sendKeys(__dirname+ self.fixtures.dataentry.cashimport.file);
+			self.browser.findElement(By.id("upload-file")).sendKeys(__dirname + self.fixtures.dataentry.cashimport.file);
 			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//h3[.='" + self.fixtures.dataentry.cashimport.parsedtext + "']"));
@@ -153,19 +154,68 @@ describe("Cash module",function () {
 			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//h2[contains(.,'Assets:')]"));
-			});
-			
+			});			
 			self.done();
 		});
 		it("Home page should have right ballance", function(done) {
 			var self = this;
 			self.trackError(done);
 			self.browser.findElement(By.xpath("//*[contains(.,'" + self.fixtures.dataentry.cashimport.sum + "')]"));
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				sum = text;
+				self.done();
+			});
+		});
+		it("Export Skilap Cash", function(done) {
+			var self = this;
+			self.trackError(done);
+			var http = require('http');
+			var fs = require('fs');
+
+			self.browser.manage().getCookies().then(function(cookies) {
+				var c = cookies[0].name + '=' + cookies[0].value + ';' + cookies[1].name + '=' + cookies[1].value;
+				var file = fs.createWriteStream(__dirname + "/samples/raw.zip");
+				var options = {
+						  host: "localhost",
+						  port: 80,
+						  path: '/cash/export/raw',
+						  headers: {"Cookie": c}
+						};
+				var request = http.get(options, function(response) {
+					response.pipe(file);
+					self.done();
+				});
+			});
+		});
+		it("Import Skilap Cash", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.linkText("Data")).click();	
+			self.browser.findElement(By.linkText("Import Skilap Cash")).click();	
+			self.browser.executeScript("document.getElementById('upload-file').setAttribute('style', '')");
+			self.browser.findElement(By.id("upload-file")).sendKeys(__dirname + "/samples/raw.zip");
+			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//h3[.='" + self.fixtures.dataentry.cashimport.parsedtext + "']"));
+			});
+			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//*[contains(.,'" + self.fixtures.dataentry.cashimport.finishedtext + "')]"));
+			});
+			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//h2[contains(.,'Assets:')]"));
+			});			
 			self.done();
 		});
-		it("Export Skilap Cash")
-		it("Import Skilap Cash")
-		it("Home page balance should be the same as before")
+		it("Home page balance should be the same as before", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert.ok(sum == text, "Import error");
+				self.done();
+			});
+		});
 	})
 	describe.skip("Registry input", function () {
 		it("TBD")

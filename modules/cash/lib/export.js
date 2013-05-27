@@ -66,7 +66,6 @@ module.exports.import = function (fileName, cb){
 			cb();
 		}),
 		function transpondAccounts(cb) {
-			console.log(accounts);
 			async.forEachSeries(accounts, function (acc,cb) {
 				var id = new self._ctx.ObjectID();
 				aidMap[acc._id]=id;
