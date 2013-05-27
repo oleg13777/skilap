@@ -23,9 +23,9 @@
 	</div>			
 </div>
 <script>
-require(["jquery","jquery-ui","jquery-block"],function($){
+require(["jquery","bootstrap-datepicker","jquery-block"],function($){
 	$(function(e) {
-		$("#datepicker").datepicker();
+		$("#datepicker").datepicker({language: _user.language.charAt(0)+_user.language.charAt(1)});
 		$form = $("#{{uniq}}");
 		$form.on('hidden',function () {
 			$form.remove();

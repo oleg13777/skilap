@@ -9,7 +9,9 @@ require.config({
 		"jquery-block": "/common/js/jquery.blockUI",			
 		"bootstrap": "/common/js/bootstrap.min",
 		"highcharts": "/common/js/highcharts/highcharts",
-		"skigrid": _prefix+"/js/jquery.skiGrid"
+		"skigrid": _prefix+"/js/jquery.skiGrid",
+		"bootstrap-datepicker": "/common/js/locales/bootstrap-datepicker."+_user.language.charAt(0)+_user.language.charAt(1),
+		"bootstrap-datepicker-core": "/common/js/bootstrap-datepicker"
 	},
 	shim:{
 		"gettext": {
@@ -32,7 +34,13 @@ require.config({
 		},	
 		"skigrid": {
 			deps:["jquery"]
-		}		
+		},		
+		"bootstrap-datepicker-core": {
+			deps:["jquery","bootstrap"]
+		},
+		"bootstrap-datepicker": {
+			deps:["bootstrap-datepicker-core"]
+		},	
 	},
 	config: {
         'clitpl': {
