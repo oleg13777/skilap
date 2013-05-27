@@ -68,7 +68,9 @@ module.exports.importSettings = function  (token, settings, cb) {
 			],cb);
 		},
 		function (cb) {
-			self._cash_settings.save(settings,cb);
+			async.forEach(settings, function (e, cb) {
+				self._cash_settings.save(e, cb);
+			},cb);
 		}, 
 	], safe.sure_result(cb, function () {
 		self._calcStats(function () {});

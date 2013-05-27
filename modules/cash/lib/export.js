@@ -101,6 +101,12 @@ module.exports.import = function (fileName, cb){
 				process.nextTick(cb);
 			},cb)
 		},
+		function transpondSettings(cb) {
+			async.forEachSeries(settings, function (setting,cb) {
+				setting._id = new self._ctx.ObjectID();
+				process.nextTick(cb);
+			},cb)
+		},
 	], safe.sure(cb, function () {
 		var ret = {tr:transactions, acc:accounts, prices:prices,settings:settings};
 		process.nextTick(function(){
