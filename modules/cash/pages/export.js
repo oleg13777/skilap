@@ -3,6 +3,7 @@ var temp = require("temp");
 var fs   = require('fs');
 var zlib = require('zlib');
 
+var data;
 module.exports = function account(webapp) {
 	var app = webapp.web;
 	var cashapi = webapp.api;
@@ -48,12 +49,16 @@ module.exports = function account(webapp) {
 					cashapi.parseRaw(req.files.upload.path, function (err, ret) {
 						acc_count = ret.acc.length;
 						tr_count = ret.tr.length;
+						data = ret;
+						cb1();
+						/*
 						var str = JSON.stringify(ret);
 						temp.open('upload', function(err, info) {
 							fs.write(info.fd, str);
 							path = info.path;
 							fs.close(info.fd, cb1);
 						});
+						*/
 					});
 				},
 				function (cb1) {
@@ -72,8 +77,11 @@ module.exports = function account(webapp) {
 			var settings;
 			async.waterfall([
 				function (cb1) {
+					/*
 					var data = fs.readFileSync(req.body.fileName, 'ascii');
 					var obj = JSON.parse(data);
+					*/
+					obj = data;
 					accounts = obj.acc;
 					transactions = obj.tr;
 					prices = obj.prices;
