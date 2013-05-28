@@ -334,6 +334,7 @@
 	function showGrid($obj,objSettings,offset){
 		$obj.css('top',objSettings.tablePosition+'px');
 		objSettings.sEcho++;
+		window.stop();
 		var jqXHR = $.ajax( {
 			"url": options.sAjaxSource,
 			"data":{"sEcho":objSettings.sEcho,"iColumns":options.columnsCount,"iDisplayLength":objSettings.rowsLimit,"iDisplayStart":offset},
