@@ -12,18 +12,18 @@ module.exports = function account(webapp) {
 	var cashapi = webapp.api;
 	var prefix = webapp.prefix;
 
-	app.get(webapp.prefix+'/account', webapp.layout(), function(req, res, next) {		
+	app.get(webapp.prefix+'/account', webapp.layout(), function(req, res, next) {
 		var count = 0, verbs=0;
 		async.waterfall([
 			function (cb1) {
 				cashapi.getAccountInfo(req.session.apiToken, req.query.id,['count','path','verbs'], cb1);
 			},
-			function (data, cb1) {	
+			function (data, cb1) {
 				count = data.count;
 				verbs = data.verbs;
 				webapp.guessTab(req, {pid:'acc'+req.query.id, name:data.path,url:req.url}, cb1);
 			},
-			safe.trap(function (vtabs,cb1) {				
+			safe.trap(function (vtabs,cb1) {
 				var pageSize = 25;
 				var firstVisible = Math.max(0, count-pageSize);
 				var scrollGap = pageSize*5;
@@ -42,52 +42,54 @@ module.exports = function account(webapp) {
 		], function (err) {
 			if (err) return next(err);
 		});
-	});	
-	
+	});
+
 	app.post(webapp.prefix+'/account/:id/updaterow', function(req, res, next) {
 		var tr = createTransactionFromData(req.body);
 		cashapi.saveTransaction(req.session.apiToken, tr, req.params.id, function(err,trn){
-			if(err){				
+			if(err){
 				return next(err);
 			}
 			res.send({tr:trn});
-		});		
-	});	
-	
-	
+		});
+	});
+
+
 	app.post(webapp.prefix+'/account/:id/addrow', function(req, res, next) {
 		var tr = createTransactionFromData(req.body);
 		cashapi.saveTransaction(req.session.apiToken, tr, req.params.id, function(err,trn){
-			if(err){				
+			if(err){
 				return next(err);
 			}
 			res.send({tr:trn});
-		});			
-	});	
-	
-	app.post(webapp.prefix+'/account/:id/delrow', function(req, res, next) {		
-		async.waterfall([			
-			function (cb1) {							
+		});
+	});
+
+	app.post(webapp.prefix+'/account/:id/delrow', function(req, res, next) {
+		async.waterfall([
+			function (cb1) {
 				cashapi.clearTransactions(req.session.apiToken, [req.body.recordId], function(err){
 					result = {"recordId":req.body.recordId};
-					if(err){						
+					if(err){
 						result.error = "1";
 					}
 					res.send(result);
-				});					
+				});
 			}
 		], function (err) {
 			if (err) return next(err);
-		});		
-	});	
+		});
+	});
 
 	app.get(webapp.prefix+'/account/:id/getaccounts', function(req, res, next) {
 		async.waterfall([
-			function (cb) { cashapi.getAllAccounts(req.session.apiToken, cb); },
+			function (cb1) {
+				cashapi.getAllAccounts(req.session.apiToken, cb1);
+			},
 			function (accounts,cb1) {
 				var tmp = {};
-				async.forEach(accounts, function (acc, cb2) {					
-					cashapi.getAccountInfo(req.session.apiToken, acc._id, ["path"], safe.trap_sure_result(cb2,function (info) {
+				async.forEach(accounts, function (acc, cb2) {
+					cashapi.getAccountInfo(req.session.apiToken, acc._id, ["path"], safe.trap_sure(cb2,function (info) {
 						if ((info.path.search(req.query.term)!=-1) && !(acc.hidden) && !(acc.placeholder))
 							tmp[info.path] = {currency:acc.cmdty.id, id:acc._id};
 						cb2();
@@ -96,10 +98,10 @@ module.exports = function account(webapp) {
 					cb1(err, tmp);
 				});
 			},
-			function (hints, cb1) {				
+			function (hints, cb1) {
 				res.send(hints);
 				cb1();
-			} 
+			}
 		], function (err) {
 			if (err) return next(err);
 		});
@@ -113,7 +115,7 @@ module.exports = function account(webapp) {
 			function (register,cb1) {
 				var tmp = [];
 				async.forEach(register, function (trs,cb2) {
-					cashapi.getTransaction(req.session.apiToken,trs._id, safe.trap_sure_result(cb2,function(tr) {
+					cashapi.getTransaction(req.session.apiToken,trs._id, safe.trap_sure(cb2,function(tr) {
 						if (tr.description && tr.description.search(req.query.term)!=-1)
 							tmp.push(tr.description);
 						cb2();
@@ -125,7 +127,7 @@ module.exports = function account(webapp) {
 			function (hints,cb1) {
 				res.send(_.uniq(hints));
 				cb1();
-			}, 
+			},
 		], function (err) {
 			if (err) return next(err);
 		});
@@ -135,23 +137,23 @@ module.exports = function account(webapp) {
 		var data = {sEcho:req.query.sEcho,iTotalRecords:0,iTotalDisplayRecords:0,aaData:[]};
 		var idx = Math.max(req.query.iDisplayStart,0);
 		var count = 0, currentAccountPath = "";
-		
+
 		async.waterfall([
 			function (cb1) {
 				cashapi.getAccountInfo(req.session.apiToken, req.params.id,["count","path"], cb1);
 			},
 			function (data,cb1) {
 				count = data.count;
-				currentAccountPath = data.path;				
+				currentAccountPath = data.path;
 				var limit = Math.min(count-idx, req.query.iDisplayLength);
 				cashapi.getAccountRegister(req.session.apiToken, req.params.id, idx, limit, cb1);
 			},
 			function (register,cb1) {
-				var aids = {}; 
+				var aids = {};
 				_.forEach(register, function (trs) {
 					trs.recv.forEach(function(recv){
 						aids[recv.accountId] = recv.accountId;
-					});					
+					});
 				});
 				aids[req.params.id]	= currentAccountPath;
 				async.parallel([
@@ -159,19 +161,19 @@ module.exports = function account(webapp) {
 						var transactions = [];
 						async.forEachSeries(register, function (trs, cb3) {
 							cashapi.getTransaction(req.session.apiToken,trs._id,safe.trap_sure_result(cb3,function (tr) {
-								transactions.push(tr);								
+								transactions.push(tr);
 							}));
-						}, function (err) {				
+						}, function (err) {
 							cb2(err, _.clone(transactions));
 						});
-					},					
+					},
 					function (cb2) {
-						var accInfo = {};											
+						var accInfo = {};
 						async.forEach(_.keys(aids), function (aid, cb3) {
 							cashapi.getAccount(req.session.apiToken, aid, safe.trap_sure(cb3, function(acc) {
 								cashapi.getAccountInfo(req.session.apiToken,aid,['path'], safe.trap_sure_result(cb3, function(info) {
-									accInfo[acc._id] = {_id:acc._id, path:info.path, currency:acc.cmdty.id};	
-								}));														
+									accInfo[acc._id] = {_id:acc._id, path:info.path, currency:acc.cmdty.id};
+								}));
 							}));
 						}, function (err) {
 							cb2(err, _.clone(accInfo));
@@ -181,10 +183,10 @@ module.exports = function account(webapp) {
 					cb1(err, register, results[0], results[1]);
 				});
 			},
-			safe.trap(function (register, transactions, accInfo, cb1) {				
+			safe.trap(function (register, transactions, accInfo, cb1) {
 				var i;
 				for (i=0; i<_.size(register); i++) {
-					var tr = transactions[i]; 					
+					var tr = transactions[i];
 					var trs = register[i];
 					var recv = trs.recv;
 					var send = trs.send;
@@ -194,16 +196,16 @@ module.exports = function account(webapp) {
 					_.forEach(tr.splits,function(split){
 						if(accInfo[split.accountId].currency != accInfo[req.params.id].currency){
 							multicurr = 1;
-						}						
+						}
 						split.path = accInfo[split.accountId].path;
 						split.currency = accInfo[split.accountId].currency;
 						splitsInfo.push(split);
-					});	
+					});
 					var path = "";
 					if(recv.length==1){
 						path = accInfo[recv[0].accountId].path;
 					}
-					else if(recv.length > 1){						
+					else if(recv.length > 1){
 						path = '['+accInfo[recv[0].accountId].path;
 						for(j=1; j<recv.length;j++){
 							path += ','+accInfo[recv[j].accountId].path;
@@ -227,7 +229,7 @@ module.exports = function account(webapp) {
 						multicurr:multicurr,
 						multisplit:recv.length > 1 ? 1 : 0
 					});
-				}				
+				}
 				data.iTotalRecords = count;
 				data.iTotalDisplayRecords = count;
 				data.currentDate = df.format(new Date());
@@ -237,30 +239,30 @@ module.exports = function account(webapp) {
 		], function (err) {
 			if (err) return next(err);
 		});
-	});	
-	
-	
+	});
+
+
 	var createTransactionFromData = function(data){
 		var tr={};
 		if(data.id){
 			tr._id = data.id;
 		}
 		var dateFormat = new DateFormat(DateFormat.W3C);
-		var datePosted = dateFormat.format(new Date());	
-		tr['datePosted'] = datePosted;	
+		var datePosted = dateFormat.format(new Date());
+		tr['datePosted'] = datePosted;
 		if(data.date){
-			var dateEntered = dateFormat.format(new Date(data.date));										
-			tr['dateEntered'] = dateEntered;	
+			var dateEntered = dateFormat.format(new Date(data.date));
+			tr['dateEntered'] = dateEntered;
 		}
 		if(data.num){
 			tr['num'] = data.num;
-		}				
+		}
 		if (data.description) {
 			tr['description'] = data.description;
 		}
-		
-		tr['splits'] = [];		
-		if(data.splits) {		
+
+		tr['splits'] = [];
+		if(data.splits) {
 			_.forEach(data.splits,function(spl){
 				var depositVal  = (spl.deposit && spl.deposit != "") ? eval(sanitizeNumericField(spl.deposit)) : 0;
 				var depositQuantity  = spl.deposit_quantity != "" ? eval(sanitizeNumericField(spl.deposit_quantity)) : 0;
@@ -268,27 +270,27 @@ module.exports = function account(webapp) {
 				var withdrawalQuantity  = spl.withdrawal_quantity != "" ? eval(sanitizeNumericField(spl.withdrawal_quantity)) : 0;
 				splitVal = depositVal - withdrawalVal;
 				splitQuantity = depositQuantity - withdrawalQuantity;
-				var modifiedSplit = {													
+				var modifiedSplit = {
 					value: splitVal,
 					accountId: spl.accountId,
 					description: spl.description,
 					num:spl.num,
-					rstate:spl.rstate	
-				};	
+					rstate:spl.rstate
+				};
 				if (spl.deposit_quantity != "" || spl.withdrawal_quantity != "")
-					modifiedSplit.quantity = splitQuantity;			
+					modifiedSplit.quantity = splitQuantity;
 				if(spl.id && spl.id!=-1){
 					modifiedSplit._id = spl.id;
 				}
 				tr['splits'].push(modifiedSplit);
-			});			
-			
-		}		
+			});
+
+		}
 		return tr;
 	};
-	
+
 	var sanitizeNumericField = function(field){
 		return field.replace(/[^0-9\.+*/\-]+/g, '');
-	};	
-	
+	};
+
 }
