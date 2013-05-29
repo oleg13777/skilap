@@ -60,7 +60,11 @@ $(document).ready(function() {
 					if (type!='saved') return;
 					modal.getAccount(acc._id, ["value"], safe.sure(cb, function (acc) {
 						tf.render('accounts-tree_item_row',acc, safe.sure(cb, function(text) {
-							$page.find("#tree_root #"+acc._id + " #acc_row").replaceWith(text)
+							$page.find("#tree_root #"+acc._id + " #acc_row").remove()
+							if (acc.parentId)
+								$page.find("#tree_root #"+acc.parentId + " ul:first").prepend(text);
+							else
+								$page.find("#tree_root ul:first").prepend(text);
 							modal.hide()
 							cb();									
 						}))
