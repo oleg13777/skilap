@@ -104,7 +104,6 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 							api.call("cash.getCmdtyLastPrices",safe.sure(cb, function (prices) {
 								handlebars.registerHelper('i18n_cost',function(cmdtyRep, cmdtySrc, value, options) {
 									cmdtySrc = cmdtySrc || {space:"ISO4217", id:"USD"};
-									console.log(cmdtyRep);
 									var cmdtyDst = cmdtyRep||{space:"ISO4217", id:"USD"};
 									var key = (cmdtySrc.space+cmdtySrc.id+cmdtyDst.space+cmdtyDst.id);
 									var price = prices[key] || 1;

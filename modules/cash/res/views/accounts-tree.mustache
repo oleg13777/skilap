@@ -29,7 +29,10 @@ $(document).ready(function() {
 					if (type!='saved') return;
 					modal.getAccount(acc._id, ["value"], safe.sure(cb, function (acc) {
 						tf.render('accounts-tree_item', acc, safe.sure(cb, function(text) {
-							$page.find("#tree_root ul:first").prepend(text)
+							if (acc.parentId)
+								$page.find("#tree_root #"+acc.parentId + " ul:first").prepend(text);
+							else
+								$page.find("#tree_root ul:first").prepend(text);
 							modal.hide()
 							cb();									
 						}))
