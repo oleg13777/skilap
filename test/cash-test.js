@@ -1,5 +1,5 @@
 var async = require('async');
-var webdriver = require('selenium-webdriver')
+var webdriver = require('selenium-webdriver');
 var By = webdriver.By;
 var Key = webdriver.Key;
 var assert = require('assert');
@@ -73,7 +73,7 @@ describe("Cash module",function () {
 			self.done();
 		});
 	});
-	describe("Manage prices", function () {
+	describe.skip("Manage prices", function () {
 		it("Add price for USD in EUR", function(done) {
 			var self = this;
 			self.trackError(done);
@@ -134,7 +134,7 @@ describe("Cash module",function () {
 			self.done();
 		});
 	});
-	describe("Export and import", function () {
+	describe.skip("Export and import", function () {
 		var sum = '';
 		it("Import sample gnucash file", function(done) {
 			var self = this;
@@ -181,7 +181,7 @@ describe("Cash module",function () {
 						  path: '/cash/export/raw',
 						  headers: {"Cookie": c}
 						};
-				var request = http.get(options, function(response) {
+				http.get(options, function(response) {
 					response.pipe(file);
 					self.done();
 				});
@@ -216,14 +216,50 @@ describe("Cash module",function () {
 				self.done();
 			});
 		});
-	})
+	});
+	describe("Manage accounts", function () {
+		it("Create root test account", function(done) {
+			var self = this;
+			self.trackError(done);
+			var acc1 = self.fixtures.dataentry.accounts[0];		
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.id("add_new")).click();
+			helpers.runModal.call(self, null, function(modal) {
+		        modal.findElement(By.id("acc_name")).sendKeys(acc1.name);
+				modal.findElement(By.id("acc_parent")).sendKeys(acc1.parent);	
+				modal.findElement(By.id("acc_curency")).sendKeys(acc1.currency);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//a[contains(.,'" + acc1.name + "')]"));	
+			self.done();
+		});
+		it("Create child test account", function(done) {
+			var self = this;
+			self.trackError(done);
+			var acc2 = self.fixtures.dataentry.accounts[1];		
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.id("add_new")).click();
+			helpers.runModal.call(self, null, function(modal) {
+		        modal.findElement(By.id("acc_name")).sendKeys(acc2.name);
+				modal.findElement(By.id("acc_parent")).sendKeys(acc2.parent);	
+				modal.findElement(By.id("acc_curency")).sendKeys(acc2.currency);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//a[contains(.,'" + acc2.name + "')]"));	
+			self.done();
+		});
+	});
 	describe.skip("Registry input", function () {
 		it("TBD")
 	})
 	describe.skip("Reports", function () {
 		it("TBD")
 	})
-	describe("Settings", function () {
+	describe.skip("Settings", function () {
 		it("TBD")
 	})
 	

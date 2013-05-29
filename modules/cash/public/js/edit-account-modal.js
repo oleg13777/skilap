@@ -14,7 +14,7 @@ define(["jquery","eventemitter2","safe", "jquery-block","bootstrap"], function (
 						"dep":"accounts",
 						"cmd":"api",
 						"prm":["cash.getAccountInfo",id,det],
-						"res":{"a":"merge","v":"account"}
+						"res":{"a":"merge","o":"account"}
 					}
 				}
 				api.batch(batch, safe.sure(cb, function (res) {

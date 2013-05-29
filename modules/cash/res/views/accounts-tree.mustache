@@ -28,7 +28,7 @@ $(document).ready(function() {
 				modal.once('result', function (type, acc) {
 					if (type!='saved') return;
 					modal.getAccount(acc._id, ["value"], safe.sure(cb, function (acc) {
-						tf.render('accounts-tree_item',acc, safe.sure(cb, function(text) {
+						tf.render('accounts-tree_item', acc, safe.sure(cb, function(text) {
 							$page.find("#tree_root ul:first").prepend(text)
 							modal.hide()
 							cb();									
