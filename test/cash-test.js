@@ -73,7 +73,7 @@ describe("Cash module",function () {
 			self.done();
 		});
 	});
-	describe.skip("Manage prices", function () {
+	describe("Manage prices", function () {
 		it("Add price for USD in EUR", function(done) {
 			var self = this;
 			self.trackError(done);
@@ -134,7 +134,7 @@ describe("Cash module",function () {
 			self.done();
 		});
 	});
-	describe.skip("Export and import", function () {
+	describe("Export and import", function () {
 		var sum = '';
 		it("Login as user", function(done) {
 			var self = this;
