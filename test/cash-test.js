@@ -136,6 +136,13 @@ describe("Cash module",function () {
 	});
 	describe.skip("Export and import", function () {
 		var sum = '';
+		it("Login as user", function(done) {
+			var self = this;
+			self.trackError(done);
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
+			self.browser.findElement(By.linkText("Cash module")).click();			
+			self.done();
+		});		
 		it("Import sample gnucash file", function(done) {
 			var self = this;
 			self.trackError(done);
@@ -174,7 +181,7 @@ describe("Cash module",function () {
 
 			self.browser.manage().getCookies().then(function(cookies) {
 				var c = cookies[0].name + '=' + cookies[0].value + ';' + cookies[1].name + '=' + cookies[1].value;
-				var file = fs.createWriteStream(__dirname + "/samples/raw.zip");
+				var file = fs.createWriteStream(__dirname + "/data/raw.zip");
 				var options = {
 						  host: "localhost",
 						  port: 80,
@@ -193,7 +200,7 @@ describe("Cash module",function () {
 			self.browser.findElement(By.linkText("Data")).click();	
 			self.browser.findElement(By.linkText("Import Skilap Cash")).click();	
 			self.browser.executeScript("document.getElementById('upload-file').setAttribute('style', '')");
-			self.browser.findElement(By.id("upload-file")).sendKeys(__dirname + "/samples/raw.zip");
+			self.browser.findElement(By.id("upload-file")).sendKeys(__dirname + "/data/raw.zip");
 			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//h3[.='" + self.fixtures.dataentry.cashimport.parsedtext + "']"));
