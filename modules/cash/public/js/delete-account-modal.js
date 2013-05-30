@@ -47,6 +47,7 @@ define(["jquery","eventemitter2","safe", "jquery-block","bootstrap"], function (
 						}
 					}	
 					api.batch(batch, safe.sure(cb, function (data) {
+						console.log(data);
 						data.accounts = _.sortBy(data.accounts,function (e) { return e.path.toLowerCase(); });
 						tf.render('account-delete', data, safe.sure(cb,function(text, ctx) {
 							self.emit('shown');

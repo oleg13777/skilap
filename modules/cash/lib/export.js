@@ -16,33 +16,29 @@ module.exports.export = function (token,cb) {
 			],cb);
 		}, 
 		function getTransaction(cb) {
-			self._cash_transactions.scan(safe.sure(cb, function(k, v) {
-				if (k==null) return process.nextTick(cb);
-				res.transactions.push(v);
-			}),true);
+			self._cash_transactions.find({}).toArray(safe.sure_result(cb, function(arr) {
+				res.transactions = arr;
+			}));
 		},
 		function getAccounts(cb) {
-			self._cash_accounts.scan(safe.sure(cb, function(k, v) {
-				if (k==null) return process.nextTick(cb);
-				res.accounts.push(v);
-			}),true);
+			self._cash_accounts.find({}).toArray(safe.sure_result(cb, function(arr) {
+				res.accounts = arr;
+			}));
 		},
 		function getPrices(cb) {
-			self._cash_prices.scan(safe.sure(cb, function(k, v) {
-				if (k==null) return process.nextTick(cb);
-				res.prices.push(v);
-			}),true);
+			self._cash_prices.find({}).toArray(safe.sure_result(cb, function(arr) {
+				res.prices = arr;
+			}));
 		},
 		function getSettings(cb) {
-			self._cash_settings.scan(safe.sure(cb, function(k, v) {
-				if (k==null) return process.nextTick(cb);
-				res.settings[k]=v;
-			}),true);
+			self._cash_settings.find({}).toArray(safe.sure_result(cb, function(arr) {
+				res.settings = arr;
+			}));
 		}], safe.sure(cb, function (results) {
 			cb(null, res);
 		})
-	)
-}
+	);
+};
 
 module.exports.import = function (fileName, cb){
 	var self = this;
@@ -67,46 +63,48 @@ module.exports.import = function (fileName, cb){
 			accounts = data.accounts;
 			prices = data.prices;
 			settings = data.settings;
-			cb()
+			cb();
 		}),
 		function transpondAccounts(cb) {
 			async.forEachSeries(accounts, function (acc,cb) {
-				self._ctx.getUniqueId(safe.sure(cb, function (id) {
-					aidMap[acc._id]=id;
-					acc._id = id;
-					process.nextTick(cb);
-				}))
-			},cb)
+				var id = new self._ctx.ObjectID();
+				aidMap[acc._id]=id;
+				acc._id = id;
+				process.nextTick(cb);
+			},cb);
 		},
 		function transpondAccountsTree(cb) {
 			_(accounts).forEach(function (acc) {
 				if (acc.parentId!=0)
 					acc.parentId=aidMap[acc.parentId];
-			})
+			});
 			cb();
 		},
 		function transpondTransactions(cb) {
 			async.forEachSeries(transactions, function (trn,cb) {
 				async.forEachSeries(trn.splits, function (split,cb) {
 					split.accountId = aidMap[split.accountId];
-					self._ctx.getUniqueId(safe.sure(cb, function (id) {
-						split._id = id;
-						process.nextTick(cb);
-					}))
+					var id = new self._ctx.ObjectID();
+					split._id = id;
+					process.nextTick(cb);
 				}, safe.sure(cb, function () {
-					self._ctx.getUniqueId(safe.sure(cb, function (id) {
-						trn._id = id;
-						process.nextTick(cb);
-					}))
+					var id = new self._ctx.ObjectID();
+					trn._id = id;
+					process.nextTick(cb);
 				}))
 			},cb)
 		},
 		function transpondPrices(cb) {
 			async.forEachSeries(prices, function (price,cb) {
-				self._ctx.getUniqueId(safe.sure(function (id) {
-					price._id = id;
-					process.nextTick(cb);
-				}))
+				var id = new self._ctx.ObjectID();
+				price._id = id;
+				process.nextTick(cb);
+			},cb)
+		},
+		function transpondSettings(cb) {
+			async.forEachSeries(settings, function (setting,cb) {
+				setting._id = new self._ctx.ObjectID();
+				process.nextTick(cb);
 			},cb)
 		},
 	], safe.sure(cb, function () {

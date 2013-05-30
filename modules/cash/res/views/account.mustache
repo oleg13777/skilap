@@ -1,16 +1,16 @@
 <script type="text/javascript">
-require(["jquery","skigrid"], function ($) {
-$(function(){	
+require(["jquery","skigrid","jquery-ui"], function ($) {
+$(function(){
 	$('#acc').skiGrid({
-		"sAjaxSource": "{{prefix}}/account/{{accountId}}/getgrid",	
-		"urlPrefix":"{{prefix}}",		
+		"sAjaxSource": "{{prefix}}/account/{{accountId}}/getgrid",
+		"urlPrefix":"{{prefix}}",
 		"editable":{
-			"sUpdateURL":"{{prefix}}/account/{{accountId}}/updaterow",	
+			"sUpdateURL":"{{prefix}}/account/{{accountId}}/updaterow",
 			"sAddURL":"{{prefix}}/account/{{accountId}}/addrow",
-			"sDeleteURL":"{{prefix}}/account/{{accountId}}/delrow",						
+			"sDeleteURL":"{{prefix}}/account/{{accountId}}/delrow",
 			"columns": [
 				{"type":"datepicker","icon":"/common/images/calendar-icon-18x18.jpg"},
-				{"type":"input","format":"number"},			
+				{"type":"input","format":"number"},
 				{"type":"autocomplete","source":"{{prefix}}/account/{{accountId}}/getdesc","placeholder":""},
 				{"type":"select","source":"{{prefix}}/account/{{accountId}}/getaccounts"},
 				{"type":"span"},
@@ -19,14 +19,14 @@ $(function(){
 				null,
 				null
 			]
-		}		
+		}
 	});
-	
+
 });
 })
 </script>
 <div id="ski_createAccount"></div>
-<table id="acc" cellspacing="0" cellpadding="5" width="100%">	
+<table id="acc" cellspacing="0" cellpadding="5" width="100%">
 	<thead>
 		<th class="value" name="date">{{#i18n}}Date{{/i18n}}</th>
 		<th class="number" name="num">{{#i18n}}Num{{/i18n}}</th>
@@ -39,7 +39,7 @@ $(function(){
 		<th class="settings" name="settings"></th>
 	</thead>
 	<tbody>
-		
+
 		<tr>
 			<td class="value" name="date" ></td>
 			<td class="number" name="num" ></td>
@@ -51,7 +51,7 @@ $(function(){
 			<td class="value" name="total" ></td>
 			<td class="settings" name="settings" ></td>
 		</tr>
-		
+
 	</tbody>
 </table>
 <div id="ski_dialog-confirm" title="Invalid fields data">

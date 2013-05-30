@@ -44,7 +44,8 @@ module.exports = function priceeditor(webapp) {
 					var lastRate;
 					if(firstPrice)
 						lastRate = firstPrice.value;
-					res.partial(__dirname+"/../res/views/priceeditor_table",{
+					res.render(__dirname+"/../res/views/priceeditor_table",{
+						layout:false,
 						prices:pagingPrices,
 						firstCurr:req.query.firstCurr,
 						secondCurr:req.query.secondCurr,
@@ -64,7 +65,8 @@ module.exports = function priceeditor(webapp) {
 				}	
 				cashapi.savePrice(req.session.apiToken,price,safe.trap_sure(next, function(pricen) {
 					pricen.date = df.format(new Date(pricen.date));
-					res.partial(__dirname+"/../res/views/priceeditor_tr",pricen);
+					pricen.layout = false;
+					res.render(__dirname+"/../res/views/priceeditor_tr",pricen);
 				}));				
 			}
 			else if(req.query.deleteId){
@@ -80,7 +82,7 @@ module.exports = function priceeditor(webapp) {
 					maxPrice = _.max(prices,function(price){
 						return price.value;
 					});
-					result.max = maxPrice.value;
+					result.max = maxPrice;
 					res.send(result);
 				}));
 			}

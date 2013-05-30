@@ -185,6 +185,8 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 
 module.exports.deleteAccount = function (token, accId, options, cb){
 	var self = this;
+	console.log(accId);
+	console.log(options);
 	async.series([
 		function start(cb1) {
 			async.parallel([
@@ -469,4 +471,5 @@ module.exports.getAllCurrencies = function(token,cb){
 	], cb
 	);
 };
+
 

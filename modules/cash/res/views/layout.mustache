@@ -3,11 +3,11 @@
 <head>
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>{{title}}</title>	
-	 <!-- Le styles -->	
-	<link href="/cash/css/bootstrap.css" rel="stylesheet"> 	
+	<title>{{title}}</title>
+	 <!-- Le styles -->
+	<link href="/cash/css/bootstrap.css" rel="stylesheet">
 	<link href="/cash/css/responsive.css" rel="stylesheet">
-	<link href="/cash/css/main.css" rel="stylesheet">	
+	<link href="/cash/css/main.css" rel="stylesheet">
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -18,7 +18,7 @@
 		var _user = {_id:'{{user._id}}',language:"{{user.language}}"};
 		var _prefix = '{{prefix}}';
 	</script>
-    <script type="text/javascript" src="{{prefix}}/js/app.js"></script>    
+    <script type="text/javascript" src="{{prefix}}/js/app.js"></script>
 </head>
 <body>
 	<div class="navbar navbar-fixed-top navbar-inverse">
@@ -30,51 +30,51 @@
             <span class="icon-bar"></span>
           </a>
          <a href='/' id="logoNew"></a>
-		  <a class="brand" href="#">{{#i18n}}Core{{/i18n}}</a>          
-          <div class="nav-collapse">			  
-			<ul class="nav nav-pills">			
-              {{>nav}}				
+		  <a class="brand" href="#">{{#i18n}}Cash{{/i18n}}</a>
+          <div class="nav-collapse">
+			<ul class="nav nav-pills">
+              {{>nav}}
               <li class="dropdown">
-				<a href="javascript:void(0);" data-toggle="dropdown" class="dropdown-toggle">{{#i18n}}Pages{{/i18n}} <b class="caret"></b></a>				
-				<ul class="dropdown-menu">				
+				<a href="javascript:void(0);" data-toggle="dropdown" class="dropdown-toggle">{{#i18n}}Pages{{/i18n}} <b class="caret"></b></a>
+				<ul class="dropdown-menu">
 				  {{#tabs}}
 				  <li {{#selected}}class="active"{{/selected}}>
-					<a data-toggle="tab" href="{{url}}" data-pid="{{pid}}">{{name}}</a>						
+					<a data-toggle="tab" href="{{url}}" data-pid="{{pid}}">{{name}}</a>
 				  </li>
-				  {{/tabs}}				   
-				 </ul>				
-			  </li>			 
-			</ul> 
-			 <a class = "pull-right btn-large" href = "return false"><i id="editPageSettings" class="icon-cog icon-white"></i></a>         
+				  {{/tabs}}
+				 </ul>
+			  </li>
+			</ul>
+			 <a class = "pull-right btn-large" href = "return false"><i id="editPageSettings" class="icon-cog icon-white"></i></a>
           </div><!--/.nav-collapse -->
         </div>
       </div>
-    </div>   
-    <div class="container-fluid">		
+    </div>
+    <div class="container-fluid">
 		<div class="row-fluid">
-			<div class="span2">				
+			<div class="span2">
 					<ul class="nav nav-tabs nav-stacked">
 					  {{#tabs}}
 					  <li {{#selected}}class="active"{{/selected}}>
-						<button class="close closeTab" data-pid="{{pid}}">&times;&nbsp;</button>						  
-						<a href="{{url}}">{{name}}</a>						
+						<button class="close closeTab" data-pid="{{pid}}">&times;&nbsp;</button>
+						<a href="{{url}}">{{name}}</a>
 					  </li>
 					  {{/tabs}}
-					</ul>					
+					</ul>
 			</div>
-			<div class="span10 context">				
+			<div class="span10 context">
 				{{>content}}
 			</div>
-		</div>			
+		</div>
 		<hr>
 		<footer>
 			<p>&copy; {{#i18n}}Copyright by PushOk Software{{/i18n}} 2011-2013</p>
 		</footer>
-    </div> 	
+    </div>
 <script>
 require(['jquery'], function ($) { $(function () {
-	$(".closeTab").on("click", function(e){			
-		e.preventDefault();		
+	$(".closeTab").on("click", function(e){
+		e.preventDefault();
 		var self = $(this);
 		(function (cb) {
 			require(['api','safe'], function (api, safe) {
@@ -83,7 +83,7 @@ require(['jquery'], function ($) { $(function () {
 						location.href="{{prefix}}";
 					} else {
 						self.parents("li").remove();
-					}					
+					}
 				}))
 			}, cb)
 		})(appError)

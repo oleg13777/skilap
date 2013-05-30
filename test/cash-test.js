@@ -1,5 +1,5 @@
 var async = require('async');
-var webdriver = require('selenium-webdriver')
+var webdriver = require('selenium-webdriver');
 var By = webdriver.By;
 var Key = webdriver.Key;
 var assert = require('assert');
@@ -36,7 +36,7 @@ describe("Cash module",function () {
 	});
 	afterEach(tutils.afterEach);
 
-	describe.only("Default dataset", function () {
+	describe("Default dataset", function () {
 		var curUser = 0;
 		it("Login as user", function(done) {
 			var self = this;
@@ -74,24 +74,228 @@ describe("Cash module",function () {
 		});
 	});
 	describe("Manage prices", function () {
-		it("Add price for USD in EUR")
-		it("Edit price of USD in EUR")
-		it("Delete price pair")
-	})
+		it("Add price for USD in EUR", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Rate Currency Editor")).click();	
+			self.browser.findElement(By.id("firstCurrency")).sendKeys("USD");
+			self.browser.findElement(By.id("secondCurrency")).sendKeys("EUR");
+			self.browser.findElement(By.xpath("//button[.='Apply']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//button[.='Add']"));
+			});
+			self.browser.findElement(By.xpath("//button[.='Add']")).click();
+			helpers.runModal.call(this, null, function(modal) {
+		        modal.findElement(By.id("datepicker")).sendKeys("05/20/13");
+				modal.findElement(By.id("newrate")).sendKeys("1.5");	
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//td[@class='date' and contains(.,'20')]"));	
+			self.browser.findElement(By.xpath("//td[@class='rate' and .='1.5']"));	
+			self.done();
+		});
+		it("Edit price of USD in EUR", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//td[@class='rate' and .='1.5']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//button[.='Edit']"));
+			});
+			self.browser.findElement(By.xpath("//button[.='Edit']")).click();
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElement(By.id("datepicker")).clear();	
+		        modal.findElement(By.id("datepicker")).sendKeys("05/21/13");
+				modal.findElement(By.id("newrate")).clear();	
+				modal.findElement(By.id("newrate")).sendKeys("1.6");	
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//td[@class='date' and contains(.,'21')]"));	
+			self.browser.findElement(By.xpath("//td[@class='rate' and .='1.6']"));	
+			self.done();
+		});
+		it("Delete price pair", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//td[@class='rate' and .='1.6']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//button[.='Delete']"));
+			});
+			self.browser.findElement(By.xpath("//button[.='Delete']")).click();
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.isElementPresent(By.xpath("//td[@class='date' and contains(.,'21')]")).then(function (isPresent) {
+				assert.ok(!isPresent, "Not deleted");
+			});
+			self.browser.isElementPresent(By.xpath("//td[@class='rate' and .='1.6']")).then(function (isPresent) {
+				assert.ok(!isPresent, "Not deleted");
+			});
+			self.done();
+		});
+	});
 	describe("Export and import", function () {
-		it("Import sample gnucash file")
-		it("Home page should have right ballance")
-		it("Export Skilap Cash")
-		it("Import Skilap Cash")
-		it("Home page balance should be the same as before")
-	})
-	describe("Registry input", function () {
+		var sum = '';
+		it("Login as user", function(done) {
+			var self = this;
+			self.trackError(done);
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
+			self.browser.findElement(By.linkText("Cash module")).click();			
+			self.done();
+		});		
+		it("Import sample gnucash file", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.linkText("Data")).click();	
+			self.browser.findElement(By.linkText("Import Gnu Cash")).click();	
+			self.browser.executeScript("document.getElementById('upload-file').setAttribute('style', '')");
+			self.browser.findElement(By.id("upload-file")).sendKeys(__dirname + self.fixtures.dataentry.cashimport.file);
+			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//h3[.='" + self.fixtures.dataentry.cashimport.parsedtext + "']"));
+			});
+			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//*[contains(.,'" + self.fixtures.dataentry.cashimport.finishedtext + "')]"));
+			});
+			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//h2[contains(.,'Assets:')]"));
+			});			
+			self.done();
+		});
+		it("Home page should have right ballance", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//*[contains(.,'" + self.fixtures.dataentry.cashimport.sum + "')]"));
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				sum = text;
+				self.done();
+			});
+		});
+		it("Export Skilap Cash", function(done) {
+			var self = this;
+			self.trackError(done);
+			var http = require('http');
+			var fs = require('fs');
+
+			self.browser.manage().getCookies().then(function(cookies) {
+				var c = cookies[0].name + '=' + cookies[0].value + ';' + cookies[1].name + '=' + cookies[1].value;
+				var file = fs.createWriteStream(__dirname + "/data/raw.zip");
+				var options = {
+						  host: "localhost",
+						  port: 80,
+						  path: '/cash/export/raw',
+						  headers: {"Cookie": c}
+						};
+				http.get(options, function(response) {
+					response.pipe(file);
+					self.done();
+				});
+			});
+		});
+		it("Import Skilap Cash", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.linkText("Data")).click();	
+			self.browser.findElement(By.linkText("Import Skilap Cash")).click();	
+			self.browser.executeScript("document.getElementById('upload-file').setAttribute('style', '')");
+			self.browser.findElement(By.id("upload-file")).sendKeys(__dirname + "/data/raw.zip");
+			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//h3[.='" + self.fixtures.dataentry.cashimport.parsedtext + "']"));
+			});
+			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//*[contains(.,'" + self.fixtures.dataentry.cashimport.finishedtext + "')]"));
+			});
+			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//h2[contains(.,'Assets:')]"));
+			});			
+			self.done();
+		});
+		it("Home page balance should be the same as before", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert.ok(sum == text, "Import error");
+				self.done();
+			});
+		});
+	});
+	describe("Manage accounts", function () {
+		it("Create root test account", function(done) {
+			var self = this;
+			self.trackError(done);
+			var acc1 = self.fixtures.dataentry.accounts[0];		
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.id("add_new")).click();
+			helpers.runModal.call(self, null, function(modal) {
+		        modal.findElement(By.id("acc_name")).sendKeys(acc1.name);
+				modal.findElement(By.id("acc_parent")).sendKeys(acc1.parent);	
+				modal.findElement(By.id("acc_curency")).sendKeys(acc1.currency);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//a[contains(.,'" + acc1.name + "')]"));	
+			self.done();
+		});
+		it("Create child test account", function(done) {
+			var self = this;
+			self.trackError(done);
+			var acc2 = self.fixtures.dataentry.accounts[1];		
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.id("add_new")).click();
+			helpers.runModal.call(self, null, function(modal) {
+		        modal.findElement(By.id("acc_name")).sendKeys(acc2.name);
+				modal.findElement(By.id("acc_parent")).sendKeys(acc2.parent);	
+				modal.findElement(By.id("acc_curency")).sendKeys(acc2.currency);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//a[contains(.,'" + acc2.name + "')]"));	
+			self.browser.findElement(By.xpath("//li[contains(./div/a,'" + acc2.parent + "')]//div[contains(./a,'" + acc2.name + "')]"));	
+			self.done();
+		});
+		it("Edit changing parent and name", function(done) {
+			var self = this;
+			self.trackError(done);
+			var child = self.fixtures.dataentry.accounts[1];		
+			var parent2 = self.fixtures.dataentry.accounts[2];
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.id("add_new")).click();
+			helpers.runModal.call(self, null, function(modal) {
+		        modal.findElement(By.id("acc_name")).sendKeys(parent2.name);
+				modal.findElement(By.id("acc_parent")).sendKeys(parent2.parent);	
+				modal.findElement(By.id("acc_curency")).sendKeys(parent2.currency);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//a[contains(.,'" + parent2.name + "')]"));	
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + child.name + "')]/span/a[./i[@title='edit']]")).click();	
+			helpers.runModal.call(self, null, function(modal) {
+		        modal.findElement(By.id("acc_name")).clear();
+		        modal.findElement(By.id("acc_name")).sendKeys(child.name_new);
+				modal.findElement(By.id("acc_parent")).sendKeys(parent2.name);	
+				modal.findElement(By.id("acc_curency")).sendKeys(child.currency);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//a[contains(.,'" + child.name_new + "')]"));	
+			self.browser.findElement(By.xpath("//li[contains(./div/a,'" + parent2.name + "')]//div[contains(./a,'" + child.name_new + "')]"));	
+			self.done();
+		});
+	});
+	describe.skip("Registry input", function () {
 		it("TBD")
 	})
-	describe("Reports", function () {
+	describe.skip("Reports", function () {
 		it("TBD")
 	})
-	describe("Settings", function () {
+	describe.skip("Settings", function () {
 		it("TBD")
 	})
 	

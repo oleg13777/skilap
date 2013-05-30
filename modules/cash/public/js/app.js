@@ -1,15 +1,17 @@
 require.config({
 	baseUrl: "/common/js",
-	paths: {		
+	paths: {
 		"hbs": _prefix+"/hbs",
 		"cash": _prefix+"/js",
 		"jquery": "jquery-1.9.0.min",		
 		"jquery-form": "/common/js/jquery.form",		
-		"jquery-ui": "/common/js/jquery-ui-1.8.17.custom.min",	
+		"jquery-ui": "/common/js/jquery-ui-1.10.1.custom.min",
 		"jquery-block": "/common/js/jquery.blockUI",			
 		"bootstrap": "/common/js/bootstrap.min",
 		"highcharts": "/common/js/highcharts/highcharts",
-		"skigrid": _prefix+"/js/jquery.skiGrid"
+		"skigrid": _prefix+"/js/jquery.skiGrid",
+		"bootstrap-datepicker": "/common/js/locales/bootstrap-datepicker."+_user.language.charAt(0)+_user.language.charAt(1),
+		"bootstrap-datepicker-core": "/common/js/bootstrap-datepicker"
 	},
 	shim:{
 		"gettext": {
@@ -17,29 +19,35 @@ require.config({
 			init: function () {
 				delete this.Getext;
 			}
-		},		
+		},
 		"bootstrap": {
 			deps:["jquery"]
-		},		
+		},
 		"jquery-form": {
 			deps:["jquery"]
 		},		
-		"jquery-ui": {
-			deps:["jquery"]
-		},
 		"jquery-block": {
 			deps:["jquery"]
-		},	
+		},
+		"jquery-ui": {
+		   deps:["jquery"]
+		},
 		"skigrid": {
 			deps:["jquery"]
-		}		
+		},
+		"bootstrap-datepicker-core": {
+			deps:["jquery","bootstrap"]
+		},
+		"bootstrap-datepicker": {
+			deps:["bootstrap-datepicker-core"]
+		},
 	},
 	config: {
         'clitpl': {
             mPath: '/core/',
             mName: 'core'
         }
-    }	
+    }
 });
 
 define("api", function () {
