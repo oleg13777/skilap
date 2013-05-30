@@ -19,22 +19,14 @@ module.exports = function account(webapp) {
 	app.get(prefix + "/reports/pieflow", webapp.layout(), function (req, res, next ) {
 		report1(req, res, next, "pieflow");
 	});
-
-	app.get(prefix + "/reports/statment", webapp.layout(), function (req, res, next ) {
-		report1(req, res, next, "statment");
-	});
-
+	
 	app.post(prefix + "/reports/barflow", function (req, res, next ) {
 		saveParams(req, res, next, "barflow");
 	});
 
 	app.post(prefix + "/reports/pieflow", function (req, res, next ) {
 		saveParams(req, res, next, "pieflow");
-	});
-
-	app.post(prefix + "/reports/statment", function (req, res, next ) {
-		saveParams(req, res, next, "statment");
-	});
+	});	
 
 	function report1(req, res, next, type) {
 		if (!req.query || !req.query.name) {
@@ -70,14 +62,14 @@ module.exports = function account(webapp) {
 			function (vtabs_, reportSettings_, currencies_, cb1) {				
 				vtabs = vtabs_;
 				reportSettings = reportSettings_;
-				if (_.isEmpty(reportSettings) || !reportSettings.version || (reportSettings.version != reportSettingsVersion))
-					reportSettings = getDefaultSettings(req.query.name);
-
+				if (_.isEmpty(reportSettings) || !reportSettings.version || (reportSettings.version != reportSettingsVersion)){
+					reportSettings = getDefaultSettings(req.query.name);		
+					webapp.saveTabSettings(req.session.apiToken, pid, reportSettings, function(err){
+						if (err) console.log(err);
+					});
+				}
 				currencies = currencies_;
-				if (type == "statment")
-					calculateStatmentData(req.session.apiToken,type,reportSettings,cb1);
-				else
-					calculateGraphData(req.session.apiToken,type,reportSettings,cb1);
+				calculateGraphData(req.session.apiToken,type,reportSettings,cb1);
 			},
 			function(data_,cb1){
 				data = data_;
@@ -85,8 +77,7 @@ module.exports = function account(webapp) {
 			},
 			function (assetsTypes,cb1) {
 				reportSettings.startDate = df.format(new Date(reportSettings.startDate));
-				reportSettings.endDate = df.format(new Date(reportSettings.endDate));
-				reportSettings.accIsVisible = type == "statment" ? 1 : 0;
+				reportSettings.endDate = df.format(new Date(reportSettings.endDate));				
 
 				reportSettings.accLevelOptions = _(reportSettings.accLevelOptions).reduce(function(memo,item){
 					item.isSelected = item.name == reportSettings.accLevel ? 1 : 0;
@@ -145,130 +136,7 @@ module.exports = function account(webapp) {
 			})
 		}
 		return item;
-	}
-
-	function calculateStatmentData(token, type, params, cb){
-		var accountsTree, accKeys;
-		async.waterfall([
-			function (cb1) {
-				cashapi.getAllAccounts(token, cb1);
-			},
-			function (accounts, cb1) {				
-				accountsTree = cashapi.createAccountsTree(accounts);
-				//check selected accounts				
-				if(_.isArray(params.accIds) && accounts.length != params.accIds.length){
-					accounts = _(accounts).filter(function(item){
-						return _.indexOf(params.accIds,item['id']) != -1;
-					});
-				}
-
-				accKeys = _.reduce(accounts, function (memo, acc) {
-					if (acc.type == 'INCOME' || acc.type == 'EXPENSE')
-						memo[acc._id] = {name:acc.name, id:acc._id, parentId:acc.parentId, add:0, lost:0, type:acc.type};
-					return memo;
-				}, {});
-				cashapi.getTransactionsInDateRange(token, [params.startDate, params.endDate, true, false], cb1);
-			},
-			function(trns, cb1){
-				_.forEach(trns, function (tr) {
-					cashapi.getCmdtyPrice(token,tr.currency,{space:"ISO4217", id:params.reportCurrency}, null, 'safe', function(err,rate){
-						if(err && !(err.skilap && err.skilap.subject == "UnknownRate"))
-							return cb1(err);
-						var irate;
-						if (!err && rate != 0)
-							irate = rate;
-						_.forEach(tr.splits, function(split) {
-							var acs = accKeys[split.accountId];
-							if (acs) {
-								var val = split.quantity * irate;
-								if (acs.type == "INCOME")
-									acs.add += val;
-								else
-									acs.lost += val;
-							}
-						});
-					})
-				});
-
-				//collapse accounts to accLevel
-				if(params.accLevel != 'All'){
-					async.series([
-						function(cb2){
-							async.forEach(_.keys(accKeys), function(key,cb3){
-								cashapi.getAccountInfo(token,key,['level'],function(err,res){
-									accKeys[key].level = res.level;
-									cb3();
-								});
-							},cb2);
-						},
-						function(cb2){
-							var accountsOverLevel = _(accKeys)
-								.chain()
-								.values()
-								.filter(function(item){return item.level > params.accLevel;})
-								.groupBy(function(item){return item.parentId;})
-								.values()
-								.reduce(function(memo,items){
-									_.forEach(items, function(item){
-										if(!_.has(memo,item.parentId))
-											memo[item.parentId] = {add:0, lost:0, ids:[]};
-										memo[item.parentId].add += item.add;
-										memo[item.parentId].lost += item.lost;
-										memo[item.parentId]._ids.push(item._id);
-									});
-									return memo;
-								}, {})
-								.value();
-
-							accKeys = _(accKeys)
-								.chain()
-								.values()
-								.filter(function(item){return item.level <= params.accLevel;})
-								.reduce(function(memo,item){
-									memo[item._id] = item;
-									return memo;
-								},{})
-								.value();
-
-								_.forEach(_(accountsOverLevel).keys(),function(key){
-									if(accKeys[key]){
-										accKeys[key].add += accountsOverLevel[key].add;
-										accKeys[key].lost += accountsOverLevel[key].lost;
-										delete accountsOverLevel[key];
-									}
-								});
-
-							cb2();
-						}
-					], function(err){
-						if(err) return cb1(err);
-						cb1();
-					});
-				}
-				else
-					cb1();
-			},
-			function(cb1){
-				// transform into report form
-				var report = _.chain(accKeys)
-					.map(function(accKey) {
-						return {_id:accKey._id, pid:accKey.parentId, name:accKey.name, add:accKey.add, lost:accKey.lost};
-					}).filter(function(accKey) {
-						return (accKey.add || accKey.lost);
-					}).sortBy(function(accKey){
-						return !!accKey.pid;
-					}).value();
-
-				cb1(null,report);
-			}
-		], function (err, series) {
-			if(err) return cb(err);
-
-			var data = {series:JSON.stringify(series), accountsTree:accountsTree};
-			data[type] = 1;
-			cb(null, data);
-		});
-	}
+	}	
 
 	function calculateGraphData(token, type, params, cb){
 		var periods=categories=null;
@@ -285,8 +153,7 @@ module.exports = function account(webapp) {
 			function (cb1) {
 				cashapi.getAllAccounts(token, cb1);
 			},
-			function (accounts, cb1) {				
-				accountsTree = cashapi.createAccountsTree(accounts);
+			function (accounts, cb1) {					
 				//check selected accounts
 				if(_.isArray(params.accIds) && accounts.length != params.accIds.length){
 					accounts = _(accounts).filter(function(item){
@@ -333,14 +200,15 @@ module.exports = function account(webapp) {
 				if(params.accLevel != 'All'){
 					async.series([
 						function(cb2){
-							async.forEach(_.keys(accKeys), function(key,cb3){
+							async.forEachSeries(_.keys(accKeys), function(key,cb3){								
 								cashapi.getAccountInfo(token,key,['level'],function(err,res){
+									if (err) return cb3(err);									
 									accKeys[key].level = res.level;
 									cb3();
 								});
 							},cb2);
 						},
-						function(cb2){
+						function(cb2){							
 							var accountsOverLevel = _(accKeys)
 								.chain()
 								.values()

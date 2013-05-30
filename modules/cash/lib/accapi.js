@@ -105,6 +105,8 @@ module.exports.getSpecialAccount = function (token,type,cmdty,cb) {
 };
 
 module.exports.getAccountInfo = function (token, accId, details, cb) {
+	console.log("|||"+accId);
+	console.log("++++"+details);
 	var self = this;
 	var accInfo = null;
 	var accStats = null;
@@ -140,6 +142,7 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 			}));
 		},
 		safe.trap(function (cb) {
+			console.log(details);
 			var res = {};
 			res._id = accId;
 			_.forEach(details, function (val) {
@@ -174,6 +177,7 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 			});
 			cb(null, res);
 		})], safe.sure_result(cb, function (results) {
+			console.log(results);
 			return results[4];
 		})
 	);
@@ -466,19 +470,3 @@ module.exports.getAllCurrencies = function(token,cb){
 	);
 };
 
-module.exports.createAccountsTree = function(accounts){
-	var oAccounts = _.reduce(accounts,function(memo,item){
-		memo[item._id] = _.clone(item);
-		memo[item._id].childs=[];
-		return memo;
-	},{});
-
-	_.forEach(_.keys(oAccounts),function(key){
-		if(oAccounts[key].parentId != 0){
-			oAccounts[oAccounts[key].parentId].childs.push(oAccounts[key]);
-		}
-	});
-	return _.filter(_.values(oAccounts),function(item){
-		return (item.parentId == 0 && !item.hidden);
-	});
-};
