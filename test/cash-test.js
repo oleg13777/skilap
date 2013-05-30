@@ -257,6 +257,35 @@ describe("Cash module",function () {
 				modal.findElement(By.id("save")).click();
 			});
 			self.browser.findElement(By.xpath("//a[contains(.,'" + acc2.name + "')]"));	
+			self.browser.findElement(By.xpath("//li[contains(./div/a,'" + acc2.parent + "')]//div[contains(./a,'" + acc2.name + "')]"));	
+			self.done();
+		});
+		it("Edit changing parent and name", function(done) {
+			var self = this;
+			self.trackError(done);
+			var child = self.fixtures.dataentry.accounts[1];		
+			var parent2 = self.fixtures.dataentry.accounts[2];
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.id("add_new")).click();
+			helpers.runModal.call(self, null, function(modal) {
+		        modal.findElement(By.id("acc_name")).sendKeys(parent2.name);
+				modal.findElement(By.id("acc_parent")).sendKeys(parent2.parent);	
+				modal.findElement(By.id("acc_curency")).sendKeys(parent2.currency);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//a[contains(.,'" + parent2.name + "')]"));	
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + child.name + "')]/span/a[./i[@title='edit']]")).click();	
+			helpers.runModal.call(self, null, function(modal) {
+		        modal.findElement(By.id("acc_name")).clear();
+		        modal.findElement(By.id("acc_name")).sendKeys(child.name_new);
+				modal.findElement(By.id("acc_parent")).sendKeys(parent2.name);	
+				modal.findElement(By.id("acc_curency")).sendKeys(child.currency);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//a[contains(.,'" + child.name_new + "')]"));	
+			self.browser.findElement(By.xpath("//li[contains(./div/a,'" + parent2.name + "')]//div[contains(./a,'" + child.name_new + "')]"));	
 			self.done();
 		});
 	});

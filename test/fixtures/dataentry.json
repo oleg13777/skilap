@@ -27,14 +27,20 @@
 	],
 	"accounts":[
 		{
-			"name": "Test_acc",
+			"name": "Test_root_acc_1",
 			"parent":"Root",
 			"currency":"USD"
 		},
 		{
-			"name": "Test_acc_1",
-			"parent":"Test_acc",
+			"name": "Test_child_acc_1",
+			"name_new": "Test_child_acc_2",
+			"parent":"Test_root_acc_1",
 			"currency":"EUR"
+		},
+		{
+			"name": "Test_root_acc_2",
+			"parent":"Root",
+			"currency":"USD"
 		}
 	],
 	"cashimport":{

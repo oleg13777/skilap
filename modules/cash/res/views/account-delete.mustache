@@ -33,7 +33,7 @@
 					<label class='radio inline'>
 						<input type="radio" name="sub_acc_action" id="move" checked>{{#i18n}}Move to{{/i18n}}
 					</label>
-					<select id="tr_parent" class="new_parent">
+					<select id="sub_acc_parent" class="new_parent">
 						{{#each accounts}}
 							<option {{#when ../account.parentId '==' _id}}selected{{/when}} value="{{_id}}">{{path}}</option>
 						{{/each}}
@@ -50,7 +50,7 @@
 					<label class='radio inline'>
 						<input type="radio" name="sub_acc_trn_action" id="move" checked>{{#i18n}}Move to{{/i18n}}
 					</label>
-					<select id="tr_parent" class="new_parent">
+					<select id="sub_acc_trn_parent" class="new_parent">
 						{{#each accounts}}
 							<option {{#when ../account.parentId '==' _id}}selected{{/when}} value="{{_id}}">{{path}}</option>
 						{{/each}}
