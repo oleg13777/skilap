@@ -215,11 +215,11 @@ module.exports = function account(webapp) {
 								.filter(function(item){return item.level > params.accLevel;})
 								.groupBy(function(item){return item.parentId;})
 								.values()
-								.reduce(function(memo,items){
-									_.forEach(items, function(item){
+								.reduce(function(memo,items){									
+									_.forEach(items, function(item){										
 										if(!_.has(memo,item.parentId))
-											memo[item.parentId] = {summ:0,ids:[]};
-										memo[item.parentId].summ += item.summ;
+											memo[item.parentId] = {summ:0,_ids:[]};
+										memo[item.parentId].summ += item.summ;																				
 										memo[item.parentId]._ids.push(item._id);
 									});
 									return memo;

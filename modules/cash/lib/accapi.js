@@ -104,9 +104,7 @@ module.exports.getSpecialAccount = function (token,type,cmdty,cb) {
 	});
 };
 
-module.exports.getAccountInfo = function (token, accId, details, cb) {
-	console.log("|||"+accId);
-	console.log("++++"+details);
+module.exports.getAccountInfo = function (token, accId, details, cb) {	
 	var self = this;
 	var accInfo = null;
 	var accStats = null;
@@ -141,8 +139,7 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 				assInfo = info;
 			}));
 		},
-		safe.trap(function (cb) {
-			console.log(details);
+		safe.trap(function (cb) {			
 			var res = {};
 			res._id = accId;
 			_.forEach(details, function (val) {
@@ -176,17 +173,14 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 				}
 			});
 			cb(null, res);
-		})], safe.sure_result(cb, function (results) {
-			console.log(results);
+		})], safe.sure_result(cb, function (results) {			
 			return results[4];
 		})
 	);
 };
 
 module.exports.deleteAccount = function (token, accId, options, cb){
-	var self = this;
-	console.log(accId);
-	console.log(options);
+	var self = this;	
 	async.series([
 		function start(cb1) {
 			async.parallel([
