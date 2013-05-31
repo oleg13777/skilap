@@ -5,14 +5,24 @@ define(["jquery","eventemitter2","safe", "jquery-block","bootstrap"], function (
 		this.getAccount = function (id,det,cb) {
 			require(['api'], function (api) {
 				var batch = {
-					"account":{
+					"settings":{						
 						"cmd":"api",
-						"prm":["cash.getAccountTree",id,det],
-						"res":{"a":"store","v":"accounts"}
-					}
+						"prm":["cash.web_getTabSettings", "accounts-tree"],
+						"res":{"a":"store","v":"settings"}
+					},					
 				}
 				api.batch(batch, safe.sure(cb, function (res) {
-					cb(null,res);
+					console.log(res);
+					var batch = {
+							"account":{
+								"cmd":"api",
+								"prm":["cash.getAccountTree",id,res.settings,det],
+								"res":{"a":"store","v":"accounts"}
+							}
+						}
+						api.batch(batch, safe.sure(cb, function (res) {
+							cb(null,res);
+						}))	
 				}))	
 			},cb)		
 		}

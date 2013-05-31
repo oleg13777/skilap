@@ -101,6 +101,7 @@ $(document).ready(function() {
 					if (type!='deleted') return;
 					if (options.newSubParent) {
 						modal.getAccount(options.newSubParent, ["value","path"], safe.sure(cb, function (acc) {
+							console.log(acc);
 							tf.render('accounts-tree_item',acc.accounts[0], safe.sure(cb, function(text) {
 								$page.find("#tree_root #"+acc.accounts[0]._id).replaceWith(text);
 								$page.find("#tree_root #"+aid).remove();

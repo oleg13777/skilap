@@ -501,17 +501,26 @@ module.exports.getChildAccountsHelper = function(token, id, child, cb) {
 	}));
 };
 
-module.exports.getAccountTree = function (token, id, detail, cb) {
+function getTopParent(self, token, id, cb) {
+	self.getAccount(token, id, function (err, data) {
+		if (data.parentId)
+			getTopParent(self, token, data.parentId, cb);
+		else
+			cb(null, data);
+	});
+}
+
+module.exports.getAccountTree = function (token, id, settings, detail, cb) {
 	var self = this;
 	var accounts = [];
 	async.series({
 		main:function (cb) {
-			self.getAccount(token, id, safe.sure_result(cb, function (data) {
+			getTopParent(self, token, id, safe.sure_result(cb, function (data) {
 				accounts.push(data);
 			}));
 		},
 		child:function (cb) {
-			self.getChildAccountsHelper(token, id, accounts, safe.sure_result(cb, function (data) {
+			self.getChildAccountsHelper(token, accounts[0]._id, accounts, safe.sure_result(cb, function (data) {
 				accounts = data;
 			}));
 		},
@@ -519,6 +528,7 @@ module.exports.getAccountTree = function (token, id, detail, cb) {
 			async.forEach(accounts, function(acc, cb) {
 				self.getAccountInfo(token, acc._id, detail, safe.sure_result(cb, function (data) {
 					_.extend(acc, data);
+					acc.repCmdty = settings.cmdty;
 				}));
 			});
 			cb();
