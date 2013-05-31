@@ -104,7 +104,7 @@ module.exports.getSpecialAccount = function (token,type,cmdty,cb) {
 	});
 };
 
-module.exports.getAccountInfo = function (token, accId, details, cb) {
+module.exports.getAccountInfo = function (token, accId, details, cb) {	
 	var self = this;
 	var accInfo = null;
 	var accStats = null;
@@ -139,7 +139,7 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 				assInfo = info;
 			}));
 		},
-		safe.trap(function (cb) {
+		safe.trap(function (cb) {			
 			var res = {};
 			res._id = accId;
 			_.forEach(details, function (val) {
@@ -173,7 +173,7 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 				}
 			});
 			cb(null, res);
-		})], safe.sure_result(cb, function (results) {
+		})], safe.sure_result(cb, function (results) {			
 			return results[4];
 		})
 	);
@@ -530,5 +530,3 @@ module.exports.getAccountTree = function (token, id, detail, cb) {
 		cb(err, r.tree);
 	});
 };
-
-

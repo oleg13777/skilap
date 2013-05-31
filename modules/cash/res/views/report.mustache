@@ -19,27 +19,30 @@ require(["jquery","highcharts"], function ($) {
 <div id="container" style="width: 100%; height: 700px;"></div>
 
 <script type="text/javascript">
-var data = '{{data}}'.replace(/&quot;/g,'"');
-data = JSON.parse(data);
 require(["jquery","jquery-block","bootstrap"], function ($) {
 $(document).ready(function() {		
 	var $page = $("body");	
 	$(document).on("click", ".report-settings",function(evt){		
 		evt.preventDefault();		
 		$this = $(this);
-		var $me = $page;		
-		(function (cb) {			
-			require(['safe','clitpl'], function (safe,tf) {
-				tf.render('reportsettings', {data:data}, safe.sure(cb,function(text, ctx) {					
-					$("body").append(text);
-					$modal = $("#"+ctx.uniq).modal();				
-				}))				
+		var $me = $page;
+		$me.block();
+		(function (cb) {
+			require(['cash/reportsettings','safe','clitpl'], function (Modal,safe,tf) {
+				var modal = new Modal();
+				modal.show();
+				modal.once('shown', function () { $me.unblock(); })
+				modal.once('result', function (type, acc) {
+					if (type!='saved') return;										
+					modal.hide()
+					cb();				
+				})
 			},cb)
 		})(function (err) {
 			if (err) appError(err);
 			$me.unblock();
 		})
-		return false;		
+		return false;				
 	});	
 });
 })

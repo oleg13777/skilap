@@ -44,8 +44,8 @@ require.config({
 	},
 	config: {
         'clitpl': {
-            mPath: '/core/',
-            mName: 'core'
+            mPath: '/cash/',
+            mName: 'cash'
         }
     }
 });
