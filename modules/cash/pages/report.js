@@ -18,14 +18,6 @@ module.exports = function account(webapp) {
 
 	app.get(prefix + "/reports/pieflow", webapp.layout(), function (req, res, next ) {
 		report1(req, res, next, "pieflow");
-	});
-	
-	app.post(prefix + "/reports/barflow", function (req, res, next ) {
-		saveParams(req, res, next, "barflow");
-	});
-
-	app.post(prefix + "/reports/pieflow", function (req, res, next ) {
-		saveParams(req, res, next, "pieflow");
 	});	
 
 	function report1(req, res, next, type) {
@@ -71,72 +63,17 @@ module.exports = function account(webapp) {
 				currencies = currencies_;
 				calculateGraphData(req.session.apiToken,type,reportSettings,cb1);
 			},
-			function(data_,cb1){
-				data = data_;
-				cashapi.getAssetsTypes(req.session.apiToken,cb1);
-			},
-			function (assetsTypes,cb1) {
-				reportSettings.startDate = df.format(new Date(reportSettings.startDate));
-				reportSettings.endDate = df.format(new Date(reportSettings.endDate));				
-
-				reportSettings.accLevelOptions = _(reportSettings.accLevelOptions).reduce(function(memo,item){
-					item.isSelected = item.name == reportSettings.accLevel ? 1 : 0;
-					memo.push(item);
-					return memo;
-				},[]);
-
-				reportSettings.accTypeOptions = _(assetsTypes).reduce(function(memo,item){
-					item.isSelected = item.value == reportSettings.accType ? 1 : 0;
-					memo.push(item);
-					return memo;
-				},[]);
-
-				reportSettings.accTypeName = _(assetsTypes).reduce(function(memo,item){
-					if (item.value == reportSettings.accType)
-						memo = item.name;
-					return memo;
-				});
-
-				data.reportSettings = reportSettings;							
-				data.accountsTree = _(data.accountsTree).reduce(function(memo,item){
-					if (_.isNull(reportSettings.accIds)){
-						item.isSelected = 1;
-						memo.push(item);
-					}										
-					else memo.push(checkIfSelected(reportSettings.accIds, item));
-					return memo;
-				},[]);
+			function(data_,cb1){				
+				data = data_;				
 				cb1()
 			},
-			function(somedata,cb1){									
-				data = _.extend({settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs, usedCurrencies:currencies.used, notUsedCurrencies:currencies.unused},data);
-				_.forEach(data.usedCurrencies, function(elem){
-					if (elem.iso == data.reportSettings.reportCurrency)
-						elem.isSelected = 1;
-				})	
-				data.data = JSON.stringify(data);
-				data.data = data.data.replace(/\]\"/g,"]");
-				data.data = data.data.replace(/\"\[/g,"[");				
-				data.data = data.data.replace(/\"\{/g,"{");
-				data.data = data.data.replace(/\}\"/g,"}");
-				data.data = data.data.replace(/'\{/g,"{");
-				data.data = data.data.replace(/\}'/g,"}");					
+			function(){										
+				data = _.extend({settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs},data);										
 				res.render(__dirname+"/../res/views/report", data);
 			}],
 			next
 		);
-	};
-	
-	function checkIfSelected(arr, item){		
-		if(!_.isUndefined(_.find(arr, function(elem){return _.isEqual(elem.toString(), item._id.toString())})))
-			item.isSelected = 1;
-		if (item.childs){
-			_.forEach(item.childs, function(elem){
-				checkIfSelected(arr, elem);
-			})
-		}
-		return item;
-	}	
+	};	
 
 	function calculateGraphData(token, type, params, cb){
 		var periods=categories=null;
@@ -153,13 +90,15 @@ module.exports = function account(webapp) {
 			function (cb1) {
 				cashapi.getAllAccounts(token, cb1);
 			},
-			function (accounts, cb1) {					
+			function (accounts, cb1) {							
 				//check selected accounts
 				if(_.isArray(params.accIds) && accounts.length != params.accIds.length){
-					accounts = _(accounts).filter(function(item){
-						return _.indexOf(params.accIds, item['_id']) != -1;
-					});
-				}				
+					var storage = [];
+					_.forEach(params.accIds, function(item){
+						storage.push(_.find(accounts, function(elem){return _.isEqual(elem._id.toString(),item.toString())}));
+					})
+					accounts = storage;
+				}						
 				accKeys = _(accounts).reduce(function (memo, acc) {					
 					if (acc.type == params.accType){
 						memo[acc._id] = {name:acc.name, _id:acc._id, parentId:acc.parentId,summ:0};
@@ -170,7 +109,7 @@ module.exports = function account(webapp) {
 				}, {});				
 				cashapi.getTransactionsInDateRange(token,[params.startDate,params.endDate,true,false],cb1);
 			},
-			function(trns,cb1){					
+			function(trns,cb1){							
 				_.forEach(trns, function (tr) {
 					cashapi.getCmdtyPrice(token,tr.currency,{space:"ISO4217",id:params.reportCurrency},null,'safe',function(err,rate){
 						if(err && !(err.skilap && err.skilap.subject == "UnknownRate"))
@@ -299,7 +238,7 @@ module.exports = function account(webapp) {
 			if(type == 'pieflow')
 				series = {type:'pie', data: series};
 
-			var data = {categories:JSON.stringify(categories), series:JSON.stringify(series), accountsTree:accountsTree};
+			var data = {categories:JSON.stringify(categories), series:JSON.stringify(series)};
 			data[type] = 1;
 			cb(null, data);
 		});
@@ -335,42 +274,5 @@ module.exports = function account(webapp) {
 				reportCurrency:repCmdty.id
 			};
 		return defaultSettings;
-	}
-
-	function saveParams (req, res, next, type) {
-		var url = prefix+"/reports/"+type;
-		var oldpid = "reports-" +type + "-" + req.query.name;
-		var pid = "reports-" +type + "-" + req.body.reportName;
-		var settings = getDefaultSettings();
-		settings.accType = req.body.accType;
-		settings.maxAcc = req.body.maxAcc;
-		settings.startDate = dfW3C.format(new Date(req.body.startDate));
-		settings.endDate = dfW3C.format(new Date(req.body.endDate));
-		settings.reportName = req.body.reportName;
-		settings.accIds = _.isArray(req.body.accIds) ? _.map(req.body.accIds,function(item){ return parseInt(item);	}) : null;
-		settings.accLevel = req.body.accLevel;
-		settings.reportCurrency = req.body.reportCurrency;
-
-		var steeps = [
-			function(cb) {
-				webapp.removeTabs(req.session.apiToken, oldpid, cb);
-			},
-			function(cb) {
-				webapp.guessTab(req, {pid:pid, name:settings.reportName, url:url+"?name="+settings.reportName}, cb);
-			},
-			function(cb){
-				webapp.saveTabSettings(req.session.apiToken, pid, settings, cb);
-			}
-		];
-		// if pid the same then not need to recreate tabs
-		if (oldpid==pid)
-			steeps = steeps.slice(2);
-
-		async.series(steeps, function (err) {
-			if (err) return next(err);
-			res.writeHead(200, {'Content-Type': 'text/plain'});
-			var redirectUrl = url+"?name="+settings.reportName;
-			res.end(redirectUrl);
-		})
-	};
+	}	
 }
