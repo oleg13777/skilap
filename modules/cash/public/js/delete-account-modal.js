@@ -2,6 +2,20 @@ define(["jquery","eventemitter2","safe", "jquery-block","bootstrap"], function (
 	var modal = function () {
 		var self = this;
 		var $modal = null;
+		this.getAccount = function (id,det,cb) {
+			require(['api'], function (api) {
+				var batch = {
+					"account":{
+						"cmd":"api",
+						"prm":["cash.getAccountTree",id,det],
+						"res":{"a":"store","v":"accounts"}
+					}
+				}
+				api.batch(batch, safe.sure(cb, function (res) {
+					cb(null,res);
+				}))	
+			},cb)		
+		}
 		this.hide = function () {
 			if ($modal)
 				$modal.modal('hide')
@@ -47,7 +61,6 @@ define(["jquery","eventemitter2","safe", "jquery-block","bootstrap"], function (
 						}
 					}	
 					api.batch(batch, safe.sure(cb, function (data) {
-						console.log(data);
 						data.accounts = _.sortBy(data.accounts,function (e) { return e.path.toLowerCase(); });
 						tf.render('account-delete', data, safe.sure(cb,function(text, ctx) {
 							self.emit('shown');

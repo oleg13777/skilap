@@ -172,6 +172,7 @@ module.exports = function account(webapp) {
 						async.forEach(_.keys(aids), function (aid, cb3) {
 							cashapi.getAccount(req.session.apiToken, aid, safe.trap_sure(cb3, function(acc) {
 								cashapi.getAccountInfo(req.session.apiToken,aid,['path'], safe.trap_sure_result(cb3, function(info) {
+									if (!acc) return;
 									accInfo[acc._id] = {_id:acc._id, path:info.path, currency:acc.cmdty.id};
 								}));
 							}));
@@ -194,6 +195,7 @@ module.exports = function account(webapp) {
 					var splitsInfo=[];
 					var multicurr = 0;
 					_.forEach(tr.splits,function(split){
+						if (!accInfo[split.accountId] || !accInfo[req.params.id]) return;
 						if(accInfo[split.accountId].currency != accInfo[req.params.id].currency){
 							multicurr = 1;
 						}
@@ -202,6 +204,7 @@ module.exports = function account(webapp) {
 						splitsInfo.push(split);
 					});
 					var path = "";
+					if (!recv[0] || !accInfo[recv[0].accountId]) continue;
 					if(recv.length==1){
 						path = accInfo[recv[0].accountId].path;
 					}

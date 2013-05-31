@@ -89,7 +89,7 @@ require(["jquery","jquery-block"],function($){$(function() {
 					options.newSubAccTrnParent = $form.find('#sub_acc_trn_parent option:selected').val();
 				}					
 				api.call('cash.deleteAccount', '{{account._id}}', options, safe.sure(cb, function () {
-					$form.trigger("frm-saved",options);
+					$form.trigger("frm-saved", [options, '{{account._id}}']);
 				}))
 			},cb)
 		})(function (err) {

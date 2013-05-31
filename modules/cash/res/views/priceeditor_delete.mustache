@@ -26,8 +26,6 @@ require(["jquery","jquery-block"],function($){
 			(function(cb) {
 				require(["api","safe"], function (api,safe) {
 					var id = "{{id}}";
-					console.log(id);
-					console.log("test");
 					api.call('cash.clearPrices', [id], safe.sure(cb, function () {
 						$form.trigger("frm-saved");
 					}))

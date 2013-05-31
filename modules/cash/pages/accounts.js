@@ -81,7 +81,7 @@ module.exports = function account(webapp) {
 			}
 		}, function (err, r) {
 			if (err) return next(err);
-			var assets = _.map(r.assets, function(acc) { acc.repCmdty112 = repCmdty; return acc; });
+			var assets = _.map(r.assets, function(acc) { acc.repCmdty = repCmdty; return acc; });
 			var rdata = {
 					prefix: prefix, 
 					tabs: r.tabs, 
