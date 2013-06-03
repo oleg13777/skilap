@@ -67,6 +67,9 @@
 <script>
 require(["jquery","jquery-block"],function($){$(function() {
 	$form = $("#{{uniq}}");	
+	$form.on('hidden',function () {
+		$form.remove();
+	});		
 	$form.on('click', '#sub_acc input[type="radio"]', function (e) {
 		if ($(this).attr('id')=="move")
 			$form.find('#sub_acc_tr').hide();

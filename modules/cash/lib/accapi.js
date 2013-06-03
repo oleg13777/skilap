@@ -225,6 +225,7 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 						self._getAllChildsId(token, accId, childs, cb);
 					},
 					function (cb) {
+						childs = _.map(childs, function(c) { return c.toString(); });
 						var updates = [];
 						self._cash_transactions.find({}, safe.trap_sure(cb, function (cursor) {
 							cursor.each(safe.trap_sure(cb, function (tr) {
@@ -232,15 +233,20 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 									// scan done, propagate changes
 									self._cash_transactions.remove({'_id': { $in: updates }}, cb);
 								} else {
+									var bUpdate = false;
 									// collecte transactions that need to be altered
 									_(tr.splits).forEach(function (split) {
-										if (_(childs).indexOf(split.accountId) > -1){
-											if (options.newSubAccTrnParent)
+										if (_(childs).indexOf(split.accountId.toString()) > -1){
+											if (options.newSubAccTrnParent) {
+												bUpdate = true;
 												split.accountId = new self._ctx.ObjectID(options.newSubAccTrnParent);
-											else
+											} else
 												updates.push(tr._id);
 										}
 									});
+									if (bUpdate) {
+										self._cash_transactions.save(tr, function() {});
+									}
 								}
 							}));
 						}));
