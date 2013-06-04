@@ -45,7 +45,20 @@
 				 </ul>
 			  </li>
 			</ul>
-			 <a class = "pull-right btn-large" href = "return false"><i id="editPageSettings" class="icon-cog icon-white"></i></a>
+			{{#pmenu}}
+			<ul class="nav nav-pills pull-right"  id="page_menu">
+              <li class="dropdown">
+				<a href="return false" data-toggle="dropdown" class="dropdown-toggle"><i class="icon-wrench icon-white"></i> {{name}} <b class="caret"></b></a>
+				<ul class="dropdown-menu">
+				  {{#items}}
+				  <li>
+					<a href="{{href}}" id="{{id}}">{{name}}</a>
+				  </li>
+				  {{/items}}
+				 </ul>
+			  </li>
+			</ul>
+			{{/pmenu}}			
           </div><!--/.nav-collapse -->
         </div>
       </div>

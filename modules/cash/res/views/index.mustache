@@ -22,3 +22,35 @@
 </div>
 </div>
 </div>
+<script type="text/javascript">
+require(["jquery","jquery-block"], function ($) {
+$(function() {	
+	var $page = $("body");		
+	$("#page_menu #settings").on("click", function(evt){		
+		evt.preventDefault();		
+		$this = $(this);
+		var $me = $page;
+		$me.block();
+		(function (cb) {
+			require(['cash/pagesettings'], function (Modal) {
+				var modal = new Modal();
+				modal.show();
+				modal.once('shown', function () { $me.unblock(); })
+				modal.once('result', function (type, acc) {
+					if (type!='saved') 
+						location.reload();										
+					modal.hide()
+					cb();				
+				})
+			},cb)
+		})(function (err) {
+			if (err) appError(err);
+			$me.unblock();
+		})
+		return false;		
+	});	
+});
+})
+</script>
+
+

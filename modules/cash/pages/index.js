@@ -21,13 +21,16 @@ module.exports = function account(webapp) {
 		})
 		var res = [];
 		_(level).forEach (function (acc) {
-			res.push(acc);			
-			getAssets(token, acc._id, types,data, function (err,childs) {
-				if (err) return cb(err);
-				acc.childs = childs;
-				acc.repCmdty = repCmdty;
-			})
+			if (Math.abs(acc.avalue)>1) {
+				res.push(acc);			
+				getAssets(token, acc._id, types,data, function (err,childs) {
+					if (err) return cb(err);
+					acc.childs = childs;
+					acc.repCmdty = repCmdty;
+				})
+			}
 		})
+		res = _.sortBy(res, function (v) { return v.name; });
 		cb(null, res);
 	}
 
@@ -44,18 +47,18 @@ module.exports = function account(webapp) {
 					vtabs = val;
 				}))
 			},
+			function getSysCurrency(cb) {
+				cashapi.getSettings(req.session.apiToken, 'currency', repCmdty, safe.sure(cb, function (defCmdty) {
+					repCmdty = accCmdty = defCmdty;
+					cb();
+				}));
+			},
 			function getPageCurrency(cb) {
 				// get tab settings first
 				webapp.getTabSettings(req.session.apiToken, 'home', safe.sure(cb, function(cfg) {
 					if (cfg && cfg.cmdty)
 						repCmdty = cfg.cmdty;
-					// when absent get default
-					cashapi.getSettings(req.session.apiToken, 'currency', repCmdty, safe.sure(cb, function (defCmdty) {
-						accCmdty = defCmdty;
-						if (!repCmdty)
-							repCmdty = defCmdty;
-						cb();
-					}))
+					cb()
 				}));
 			},
 			function (cb) {
@@ -101,10 +104,10 @@ module.exports = function account(webapp) {
 			},
 			function render () {
 				var rdata = {
-					settings: settings,
-					prefix: prefix,
 					tabs: vtabs,
-					tabId: 'home'
+					tabId: 'home',
+					pmenu: {name:webapp.ctx.i18n(req.session.apiToken, 'cash','Home'),
+						items:[{name:webapp.ctx.i18n(req.session.apiToken, 'cash','Page settings'),id:"settings",href:"#"}]}
 				};
 				rdata.cmdty = repCmdty;
 				rdata.acmdty = accCmdty;

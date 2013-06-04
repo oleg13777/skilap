@@ -64,7 +64,11 @@ module.exports = function account(webapp) {
 				cb1()
 			},
 			function(){										
-				data = _.extend({settings:{views:__dirname+"/../views"}, prefix:prefix, tabs:vtabs},data);										
+				data.tabs = vtabs;
+				data.pmenu = {name:req.query.name,
+					items:[{name:webapp.ctx.i18n(req.session.apiToken, 'cash','Page settings'),id:"settings",href:"#"}]}
+				data.reportSettings = reportSettings;
+			
 				res.render(__dirname+"/../res/views/report", data);
 			}],
 			next
@@ -120,10 +124,11 @@ module.exports = function account(webapp) {
 									val *= -1;
 								acs.summ += val;
 								if (periods) {
-									var d = (new Date(tr.datePosted)).valueOf();
+									var d = tr.datePosted.valueOf();
 									_.forEach(acs.periods, function (p) {
-										if (d > p.start.valueOf() && d <= p.end.valueOf())
+										if (d > p.start.valueOf() && d <= p.end.valueOf()) {
 											p.summ += val;
+										}
 									});
 								}
 							}
@@ -144,40 +149,33 @@ module.exports = function account(webapp) {
 							},cb2);
 						},
 						function(cb2){							
-							var accountsOverLevel = _(accKeys)
-								.chain()
-								.values()
-								.filter(function(item){return item.level > params.accLevel;})
-								.groupBy(function(item){return item.parentId;})
-								.values()
-								.reduce(function(memo,items){									
-									_.forEach(items, function(item){										
-										if(!_.has(memo,item.parentId))
-											memo[item.parentId] = {summ:0,_ids:[]};
-										memo[item.parentId].summ += item.summ;																				
-										memo[item.parentId]._ids.push(item._id);
-									});
+							do {
+								// get current ids
+								var ids = _.reduce(_.values(accKeys), function (memo, item) {
+									memo[item._id] = 1;
 									return memo;
 								}, {})
-								.value();
-
-							accKeys = _(accKeys)
-								.chain()
-								.values()
-								.filter(function(item){	return item.level <= params.accLevel})
-								.reduce(function(memo,item){
-									memo[item._id] = item;
-									return memo;
-								},{})
-								.value();
-
-							_.forEach(_(accountsOverLevel).keys(),function(key){
-								if(accKeys[key]){
-									accKeys[key].summ += accountsOverLevel[key].summ;
-									delete accountsOverLevel[key];
-								}
-							});
-
+								// remove accounts that can't be reduced now
+								// accounts that have child or with level
+								// not covered by collapse
+								_.each(accKeys, function (item, id) {
+									delete ids[item.parentId];
+									if (item.level<=params.accLevel)
+										delete ids[id];
+								})
+								// reduce
+								_.each(ids, function (v,id) {
+									var child = accKeys[id];
+									var parent = accKeys[child.parentId];
+									parent.summ+=child.summ;
+									if (child.periods) {
+										for (var i = 0 ; i<child.periods.length; i++) {
+											parent.periods[i].summ+=child.periods[i].summ;
+										}									
+									}
+									delete accKeys[id];
+								})
+							} while (_.size(ids)!=0);
 							cb2();
 						}
 					],function(err){

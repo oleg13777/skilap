@@ -23,7 +23,6 @@
 	  <li><a href="/cash/reports/pieflow">{{#i18n}}Spend/receive pie chart{{/i18n}}</a></li>	 
 	</ul>
   </li>  
-  <li><a id="reportSettings" href="return false">{{#i18n}}Report settings{{/i18n}}</a></li> 
  
 <script type="text/javascript">
 require(["jquery","jquery-block","bootstrap"], function ($) {
@@ -35,12 +34,13 @@ $(document).ready(function() {
 		var $me = $page;
 		$me.block();
 		(function (cb) {
-			require(['cash/settings-modal','safe','clitpl'], function (Modal,safe,tf) {
+			require(['cash/settings-modal'], function (Modal) {
 				var modal = new Modal();
 				modal.show();
 				modal.once('shown', function () { $me.unblock(); })
 				modal.once('result', function (type, acc) {
-					if (type!='saved') return;										
+					if (type!='saved') 
+						location.reload();										
 					modal.hide()
 					cb();				
 				})
@@ -51,29 +51,6 @@ $(document).ready(function() {
 		})
 		return false;		
 	});
-	
-	$(document).on("click", "#editPageSettings",function(evt){		
-		evt.preventDefault();		
-		$this = $(this);
-		var $me = $page;
-		$me.block();
-		(function (cb) {
-			require(['cash/pagesettings','safe','clitpl'], function (Modal,safe,tf) {
-				var modal = new Modal();
-				modal.show();
-				modal.once('shown', function () { $me.unblock(); })
-				modal.once('result', function (type, acc) {
-					if (type!='saved') return;										
-					modal.hide()
-					cb();				
-				})
-			},cb)
-		})(function (err) {
-			if (err) appError(err);
-			$me.unblock();
-		})
-		return false;		
-	});	
 });
 })
 </script>

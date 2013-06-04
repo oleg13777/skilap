@@ -215,30 +215,27 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		} 
 	}
 	
-	function getAccLevel(acc,startLevel,cb){		
-		if(acc.parentId == 0){
-			cb(startLevel);
-		}
-		else{			
-			self._cash_accounts.findOne({'_id': acc.parentId}, function(err, parentAcc) {
-				if (parentAcc==null) {
-					cb(startLevel);
-				} else {
-					getAccLevel(parentAcc, ++startLevel, function (level) {
-						cb(level);
-					});
-				}
-			});
-		}
-	}	
-	
 	console.time("Stats");
 	self._dataReady = false;
 	self._dataInCalc = true;
 	self._stats = {};
+	var defCurrency = {space:"ISO4217", id:"USD"};
 	
 	async.auto({
-		price_tree: function (cb1) {
+		def_currency: [function (cb) {
+			// get global default currency because some stuff depend on it
+			// store it if it absent
+			self._cash_settings.findOne({'id': "currency"}, safe.sure(cb, function (v) {
+				if (v && v.v) {
+					defCurrency = v.v;
+					cb()
+				}
+				else {
+					self._cash_settings.update({'id':"currency"},{$set:{v:defCurrency}},{upsert:true}, cb)
+				}
+			}))
+		}],
+		price_tree: [function (cb1) {
 			self._stats.priceTree = {};
 			self._cash_prices.find({}, function(err, cursor) {
 				if (err) return cb1(err);
@@ -280,29 +277,28 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 					});
 				});
 			});
-		},
-		account_paths: function (cb1) {
-			self._cash_accounts.find({}, function(err, cursor) {
-				if (err) return cb1(err);
-				cursor.each(function(err, acc) {
-					if (err || !acc) return cb1(err);
+		}],
+		account_paths: [function (cb) {
+			self._cash_accounts.find({}).toArray(safe.sure(cb, function (accounts) {
+				async.forEach(accounts, function (acc, cb) {
 					getAccPath(acc, function (path) { 
-						getAccStats(acc._id).path = path;
-						getAccStats(acc._id).type = acc.type;
-						getAccStats(acc._id).cmdty = acc.cmdty;
-						getAccStats(acc._id).parentId = acc.parentId;
-					});
-					getAccLevel(acc, 1, function(level) { 
-						getAccStats(acc._id).level = level;
-					});
-				});
-			});
-		},
+						var accStats = getAccStats(acc._id);
+						accStats.path = path;
+						accStats.type = acc.type;
+						accStats.cmdty = acc.cmdty;
+						accStats.parentId = acc.parentId;
+						accStats.level = path.split("::").length;
+						cb();
+					})
+				},cb);
+			}));
+		}],
 		transaction_stats: ['account_paths',function (cb1) {
-			console.time("Test");
+			console.time("Transactions");
 			var ballances = [];
 			self._cash_transactions.find({}, {sort: {datePosted: 1}}, function (err, cursor) {
 				if (err) return cb1(err);
+
 				cursor.each(function (err, tr) {
 					if (err || !tr) return cb1(err);
 					tr.splits.forEach(function(split) {
@@ -310,7 +306,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 						var act = assetInfo[accStats.type].act;								
 						accStats.value+=split.quantity*act;
 						accStats.count++;
-						var trs = {_id:tr._id, date:new Date(tr.datePosted), ballance: 0};
+						var trs = {_id:tr._id, date:tr.datePosted, ballance: 0};
 						accStats.trDateIndex.push(trs);
 						//!!!!
 						var accId = split.accountId;
@@ -332,7 +328,8 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 				});
 			});
 		}],
-		accounts_tree_sum: ['transaction_stats','price_tree', function (cb) {
+		accounts_tree_sum: ['account_paths', 'transaction_stats','price_tree','def_currency', function (cb) {
+			console.timeEnd("Transactions");			
 			function getAccountTree(id) {
 				// filter this level data
 				var level = _(self._stats).values().filter(function (e) { 
@@ -345,7 +342,6 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 				var res = [];
 				_(level).forEach (function (acc) {
 					acc.avalue = acc.value;
-					acc.gvalue = acc.avalue;					
 					res.push(acc)
 					var childs = getAccountTree(acc._id);
 					_.each(childs, function (c) {
@@ -353,8 +349,13 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 						var ptree = self._stats.priceTree[key];
 						var rate = ptree?ptree.last:1;
 						acc.avalue +=c.avalue*rate;
-						acc.gvalue = acc.avalue;
 					})
+					if (acc.cmdty) {
+						var key = (acc.cmdty.space+acc.cmdty.id+defCurrency.space+defCurrency.id)
+						var ptree = self._stats.priceTree[key];
+						var rate = ptree?ptree.last:1;
+						acc.gvalue = acc.avalue * rate;
+					}
 				})
 				return res;
 			}			
@@ -363,7 +364,6 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		}]
 		}, function done (err) {
 			if (err) console.log(err);
-			console.timeEnd("Test");
 			console.timeEnd("Stats");			
 			self._dataReady=true;
 			self._dataInCalc=false;
