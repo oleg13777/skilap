@@ -180,7 +180,7 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 };
 
 module.exports.deleteAccount = function (token, accId, options, cb){
-	var self = this;	
+	var self = this;
 	async.series([
 		function start(cb1) {
 			async.parallel([
@@ -198,10 +198,11 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 					} else {
 						// collecte transactions that need to be altered
 						_(tr.splits).forEach(function (split) {
-							if (split.accountId == accId) {
-								if (options.newParent)
-									split.accountId = options.newParent;
-								else
+							if (split.accountId.toString() == accId) {
+								if (options.newParent) {
+									split.accountId = new self._ctx.ObjectID(options.newParent);
+									self._cash_transactions.save(tr, function() {});
+								} else
 									updates.push(tr._id);
 							}
 						});
@@ -213,17 +214,18 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 			if (options.newSubParent) {
 				self.getChildAccounts(token, accId, safe.trap_sure(cb1,function(childs){
 					async.forEach(childs, function(ch,cb2) {
-						ch.parentId = options.newSubParent;
-						self._cash_accounts.put(ch._id, ch, cb2);
+						ch.parentId = new self._ctx.ObjectID(options.newSubParent);
+						self._cash_accounts.save(ch, cb2);
 					},cb1);
 				}));
 			} else {
 				var childs = [];
 				async.series([
-					function(cb){
+					function(cb) {
 						self._getAllChildsId(token, accId, childs, cb);
 					},
 					function (cb) {
+						childs = _.map(childs, function(c) { return c.toString(); });
 						var updates = [];
 						self._cash_transactions.find({}, safe.trap_sure(cb, function (cursor) {
 							cursor.each(safe.trap_sure(cb, function (tr) {
@@ -231,15 +233,20 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 									// scan done, propagate changes
 									self._cash_transactions.remove({'_id': { $in: updates }}, cb);
 								} else {
+									var bUpdate = false;
 									// collecte transactions that need to be altered
 									_(tr.splits).forEach(function (split) {
-										if (_(childs).indexOf(split.accountId) > -1){
-											if (options.newSubAccTrnParent)
-												split.accountId = options.newSubAccTrnParent;
-											else
+										if (_(childs).indexOf(split.accountId.toString()) > -1){
+											if (options.newSubAccTrnParent) {
+												bUpdate = true;
+												split.accountId = new self._ctx.ObjectID(options.newSubAccTrnParent);
+											} else
 												updates.push(tr._id);
 										}
 									});
+									if (bUpdate) {
+										self._cash_transactions.save(tr, function() {});
+									}
 								}
 							}));
 						}));
@@ -466,4 +473,76 @@ module.exports.getAllCurrencies = function(token,cb){
 	);
 };
 
+module.exports.createAccountsTree = function(accounts){
+	accounts = _(accounts).sortBy(function (e) {return e.name; });
+	var oAccounts = _.reduce(accounts,function(memo,item){
+		memo[item._id] = _.clone(item);
+		memo[item._id].childs=[];
+		return memo;
+	},{});
 
+	_.forEach(_.keys(oAccounts),function(key){
+		if(oAccounts[key].parentId){
+			oAccounts[oAccounts[key].parentId].childs.push(oAccounts[key]);
+		}
+	});
+	return _.filter(_.values(oAccounts),function(item){
+		return (!item.parentId && !item.hidden);
+	});
+};
+
+module.exports.getChildAccountsHelper = function(token, id, child, cb) {
+	var self = this;
+	var ret = [];
+	self.getChildAccounts(token, id, safe.sure(cb, function (data) {
+		ret = child.concat(data);
+		async.forEachSeries(data, function(acc, cb1) {
+			self.getChildAccountsHelper(token, acc._id, child, function (err, data) {
+				ret = ret.concat(data);
+				cb1(null, ret);
+			});
+		}, function (err) {
+			cb(null, ret);
+		});
+	}));
+};
+
+function getTopParent(self, token, id, cb) {
+	self.getAccount(token, id, function (err, data) {
+		if (data.parentId)
+			getTopParent(self, token, data.parentId, cb);
+		else
+			cb(null, data);
+	});
+}
+
+module.exports.getAccountTree = function (token, id, settings, detail, cb) {
+	var self = this;
+	var accounts = [];
+	async.series({
+		main:function (cb) {
+			getTopParent(self, token, id, safe.sure_result(cb, function (data) {
+				accounts.push(data);
+			}));
+		},
+		child:function (cb) {
+			self.getChildAccountsHelper(token, accounts[0]._id, accounts, safe.sure_result(cb, function (data) {
+				accounts = data;
+			}));
+		},
+		assets:function (cb) {
+			async.forEach(accounts, function(acc, cb) {
+				self.getAccountInfo(token, acc._id, detail, safe.sure_result(cb, function (data) {
+					_.extend(acc, data);
+					acc.repCmdty = settings.cmdty;
+				}));
+			});
+			cb();
+		},
+		tree:function (cb) {
+			cb(null, self.createAccountsTree(accounts));
+		}
+	}, function (err, r) {
+		cb(err, r.tree);
+	});
+};

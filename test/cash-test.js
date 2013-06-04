@@ -162,7 +162,9 @@ describe("Cash module",function () {
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//h2[contains(.,'Assets:')]"));
 			});			
-			self.done();
+			self.saveDb('cash-gnucash').then(function() {
+				self.done();
+			});
 		});
 		it("Home page should have right ballance", function(done) {
 			var self = this;
@@ -286,6 +288,246 @@ describe("Cash module",function () {
 			});
 			self.browser.findElement(By.xpath("//a[contains(.,'" + child.name_new + "')]"));	
 			self.browser.findElement(By.xpath("//li[contains(./div/a,'" + parent2.name + "')]//div[contains(./a,'" + child.name_new + "')]"));	
+			self.done();
+		});
+	});
+	describe("Manage accounts (delete)", function () {
+		var all = '';
+		it("Login as user", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.restoreDb('cash-gnucash');	
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
+			self.browser.findElement(By.linkText("Cash module")).click();			
+			self.done();
+		});
+		it("Move transactions and subaccounts to another account", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Home")).click();	
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				all = text;
+			});
+			var accParent = 'Imbalance-RUB';
+			var accDelete = 'сбербанк';
+			var accChild = 'Test1';
+			var sumBefore = '';
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accParent + "')]/span")).getText().then(function(text) {
+				sumBefore = text;
+			});
+			self.browser.findElement(By.xpath("//li[contains(./div/a,'" + accDelete + "')]//div[contains(./a,'" + accChild + "')]"));	
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a[./i[@title='delete']]")).click();
+			helpers.runModal.call(self, null, function(modal) {
+				modal.findElement(By.xpath("//div[@id='sub_tr']//input[@id='move']")).click();
+		        modal.findElement(By.id("tr_parent")).sendKeys(accParent);
+				modal.findElement(By.xpath("//div[@id='sub_acc']//input[@id='move']")).click();
+		        modal.findElement(By.id("sub_acc_parent")).sendKeys(accParent);
+				modal.findElement(By.id("delete")).click();
+			});
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//div[contains(./a,'" + accParent + "')]/span"));
+			});	
+			self.browser.findElement(By.xpath("//li[contains(./div/a,'" + accParent + "')]//div[contains(./a,'" + accChild + "')]"));	
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accParent + "')]/span")).getText().then(function(text) {
+				assert.ok(sumBefore != text, "Move error");
+			});
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Home")).click();
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert.ok(all == text, "Move sum error");
+			});
+			self.done();
+		});
+		it("Delete transactions and delete sub accounts and delete subaccount transactions", function(done) {
+			var self = this;
+			self.trackError(done);
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			var accDelete = 'QIWI Bank';
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a[./i[@title='delete']]")).click();
+			helpers.runModal.call(self, null, function(modal) {
+				modal.findElement(By.xpath("//div[@id='sub_tr']//input[@id='del']")).click();
+				modal.findElement(By.xpath("//div[@id='sub_acc']//input[@id='del']")).click();
+				modal.findElement(By.xpath("//div[@id='sub_acc_tr']//input[@id='del']")).click();
+				modal.findElement(By.id("delete")).click();
+			});
+			self.browser.findElements(By.xpath("//div[contains(./a,'" + accDelete + "')]")).then(function (elements) {
+				assert.ok(elements.length == 0, "Delete error");
+			});
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Home")).click();
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert.ok(all != text, "Delete sum error");
+				all = text;
+			});
+			self.done();
+		});
+		it("Delete transactions and delete sub accounts moving transaction to another account", function(done) {
+			var self = this;
+			self.trackError(done);
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			var accDelete = 'Разное';
+			var accParent = 'Особый Bank';
+			var sumBefore = '';
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accParent + "')]/span")).getText().then(function(text) {
+				sumBefore = text;
+			});
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a[./i[@title='delete']]")).click();
+			helpers.runModal.call(self, null, function(modal) {
+				modal.findElement(By.xpath("//div[@id='sub_tr']//input[@id='del']")).click();
+				modal.findElement(By.xpath("//div[@id='sub_acc']//input[@id='del']")).click();
+				modal.findElement(By.xpath("//div[@id='sub_acc_tr']//input[@id='move']")).click();
+		        modal.findElement(By.id("sub_acc_trn_parent")).sendKeys(accParent);
+				modal.findElement(By.id("delete")).click();
+			});
+			self.browser.findElements(By.xpath("//div[contains(./a,'" + accDelete + "')]")).then(function (elements) {
+				assert.ok(elements.length == 0, "Delete error");
+			});
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accParent + "')]/span")).getText().then(function(text) {
+				assert.ok(sumBefore != text, "Move error");
+			});
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Home")).click();
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert.ok(all != text, "Delete sum error");
+			});
+			self.done();
+		});
+	});
+	describe("Manage sub accounts (delete)", function () {
+		var all = '';
+		it("Login as user", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.restoreDb('cash-gnucash');	
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
+			self.browser.findElement(By.linkText("Cash module")).click();			
+			self.done();
+		});		
+		it("Move transactions and subaccounts to another account", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Home")).click();
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				all = text;
+			});
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			var accParent = 'Imbalance-RUB';
+			var accDelete = 'Test1';
+			var accChild = 'test2';
+			var sumBefore = '';
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accParent + "')]/span")).getText().then(function(text) {
+				sumBefore = text;
+			});
+			self.browser.findElement(By.xpath("//li[contains(./div/a,'" + accDelete + "')]//div[contains(./a,'" + accChild + "')]"));	
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a[./i[@title='delete']]")).click();
+			helpers.runModal.call(self, null, function(modal) {
+				modal.findElement(By.xpath("//div[@id='sub_tr']//input[@id='move']")).click();
+		        modal.findElement(By.id("tr_parent")).sendKeys(accParent);
+				modal.findElement(By.xpath("//div[@id='sub_acc']//input[@id='move']")).click();
+		        modal.findElement(By.id("sub_acc_parent")).sendKeys(accParent);
+				modal.findElement(By.id("delete")).click();
+			});
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//div[contains(./a,'" + accParent + "')]/span"));
+			});	
+			self.browser.findElement(By.xpath("//li[contains(./div/a,'" + accParent + "')]//div[contains(./a,'" + accChild + "')]"));	
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accParent + "')]/span")).getText().then(function(text) {
+				assert.ok(sumBefore != text, "Move error");
+			});
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Home")).click();
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert.ok(all == text, "Move sum error");
+			});
+			self.done();
+		});
+		it("Login as user", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.restoreDb('cash-gnucash');	
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
+			self.browser.findElement(By.linkText("Cash module")).click();			
+			self.done();
+		});		
+		it("Delete transactions and delete sub accounts and delete subaccount transactions", function(done) {
+			var self = this;
+			self.trackError(done);
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			var accDelete = 'Test1';
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a[./i[@title='delete']]")).click();
+			helpers.runModal.call(self, null, function(modal) {
+				modal.findElement(By.xpath("//div[@id='sub_tr']//input[@id='del']")).click();
+				modal.findElement(By.xpath("//div[@id='sub_acc']//input[@id='del']")).click();
+				modal.findElement(By.xpath("//div[@id='sub_acc_tr']//input[@id='del']")).click();
+				modal.findElement(By.id("delete")).click();
+			});
+			self.browser.findElements(By.xpath("//div[contains(./a,'" + accDelete + "')]")).then(function (elements) {
+				assert.ok(elements.length == 0, "Delete error");
+			});
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Home")).click();
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert.ok(all != text, "Delete sum error");
+				all = text;
+			});
+			self.done();
+		});
+		it("Login as user", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.restoreDb('cash-gnucash');	
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
+			self.browser.findElement(By.linkText("Cash module")).click();			
+			self.done();
+		});		
+		it("Delete transactions and delete sub accounts moving transaction to another account", function(done) {
+			var self = this;
+			self.trackError(done);
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			var accDelete = 'Test1';
+			var accParent = 'Особый Bank';
+			var sumBefore = '';
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accParent + "')]/span")).getText().then(function(text) {
+				sumBefore = text;
+			});
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a[./i[@title='delete']]")).click();
+			helpers.runModal.call(self, null, function(modal) {
+				modal.findElement(By.xpath("//div[@id='sub_tr']//input[@id='del']")).click();
+				modal.findElement(By.xpath("//div[@id='sub_acc']//input[@id='del']")).click();
+				modal.findElement(By.xpath("//div[@id='sub_acc_tr']//input[@id='move']")).click();
+		        modal.findElement(By.id("sub_acc_trn_parent")).sendKeys(accParent);
+				modal.findElement(By.id("delete")).click();
+			});
+			self.browser.findElements(By.xpath("//div[contains(./a,'" + accDelete + "')]")).then(function (elements) {
+				assert.ok(elements.length == 0, "Delete error");
+			});
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accParent + "')]/span")).getText().then(function(text) {
+				assert.ok(sumBefore != text, "Move error");
+			});
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Home")).click();
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert.ok(all != text, "Delete sum error");
+			});
 			self.done();
 		});
 	});

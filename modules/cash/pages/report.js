@@ -33,7 +33,7 @@ module.exports = function account(webapp) {
 		}
 
 		var pid = "reports-" + type + "-" + req.query.name;
-		var vtabs,data,reportSettings,currencies;
+		var vtabs,data,reportSettings;
 		async.waterfall([
 			function (cb1) {
 				async.series([
@@ -42,16 +42,13 @@ module.exports = function account(webapp) {
 					},
 					function(cb2) {
 						webapp.getTabSettings(req.session.apiToken, pid, cb2);
-					},
-					function(cb2) {
-						webapp.getUseRangedCurrencies(req.session.apiToken,cb2)
 					}
 				],
 				function (err, results) {
-					cb1(null, results[0], results[1], results[2]);
+					cb1(null, results[0], results[1]);
 				});
 			},
-			function (vtabs_, reportSettings_, currencies_, cb1) {				
+			function (vtabs_, reportSettings_, cb1) {				
 				vtabs = vtabs_;
 				reportSettings = reportSettings_;
 				if (_.isEmpty(reportSettings) || !reportSettings.version || (reportSettings.version != reportSettingsVersion)){
@@ -60,7 +57,6 @@ module.exports = function account(webapp) {
 						if (err) console.log(err);
 					});
 				}
-				currencies = currencies_;
 				calculateGraphData(req.session.apiToken,type,reportSettings,cb1);
 			},
 			function(data_,cb1){				
