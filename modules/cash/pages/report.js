@@ -99,8 +99,8 @@ module.exports = function account(webapp) {
 					})
 					accounts = storage;
 				}						
-				accKeys = _(accounts).reduce(function (memo, acc) {					
-					if (acc.type == params.accType){
+				accKeys = _(accounts).reduce(function (memo, acc) {								
+					if (acc && acc.type == params.accType){
 						memo[acc._id] = {name:acc.name, _id:acc._id, parentId:acc.parentId,summ:0};
 						if(periods)
 							memo[acc._id].periods = _(periods).map(function (p) { return _.clone(p); });
