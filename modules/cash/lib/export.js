@@ -75,7 +75,7 @@ module.exports.import = function (fileName, cb){
 		},
 		function transpondAccountsTree(cb) {
 			_(accounts).forEach(function (acc) {
-				if (acc.parentId!=0)
+				if (acc.parentId)
 					acc.parentId=aidMap[acc.parentId];
 			});
 			cb();

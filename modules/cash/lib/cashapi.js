@@ -327,40 +327,6 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 					});
 				});
 			});
-		}],
-		accounts_tree_sum: ['account_paths', 'transaction_stats','price_tree','def_currency', function (cb) {
-			console.timeEnd("Transactions");			
-			function getAccountTree(id) {
-				// filter this level data
-				var level = _(self._stats).values().filter(function (e) { 
-					if (!e.type) return false;
-					if (id==null)
-						return e.parentId==null || e.parentId.toString()==0
-					else
-						return e.parentId && e.parentId.toString() == id.toString(); 
-				});
-				var res = [];
-				_(level).forEach (function (acc) {
-					acc.avalue = acc.value;
-					res.push(acc)
-					var childs = getAccountTree(acc._id);
-					_.each(childs, function (c) {
-						var key = (acc.cmdty.space+acc.cmdty.id+c.space+c.id);			
-						var ptree = self._stats.priceTree[key];
-						var rate = ptree?ptree.last:1;
-						acc.avalue +=c.avalue*rate;
-					})
-					if (acc.cmdty) {
-						var key = (acc.cmdty.space+acc.cmdty.id+defCurrency.space+defCurrency.id)
-						var ptree = self._stats.priceTree[key];
-						var rate = ptree?ptree.last:1;
-						acc.gvalue = acc.avalue * rate;
-					}
-				})
-				return res;
-			}			
-			getAccountTree()
-			cb();
 		}]
 		}, function done (err) {
 			if (err) console.log(err);
