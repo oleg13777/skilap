@@ -34,5 +34,9 @@
 	, "wrench" : ""
 	, "optimist" : ""
 	, "mocha" : ""
+    , "cron" : ""
+    , "later" : ""
+    , "moment" : "2.x"
+    , "request" : ""
     }
 }
