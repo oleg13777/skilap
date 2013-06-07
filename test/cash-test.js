@@ -27,7 +27,7 @@ var assert = require('assert');
  * */
 
 describe("Cash module",function () {
-	this.timeout(30000);
+	this.timeout(3000000);
 	before(tutils.setupContext);
 	before(function (done) {
 		this.browser.manage().window().setSize(1280,768);	
@@ -534,8 +534,63 @@ describe("Cash module",function () {
 	describe.skip("Registry input", function () {
 		it("TBD")
 	})
-	describe.skip("Reports", function () {
-		it("TBD")
+	describe.only("Reports", function () {
+		it("Login as user", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.restoreDb('cash-gnucash');	
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
+			self.browser.findElement(By.linkText("Cash module")).click();						
+			self.done();
+		});	
+		it ("Check barchart", function(done){
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.linkText("Report")).click();	
+			self.browser.findElement(By.linkText("Spend/receive bar chart")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.id("highcharts-0"));
+			});	
+			self.done();
+		})
+		it ("Check Accounts selection", function(done){
+			var self = this;
+			self.trackError(done);			
+			self.browser.findElements(By.tagName("tspan")).then(function(elems){				
+				var arr =[]; 	
+				var counter = 0;			
+				_.forEach(elems, function(elem){					
+					elem.getText().then(function(text){						
+						arr.push(text);
+						if (counter++ == elems.length){							
+							assert.ok(_.contains(arr, "Электричество"), "lost account");
+						}
+					})
+				})			
+			});			
+			self.browser.findElement(By.id("page_menu")).click();	
+			self.browser.findElement(By.linkText("Page settings")).click();
+			helpers.runModal.call(self, null, function(modal) {
+				//self.browser.findElement(By.linkText("General")).click();
+		        modal.findElement(By.xpath("//span[text()='Электричество']")).click();
+				//modal.findElement(By.id("acc_parent")).sendKeys(acc1.parent);	
+				//modal.findElement(By.id("acc_curency")).sendKeys(acc1.currency);			
+				modal.findElement(By.id("save")).click();
+			});
+				self.browser.findElements(By.tagName("tspan")).then(function(elems){				
+				var arr =[]; 	
+				var counter = 0;			
+				_.forEach(elems, function(elem){					
+					elem.getText().then(function(text){						
+						arr.push(text);
+						if (counter++ == elems.length){							
+							assert.ok(!_.contains(arr, "Электричество"), "lost account");
+						}
+					})
+				})			
+			});	
+			self.done();
+		})		
 	})
 	describe.skip("Settings", function () {
 		it("TBD")
