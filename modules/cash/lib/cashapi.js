@@ -19,22 +19,6 @@ function CashApi (ctx) {
 	this._stats = {};
 	this._waitQueue = [];
 	this._coreapi;
-	
-	// set index cleanup 
-	setInterval(function () {
-		if (self._dataReady==false) return; // already sleep
-		var d = new Date();
-		if ((d.valueOf()-self._lastAccess.valueOf())>60*1000) {
-			self._stats = {};
-			console.log("dataCleared");
-			self._dataInCalc = self._dataReady = false;
-		}
-	}, 60*1000);
-	
-	// set index cleanup 
-	setInterval(function () {
-		console.log("Wait queue: " + self._waitQueue.length);
-	}, 60*1000);	
 }
 
 CashApi.prototype.getAccount = require('./accapi.js').getAccount;
@@ -173,8 +157,11 @@ CashApi.prototype._loadData = function (cb) {
 					self._cash_transactions.ensureIndex({"splits.accountId": 1},cb);
 				},
 				function (cb) {
-					self._cash_register.ensureIndex({ "accId": 1, "trId": 1 }, cb);
+					self._cash_register.ensureIndex({"trId": 1 }, cb);
 				},
+				function (cb) {
+					self._cash_register.ensureIndex({"accId": 1 }, cb);
+				},				
 				function (cb) {
 					self._cash_register.ensureIndex({ "date": 1 }, cb);
 				}
@@ -271,18 +258,14 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		}],
 		db_stats: function (cb) {
 			if (self._db_stats) return cb();
-			self._calcStatsDb(function (err, stats) {
-				if (err) console.log(err);
-				else {
-					self._stats = stats;
-					skip_calc = stats.db_stats.accounts > 0 && stats.db_stats.trs > 0;
-				}
-				self._db_stats = true;
+			self._db_stats = true;
+			self._cash_accounts_stat.count(safe.sure(cb, function (c) {
+				skip_calc = c!=0;
 				cb();
-			});
+			}))
 		},
 		price_tree: ['db_stats', function (cb1) {
-			if (self._stats.db_stats && self._stats.db_stats.prices > 0) return cb1();
+			if (skip_calc) return cb1();			
 			console.time('price_tree');
 			self._stats.priceTree = {};
 			self._cash_prices.find({}, safe.sure(cb1, function (cursor) {
@@ -340,7 +323,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 						accStats.cmdty = acc.cmdty;
 						accStats.parentId = acc.parentId;
 						accStats.level = path.split("::").length;
-						self._cash_accounts_stat.update({ _id: acc._id }, accStats, { upsert: true, w: 1 }, cb);
+						cb();
 					})
 				},function (err) { console.timeEnd('account_paths'); cb(err);});
 			}));
@@ -380,7 +363,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 							ballances[accId] += send.quantity*act;
 							trs.ballance = ballances[accId];
 							//!!!!
-							var doc = _.omit(trs, '_id');
+							var doc = _.omit(trs, '_id','recv','send');
 							doc.trId = tr._id;
 							doc.accId = accId;
 							self._cash_register.update({ trId: tr._id, accId: accId }, doc,
@@ -391,7 +374,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 					console.timeEnd("Transactions");
 					async.forEachSeries(_.keys(ballances), function (accId, cb) {
 						var accStats = getAccStats(accId);
-						var doc = _.omit(accStats, 'trDateIndex');
+						var doc = _.omit(accStats, 'trDateIndex','cmdty');
 						self._cash_accounts_stat.update({ _id: doc._id }, doc,
 								{ upsert: true, w: 1 }, cb);
 					}, cb1);
@@ -404,6 +387,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 			self._dataReady=true;
 			self._dataInCalc=false;
 			self._pumpWaitQueue();
+			self._stats = {}; // clean data
 			cb();
 		}
 	);
