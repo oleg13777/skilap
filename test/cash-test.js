@@ -534,7 +534,7 @@ describe("Cash module",function () {
 	describe.skip("Registry input", function () {
 		it("TBD")
 	})
-	describe.only("Reports", function () {
+	describe("Reports", function () {
 		it("Login as user", function(done) {
 			var self = this;
 			self.trackError(done);
