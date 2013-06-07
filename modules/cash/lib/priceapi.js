@@ -33,10 +33,12 @@ module.exports.getCmdtyLastPrices = function (token,cb) {
 			],cb);
 		}, 
 		function get(cb) {
-			_.each(self._stats.priceTree, function (v,k) {
-				res[k]=v.last;
-			})
-			cb();
+			self._cash_prices_stat.find({}, safe.trap_sure(cb, function (cursor) {
+				cursor.each(safe.trap_sure(cb, function (stat) {
+					if (stat == null) return cb();
+					res[stat.key] = stat.last;
+				}));
+			}));
 		}], safe.sure(cb, function (results) {
 			cb(null, res);
 		})
