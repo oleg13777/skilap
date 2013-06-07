@@ -140,6 +140,15 @@ CashApi.prototype._loadData = function (cb) {
 					self._cash_transactions.ensureIndex("datePosted",cb);
 				},
 				function (cb) {
+					self._cash_prices.ensureIndex("date",cb);
+				},				
+				function (cb) {
+					self._cash_prices.ensureIndex("currency.id",cb);
+				},				
+				function (cb) {
+					self._cash_prices.ensureIndex("cmdty.id",cb);
+				},				
+				function (cb) {
 					self._cash_transactions.ensureIndex({"splits._id": 1},cb);
 				},
 				function (cb) {
@@ -242,19 +251,12 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 				cursor.each(function(err, price) {
 					if (err || !price) return cb1(err);
 					var date = new Date(price.date);
-					var year = date.getFullYear();
-					var month = date.getMonth();
 					var dirs = [ 
 						{rate:price.value,key:(price.cmdty.space+price.cmdty.id+price.currency.space+price.currency.id)},
 						{rate:1/price.value,key:(price.currency.space+price.currency.id+price.cmdty.space+price.cmdty.id)}];
 					_(dirs).forEach(function (dir) {
 						var dirTree = self._stats.priceTree[dir.key];
 						if (dirTree==null) self._stats.priceTree[dir.key]=dirTree={};
-						var yearTree = dirTree[year];
-						if (yearTree==null) dirTree[year]=yearTree={};
-						var monthArray = yearTree[month];
-						if (monthArray==null) yearTree[month]=monthArray=[];
-						monthArray.push({date:date,rate:dir.rate});
 						if (dirTree.average==null) {
 							dirTree.average=dir.rate;
 							dirTree.max=dir.rate;
@@ -327,40 +329,6 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 					});
 				});
 			});
-		}],
-		accounts_tree_sum: ['account_paths', 'transaction_stats','price_tree','def_currency', function (cb) {
-			console.timeEnd("Transactions");			
-			function getAccountTree(id) {
-				// filter this level data
-				var level = _(self._stats).values().filter(function (e) { 
-					if (!e.type) return false;
-					if (id==null)
-						return e.parentId==null || e.parentId.toString()==0
-					else
-						return e.parentId && e.parentId.toString() == id.toString(); 
-				});
-				var res = [];
-				_(level).forEach (function (acc) {
-					acc.avalue = acc.value;
-					res.push(acc)
-					var childs = getAccountTree(acc._id);
-					_.each(childs, function (c) {
-						var key = (acc.cmdty.space+acc.cmdty.id+c.space+c.id);			
-						var ptree = self._stats.priceTree[key];
-						var rate = ptree?ptree.last:1;
-						acc.avalue +=c.avalue*rate;
-					})
-					if (acc.cmdty) {
-						var key = (acc.cmdty.space+acc.cmdty.id+defCurrency.space+defCurrency.id)
-						var ptree = self._stats.priceTree[key];
-						var rate = ptree?ptree.last:1;
-						acc.gvalue = acc.avalue * rate;
-					}
-				})
-				return res;
-			}			
-			getAccountTree()
-			cb();
 		}]
 		}, function done (err) {
 			if (err) console.log(err);

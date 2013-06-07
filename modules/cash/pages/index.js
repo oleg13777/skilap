@@ -9,29 +9,46 @@ module.exports = function account(webapp) {
 	var assetsTypes = ["BANK", "CASH", "ASSET", "STOCK", "MUTUAL", "CURENCY"];
 	var liabilitiesTypes = ["CREDIT", "LIABILITY", "RECEIVABLE", "PAYABLE"];
 	var repCmdty = null;
-	var accCmdty = null;
 
-	function getAssets(token, id, types, data, cb) {
-		var level = _(data.accounts).filter(function (e) { 
-			if (!_(types).include(e.type)) return false;
-			if (id==null)
-				return e.parentId==null || e.parentId.toString()==0
-			else
-				return e.parentId && e.parentId.toString() == id.toString(); 
-		})
+	function getAssets(token, root, types, data, cb) {
+		var level;
+		var pass = false;
+		if (root.root) {
+			level = [root];
+			delete root.root;
+			pass = true;
+		} else {
+			level = _.filter(data.accounts,function (e) { 
+				if (root._id)
+					return e.parentId && e.parentId.toString() == root._id.toString(); 
+				else
+					return _.isUndefined(e.parentId)
+			})
+		}
 		var res = [];
-		_(level).forEach (function (acc) {
-			if (Math.abs(acc.avalue)>1) {
-				res.push(acc);			
-				getAssets(token, acc._id, types,data, function (err,childs) {
-					if (err) return cb(err);
-					acc.childs = childs;
-					acc.repCmdty = repCmdty;
+		async.each(level, function (acc, cb) {
+			var r = {acc:acc};
+			r.value = acc.value;
+			res.push(r);			
+			getAssets(token, acc, types,data, safe.sure(cb, function (childs) {
+				r.childs = childs;
+				r.repCmdty = repCmdty;
+				async.each(childs, function (c,cb) {
+					cashapi.getCmdtyPrice(token, c.acc.cmdty, acc.cmdty, null, "safe", safe.sure(cb, function (rate) {
+						r.value+=c.value * rate;
+						cb();
+					}))
+				}, cb);
+			}))
+		}, safe.sure(cb, function () {
+			if (!pass) {
+				res = _.sortBy(res, function (v) { return v.acc.name; });
+				res = _.filter(res, function (e) { 
+					return (_.include(types,e.acc.type) && Math.abs(e.value)>1) || e.childs.length>0;
 				})
 			}
-		})
-		res = _.sortBy(res, function (v) { return v.name; });
-		cb(null, res);
+			cb(null, res);
+		}))
 	}
 
 	app.get(prefix, webapp.layout(), function(req, res, next) {
@@ -49,7 +66,7 @@ module.exports = function account(webapp) {
 			},
 			function getSysCurrency(cb) {
 				cashapi.getSettings(req.session.apiToken, 'currency', repCmdty, safe.sure(cb, function (defCmdty) {
-					repCmdty = accCmdty = defCmdty;
+					repCmdty = defCmdty;
 					cb();
 				}));
 			},
@@ -74,17 +91,11 @@ module.exports = function account(webapp) {
 						"prm":["cash.getAllAccounts","token"],
 						"res":{"a":"store","v":"accounts"}
 					},
-					"filter":{
-						"dep":"accounts",
-						"cmd":"filter",
-						"prm":["accounts","type",["BANK", "CASH", "ASSET", "STOCK", "MUTUAL", "CURENCY","CREDIT", "LIABILITY", "RECEIVABLE", "PAYABLE"],"IN"],
-						"res":{"a":"store","v":"accounts"}
-					},
 					"info":{
-						"dep":"filter",
+						"dep":"accounts",
 						"cmd":"api",
 						"ctx":{"a":"each","v":"accounts"},
-						"prm":["cash.getAccountInfo","token","_id",["avalue","gvalue"]],
+						"prm":["cash.getAccountInfo","token","_id",["value"]],
 						"res":{"a":"merge"}
 					}
 				}
@@ -93,12 +104,12 @@ module.exports = function account(webapp) {
 				}))
 			},
 			function (cb) {
-				getAssets(req.session.apiToken, null, assetsTypes, data, safe.sure_result(cb, function (res) {
+				getAssets(req.session.apiToken, {root:1,_id:null,value:0,cmdty:repCmdty}, assetsTypes, data, safe.sure_result(cb, function (res) {
 					assets = res;
 				}));
 			},
 			function (cb) {
-				getAssets(req.session.apiToken, null, liabilitiesTypes, data, safe.sure_result(cb, function (res) {
+				getAssets(req.session.apiToken, {root:1,_id:null,value:0,cmdty:repCmdty}, liabilitiesTypes, data, safe.sure_result(cb, function (res) {
 					liabilities = res;
 				}));
 			},
@@ -110,11 +121,10 @@ module.exports = function account(webapp) {
 						items:[{name:webapp.ctx.i18n(req.session.apiToken, 'cash','Page settings'),id:"settings",href:"#"}]}
 				};
 				rdata.cmdty = repCmdty;
-				rdata.acmdty = accCmdty;
-				rdata.assetsSum = _(assets).reduce(function (m,e) {return m+e.gvalue;},0);
-				rdata.liabilitiesSum = _(liabilities).reduce(function (m,e) {return m+e.gvalue;},0);
-				rdata.assets = assets;
-				rdata.liabilities = liabilities;
+				rdata.assetsSum = assets[0].value;
+				rdata.liabilitiesSum = liabilities[0].value;
+				rdata.assets = assets[0].childs;
+				rdata.liabilities = liabilities[0].childs;
 				res.render(__dirname+"/../res/views/index", rdata);
 			}],
 			next

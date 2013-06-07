@@ -147,12 +147,6 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 					case 'value':
 						res.value = accStats.value;
 						break;
-					case 'avalue':
-						res.avalue = accStats.avalue;
-						break;
-					case 'gvalue':
-						res.gvalue = accStats.gvalue;
-						break;						
 					case 'count':
 						res.count = accStats.count;
 						break;
