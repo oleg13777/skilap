@@ -212,11 +212,12 @@ CashApi.prototype.getAssetInfo = function (token, asset, cb) {
 
 CashApi.prototype._calcStats = function _calcStats(cb) {
 	var self = this;
+	var _stats = {};	
 	// helper functions
 	function getAccStats (accId) {
-		if (self._stats[accId]==null)
-			self._stats[accId] = {_id:accId, value:0, count:0, trDateIndex:[], type: "BANK"};
-		return self._stats[accId];
+		if (_stats[accId]==null)
+			_stats[accId] = {_id:accId, value:0, count:0, trDateIndex:[], type: "BANK"};
+		return _stats[accId];
 	}
 	function getAccPath (acc, cb) {
 		if (acc._id != acc.parentId && acc.parentId) {
@@ -238,7 +239,6 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 	console.time("Stats");
 	self._dataReady = false;
 	self._dataInCalc = true;
-	self._stats = {};
 	var skip_calc = false;
 	var defCurrency = {space:"ISO4217", id:"USD"};
 
@@ -267,7 +267,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		price_tree: ['db_stats', function (cb1) {
 			if (skip_calc) return cb1();
 			console.time('price_tree');
-			self._stats.priceTree = {};
+			_stats.priceTree = {};
 			self._cash_prices.find({}, safe.sure(cb1, function (cursor) {
 				var stop = false;
 				async.doUntil(function (cb) {
@@ -282,8 +282,8 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 							{rate:price.value,key:(price.cmdty.space+price.cmdty.id+price.currency.space+price.currency.id)},
 							{rate:1/price.value,key:(price.currency.space+price.currency.id+price.cmdty.space+price.cmdty.id)}];
 						async.forEachSeries(dirs, function (dir, cb) {
-							var dirTree = self._stats.priceTree[dir.key];
-							if (!dirTree) self._stats.priceTree[dir.key] = dirTree = { key: dir.key };
+							var dirTree = _stats.priceTree[dir.key];
+							if (!dirTree) _stats.priceTree[dir.key] = dirTree = { key: dir.key };
 							if (dirTree.average==null) {
 								dirTree.average=dir.rate;
 								dirTree.max=dir.rate;
@@ -313,7 +313,6 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		}],
 		account_paths: ['db_stats', function (cb) {
 			if (skip_calc) return cb();
-			delete self._stats.priceTree;
 			console.time('account_paths');
 			self._cash_accounts.find({}).toArray(safe.sure(cb, function (accounts) {
 				async.forEach(accounts, function (acc, cb) {
@@ -373,7 +372,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 					}));
 				}, function () { return stop; }, safe.sure(cb1, function () {
 					console.timeEnd("Transactions");
-					async.forEachSeries(_.keys(self._stats), function (accId, cb) {
+					async.forEachSeries(_.keys(_stats), function (accId, cb) {
 						var accStats = getAccStats(accId);
 						var doc = _.omit(accStats, 'trDateIndex','cmdty','parentId');
 						self._cash_accounts_stat.update({ _id: doc._id }, doc,
@@ -388,7 +387,6 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 			self._dataReady=true;
 			self._dataInCalc=false;
 			self._pumpWaitQueue();
-			self._stats = {}; // clean data
 			cb();
 		}
 	);
