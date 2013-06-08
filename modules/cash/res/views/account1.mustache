@@ -227,15 +227,20 @@ $(function(){
 		rowsLimit = Math.floor(tableHeight/rowHeight);
 	}
 
+	var scrollTimer = null;
 	function attachScrollEvent($container){
 		$container.find(".acc-scroll").scroll(function(){
-			window.stop();
-			var scrollPosition = $(this).scrollTop();
-			var offset = iTotalRecords - Math.floor((iTotalRecords*rowHeight-scrollPosition)/rowHeight);
-			if(isRecordAdded || isRecordUpdated){
-				$container.block();
-			}
-			loadGrid($container,offset,rowsLimit,function(){$container.unblock();});
+			if (scrollTimer)
+				clearTimeout(scrollTimer);
+			var $this = $(this);
+			scrollTimer = setTimeout(function () {
+				var scrollPosition = $this.scrollTop();
+				var offset = iTotalRecords - Math.floor((iTotalRecords*rowHeight-scrollPosition)/rowHeight);
+				if(isRecordAdded || isRecordUpdated){
+					$container.block();
+				}
+				loadGrid($container,offset,rowsLimit,function(){$container.unblock();});
+			},100)
 		});
 	}
 
