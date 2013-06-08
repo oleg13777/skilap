@@ -1,0 +1,39 @@
+{{#each items}}
+<tr class="acc-item-record" data-id="{{id}}" data-multisplit="{{multisplit}}">
+	<td class=" acc-item" data-name="date" data-editable="input" data-edittype="datepicker" data-val="{{date}}" data-origval="{{date}}"><div class="tdContent">{{date}}</div><div class="tdContentEditable row-fluid"></div></td>
+	<td class=" acc-item" data-name="num" data-editable="input" data-edittype="text" data-val="{{num}}" data-origval="{{num}}"><div class="tdContent">{{num}}</div><div class="tdContentEditable row-fluid"></div></td>
+	<td class=" acc-item" data-name="description" data-editable="input" data-edittype="typeahead" data-val="{{description}}" data-origval="{{description}}"><div class="tdContent">{{description}}</div><div class="tdContentEditable row-fluid"></div></td>
+	<td class=" acc-item" data-name="path" {{#unless multisplit}}data-editable="input" data-edittype="typeahead" {{/unless}}data-val="{{path}}" data-origval="{{path}}" data-splitblock="1" data-relaccid="{{recv_accid}}"><div class="tdContent">{{path}}</div><div class="tdContentEditable row-fluid"></div></td>
+	<td class=" acc-item" data-name="rstate" data-editable="switch" data-edittype="switch" data-val="{{rstate}}" data-origval="{{rstate}}" data-splitblock="1" data-relaccid="{{send_accid}}"><div class="tdContent">{{rstate}}</div><div class="tdContentEditable row-fluid"></div></td>
+	<td class=" acc-item" data-name="deposit" data-editable="input" data-edittype="text" data-val="{{deposit}}" data-origval="{{deposit}}" data-relaccid="{{send_accid}}"><div class="tdContent">{{deposit}}</div><div class="tdContentEditable row-fluid"></div></td>
+	<td class=" acc-item" data-name="withdrawal" data-editable="input" data-edittype="text" data-val="{{withdrawal}}" data-origval="{{withdrawal}}" data-relaccid="{{send_accid}}"><div class="tdContent">{{withdrawal}}</div><div class="tdContentEditable row-fluid"></div></td>
+	<td class=" acc-item" data-name="total"><div class="tdContent">{{total}}</div></td>
+	<td class=" acc-item">
+		<div class="tdContent" style="overflow:visible">
+			{{#if total}}
+		    <div class="btn-group">
+				<button class="btn btn-mini">Edit</button>
+				<button class="btn btn-mini dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
+				<ul class="dropdown-menu">
+					<li><a class="delete-record" href="#">{{#i18n}}Delete{{/i18n}}</a></li>
+				</ul>
+			</div>
+			{{/if}}
+		</div>
+	</td>
+</tr>
+{{#each splits}}
+	<tr class="acc-item-record-split" data-_id="{{_id}}" data-recordid="{{recordid}}" data-accid="{{accountId}}">
+		<td class=" acc-item-split" ><div class="tdContent"></div></td>
+		<td class=" acc-item-split" data-name="num" data-editable="input" data-edittype="text" data-val="{{num}}" data-origval="{{num}}"><div class="tdContent">{{num}}</div><div class="tdContentEditable row-fluid"></div></td>
+		<td class=" acc-item-split" data-name="description" data-editable="input" data-edittype="typeahead" data-val="{{description}}" data-origval="{{description}}"><div class="tdContent">{{description}}</div><div class="tdContentEditable row-fluid"></div></td>
+		<td class=" acc-item-split" data-name="path" data-editable="input" data-edittype="typeahead" data-val="{{path}}" data-origval="{{path}}" data-accid="{{accountId}}" data-currency="{{currency}}"><div class="tdContent">{{path}}</div><div class="tdContentEditable row-fluid"></div></td>
+		<td class=" acc-item-split" data-name="rstate" data-editable="switch" data-edittype="switch" data-val="{{rstate}}" data-origval="{{rstate}}"><div class="tdContent">{{rstate}}</div><div class="tdContentEditable row-fluid"></div></td>
+		<td class=" acc-item-split" data-name="deposit" data-editable="input" data-edittype="text" data-val="{{deposit}}" data-origval="{{deposit}}"><div class="tdContent">{{deposit}}</div><div class="tdContentEditable row-fluid"></div></td>
+		<td class=" acc-item-split" data-name="withdrawal" data-editable="input" data-edittype="text" data-val="{{withdrawal}}" data-origval="{{withdrawal}}"><div class="tdContent">{{withdrawal}}</div><div class="tdContentEditable row-fluid"></div></td>
+		<td class=" acc-item-split" data-name="total"><div class="tdContent">{{total}}</div></td>
+		<td class=" acc-item-split"></td>
+	</tr>
+{{/each}}
+	{{>grid_item_split_blank}}
+{{/each}}
