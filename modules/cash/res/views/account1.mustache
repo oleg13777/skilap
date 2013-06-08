@@ -434,13 +434,13 @@ $(function(){
 					var multisplit = $record.data("multisplit");
 					/* we need update deposit or withdrawal for both split rows */
 					if(multisplit != 1 && (columnName == "deposit" || columnName == "withdrawal")){
-						var secondcol = {"deposit":"witdrawal","withdrawal":"deposit"};
+						var secondcol = {"deposit":"withdrawal","withdrawal":"deposit"};
 						var $prevSplitRow = $splitTargetColumn.parent().prev(".acc-item-record-split");
 						if($prevSplitRow.length > 0){
-							$splitTargetColumn = $prevSplitRow.find(".acc-item-split[data-name=\""+secondcol[columnName]+"\"]")
+							$splitTargetColumn = $prevSplitRow.find(".acc-item-split[data-name=\""+secondcol[columnName]+"\"]");
 						}
 						else{
-							$splitTargetColumn = $splitTargetColumn.parent().next(".acc-item-record-split").find(".acc-item-split[data-name=\""+secondcol[columnName]+"\"]")
+							$splitTargetColumn = $splitTargetColumn.parent().next(".acc-item-record-split").find(".acc-item-split[data-name=\""+secondcol[columnName]+"\"]");
 						}
 						$splitTargetColumn.find(".tdContent").text(columnModifiedData.val);
 						_.each(columnModifiedData,function(v,k){
