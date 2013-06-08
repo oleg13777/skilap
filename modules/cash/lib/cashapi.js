@@ -7,17 +7,11 @@ var events = require("events");
 var safe = require('safe');
 
 function CashApi (ctx) {
-	var self = this;
 	this._ctx = ctx;
 	this._cash_accounts = null;
 	this._cash_transactions = null;
 	this._cash_prices = null;
 	this._cash_settings = null;
-	this._dataReady = false;
-	this._dataInCalc = false;
-	this._lastAccess = new Date();
-	this._stats = {};
-	this._waitQueue = [];
 	this._coreapi;
 }
 
@@ -58,30 +52,6 @@ CashApi.prototype.getSettings = require('./settings.js').getSettings;
 CashApi.prototype.saveSettings = require('./settings.js').saveSettings;
 CashApi.prototype.clearSettings = require('./settings.js').clearSettings;
 CashApi.prototype.importSettings = require('./settings.js').importSettings;
-
-CashApi.prototype._waitForData = function (cb) {
-	this._lastAccess = new Date();
-	if (this._dataReady) return cb(null);
-		else this._waitQueue.push(cb);
-	if (!this._dataInCalc) {
-		this._calcStats(function () {});
-	}
-};
-
-CashApi.prototype._lockData = function (cb) {
-	if (!this._dataReady)
-		return cb(new Error("Can't lock unready data"));
-	this._dataInCalc = true;
-	this._dataReady = false;
-	return cb();
-};
-
-CashApi.prototype._unLockData = function (cb) {
-	if (!this._dataInCalc) {
-		this._calcStats(function () {});
-	}
-	return cb();
-};
 
 CashApi.prototype._loadData = function (cb) {
 	var self = this;
@@ -177,7 +147,11 @@ CashApi.prototype.init = function (cb) {
 		},
 		function (cb) {
 			self._loadData(cb);
-		}],
+		},
+		function (cb) {
+			self._calcStats(cb);
+		}
+		], 
 	cb);
 };
 
@@ -231,8 +205,6 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 	}
 
 	console.time("Stats");
-	self._dataReady = false;
-	self._dataInCalc = true;
 	var skip_calc = false;
 	var defCurrency = {space:"ISO4217", id:"USD"};
 
@@ -261,7 +233,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		price_tree: ['db_stats', function (cb1) {
 			if (skip_calc) return cb1();
 			console.time('price_tree');
-			_stats.priceTree = {};
+			var priceTree = {};
 			self._cash_prices.find({}, safe.sure(cb1, function (cursor) {
 				var stop = false;
 				async.doUntil(function (cb) {
@@ -276,8 +248,8 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 							{rate:price.value,key:(price.cmdty.space+price.cmdty.id+price.currency.space+price.currency.id)},
 							{rate:1/price.value,key:(price.currency.space+price.currency.id+price.cmdty.space+price.cmdty.id)}];
 						async.forEachSeries(dirs, function (dir, cb) {
-							var dirTree = _stats.priceTree[dir.key];
-							if (!dirTree) _stats.priceTree[dir.key] = dirTree = { key: dir.key };
+							var dirTree = priceTree[dir.key];
+							if (!dirTree) priceTree[dir.key] = dirTree = { key: dir.key };
 							if (dirTree.average==null) {
 								dirTree.average=dir.rate;
 								dirTree.max=dir.rate;
@@ -366,83 +338,24 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 					}));
 				}, function () { return stop; }, safe.sure(cb1, function () {
 					console.timeEnd("Transactions");
-					async.forEachSeries(_.keys(_stats), function (accId, cb) {
-						var accStats = getAccStats(accId);
-						var doc = _.omit(accStats, 'trDateIndex','cmdty','parentId');
-						self._cash_accounts_stat.update({ _id: doc._id }, doc,
-								{ upsert: true, w: 1 }, cb);
-					}, cb1);
+					cb1();
 				}));
 			}));
+		}],
+		account_save: ['transaction_stats', function (cb) {
+			if (skip_calc) return cb();
+			async.forEachSeries(_.values(_stats), function (accStats, cb) {
+				var doc = _.omit(accStats, 'trDateIndex','cmdty');
+				self._cash_accounts_stat.update({ _id: doc._id }, doc,
+						{ upsert: true, w: 1 }, cb);
+			}, cb);
 		}]
 		}, function done (err) {
 			if (err) console.log(err);
-			console.timeEnd("Stats");
-			self._dataReady=true;
-			self._dataInCalc=false;
-			self._pumpWaitQueue();
+			console.timeEnd("Stats");			
 			cb();
 		}
 	);
-};
-
-CashApi.prototype._calcStatsDb = function (cb) {
-	var self = this;
-	var stats = {
-		db_stats: {
-			prices: 0,
-			accounts: 0,
-			trs: 0
-		}
-	};
-	async.auto({
-		price_tree: function (cb) {
-			stats.priceTree = {};
-			self._cash_prices_stat.find().each(safe.sure(cb, function (doc) {
-				if (!doc) return cb();
-				stats.priceTree[doc._id] = doc;
-				stats.db_stats.prices++;
-			}));
-		},
-		accounts: function (cb) {
-			self._cash_accounts_stat.find().each(safe.sure(cb, function (doc) {
-				if (!doc) return cb();
-				stats[doc._id] = doc;
-				stats.db_stats.accounts++;
-			}));
-		},
-		registry: [ 'accounts', function (cb) {
-			self._cash_register.find().each(safe.sure(cb, function (doc) {
-				if (!doc) return cb();
-				var acc = stats[doc.accId];
-				if (acc) {
-					var arr = acc.trDateIndex;
-					if (!arr) acc.trDateIndex = arr = [];
-					var trs = _.omit(doc, 'trId', 'accId');
-					trs._id = doc.trId;
-					arr.push(trs);
-					stats.db_stats.trs++;
-				}
-			}));
-		} ]
-	}, safe.sure(cb, function () {
-		cb(null, stats);
-	}));
-};
-
-CashApi.prototype._pumpWaitQueue = function () {
-	var self = this;
-	// peek the first worker
-	if (self._dataReady && self._waitQueue.length) {
-		var wcb = self._waitQueue.shift();
-		wcb(null);
-	}
-	// if we not get locked by first worker and still something in queue do it
-	if (self._dataReady && self._waitQueue.length) {
-		process.nextTick(function () {
-			self._pumpWaitQueue();
-		});
-	}
 };
 
 module.exports.init = function (ctx,cb) {
@@ -452,33 +365,3 @@ module.exports.init = function (ctx,cb) {
 		cb(null, api);
 	});
 };
-
-/* Don't touch this, this can be used to debug/profile cash api
-var profile = {};
-_.forEach(CashApi.prototype, function (f,k) {
-	var p = function () {
-		var start = new Date().valueOf();
-		var cb = arguments[arguments.length-1];
-		if (_.isFunction(cb)) {
-			arguments[arguments.length-1] = function () {
-				var end = new Date().valueOf();
-				console.log(k + " = " + (end-start));
-				if (!profile[k])
-					profile[k]={name:k,count:0,total:0};
-				profile[k].count++;
-				profile[k].total+=(end-start);
-				cb.apply(this,arguments);
-			}
-		}
-		var pf = f;
-		return f.apply(this, arguments);
-	}
-	CashApi.prototype[k] = p;
-});
-setInterval(function () {
-	console.log("Profile dump");
-	_.forEach(profile, function (e) {
-		console.log(e);
-	})
-}, 10000);
-*/

@@ -345,7 +345,7 @@ function Skilap(config_) {
 				_.forEach(modules, function (m,mname) {
 					po.push({obj:m.api.constructor.prototype,name:mname});
 				})
-				po.push({obj:self, name:"ctx"});
+//				po.push({obj:self, name:"ctx"});
 				
 				_.forEach(po, function (m) {
 					var mname = m.name;

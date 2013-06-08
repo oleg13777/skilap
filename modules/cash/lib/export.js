@@ -10,12 +10,7 @@ module.exports.export = function (token,cb) {
 	var self = this;
 	var res = {'skilap-cash':1,transactions:[],prices:[],accounts:[],settings:{}}
 	async.series ([
-		function start(cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
-				function (cb) { self._waitForData(cb) }
-			],cb);
-		}, 
+		function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb) },
 		function getTransaction(cb) {
 			self._cash_transactions.find({}).toArray(safe.sure_result(cb, function(arr) {
 				_.map(arr, function(trn) { return utils._wrapTypes(trn); });
@@ -111,7 +106,7 @@ module.exports.import = function (fileName, cb){
 				setting._id = new self._ctx.ObjectID();
 				process.nextTick(cb);
 			},cb)
-		},
+		}
 	], safe.sure(cb, function () {
 		var ret = {tr:transactions, acc:accounts, prices:prices,settings:settings};
 		process.nextTick(function(){

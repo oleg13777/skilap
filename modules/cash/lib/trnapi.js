@@ -4,15 +4,9 @@ var _ = require('underscore');
 
 module.exports.getAccountRegister = function (token, accId, offset, limit, cb ) {
 	var self = this;
-	var accStats = null;
 	async.waterfall ([
+		function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
 		function (cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		},
-		function (data, cb) {
 			var cursor = self._cash_register.find({'accId': new self._ctx.ObjectID(accId)}).sort( { 'date': 1 } );
 			if (offset)
 				cursor.skip(offset);
@@ -47,15 +41,8 @@ module.exports.getAccountRegister = function (token, accId, offset, limit, cb ) 
 module.exports.getTransaction = function (token, trId, cb) {
 	var self = this;
 	async.series ([
-		function (cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		},
-		function (cb1) {
-			self._cash_transactions.findOne({'_id': trId}, cb1);
-		}
+		function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
+		function (cb) {	self._cash_transactions.findOne({'_id': trId}, cb); }
 	], safe.sure(cb, function (results) {
 		cb(null,results[1]);
 	}));
@@ -72,13 +59,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 	var trn={};
 	var leadAcc = null;
 	async.series ([
-		// wait for data lock
-		function (cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		},
+		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		// get lead account, if any
 		function (cb) {
 			if (leadAccId==null) {
@@ -335,78 +316,48 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			if (debug) { console.log("Before save"); console.log(trn);	}
 			self._cash_transactions.save(trn, cb);
 		}
-	], safe.sure_result(cb,function () {
-		self._calcStats(function () {});
-		return trn;
+	], safe.sure(cb,function () {
+		self._calcStats(function () {cb(null, trn);});
 	}));
 };
 
 module.exports.getTransactionsInDateRange = function (token, range, cb) {
 	var self = this;
-	var res = [];
-	async.series([
-		function start(cb1) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb1);
-		},
-		safe.trap(function (cb) {
-			var startDate = _(range[0]).isDate() ? range[0] : new Date(range[0]);
-			var endDate = _(range[1]).isDate() ? range[1] : new Date(range[1]);
-			self._cash_transactions.find({datePosted: {$gt: startDate, $lt: endDate}}).toArray(cb);
-		})],
-		safe.sure(cb, function (res) {
-			process.nextTick(function () {
-				cb(null, res[1]);
-			});
-		})
+	async.series ([
+	               function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
+	               safe.trap(function (cb) {
+	            	   var startDate = _(range[0]).isDate() ? range[0] : new Date(range[0]);
+	            	   var endDate = _(range[1]).isDate() ? range[1] : new Date(range[1]);
+	            	   self._cash_transactions.find({datePosted: {$gt: startDate, $lt: endDate}}).toArray(cb);
+	               })],
+	               safe.sure(cb, function (res) {
+	            	   process.nextTick(function () {
+	            		   cb(null, res[1]);
+	            	   });
+	               })
 	);
 };
 
 module.exports.clearTransactions = function (token, ids, cb) {
 	var self = this;
-	if (ids == null) {
-		async.series ([
-			function (cb) {
-				async.parallel([
-					function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-					function (cb) { self._waitForData(cb); }
-				],cb);
-			},
-			function (cb) {
-				self._cash_transactions.remove(cb);
-			}
-		], safe.sure_result(cb, function () {
-			self._calcStats(function () {});
-		}));
-	} else {
-		async.series ([
-			function (cb) {
-				async.parallel([
-					function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-					function (cb) { self._waitForData(cb); }
-				],cb);
-			},
-			function(cb){
-				self._cash_transactions.remove({'_id': {$in: ids}}, cb);
-			}
-		], safe.sure_result(cb, function () {
-			self._calcStats(function () {});
-		}));
-	}
+	async.series ([
+	   			function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
+	   			function (cb) {	
+	   				if (ids == null)
+	   					self._cash_transactions.remove(cb);
+	   				else
+	   					self._cash_transactions.remove({'_id': {$in: ids}}, cb);
+	   			}
+	   		], safe.sure(cb, function () {
+	   			self._calcStats(cb);
+	   		}));
 };
 
 module.exports.importTransactions = function (token, transactions, cb) {
 	var self = this;
 	var uid = null;
 	async.series ([
-		function (cb1) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb1);
-		},
+		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		function (cb) {
 			self._coreapi.getUser(token,safe.sure_result(cb, function (user) {
 				uid = user._id;
@@ -419,6 +370,5 @@ module.exports.importTransactions = function (token, transactions, cb) {
 			},cb);
 		},
 	], safe.sure_result(cb, function () {
-		self._calcStats(function () {});
 	}));
 };

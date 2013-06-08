@@ -26,12 +26,7 @@ module.exports.getCmdtyLastPrices = function (token,cb) {
 	var self = this;
 	var res = {};
 	async.series ([
-		function start(cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		}, 
+		function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
 		function get(cb) {
 			self._cash_prices_stat.find({}, safe.trap_sure(cb, function (cursor) {
 				cursor.each(safe.trap_sure(cb, function (stat) {
@@ -48,12 +43,7 @@ module.exports.getCmdtyLastPrices = function (token,cb) {
 module.exports.getPricesByPair = function (token,pair,cb) {
 	var self = this;	
 	async.series ([
-		function start(cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
-				function (cb) { self._waitForData(cb); }
-			], cb);
-		}, 
+		function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
 		function get(cb) {
 			self._cash_prices.find({'cmdty.id': pair.from, 'currency.id': pair.to}).sort({'date': -1}).toArray(cb);
 		}], safe.sure(cb, function (results) {
@@ -67,12 +57,7 @@ module.exports.getPricesByPair = function (token,pair,cb) {
 module.exports.getPriceById = function (token,id,cb) {
 	var self = this;	
 	async.series ([
-		function start(cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
-				function (cb) { self._waitForData(cb); }
-			], cb);
-		}, 
+		function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
 		function get(cb) {
 			self._cash_prices.findOne({'_id': new self._ctx.ObjectID(id)}, cb);
 		}], safe.sure(cb, function (results) {
@@ -84,12 +69,7 @@ module.exports.getPriceById = function (token,id,cb) {
 module.exports.savePrice = function (token,price,cb) {
 	var self = this;
 	async.series ([
-		function (cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		}, 
+		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		function (cb) {
 			if (price._id && price._id != 0) {
 				self._cash_prices.findOne({'_id': new self._ctx.ObjectID(price._id)},safe.sure_result(cb, function (price_) {
@@ -104,57 +84,30 @@ module.exports.savePrice = function (token,price,cb) {
 		function (cb) {
 			self._cash_prices.save(price, cb);
 		}], safe.sure(cb, function () {			
-			self._calcStats(function () {});
-			cb(null, price);
+			self._calcStats(function () { cb(null, price); });
 		})
 	);
 };
 
 module.exports.clearPrices = function (token, ids, cb) {
 	var self = this;
-	if (ids == null) {
-		async.series ([
-			function (cb) {
-				async.parallel([
-					function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-					function (cb) { self._waitForData(cb); }
-				],cb);
-			},
-			function (cb) {
-				self._cash_prices.remove(cb);
-			} 
-		], safe.sure_result(cb, function () {
-		}));
-	} else {
-		async.series ([
-			function (cb) {
-				async.parallel([
-					function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-					function (cb) { self._waitForData(cb); }
-				],cb);
-			},
-			function(cb){
-				self._cash_prices.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, cb);
-			} 
-		], safe.sure_result(cb, function () {
-		}));
-	}
+	async.series ([
+	               function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
+	               function (cb) {
+	            	   if (ids == null)
+	            		   self._cash_prices.remove(cb);
+	            	   else
+	            		   self._cash_prices.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, cb);
+	               } 
+	               ], safe.sure_result(cb, function () {
+	               }));
 };
 
 module.exports.importPrices = function  (token, prices, cb) {
 	var self = this;
 	async.series ([
-		function (cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		},
-		function (cb) {
-			async.forEach(prices, function (e, cb) {
-				self._cash_prices.save(e, cb);
-			},cb);
-		}, 
+		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
+		function (cb) { self._cash_prices.insert(prices, cb); } 
 	], safe.sure_result(cb, function () {
 	}));
 };
