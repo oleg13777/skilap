@@ -151,12 +151,6 @@ CashApi.prototype._loadData = function (cb) {
 					self._cash_prices_stat.ensureIndex("key",cb);
 				},
 				function (cb) {
-					self._cash_transactions.ensureIndex({"splits._id": 1},cb);
-				},
-				function (cb) {
-					self._cash_transactions.ensureIndex({"splits.accountId": 1},cb);
-				},
-				function (cb) {
 					self._cash_register.ensureIndex({"trId": 1 }, cb);
 				},
 				function (cb) {
