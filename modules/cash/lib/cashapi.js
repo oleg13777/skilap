@@ -313,6 +313,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		}],
 		account_paths: ['db_stats', function (cb) {
 			if (skip_calc) return cb();
+			delete self._stats.priceTree;
 			console.time('account_paths');
 			self._cash_accounts.find({}).toArray(safe.sure(cb, function (accounts) {
 				async.forEach(accounts, function (acc, cb) {
@@ -372,9 +373,9 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 					}));
 				}, function () { return stop; }, safe.sure(cb1, function () {
 					console.timeEnd("Transactions");
-					async.forEachSeries(_.keys(ballances), function (accId, cb) {
+					async.forEachSeries(_.keys(self._stats), function (accId, cb) {
 						var accStats = getAccStats(accId);
-						var doc = _.omit(accStats, 'trDateIndex','cmdty');
+						var doc = _.omit(accStats, 'trDateIndex','cmdty','parentId');
 						self._cash_accounts_stat.update({ _id: doc._id }, doc,
 								{ upsert: true, w: 1 }, cb);
 					}, cb1);
