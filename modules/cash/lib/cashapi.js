@@ -113,7 +113,7 @@ CashApi.prototype._loadData = function (cb) {
 					self._cash_transactions.ensureIndex("datePosted",cb);
 				},
 				function (cb) {
-					self._cash_transactions.ensureIndex("splits.accountId",cb);
+					self._cash_transactions.ensureIndex("splits.accountId",{_tiarr:true},cb);
 				},
 				function (cb) {
 					self._cash_prices.ensureIndex("date",cb);
