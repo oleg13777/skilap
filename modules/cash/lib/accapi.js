@@ -266,10 +266,7 @@ module.exports.importAccounts = function  (token, accounts, cb) {
 	async.series ([
 		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		function (cb) {
-			async.forEachSeries(accounts, function (e, cb) {
-				e._id = e._id;
-				self._cash_accounts.save(e,cb);
-			}, cb);
+			self._cash_accounts.insert(accounts, {w: 1}, cb);
 		},
 	], safe.sure_result(cb,function () {
 	}));
@@ -330,9 +327,7 @@ module.exports.restoreToDefaults = function (token, cmdty, type, cb){
 				cb();
 		},
 		function (cb) {
-			async.forEachSeries(accounts, function (e, cb) {
-				self._cash_accounts.save(e,cb);
-			},cb);
+			self._cash_accounts.insert(accounts, {w: 1}, cb);
 		},
 		function (cb) {
 			self.saveSettings(token,"currency",cmdty,cb);
