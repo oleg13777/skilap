@@ -105,7 +105,7 @@ describe("Cash module",function () {
 			self.browser.findElement(By.xpath("//button[.='Edit']")).click();
 			helpers.runModal.call(this, null, function(modal) {
 				modal.findElement(By.id("datepicker")).clear();	
-		        modal.findElement(By.id("datepicker")).sendKeys("05/21/13");
+		        modal.findElement(By.id("datepicker")).sendKeys("05/21/13\n");
 				modal.findElement(By.id("newrate")).clear();	
 				modal.findElement(By.id("newrate")).sendKeys("1.6");	
 				modal.findElement(By.id("save")).click();
