@@ -220,8 +220,8 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 	console.time("Stats");
 	var skip_calc = false;
 	var defCurrency = {space:"ISO4217", id:"USD"};
-	var accToDelete = [];
-	var regToDelete = [];
+	var accToDelete = {};
+	var regToDelete = {};
 
 	async.auto({
 		def_currency: [function (cb) {
@@ -394,7 +394,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		remove_old_acc: ['account_save', function (cb) {
 			if (skip_calc) return cb();
 			if (accToDelete)
-				self._cash_accounts_stat.remove({'_id': {$in: accToDelete}}, {w: 1}, cb);
+				self._cash_accounts_stat.remove({'_id': {$in: _.keys(accToDelete)}}, {w: 1}, cb);
 			else cb();
 		}],
 		remove_old_reg: ['account_save', function (cb) {
@@ -425,9 +425,9 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 	}
 
 	console.time("Stats Partial");
-	var ballances = [];
-	var counters = [];
-	var toDelete = [];
+	var ballances = {};
+	var counters = {};
+	var toDelete = {};
 
 	async.auto({
 		load_stats: [function (cb) {

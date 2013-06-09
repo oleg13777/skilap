@@ -1,8 +1,6 @@
 var util = require("util");
 
 var ApiError = module.exports.ApiError = function(message, subject, details) {
-	console.log(details);
-	console.log(subject);
   this.code = -14;
   this.message = message;
   this.data = {subject:subject};

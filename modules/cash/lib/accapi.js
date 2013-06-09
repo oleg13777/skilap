@@ -67,7 +67,6 @@ module.exports.getSpecialAccount = function (token,type,cmdty,cb) {
 
 	self.getAccountByPath(token,name, function (err, acc) {
 		if (err) {
-			console.log("ERRR",err);
 			if (err && err.data && err.data.subject == "NO_SUCH_ACCOUNT") {
 				// create one
 				var newacc = {"parentId":0,"cmdty":cmdty,"name":name,"type":"EQUITY"};

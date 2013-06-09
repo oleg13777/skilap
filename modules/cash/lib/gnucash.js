@@ -135,7 +135,6 @@ module.exports = function (fileName, cb){
 					price.currency.id = nodetext;
 				break;
 				case "CUST:CURRENCY":
-					console.log(defCurrency)
 					defCurrency.id = nodetext;
 				break;				
 			}			
