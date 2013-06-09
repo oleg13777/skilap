@@ -320,12 +320,8 @@ CoreApi.prototype.loginByPass = function (token, login, password, cb ) {
 					,'InvalidData'));
 		user.type = 'user';
 		var s = self._sessions[token];
-		s.user = user;
-		self._core_clients.insert({clientId: s.clientId, uid: s.user._id, date: new Date(), appId: s.appId}, function () {
-			self._ctx.getModule('cash',function (err, cash) {
-				cash.api._calcStats(function () { cb(null, user); });
-			});
-		});
+		s.user = user;		
+		cb(null, user);
 	});
 };
 

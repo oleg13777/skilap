@@ -279,6 +279,13 @@ describe("Cash module",function () {
 			});
 			self.browser.findElement(By.xpath("//a[contains(.,'" + parent2.name + "')]"));	
 			self.browser.findElement(By.xpath("//div[contains(./a,'" + child.name + "')]/span/a[./i[@title='edit']]")).click();	
+			self.done()
+		});
+		it("Edit changing parent and name", function(done) {
+			var self = this;
+			self.trackError(done);
+			var child = self.fixtures.dataentry.accounts[1];		
+			var parent2 = self.fixtures.dataentry.accounts[2];
 			helpers.runModal.call(self, null, function(modal) {
 		        modal.findElement(By.id("acc_name")).clear();
 		        modal.findElement(By.id("acc_name")).sendKeys(child.name_new);
