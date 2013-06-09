@@ -117,10 +117,6 @@ CashWeb.prototype.guessTab = function (req, ti,cb) {
 };
 
 CashWeb.prototype.removeTabs = function (token, tabIds, cb) {
-<<<<<<< HEAD
-=======
-	
->>>>>>> f56661f81d66d25f4949439ec205a15fe33f84eb
 	var self = this;
 	var user = null;
 	// we can accept bot single or multiple ids
@@ -136,22 +132,14 @@ CashWeb.prototype.removeTabs = function (token, tabIds, cb) {
 			user = user_;
 			self._cash_userviews.findOne({'_id': user._id}, cb);
 		},
-<<<<<<< HEAD
 		safe.trap(function (views, cb) {
-=======
-		safe.trap(function (views, cb) {					
->>>>>>> f56661f81d66d25f4949439ec205a15fe33f84eb
 			if (views==null)
 				views={tabs:[]};
 			if (_.isEqual(tabIds,[null]))
 				views.tabs = [];
 			else
 				views.tabs = _.reject(views.tabs, function (t) { return _(tabIds).include(t.pid); } );
-<<<<<<< HEAD
-			views._id = user._id;
-=======
 			views._id = user._id;			
->>>>>>> f56661f81d66d25f4949439ec205a15fe33f84eb
 			self._cash_userviews.save(views, cb);
 		})], cb
 	);
