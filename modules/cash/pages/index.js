@@ -26,14 +26,14 @@ module.exports = function account(webapp) {
 			})
 		}
 		var res = [];
-		async.each(level, function (acc, cb) {
+		async.forEach(level, function (acc, cb) {
 			var r = {acc:acc};
 			r.value = acc.value;
 			res.push(r);			
 			getAssets(token, acc, types,data, safe.sure(cb, function (childs) {
 				r.childs = childs;
 				r.repCmdty = repCmdty;
-				async.each(childs, function (c,cb) {
+				async.forEach(childs, function (c,cb) {
 					cashapi.getCmdtyPrice(token, c.acc.cmdty, acc.cmdty, null, "safe", safe.sure(cb, function (rate) {
 						r.value+=c.value * rate;
 						cb();
