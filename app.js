@@ -1,3 +1,4 @@
+// require('look').start();
 var main = require('skilap-core');
 if (process.argv[2]=="automated") {
 	process.on("message",function (msg) {

@@ -44,11 +44,16 @@ module.exports.exchangeRate = function () {
 		curency = {},
 		pairs = [], 
 		prices = [];
-	console.log("Start cron");
 
 	async.waterfall([
    		function (cb) {
-	        self._cash_accounts.distinct('cmdty', {}, cb);
+	        self._cash_accounts.find().toArray(safe.sure(cb, function (accounts) {
+				var cmdtys = {};				
+				_.each(accounts, function (acc) {
+					cmdtys[acc.cmdty.id]=acc.cmdty;
+				})
+				cb(null,_.values(cmdtys));
+			}))
 		},
    		function (cmdtys, cb) {
 			for (var i = 0; i<cmdtys.length; i++)

@@ -147,7 +147,7 @@ CashApi.prototype._loadData = function (cb) {
 
 CashApi.prototype.init = function (cb) {
 	var self = this;
-	async.parallel([
+	async.series([
 		function (cb) {
 			self._ctx.getModule("core",function (err, module) {
 				if (err) return cb(err);
