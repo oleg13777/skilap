@@ -60,6 +60,30 @@ function datafix(obj) {
 }
 module.exports.prefixify = datafix;
 
+module.exports._wrapTypes = function(obj) {
+	var self = this;
+	_.each(obj, function (v,k) {
+		if (_.isDate(v))
+			obj[k] = {$wrap:"$date",v:v}
+		else if (_.isObject(v))
+			self._wrapTypes(v)
+	})
+	return obj;
+}
+
+module.exports._unwrapTypes = function(obj) {
+	var self = this;
+	_.each(obj, function (v,k) {
+		if (_.isObject(v)) {
+			switch (v.$wrap) {
+				case "$date": obj[k] = new Date(v.v); break;
+				default: self._unwrapTypes(v);
+			}
+		}
+	})
+	return obj;
+}
+
 var send = require('send')
 module.exports.vstatic = function vstatic(root, options){
   options = options || {};
