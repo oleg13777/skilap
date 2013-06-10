@@ -570,11 +570,8 @@ describe("Cash module",function () {
 			});			
 			self.browser.findElement(By.id("page_menu")).click();	
 			self.browser.findElement(By.linkText("Page settings")).click();
-			helpers.runModal.call(self, null, function(modal) {
-				//self.browser.findElement(By.linkText("General")).click();
-		        modal.findElement(By.xpath("//span[text()='Электричество']")).click();
-				//modal.findElement(By.id("acc_parent")).sendKeys(acc1.parent);	
-				//modal.findElement(By.id("acc_curency")).sendKeys(acc1.currency);			
+			helpers.runModal.call(self, null, function(modal) {				
+		        modal.findElement(By.xpath("//span[text()='Электричество']")).click();						
 				modal.findElement(By.id("save")).click();
 			});
 				self.browser.findElements(By.tagName("tspan")).then(function(elems){				
@@ -590,7 +587,206 @@ describe("Cash module",function () {
 				})			
 			});	
 			self.done();
+		})
+		it ("Check Colapse level", function(done){
+			var self = this;
+			self.trackError(done);			
+			self.browser.findElements(By.tagName("tspan")).then(function(elems){				
+				var arr =[]; 	
+				var counter = 0;			
+				_.forEach(elems, function(elem){					
+					elem.getText().then(function(text){						
+						arr.push(text);
+						if (counter++ == elems.length){							
+							assert.ok(_.contains(arr, "Электричество"), "lost account");
+						}
+					})
+				})			
+			});			
+			self.browser.findElement(By.id("page_menu")).click();	
+			self.browser.findElement(By.linkText("Page settings")).click();
+			helpers.runModal.call(self, null, function(modal) {				
+		       self.browser.executeScript("$('select[name=\"accLevel\"]').val('1')");
+		       modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElements(By.tagName("tspan")).then(function(elems){				
+				var arr =[]; 	
+				var counter = 0;			
+				_.forEach(elems, function(elem){					
+					elem.getText().then(function(text){						
+						arr.push(text);
+						if (counter++ == elems.length){							
+							assert.ok(!_.contains(arr, "дом"), "lost account");
+						}
+					})
+				})			
+			});	
+			self.done();
+		})	
+		it ("Check MaxAccounts", function(done){
+			var self = this;
+			self.trackError(done);			
+			self.browser.findElements(By.tagName("tspan")).then(function(elems){				
+				var arr =[]; 	
+				var counter = 0;			
+				var canstart = false;
+				var end = false;
+				_.forEach(elems, function(elem){					
+					elem.getText().then(function(text){						
+						if (!canstart && !end){
+							if (text.indexOf("Other")!=-1)
+								canstart = true;
+						}
+						else if (canstart){
+							if (text.indexOf("1.2011")!=-1)
+								arr.push(text);	
+							else{
+								canstart = false;
+								end = true;
+							}	
+						}										
+						if (counter++ == elems.length){							
+							assert.ok(arr.length==10, "acc number");
+						}
+					})
+				})			
+			});			
+			self.browser.findElement(By.id("page_menu")).click();	
+			self.browser.findElement(By.linkText("Page settings")).click();
+			helpers.runModal.call(self, null, function(modal) {	
+				modal.findElement(By.linkText("General")).click();
+				helpers.fillInput.call(modal, modal.findElement(By.name("maxAcc")), "3");				
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElements(By.tagName("tspan")).then(function(elems){	
+				var arr =[]; 	
+				var counter = 0;			
+				var canstart = false;
+				var end = false;		
+				_.forEach(elems, function(elem){					
+					elem.getText().then(function(text){						
+						if (!canstart && !end){
+							if (text.indexOf("Other")!=-1)
+								canstart = true;
+						}
+						else if (canstart){
+							if (text.indexOf("1.2011")!=-1)
+								arr.push(text);	
+							else{
+								canstart = false;
+								end = true;
+							}	
+						}										
+						if (counter++ == elems.length){							
+							assert.ok(arr.length==3, "acc number");
+						}
+					})
+				})	
+			})	
+			self.done();
 		})		
+		it ("Check Account type", function(done){
+			var self = this;
+			self.trackError(done);			
+			self.browser.findElements(By.tagName("tspan")).then(function(elems){				
+				var arr =[]; 	
+				var counter = 0;			
+				_.forEach(elems, function(elem){					
+					elem.getText().then(function(text){						
+						arr.push(text);
+						if (counter++ == elems.length){							
+							assert.ok(!_.contains(arr, "Особый Bank"), "acc type");
+						}
+					})
+				})			
+			});			
+			self.browser.findElement(By.id("page_menu")).click();	
+			self.browser.findElement(By.linkText("Page settings")).click();
+			helpers.runModal.call(self, null, function(modal) {				
+		       self.browser.executeScript("$('select[name=\"accType\"]').val('BANK')");
+		       modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElements(By.tagName("tspan")).then(function(elems){				
+				var arr =[]; 	
+				var counter = 0;			
+				_.forEach(elems, function(elem){					
+					elem.getText().then(function(text){						
+						arr.push(text);
+						if (counter++ == elems.length){							
+							assert.ok(_.contains(arr, "Особый Bank"), "acc type");
+						}
+					})
+				})			
+			});	
+			self.done();
+		})	
+		it ("Check Currency", function(done){
+			var self = this;
+			self.trackError(done);			
+			self.browser.findElements(By.tagName("tspan")).then(function(elems){				
+				var arr =[]; 	
+				var counter = 0;			
+				_.forEach(elems, function(elem){					
+					elem.getText().then(function(text){						
+						arr.push(text);
+						if (counter++ == elems.length){							
+							assert.ok(_.contains(arr, "-50000.00"), "currency");
+						}
+					})
+				})			
+			});			
+			self.browser.findElement(By.id("page_menu")).click();	
+			self.browser.findElement(By.linkText("Page settings")).click();
+			helpers.runModal.call(self, null, function(modal) {
+				modal.findElement(By.linkText("General")).click();				
+				self.browser.executeScript("$('select[name=\"reportCurrency\"]').val('USD')");
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElements(By.tagName("tspan")).then(function(elems){				
+				var arr =[]; 	
+				var counter = 0;			
+				_.forEach(elems, function(elem){					
+					elem.getText().then(function(text){						
+						arr.push(text);
+						if (counter++ == elems.length){							
+							assert.ok(_.contains(arr, "-1636.50"), "currency");
+						}
+					})
+				})			
+			});	
+			self.done();
+		})	
+		it ("Check date range", function(done){
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.id("page_menu")).click();	
+			self.browser.findElement(By.linkText("Page settings")).click();
+			helpers.runModal.call(self, null, function(modal) {	
+				modal.findElement(By.linkText("General")).click();
+				helpers.fillInput.call(modal, modal.findElement(By.name("startDate")), "03/01/2012");
+				helpers.fillInput.call(modal, modal.findElement(By.name("endDate")), "05/01/2012");						
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElements(By.tagName("tspan")).then(function(elems){	
+				var arr =[]; 	
+				var counter = 0;			
+				var canstart = false;
+				var end = false;		
+				_.forEach(elems, function(elem){					
+					elem.getText().then(function(text){						
+						arr.push(text);													
+						if (counter++ == elems.length){		
+							assert.ok(!_.contains(arr, "2.2012"), "date range");					
+							assert.ok(_.contains(arr, "3.2012"), "date range");
+							assert.ok(_.contains(arr, "4.2012"), "date range");
+							assert.ok(_.contains(arr, "5.2012"), "date range");
+							assert.ok(!_.contains(arr, "6.2012"), "date range");
+						}
+					})
+				})	
+			})	
+			self.done();
+		})						
 	})
 	describe.skip("Settings", function () {
 		it("TBD")

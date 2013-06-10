@@ -90,23 +90,14 @@ module.exports = function account(webapp) {
 			function (cb1) {
 				cashapi.getAllAccounts(token, cb1);
 			},
-			function (accounts, cb1) {							
-				//check selected accounts
-				if(_.isArray(params.accIds) && accounts.length != params.accIds.length){
-					var storage = [];
-					_.forEach(params.accIds, function(item){
-						storage.push(_.find(accounts, function(elem){return _.isEqual(elem._id.toString(),item.toString())}));
-					})
-					accounts = storage;
-				}						
-				accKeys = _(accounts).reduce(function (memo, acc) {								
-					if (acc && acc.type == params.accType){
-						memo[acc._id] = {name:acc.name, _id:acc._id, parentId:acc.parentId,summ:0};
-						if(periods)
-							memo[acc._id].periods = _(periods).map(function (p) { return _.clone(p); });
-					}
+			function (accounts, cb1) {					
+				//here not filter accounts yet 
+				accKeys = _(accounts).reduce(function (memo, acc) {					
+					memo[acc._id] = {name:acc.name, _id:acc._id, parentId:acc.parentId,summ:0,type:acc.type};
+					if(periods)
+						memo[acc._id].periods = _(periods).map(function (p) { return _.clone(p); });
 					return memo;
-				}, {});				
+				}, {});		
 				cashapi.getTransactionsInDateRange(token,[params.startDate,params.endDate,true,false],cb1);
 			},
 			function(trns,cb1){							
@@ -120,9 +111,13 @@ module.exports = function account(webapp) {
 							var acs = accKeys[split.accountId];
 							if (acs) {
 								var val = split.quantity*irate;
+								if (params.accType!=acs.type){
+									acs.summ  = 0;
+									val = 0;
+								}
 								if (params.accType == "INCOME")
-									val *= -1;
-								acs.summ += val;
+									val *= -1;								
+								acs.summ += val;								
 								if (periods) {
 									var d = tr.datePosted.valueOf();
 									_.forEach(acs.periods, function (p) {
@@ -162,12 +157,15 @@ module.exports = function account(webapp) {
 									delete ids[item.parentId];
 									if (item.level<=params.accLevel)
 										delete ids[id];
+									if (item.type!=params.accType)
+										delete ids[id];
 								})
 								// reduce
 								_.each(ids, function (v,id) {
 									var child = accKeys[id];
-									var parent = accKeys[child.parentId];
+									var parent = accKeys[child.parentId];								
 									parent.summ+=child.summ;
+									parent.expand = 1;
 									if (child.periods) {
 										for (var i = 0 ; i<child.periods.length; i++) {
 											parent.periods[i].summ+=child.periods[i].summ;
@@ -176,6 +174,19 @@ module.exports = function account(webapp) {
 									delete accKeys[id];
 								})
 							} while (_.size(ids)!=0);
+							//filter by id and type
+							if(_.isArray(params.accIds) && _.size(accKeys) != params.accIds.length){								
+								accKeys = _.filter(accKeys, function(elem){
+									if (elem.expand)
+										return true;
+									return _.find(params.accIds, function(item){return _.isEqual(elem._id.toString(),item.toString())}
+								)});										
+							}													
+							accKeys = _(accKeys).reduce(function (memo, acc) {								
+								if (acc.type == params.accType || acc.expand)
+									memo[acc._id] = acc;					
+								return memo;
+							}, {});		
 							cb2();
 						}
 					],function(err){
@@ -183,10 +194,20 @@ module.exports = function account(webapp) {
 						cb1();
 					});
 				}
-				else
+				else{					
+					//filter by id and type;
+					if(_.isArray(params.accIds) && _.size(accKeys) != params.accIds.length){
+						accKeys = _.filter(accKeys, function(elem){ return _.find(params.accIds, function(item){return _.isEqual(elem._id.toString(),item.toString())})});										
+					}						
+					accKeys = _(accKeys).reduce(function (memo, acc) {								
+						if (acc.type == params.accType)
+							memo[acc._id] = acc;					
+						return memo;
+					}, {});		
 					cb1();
+				}
 			},
-			function(cb1){
+			function(cb1){				
 				var total = 0;
 				// find important accounts (with biggest summ over entire period)
 				var iacs = _(accKeys).chain().map(function (acs) { return {_id:acs._id, summ:acs.summ}})
