@@ -115,10 +115,12 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 			],cb);
 		},
 		function (cb) {
-			accStats = self._stats[new self._ctx.ObjectID(accId.toString())];
-			if (accStats==null)
-				return cb(new Error("Invalid account Id: "+accId));
-			cb();
+			self._cash_accounts_stat.findOne({'_id': new self._ctx.ObjectID(accId.toString())}, function(err, stat) {
+				accStats = stat;
+				if (accStats==null)
+					return cb(new Error("Invalid account Id: "+accId));
+				cb();
+			});
 		},
 		function (cb) {
 			if (!_(details).include("verbs"))
