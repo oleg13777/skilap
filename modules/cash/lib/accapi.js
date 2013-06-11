@@ -65,13 +65,11 @@ module.exports.getAccountByPath = function (token,path,cb) {
 			],cb);
 		},
 		function find(cb) {
-			var newAccId = null;
-			var stats = self._stats;
-			var accStats = _.find(stats, function (e) { return e.path == path; });
-			newAccId = accStats._id;
-			if (newAccId==null)
-				return cb(new SkilapError("No such account","NO_SUCH_ACCOUNT"));
-			self.getAccount(token,newAccId,cb);
+			self._cash_accounts_stat.findOne({'path': path}, function(err, stat) {
+				if (stat==null)
+					return cb(new SkilapError("No such account","NO_SUCH_ACCOUNT"));
+				self.getAccount(token,stat._id,cb);
+			});
 		}
 		], safe.sure_result(cb,function (results) {
 			return results[1];

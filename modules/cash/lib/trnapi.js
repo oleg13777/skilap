@@ -220,9 +220,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			} else {
 				if (value==0) return cb();
 				self.getSpecialAccount(token,"disballance",trn.currency, safe.sure(cb, function(acc) {
-					self._ctx.getUniqueId(safe.trap_sure_result(cb, function (id) {
-						trn.splits.push({value:-1*value,quantity:-1*value,accountId:acc._id,_id:_id,description:""});
-					}));
+					trn.splits.push({value:-1*value,quantity:-1*value,accountId:acc._id,_id:new self._ctx.ObjectID(),description:""});
 				}));
 			}
 		}),
