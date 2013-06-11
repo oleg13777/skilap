@@ -27,7 +27,7 @@ var assert = require('assert');
  * */
 
 describe("Cash module",function () {
-	this.timeout(3000000);
+	this.timeout(30000);
 	before(tutils.setupContext);
 	before(function (done) {
 		this.browser.manage().window().setSize(1280,768);	
