@@ -173,7 +173,10 @@ CashApi.prototype._loadData = function (cb) {
 					self._cash_transactions.ensureIndex({"splits.accountId": 1},cb);
 				},
 				function (cb) {
-					self._cash_register.ensureIndex({ "trId": 1, "accId": 1 }, cb);
+					self._cash_register.ensureIndex({ "accId": 1, "trId": 1 }, cb);
+				},
+				function (cb) {
+					self._cash_register.ensureIndex({ "date": 1 }, cb);
 				}
 				
 			], cb)

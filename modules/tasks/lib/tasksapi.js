@@ -14,7 +14,6 @@ function TasksApi (ctx) {
 	this._dataReady = false;
 	this._dataInCalc = false;
 	this._lastAccess = new Date();
-	this._stats = {};
 	this._waitQueue = [];
 	this._coreapi;
 	
@@ -23,7 +22,6 @@ function TasksApi (ctx) {
 		if (self._dataReady==false) return; // already sleep
 		var d = new Date();
 		if ((d.valueOf()-self._lastAccess.valueOf())>60*1000) {
-			self._stats = {};
 			console.log("dataCleared");
 			self._dataInCalc = self._dataReady = false;
 		}
