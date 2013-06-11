@@ -27,8 +27,8 @@ SchedulerApi.prototype.init = function (cb) {
 	self._api.core = self._ctx.getModuleSync('core').api;
 	self._api.cash = self._ctx.getModuleSync('cash').api;
 
-//	var rate = new cronJob('0 * * * * *', function() {
-	self.rate = new cronJob('0 0 * * * *', function() {
+	self.rate = new cronJob('0 * * * * *', function() {
+//	self.rate = new cronJob('0 0 * * * *', function() {
 		process.nextTick(function () {
 			try {
 				self.exchangeRate();
@@ -48,11 +48,11 @@ SchedulerApi.prototype.init = function (cb) {
 };
 
 SchedulerApi.prototype.startExchangeRate = function () {
-	self.rate.start();
+	this.rate.start();
 };
 
 SchedulerApi.prototype.stopExchangeRate = function () {
-	self.rate.stop();
+	this.rate.stop();
 };
 
 SchedulerApi.prototype.exchangeRate = function () {
@@ -80,6 +80,7 @@ SchedulerApi.prototype.exchangeRate = function () {
 	        }));
 		},
 		function (pair, cb) {
+			console.log('Do check rates with currencies: ' + _.keys(pairs));
 			async.forEachLimit(_.keys(pairs), 20, function (e, cb1) {
 				request('http://download.finance.yahoo.com/d/quotes.csv?s='+e+'=X&f=sl1d1t1ba&e=.csv', safe.trap_sure(cb1, function (response,body) {
 					if (response.statusCode == 200 && body) {

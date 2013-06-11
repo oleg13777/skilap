@@ -19,6 +19,11 @@ define(["jquery","eventemitter2","safe", "jquery-block","bootstrap"], function (
 							"cmd":"api",
 							"prm":["cash.getSettings","currency",null],
 							"res":{"a":"store","v":"currency"}
+						},
+						"checkRate":{
+							"cmd":"api",
+							"prm":["cash.getSettings","checkRate",false],
+							"res":{"a":"store","v":"checkRate"}
 						}							
 					}				
 					api.batch(batch, safe.sure(cb, function (data) {									

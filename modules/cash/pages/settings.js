@@ -17,12 +17,15 @@ module.exports = function priceeditor(webapp) {
 			},
 			defCurrency:function(cb){
 				cashapi.getSettings(req.session.apiToken,"currency",{space:"ISO4217",id:ctx.i18n(req.session.apiToken, 'cash', 'USD')}, cb)
+			},
+			checkRate:function(cb){
+				cashapi.getSettings(req.session.apiToken,"checkRate",false, cb);
 			}
 		}, safe.trap_sure(next, function render (r) {	
 			var rdata = {
 				settings:{views:__dirname+"/../res/views/"},
 				prefix:prefix, 
-				values:{currency:r.defCurrency},
+				values:{currency:r.defCurrency, checkRate: r.checkRate},
 				usedCurrencies:r.currency.used,
 				notUsedCurrencies:r.currency.unused,
 				mainLayoutHide:1
