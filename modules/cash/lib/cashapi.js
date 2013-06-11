@@ -149,6 +149,9 @@ CashApi.prototype._loadData = function (cb) {
 					self._cash_accounts.ensureIndex("parentId",cb);
 				},
 				function (cb) {
+					self._cash_accounts_stat.ensureIndex("path",cb);
+				},
+				function (cb) {
 					self._cash_transactions.ensureIndex("datePosted",cb);
 				},
 				function (cb) {
