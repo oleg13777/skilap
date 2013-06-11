@@ -708,7 +708,7 @@ CashApi.prototype._calcPriceStatsPartial = function (cmdty, currency, cb) {
 			}));
 		}, function () { return stop; }, function() {
 			if (!bFound)
-				self._cash_prices_stat.remove({key: key}, cb);
+				self._cash_prices_stat.remove({key: {$in:key}}, cb);
 			else 
 				cb();
 		});

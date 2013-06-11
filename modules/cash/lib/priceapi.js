@@ -100,32 +100,32 @@ module.exports.clearPrices = function (token, ids, cb) {
 	var self = this;
 	var objs = [];
 	async.series ([
-	               function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-	               function (cb) {
-	            	   if (ids)
-	            		   self._cash_prices.find({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, {fields: {cmdty: 1, currency: 1}}).toArray(safe.sure_result(cb, function(vals) {
-	            			   _.each(vals, function (val) {
-	            				  objs[val.cmdty.space+val.cmdty.id+val.currency.space+val.currency.id] = val; 
-	            			   });
-	            		   }));
-	            	   else
-	            		   cb();
-	               },
-	               function (cb) {
-	            	   if (ids == null)
-	            		   self._cash_prices.remove(cb);
-	            	   else
-	            		   self._cash_prices.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, cb);
-	               } 
-	               ], safe.sure(cb, function () {
-	            	   if (ids == null)
-	            		   self._calcPriceStatsPartial(null, null, function() {cb();});
-	            	   else {
-	            		   async.eachSeries(_.values(objs), function (obj, cb) {
-		            		   self._calcPriceStatsPartial(obj.cmdty, obj.currency, cb);
-	            		   }, function() {cb();});
-	            	   }
-	               }));
+	   function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
+	   function (cb) {
+		   if (ids)
+			   self._cash_prices.find({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, {fields: {cmdty: 1, currency: 1}}).toArray(safe.sure_result(cb, function(vals) {
+				   _.each(vals, function (val) {
+					  objs[val.cmdty.space+val.cmdty.id+val.currency.space+val.currency.id] = val; 
+				   });
+			   }));
+		   else
+			   cb();
+	   },
+	   function (cb) {
+		   if (ids == null)
+			   self._cash_prices.remove(cb);
+		   else
+			   self._cash_prices.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, cb);
+	   } 
+   ], safe.sure(cb, function () {
+	   if (ids == null)
+		   self._calcPriceStatsPartial(null, null, function() {cb();});
+	   else {
+		   async.eachSeries(_.values(objs), function (obj, cb) {
+			   self._calcPriceStatsPartial(obj.cmdty, obj.currency, cb);
+		   }, function() {cb();});
+	   }
+   }));
 };
 
 module.exports.importPrices = function  (token, prices, cb) {
