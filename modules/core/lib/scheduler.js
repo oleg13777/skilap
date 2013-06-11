@@ -27,8 +27,7 @@ SchedulerApi.prototype.init = function (cb) {
 	self._api.core = self._ctx.getModuleSync('core').api;
 	self._api.cash = self._ctx.getModuleSync('cash').api;
 
-	self.rate = new cronJob('0 * * * * *', function() {
-//	self.rate = new cronJob('0 0 * * * *', function() {
+	self.rate = new cronJob('0 0 * * * *', function() {
 		process.nextTick(function () {
 			try {
 				self.exchangeRate();
@@ -41,10 +40,6 @@ SchedulerApi.prototype.init = function (cb) {
 		if (v && v.v)
 			self.rate.start();
 	}));
-
-//	self.rate.start();
-//	self.exchangeRate();
-
 };
 
 SchedulerApi.prototype.startExchangeRate = function () {
