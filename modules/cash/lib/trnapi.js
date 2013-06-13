@@ -4,7 +4,7 @@ var _ = require('underscore');
 
 module.exports.getAccountRegister = function (token, accId, offset, limit, cb ) {
 	var self = this;
-	var accStats = [];
+	var accStats = null;
 	async.waterfall ([
 		function (cb) {
 			async.parallel([
@@ -17,24 +17,35 @@ module.exports.getAccountRegister = function (token, accId, offset, limit, cb ) 
 				return _.map(data, function(d) { d._id = d.trId; return d;});
 			}));
 		},
-		safe.trap(function (trDateIndex, cb) {
-			self._cash_accounts_stat.findOne({'_id': new self._ctx.ObjectID(accId.toString())}, function(err, stat) {
-				accStats = stat;
-				accStats.trDateIndex = trDateIndex;
-				if (accStats==null)
-					return cb(new Error("Invalid account Id: "+accId));
-				if (limit==null) {
-					if (offset==0 || offset == null)
-						cb(null, accStats.trDateIndex);
-					else
-						cb(null, accStats.trDateIndex.slice(offset, offset + limit));
-				} else
-					if (limit < 0)
-						cb(null, accStats.trDateIndex.slice(limit));
-					else
-						cb(null, accStats.trDateIndex.slice(offset, offset + limit));
+		function (data, cb) {
+			if (limit==null) {
+				if (offset==0 || offset == null)
+					cb(null, data);
+				else
+					cb(null, data.slice(offset, offset + limit));
+			} else
+				if (limit < 0)
+					cb(null, data.slice(limit));
+				else
+					cb(null, data.slice(offset, offset + limit));
+		},
+		function (data, cb) {
+			async.eachSeries(data, function(d, cb) {
+				self._cash_transactions.findOne({'_id': d.trId}, safe.sure_result(cb, function(tr) {
+					var recv = [];
+					var send = null;
+					tr.splits.forEach(function(split) {
+						if (split.accountId == accId)
+							send = split;
+						else
+							recv.push(split);
+					});
+					d.recv = recv; d.send = send;
+				}));
+			}, function (err) {
+				cb(null, data);
 			});
-		})], safe.sure(cb,function (result) {
+		}], safe.sure(cb,function (result) {
 			cb(null,result);
 		})
 	);
