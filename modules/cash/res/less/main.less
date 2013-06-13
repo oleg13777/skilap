@@ -341,3 +341,60 @@ display:none !important;
 .ski_settingsMenu .menuItem.split.delete a{
 	background:url('../img/clear-icon.png')no-repeat 0 5px;
 }
+
+
+.acc-container{
+	.acc-item-record.odd{
+		background-color:#BFDEB9;
+	}
+	.acc-item-record.even{
+		background-color:#F6FFDA;
+	}
+	.acc-item-record.selected{
+		background-color:#FFEF98;
+	}
+	.acc-item-record{
+		.acc-item{
+			padding:0px;
+			.tdContent{
+				padding:5px;
+				height:30px;
+				.box-sizing(border-box);
+				overflow:hidden;
+				text-overflow:ellipsis;
+				white-space: nowrap;
+			}
+			.tdContentEditable{
+				display:none;
+			}
+		}
+	}
+
+	.acc-item-record-split{
+		display:none;
+		background-color:#EDE7D3;
+		.acc-item-split{
+			padding:0px;
+			.tdContent{
+				padding:5px;
+				height:30px;
+				.box-sizing(border-box);
+				overflow:hidden;
+				text-overflow:ellipsis;
+				white-space: nowrap;
+			}
+			.tdContentEditable{
+				display:none;
+			}
+		}
+	}
+
+	.acc-scroll{
+		width:20px;
+		display:none;
+		overflow-y:auto;
+		overflow-x:hidden;
+		.acc-scroll-inner{
+		}
+	}
+}

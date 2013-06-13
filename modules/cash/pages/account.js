@@ -27,7 +27,7 @@ module.exports = function account(webapp) {
 				var pageSize = 25;
 				var firstVisible = Math.max(0, count-pageSize);
 				var scrollGap = pageSize*5;
-				res.render(__dirname+"/../res/views/account", {
+				res.render(__dirname+"/../res/views/account1", {
 					tabs:vtabs,
 					prefix:prefix,
 					accountId:req.query.id,
@@ -197,13 +197,17 @@ module.exports = function account(webapp) {
 						if(accInfo[split.accountId].currency != accInfo[req.params.id].currency){
 							multicurr = 1;
 						}
+						split.recordid = tr._id;
 						split.path = accInfo[split.accountId].path;
 						split.currency = accInfo[split.accountId].currency;
+						split.deposit = split.quantity>0 ? sprintf("%.2f",split.quantity):'';
+						split.withdrawal = split.quantity<=0?sprintf("%.2f",split.quantity*-1):'';
 						splitsInfo.push(split);
 					});
-					var path = "";
+					var path = "",multisplit = null,recv_accid="",send_accid = send.accountId;
 					if(recv.length==1){
 						path = accInfo[recv[0].accountId].path;
+						recv_accid=recv[0].accountId;
 					}
 					else if(recv.length > 1){
 						path = '['+accInfo[recv[0].accountId].path;
@@ -211,6 +215,7 @@ module.exports = function account(webapp) {
 							path += ','+accInfo[recv[j].accountId].path;
 						}
 						path += ']';
+						multisplit =1;
 					}
 					data.aaData.push({
 						id:tr._id,
@@ -218,6 +223,9 @@ module.exports = function account(webapp) {
 						num:tr.num ? tr.num : '',
 						description:tr.description,
 						path:path,
+						multisplit:multisplit,
+						recv_accid:recv_accid,
+						send_accid:send_accid,
 						path_curr: (recv.length==1 && accInfo[recv[0].accountId].currency != accInfo[req.params.id].currency ? accInfo[recv[0].accountId].currency :null),
 						rstate: (send.rstate ? send.rstate:"n"),
 						deposit:(send.value>0?sprintf("%.2f",send.value):''),
@@ -230,8 +238,57 @@ module.exports = function account(webapp) {
 						multisplit:recv.length > 1 ? 1 : 0
 					});
 				}
-				data.iTotalRecords = count;
-				data.iTotalDisplayRecords = count;
+				if(count - idx <= req.query.iDisplayLength){
+					data.aaData.shift();
+					var blankSplit = {
+						recordid : "blank",
+						path : "",
+						currency : "",
+						deposit : "",
+						withdrawal : ""
+					};
+					data.aaData.push({
+						id:"blank",
+						date:df.format(new Date()),
+						num:'',
+						description:"",
+						path:"",
+						multisplit:0,
+						recv_accid:"fake",
+						send_accid:accInfo[req.params.id]._id,
+						path_curr: "",
+						rstate: "n",
+						deposit:"",
+						deposit_quantity: "",
+						withdrawal:"",
+						withdrawal_quantity: "",
+						total:"",
+						splits:[
+							{
+								_id: "new",
+								recordid : "blank",
+								path : "",
+								currency : "",
+								deposit : "",
+								withdrawal : "",
+								accountId : "fake"
+							},
+							{
+								_id:"new",
+								recordid : "blank",
+								path : currentAccountPath,
+								currency : accInfo[req.params.id].currency,
+								deposit : "",
+								withdrawal : "",
+								accountId : accInfo[req.params.id]._id
+							},
+						],
+						multicurr:0,
+						multisplit:0
+					});
+				}
+				data.iTotalRecords = count+1;
+				data.iTotalDisplayRecords = count+1;
 				data.currentDate = df.format(new Date());
 				data.currentAccount = {id:req.params.id,path:currentAccountPath,currency:accInfo[req.params.id].currency};
 				res.send(data);
@@ -265,9 +322,9 @@ module.exports = function account(webapp) {
 		if(data.splits) {
 			_.forEach(data.splits,function(spl){
 				var depositVal  = (spl.deposit && spl.deposit != "") ? eval(sanitizeNumericField(spl.deposit)) : 0;
-				var depositQuantity  = spl.deposit_quantity != "" ? eval(sanitizeNumericField(spl.deposit_quantity)) : 0;
+				var depositQuantity  =  spl.deposit_quantity && spl.deposit_quantity != "" ? eval(sanitizeNumericField(spl.deposit_quantity)) : 0;
 				var withdrawalVal  = spl.withdrawal != "" ? eval(sanitizeNumericField(spl.withdrawal)) : 0;
-				var withdrawalQuantity  = spl.withdrawal_quantity != "" ? eval(sanitizeNumericField(spl.withdrawal_quantity)) : 0;
+				var withdrawalQuantity  = spl.withdrawal_quantity && spl.withdrawal_quantity != "" ? eval(sanitizeNumericField(spl.withdrawal_quantity)) : 0;
 				splitVal = depositVal - withdrawalVal;
 				splitQuantity = depositQuantity - withdrawalQuantity;
 				var modifiedSplit = {

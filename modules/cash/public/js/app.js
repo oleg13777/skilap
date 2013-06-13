@@ -11,7 +11,8 @@ require.config({
 		"highcharts": "/common/js/highcharts/highcharts",
 		"skigrid": _prefix+"/js/jquery.skiGrid",
 		"bootstrap-datepicker": "/common/js/locales/bootstrap-datepicker."+_user.language.charAt(0)+_user.language.charAt(1),
-		"bootstrap-datepicker-core": "/common/js/bootstrap-datepicker"
+		"bootstrap-datepicker-core": "/common/js/bootstrap-datepicker",
+		"jquery-mousewheel": _prefix+"/js/jquery.mousewheel",
 	},
 	shim:{
 		"gettext": {
@@ -41,6 +42,9 @@ require.config({
 		"bootstrap-datepicker": {
 			deps:["bootstrap-datepicker-core"]
 		},
+		"jquery-mousewheel":{
+			deps:["jquery"]
+		}
 	},
 	config: {
         'clitpl': {
