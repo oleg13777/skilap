@@ -367,7 +367,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 							doc.trId = tr._id;
 							doc.accId = accId;
 							self._cash_register.update({ trId: tr._id, accId: accId }, doc,
-									{ upsert: true, w: 1 }, cb);
+									{ upsert: true, hint: { trId: 1 }, w: 1 }, cb);
 						}, cb);
 					}));
 				}, function () { return stop; }, safe.sure(cb1, function () {
