@@ -13,21 +13,14 @@ module.exports.getAccountRegister = function (token, accId, offset, limit, cb ) 
 			],cb);
 		},
 		function (data, cb) {
-			self._cash_register.find({'accId': new self._ctx.ObjectID(accId)}).sort( { 'date': 1 } ).toArray(safe.sure_result(cb, function(data) {
+			var cursor = self._cash_register.find({'accId': new self._ctx.ObjectID(accId)}).sort( { 'date': 1 } );
+			if (offset)
+				cursor.skip(offset);
+			if (limit)
+				cursor.limit(limit);
+			cursor.toArray(safe.sure_result(cb, function(data) {
 				return _.map(data, function(d) { d._id = d.trId; return d;});
 			}));
-		},
-		function (data, cb) {
-			if (limit==null) {
-				if (offset==0 || offset == null)
-					cb(null, data);
-				else
-					cb(null, data.slice(offset, offset + limit));
-			} else
-				if (limit < 0)
-					cb(null, data.slice(limit));
-				else
-					cb(null, data.slice(offset, offset + limit));
 		},
 		function (data, cb) {
 			async.eachSeries(data, function(d, cb) {
