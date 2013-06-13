@@ -4,27 +4,42 @@ var _ = require('underscore');
 
 module.exports.getAccountRegister = function (token, accId, offset, limit, cb ) {
 	var self = this;
-	async.series ([
+	var accStats = null;
+	async.waterfall ([
 		function (cb) {
 			async.parallel([
 				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
 				function (cb) { self._waitForData(cb); }
 			],cb);
 		},
-		safe.trap(function (cb) {
-			var accStats = self._stats[new self._ctx.ObjectID(accId)];
-			if (limit==null) {
-				if (offset==0 || offset == null)
-					cb(null, accStats.trDateIndex);
-				else
-					cb(null, accStats.trDateIndex.slice(offset, offset + limit));
-			} else
-				if (limit < 0)
-					cb(null, accStats.trDateIndex.slice(limit));
-				else
-					cb(null, accStats.trDateIndex.slice(offset, offset + limit));
-		})], safe.sure(cb,function (results) {
-			cb(null,results[1]);
+		function (data, cb) {
+			var cursor = self._cash_register.find({'accId': new self._ctx.ObjectID(accId)}).sort( { 'date': 1 } );
+			if (offset)
+				cursor.skip(offset);
+			if (limit)
+				cursor.limit(limit);
+			cursor.toArray(safe.sure_result(cb, function(data) {
+				return _.map(data, function(d) { d._id = d.trId; return d;});
+			}));
+		},
+		function (data, cb) {
+			async.eachSeries(data, function(d, cb) {
+				self._cash_transactions.findOne({'_id': d.trId}, safe.sure_result(cb, function(tr) {
+					var recv = [];
+					var send = null;
+					tr.splits.forEach(function(split) {
+						if (split.accountId == accId)
+							send = split;
+						else
+							recv.push(split);
+					});
+					d.recv = recv; d.send = send;
+				}));
+			}, function (err) {
+				cb(null, data);
+			});
+		}], safe.sure(cb,function (result) {
+			cb(null,result);
 		})
 	);
 };
@@ -220,9 +235,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			} else {
 				if (value==0) return cb();
 				self.getSpecialAccount(token,"disballance",trn.currency, safe.sure(cb, function(acc) {
-					self._ctx.getUniqueId(safe.trap_sure_result(cb, function (id) {
-						trn.splits.push({value:-1*value,quantity:-1*value,accountId:acc._id,_id:_id,description:""});
-					}));
+					trn.splits.push({value:-1*value,quantity:-1*value,accountId:acc._id,_id:new self._ctx.ObjectID(),description:""});
 				}));
 			}
 		}),

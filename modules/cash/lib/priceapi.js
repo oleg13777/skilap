@@ -8,27 +8,18 @@ module.exports.getCmdtyPrice = function (token,cmdty,currency,date,method,cb) {
 	if (_(cmdty).isEqual(currency)) return cb(null,1);
 	// not sure what template means
 	if (cmdty.id=='template') return cb(null,1);
-	async.series ([
-		function start(cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		}, 
-		function get(cb) {
-			var key = (cmdty.space+cmdty.id+currency.space+currency.id);			
-			var ptree = self._stats.priceTree[key];
-			if (ptree==null) {
+	self._coreapi.checkPerm(token,["cash.view"],safe.sure(cb, function () {
+		// note currently we ignore method, just getting last price
+		self._cash_prices.findOne({'cmdty.id': cmdty.id, 'currency.id': currency.id},{sort:{'date': -1}}, safe.sure(cb, function (price) {
+			if (price==null) {
 				if (method == "safe")
 					return cb(null, 1);
 				else
 					return cb(new SkilapError("Unknown price pair","UnknownRate"));
 			}
-			cb(null,ptree.last);
-		}], safe.sure(cb, function (results) {
-			cb(null, results[1]);
-		})
-	);
+			cb(null,price.value);
+		}))
+	}))
 };
 
 module.exports.getCmdtyLastPrices = function (token,cb) {
@@ -42,10 +33,12 @@ module.exports.getCmdtyLastPrices = function (token,cb) {
 			],cb);
 		}, 
 		function get(cb) {
-			_.each(self._stats.priceTree, function (v,k) {
-				res[k]=v.last;
-			})
-			cb();
+			self._cash_prices_stat.find({}, safe.trap_sure(cb, function (cursor) {
+				cursor.each(safe.trap_sure(cb, function (stat) {
+					if (stat == null) return cb();
+					res[stat.key] = stat.last;
+				}));
+			}));
 		}], safe.sure(cb, function (results) {
 			cb(null, res);
 		})
@@ -131,7 +124,6 @@ module.exports.clearPrices = function (token, ids, cb) {
 				self._cash_prices.remove(cb);
 			} 
 		], safe.sure_result(cb, function () {
-			self._calcStats(function () {});
 		}));
 	} else {
 		async.series ([
@@ -145,7 +137,6 @@ module.exports.clearPrices = function (token, ids, cb) {
 				self._cash_prices.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, cb);
 			} 
 		], safe.sure_result(cb, function () {
-			self._calcStats(function () {});
 		}));
 	}
 };
@@ -165,6 +156,5 @@ module.exports.importPrices = function  (token, prices, cb) {
 			},cb);
 		}, 
 	], safe.sure_result(cb, function () {
-		self._calcStats(function () {});
 	}));
 };

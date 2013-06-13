@@ -4,6 +4,7 @@ var SkilapError = require("skilap-utils").SkilapError;
 var fs = require('fs');
 var zlib = require('zlib');
 var safe = require('safe');
+var utils = require("skilap-utils");
 
 module.exports.export = function (token,cb) {
 	var self = this;
@@ -17,6 +18,7 @@ module.exports.export = function (token,cb) {
 		}, 
 		function getTransaction(cb) {
 			self._cash_transactions.find({}).toArray(safe.sure_result(cb, function(arr) {
+				_.map(arr, function(trn) { return utils._wrapTypes(trn); });
 				res.transactions = arr;
 			}));
 		},
@@ -27,6 +29,7 @@ module.exports.export = function (token,cb) {
 		},
 		function getPrices(cb) {
 			self._cash_prices.find({}).toArray(safe.sure_result(cb, function(arr) {
+				_.map(arr, function(price) { return utils._wrapTypes(price); });
 				res.prices = arr;
 			}));
 		},
@@ -75,13 +78,14 @@ module.exports.import = function (fileName, cb){
 		},
 		function transpondAccountsTree(cb) {
 			_(accounts).forEach(function (acc) {
-				if (acc.parentId!=0)
+				if (acc.parentId)
 					acc.parentId=aidMap[acc.parentId];
 			});
 			cb();
 		},
 		function transpondTransactions(cb) {
 			async.forEachSeries(transactions, function (trn,cb) {
+				trn = utils._unwrapTypes(trn);
 				async.forEachSeries(trn.splits, function (split,cb) {
 					split.accountId = aidMap[split.accountId];
 					var id = new self._ctx.ObjectID();
@@ -96,6 +100,7 @@ module.exports.import = function (fileName, cb){
 		},
 		function transpondPrices(cb) {
 			async.forEachSeries(prices, function (price,cb) {
+				price = utils._unwrapTypes(price);
 				var id = new self._ctx.ObjectID();
 				price._id = id;
 				process.nextTick(cb);

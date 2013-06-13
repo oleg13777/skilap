@@ -9,7 +9,6 @@ var Handlebars = require('handlebars');
 var DateFormat = require('dateformatjs').DateFormat;
 var df = new DateFormat("MM/dd/yyyy");
 var dfW3C = new DateFormat(DateFormat.W3C);
-var ObjectID = require('mongodb').ObjectID;
 
 function CashWeb (ctx) {
 	var self = this;
@@ -49,7 +48,7 @@ CashWeb.prototype.layout = function () {
 	return function (req,res,next) {
 		self.api.getCmdtyLastPrices(req.session.apiToken, safe.sure(next, function (prices) {
 			Handlebars.registerHelper('i18n_cost', function(cmdtyRep, cmdtySrc, value, options) {
-				cmdtySrc |= {space:"ISO4217", id:"USD"};
+				cmdtySrc = cmdtySrc || {space:"ISO4217", id:"USD"};
 				var cmdtyDst = cmdtyRep||{space:"ISO4217", id:"USD"};
 				var key = (cmdtySrc.space+cmdtySrc.id+cmdtyDst.space+cmdtyDst.id);
 				var price = prices[key] || 1;
@@ -242,7 +241,7 @@ CashWeb.prototype.saveParams = function(apiToken, params, type, cb) {
 	settings.startDate = dfW3C.format(new Date(params.startDate));
 	settings.endDate = dfW3C.format(new Date(params.endDate));
 	settings.reportName = params.reportName;
-	settings.accIds = _.isArray(params.accIds) ?_.map(params.accIds, function(item){return new ObjectID(item)}) : null;
+	settings.accIds = _.isArray(params.accIds) ?_.map(params.accIds, function(item){return new self.ctx.ObjectID(item)}) : null;
 	settings.accLevel = params.accLevel;
 	settings.reportCurrency = params.reportCurrency;
 	var steeps = [

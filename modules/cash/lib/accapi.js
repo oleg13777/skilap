@@ -65,13 +65,11 @@ module.exports.getAccountByPath = function (token,path,cb) {
 			],cb);
 		},
 		function find(cb) {
-			var newAccId = null;
-			var stats = self._stats;
-			var accStats = _.find(stats, function (e) { return e.path == path; });
-			newAccId = accStats._id;
-			if (newAccId==null)
-				return cb(new SkilapError("No such account","NO_SUCH_ACCOUNT"));
-			self.getAccount(token,newAccId,cb);
+			self._cash_accounts_stat.findOne({'path': path}, function(err, stat) {
+				if (stat==null)
+					return cb(new SkilapError("No such account","NO_SUCH_ACCOUNT"));
+				self.getAccount(token,stat._id,cb);
+			});
 		}
 		], safe.sure_result(cb,function (results) {
 			return results[1];
@@ -104,7 +102,7 @@ module.exports.getSpecialAccount = function (token,type,cmdty,cb) {
 	});
 };
 
-module.exports.getAccountInfo = function (token, accId, details, cb) {
+module.exports.getAccountInfo = function (token, accId, details, cb) {	
 	var self = this;
 	var accInfo = null;
 	var accStats = null;
@@ -117,10 +115,12 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 			],cb);
 		},
 		function (cb) {
-			accStats = self._stats[new self._ctx.ObjectID(accId.toString())];
-			if (accStats==null)
-				return cb(new Error("Invalid account Id: "+accId));
-			cb();
+			self._cash_accounts_stat.findOne({'_id': new self._ctx.ObjectID(accId.toString())}, function(err, stat) {
+				accStats = stat;
+				if (accStats==null)
+					return cb(new Error("Invalid account Id: "+accId));
+				cb();
+			});
 		},
 		function (cb) {
 			if (!_(details).include("verbs"))
@@ -139,7 +139,7 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 				assInfo = info;
 			}));
 		},
-		safe.trap(function (cb) {
+		safe.trap(function (cb) {			
 			var res = {};
 			res._id = accId;
 			_.forEach(details, function (val) {
@@ -147,12 +147,6 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 					case 'value':
 						res.value = accStats.value;
 						break;
-					case 'avalue':
-						res.avalue = accStats.avalue;
-						break;
-					case 'gvalue':
-						res.gvalue = accStats.gvalue;
-						break;						
 					case 'count':
 						res.count = accStats.count;
 						break;
@@ -173,7 +167,7 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 				}
 			});
 			cb(null, res);
-		})], safe.sure_result(cb, function (results) {
+		})], safe.sure_result(cb, function (results) {			
 			return results[4];
 		})
 	);
@@ -198,10 +192,11 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 					} else {
 						// collecte transactions that need to be altered
 						_(tr.splits).forEach(function (split) {
-							if (split.accountId == accId) {
-								if (options.newParent)
-									split.accountId = options.newParent;
-								else
+							if (split.accountId.toString() == accId) {
+								if (options.newParent) {
+									split.accountId = new self._ctx.ObjectID(options.newParent);
+									self._cash_transactions.save(tr, function() {});
+								} else
 									updates.push(tr._id);
 							}
 						});
@@ -213,17 +208,18 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 			if (options.newSubParent) {
 				self.getChildAccounts(token, accId, safe.trap_sure(cb1,function(childs){
 					async.forEach(childs, function(ch,cb2) {
-						ch.parentId = options.newSubParent;
-						self._cash_accounts.put(ch._id, ch, cb2);
+						ch.parentId = new self._ctx.ObjectID(options.newSubParent);
+						self._cash_accounts.save(ch, cb2);
 					},cb1);
 				}));
 			} else {
 				var childs = [];
 				async.series([
-					function(cb){
+					function(cb) {
 						self._getAllChildsId(token, accId, childs, cb);
 					},
 					function (cb) {
+						childs = _.map(childs, function(c) { return c.toString(); });
 						var updates = [];
 						self._cash_transactions.find({}, safe.trap_sure(cb, function (cursor) {
 							cursor.each(safe.trap_sure(cb, function (tr) {
@@ -231,15 +227,20 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 									// scan done, propagate changes
 									self._cash_transactions.remove({'_id': { $in: updates }}, cb);
 								} else {
+									var bUpdate = false;
 									// collecte transactions that need to be altered
 									_(tr.splits).forEach(function (split) {
-										if (_(childs).indexOf(split.accountId) > -1){
-											if (options.newSubAccTrnParent)
-												split.accountId = options.newSubAccTrnParent;
-											else
+										if (_(childs).indexOf(split.accountId.toString()) > -1){
+											if (options.newSubAccTrnParent) {
+												bUpdate = true;
+												split.accountId = new self._ctx.ObjectID(options.newSubAccTrnParent);
+											} else
 												updates.push(tr._id);
 										}
 									});
+									if (bUpdate) {
+										self._cash_transactions.save(tr, function() {});
+									}
 								}
 							}));
 						}));
@@ -467,6 +468,7 @@ module.exports.getAllCurrencies = function(token,cb){
 };
 
 module.exports.createAccountsTree = function(accounts){
+	accounts = _(accounts).sortBy(function (e) {return e.name; });
 	var oAccounts = _.reduce(accounts,function(memo,item){
 		memo[item._id] = _.clone(item);
 		memo[item._id].childs=[];
@@ -480,5 +482,61 @@ module.exports.createAccountsTree = function(accounts){
 	});
 	return _.filter(_.values(oAccounts),function(item){
 		return (!item.parentId && !item.hidden);
+	});
+};
+
+module.exports.getChildAccountsHelper = function(token, id, child, cb) {
+	var self = this;
+	var ret = [];
+	self.getChildAccounts(token, id, safe.sure(cb, function (data) {
+		ret = child.concat(data);
+		async.forEachSeries(data, function(acc, cb1) {
+			self.getChildAccountsHelper(token, acc._id, child, function (err, data) {
+				ret = ret.concat(data);
+				cb1(null, ret);
+			});
+		}, function (err) {
+			cb(null, ret);
+		});
+	}));
+};
+
+function getTopParent(self, token, id, cb) {
+	self.getAccount(token, id, function (err, data) {
+		if (data.parentId)
+			getTopParent(self, token, data.parentId, cb);
+		else
+			cb(null, data);
+	});
+}
+
+module.exports.getAccountTree = function (token, id, settings, detail, cb) {
+	var self = this;
+	var accounts = [];
+	async.series({
+		main:function (cb) {
+			getTopParent(self, token, id, safe.sure_result(cb, function (data) {
+				accounts.push(data);
+			}));
+		},
+		child:function (cb) {
+			self.getChildAccountsHelper(token, accounts[0]._id, accounts, safe.sure_result(cb, function (data) {
+				accounts = data;
+			}));
+		},
+		assets:function (cb) {
+			async.forEach(accounts, function(acc, cb) {
+				self.getAccountInfo(token, acc._id, detail, safe.sure_result(cb, function (data) {
+					_.extend(acc, data);
+					acc.repCmdty = settings.cmdty;
+				}));
+			});
+			cb();
+		},
+		tree:function (cb) {
+			cb(null, self.createAccountsTree(accounts));
+		}
+	}, function (err, r) {
+		cb(err, r.tree);
 	});
 };

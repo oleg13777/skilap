@@ -11,7 +11,7 @@
 				<div class="controls">
 					<span class="help-block">{{#i18n}}If this account contains transactions. What would you like to do with these transactions?{{/i18n}}</span>										
 					<label class='radio inline'>
-						<input type="radio" name="trn_action" id="delete">{{#i18n}}Delete{{/i18n}}
+						<input type="radio" name="trn_action" id="del">{{#i18n}}Delete{{/i18n}}
 					</label>
 					<label class='radio inline'>
 						<input type="radio" name="trn_action" id="move" checked>{{#i18n}}Move to{{/i18n}}
@@ -28,12 +28,12 @@
 				<div class="controls">
 					<span class="help-block">{{#i18n}}If this account contains sub-accounts. What would you like to do with these sub-accounts?{{/i18n}}</span>										
 					<label class='radio inline'>
-						<input type="radio" name="sub_acc_action" id="delete">{{#i18n}}Delete{{/i18n}}
+						<input type="radio" name="sub_acc_action" id="del">{{#i18n}}Delete{{/i18n}}
 					</label>
 					<label class='radio inline'>
 						<input type="radio" name="sub_acc_action" id="move" checked>{{#i18n}}Move to{{/i18n}}
 					</label>
-					<select id="tr_parent" class="new_parent">
+					<select id="sub_acc_parent" class="new_parent">
 						{{#each accounts}}
 							<option {{#when ../account.parentId '==' _id}}selected{{/when}} value="{{_id}}">{{path}}</option>
 						{{/each}}
@@ -45,12 +45,12 @@
 				<div class="controls">
 					<span class="help-block">{{#i18n}}If one or more sub-account contains transactions. What would you like to do with these transactios?{{/i18n}}</span>										
 					<label class='radio inline'>
-						<input type="radio" name="sub_acc_trn_action" id="delete">{{#i18n}}Delete{{/i18n}}
+						<input type="radio" name="sub_acc_trn_action" id="del">{{#i18n}}Delete{{/i18n}}
 					</label>
 					<label class='radio inline'>
 						<input type="radio" name="sub_acc_trn_action" id="move" checked>{{#i18n}}Move to{{/i18n}}
 					</label>
-					<select id="tr_parent" class="new_parent">
+					<select id="sub_acc_trn_parent" class="new_parent">
 						{{#each accounts}}
 							<option {{#when ../account.parentId '==' _id}}selected{{/when}} value="{{_id}}">{{path}}</option>
 						{{/each}}
@@ -67,6 +67,9 @@
 <script>
 require(["jquery","jquery-block"],function($){$(function() {
 	$form = $("#{{uniq}}");	
+	$form.on('hidden',function () {
+		$form.remove();
+	});		
 	$form.on('click', '#sub_acc input[type="radio"]', function (e) {
 		if ($(this).attr('id')=="move")
 			$form.find('#sub_acc_tr').hide();
@@ -89,7 +92,7 @@ require(["jquery","jquery-block"],function($){$(function() {
 					options.newSubAccTrnParent = $form.find('#sub_acc_trn_parent option:selected').val();
 				}					
 				api.call('cash.deleteAccount', '{{account._id}}', options, safe.sure(cb, function () {
-					$form.trigger("frm-saved",options);
+					$form.trigger("frm-saved", [options, '{{account._id}}']);
 				}))
 			},cb)
 		})(function (err) {

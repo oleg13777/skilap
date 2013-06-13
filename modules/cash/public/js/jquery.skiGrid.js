@@ -158,12 +158,19 @@
 		});
 
 		/* scroll event */
+		var scrollTimer = null;
 		objSettings.bodyWrapperRef.on('scroll',function(){
 			var scrollPosition = $(this).scrollTop();
 			var tablePosition = scrollPosition;
 			objSettings.tablePosition = tablePosition;
 			var offset = objSettings.totalRowsCount - objSettings.rowsLimit - Math.round((objSettings.totalHeight-scrollPosition - objSettings.tableHeight)/options.rowHeight);
-			showGrid($obj,objSettings,offset);
+			// schedule update using timer to avoid polution of server
+			if (scrollTimer)
+				clearTimeout(scrollTimer);
+			scrollTimer = setTimeout(function () {
+				scrollTimer = null;
+				showGrid($obj,objSettings,offset)
+			}, 500);
 		});
 		/* event handler for switching currency in multiple currency transactions */
 		objSettings.gridWrapper.find('tbody').on('click','.ski_currencyFlag',function(){
@@ -332,10 +339,7 @@
 	};
 
 	function showGrid($obj,objSettings,offset){
-		console.time('showGrid');
-		$obj.css('top',objSettings.tablePosition+'px');
 		objSettings.sEcho++;
-		window.stop();
 		var jqXHR = $.ajax( {
 			"url": options.sAjaxSource,
 			"data":{"sEcho":objSettings.sEcho,"iColumns":options.columnsCount,"iDisplayLength":objSettings.rowsLimit,"iDisplayStart":offset},
@@ -345,9 +349,10 @@
 		jqXHR.done(function(data){
 			/* Check that response id (sEcho) is equal last request id
 			 */
-			if (data.sEcho*1 < objSettings.sEcho)
+			if (parseInt(data.sEcho) != objSettings.sEcho)
 				return;
-			console.time('renderGrid');
+			$obj.css('top',objSettings.tablePosition+'px');
+
 			clearGrid(objSettings);
 			updateGridSettings(data,objSettings);
 			for(var i=0;i<data.aaData.length;i++){

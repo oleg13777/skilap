@@ -7,7 +7,6 @@
 	 <!-- Le styles -->
 	<link href="/cash/css/bootstrap.css" rel="stylesheet">
 	<link href="/cash/css/responsive.css" rel="stylesheet">
-	<link href="/common/css/jquery-ui/jquery-ui-1.10.1.custom.min.css" rel="stylesheet">
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -35,17 +34,30 @@
 			<ul class="nav nav-pills">
               {{>nav}}
               <li class="dropdown">
-				<a href="javascript:void(0);" data-toggle="dropdown" class="dropdown-toggle">{{#i18n}}Pages{{/i18n}} <b class="caret"></b></a>
+				<a href="return false" data-toggle="dropdown" class="dropdown-toggle">{{#i18n}}Pages{{/i18n}} <b class="caret"></b></a>
 				<ul class="dropdown-menu">
 				  {{#tabs}}
 				  <li {{#selected}}class="active"{{/selected}}>
-					<a data-toggle="tab" href="{{url}}" data-pid="{{pid}}">{{name}}</a>
+					<a href="{{url}}" data-pid="{{pid}}">{{name}}</a>
 				  </li>
 				  {{/tabs}}
 				 </ul>
 			  </li>
 			</ul>
-			 <a class = "pull-right btn-large" href = "return false"><i id="editPageSettings" class="icon-cog icon-white"></i></a>
+			{{#pmenu}}
+			<ul class="nav nav-pills pull-right"  id="page_menu">
+              <li class="dropdown">
+				<a href="return false" data-toggle="dropdown" class="dropdown-toggle"><i class="icon-wrench icon-white"></i> {{name}} <b class="caret"></b></a>
+				<ul class="dropdown-menu">
+				  {{#items}}
+				  <li>
+					<a href="{{href}}" id="{{id}}">{{name}}</a>
+				  </li>
+				  {{/items}}
+				 </ul>
+			  </li>
+			</ul>
+			{{/pmenu}}
           </div><!--/.nav-collapse -->
         </div>
       </div>

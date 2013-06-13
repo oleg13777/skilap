@@ -81,14 +81,16 @@ module.exports = function account(webapp) {
 			}
 		}, function (err, r) {
 			if (err) return next(err);
+			var assets = _.map(r.assets, function(acc) { acc.repCmdty = repCmdty; return acc; });
 			var rdata = {
 					prefix: prefix, 
 					tabs: r.tabs, 
 					tabId: 'accounts-tree',
-					assets: r.assets,
+					assets: assets,
 					token: req.session.apiToken,
 					settings: settings,
-					host: req.headers.host
+					host: req.headers.host,
+					repCmdty: repCmdty
 				};
 			res.render(__dirname+"/../res/views/accounts-tree", rdata);
 		})

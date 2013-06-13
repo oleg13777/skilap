@@ -28,8 +28,11 @@ $(document).ready(function() {
 				modal.once('result', function (type, acc) {
 					if (type!='saved') return;
 					modal.getAccount(acc._id, ["value"], safe.sure(cb, function (acc) {
-						tf.render('accounts-tree_item',acc, safe.sure(cb, function(text) {
-							$page.find("#tree_root ul:first").prepend(text)
+						tf.render('accounts-tree_item', acc, safe.sure(cb, function(text) {
+							if (acc.parentId)
+								$page.find("#tree_root #"+acc.parentId + " ul:first").prepend(text);
+							else
+								$page.find("#tree_root ul:first").prepend(text);
 							modal.hide()
 							cb();									
 						}))
@@ -49,19 +52,32 @@ $(document).ready(function() {
 		var aid = $this.data('aid');
 		$me.block();
 		(function (cb) {
-			require(['cash/edit-account-modal','safe','clitpl'], function (Modal,safe,tf) {
+			require(['cash/edit-account-modal','cash/delete-account-modal','safe','clitpl'], function (Modal,Del,safe,tf) {
 				var modal = new Modal();
+				var del = new Del();
 				modal.show(aid);
 				modal.once('shown', function () { $me.unblock(); })
 				modal.once('result', function (type, acc) {
 					if (type!='saved') return;
-					modal.getAccount(acc._id, ["value"], safe.sure(cb, function (acc) {
-						tf.render('accounts-tree_item_row',acc, safe.sure(cb, function(text) {
-							$page.find("#tree_root #"+acc._id + " #acc_row").replaceWith(text)
-							modal.hide()
-							cb();									
+					if (acc.parentId) {
+						del.getAccount(acc.parentId, ["value","path"], safe.sure(cb, function (acc) {
+							tf.render('accounts-tree_item',acc.accounts[0], safe.sure(cb, function(text) {
+								$page.find("#tree_root #"+aid + " #acc_row").remove()
+								$page.find("#tree_root #"+acc.accounts[0]._id).replaceWith(text);
+								modal.hide()
+								cb();									
+							}))
 						}))
-					}))
+					} else {
+						del.getAccount(acc._id, ["value","path"], safe.sure(cb, function (acc) {
+							tf.render('accounts-tree_item',acc.accounts[0], safe.sure(cb, function(text) {
+								$page.find("#tree_root #"+aid + " #acc_row").remove()
+								$page.find("#tree_root ul:first").prepend(text);
+								modal.hide()
+								cb();									
+							}))
+						}))
+					}
 				})
 			},cb)
 		})(function (err) {
@@ -77,15 +93,46 @@ $(document).ready(function() {
 		var aid = $this.data('aid');
 		$me.block();
 		(function (cb) {
-			require(['cash/delete-account-modal'], function (Modal) {
+			require(['cash/delete-account-modal','safe','clitpl'], function (Modal,safe,tf) {
 				var modal = new Modal();
 				modal.show(aid);
 				modal.once('shown', function () { $me.unblock(); })
-				modal.once('result', function (type, options) {
+				modal.once('result', function (type, options, accId) {
 					if (type!='deleted') return;
-					$page.find("#tree_root #"+aid).remove();
-					modal.hide()
-					cb();									
+					if (options.newSubParent) {
+						modal.getAccount(options.newSubParent, ["value","path"], safe.sure(cb, function (acc) {
+							tf.render('accounts-tree_item',acc.accounts[0], safe.sure(cb, function(text) {
+								$page.find("#tree_root #"+acc.accounts[0]._id).replaceWith(text);
+								$page.find("#tree_root #"+aid).remove();
+								if (options.newSubAccTrnParent) {
+									modal.getAccount(options.newSubAccTrnParent, ["value","path"], safe.sure(cb, function (acc) {
+										tf.render('accounts-tree_item',acc.accounts[0], safe.sure(cb, function(text) {
+											$page.find("#tree_root #"+acc.accounts[0]._id).replaceWith(text);
+											modal.hide()
+											cb();									
+										}))
+									}))
+								} else {
+									modal.hide()
+									cb();									
+								}
+							}))
+						}))
+					} else {
+						$page.find("#tree_root #"+aid).remove();
+						if (options.newSubAccTrnParent) {
+							modal.getAccount(options.newSubAccTrnParent, ["value","path"], safe.sure(cb, function (acc) {
+								tf.render('accounts-tree_item',acc.accounts[0], safe.sure(cb, function(text) {
+									$page.find("#tree_root #"+acc.accounts[0]._id).replaceWith(text);
+									modal.hide()
+									cb();									
+								}))
+							}))
+						} else {
+							modal.hide()
+							cb();									
+						}
+					}
 				})
 			},cb)
 		})(function (err) {

@@ -18,13 +18,20 @@ module.exports.getSettings = function(token, id, defs, cb) {
 module.exports.saveSettings = function(token, id, settings, cb) {	
 	var self = this;
 	self._coreapi.checkPerm(token, ['cash.edit'], safe.sure(cb, function () {
-		self._cash_settings.update({'id':id},{$set:{v:settings}},{upsert:true}, cb)
+		self._cash_settings.update({'id':id},{$set:{v:settings}},{upsert:true}, safe.sure(cb, function () {
+			if (id == 'checkRate') {
+				var api = self._ctx.getModuleSync('scheduler').api;
+				if (settings)
+					api.startExchangeRate();
+				else
+					api.stopExchangeRate();
+			}
+			cb();
+		}))
 	}))
 };
 
 module.exports.clearSettings = function (token, ids, cb) {
-	console.log("clearSettings", arguments);
-	
 	var self = this;
 	if (ids == null) {
 		async.series ([
@@ -38,7 +45,6 @@ module.exports.clearSettings = function (token, ids, cb) {
 				self._cash_settings.remove(cb);
 			} 
 		], safe.sure_result(cb, function () {
-			self._calcStats(function () {});
 		}));
 	} else {
 		async.series ([
@@ -52,13 +58,11 @@ module.exports.clearSettings = function (token, ids, cb) {
 				self._cash_settings.remove(_.map(ids, function(id) { return new self._ctx.ObjectID(id); }),cb);
 			} 
 		], safe.sure_result(cb, function () {
-			self._calcStats(function () {});
 		}));
 	}
 };
 
 module.exports.importSettings = function  (token, settings, cb) {
-	console.log("importSettings", arguments);	
 	var self = this;
 	async.series ([
 		function (cb) {
@@ -69,10 +73,9 @@ module.exports.importSettings = function  (token, settings, cb) {
 		},
 		function (cb) {
 			async.forEach(settings, function (e, cb) {
-				self._cash_settings.save(e, cb);
+				self._cash_settings.update({'id':e.id},{$set:{v:e.v}},{upsert:true},cb)
 			},cb);
 		}, 
 	], safe.sure_result(cb, function () {
-		self._calcStats(function () {});
 	}));
 };

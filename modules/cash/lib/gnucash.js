@@ -135,7 +135,8 @@ module.exports = function (fileName, cb){
 					price.currency.id = nodetext;
 				break;
 				case "CUST:CURRENCY":
-					defcurrency.id = nodetext;
+					console.log(defCurrency)
+					defCurrency.id = nodetext;
 				break;				
 			}			
 		},
@@ -243,6 +244,9 @@ module.exports = function (fileName, cb){
 			},
 			function transpondAccountsTree(cb) {
 				_(accounts).forEach(function (acc) {
+					// take default currency from first account
+					if (defCurrency==null)
+						defCurrency = acc.cmdty;
 					if (acc.parentId)
 						acc.parentId=aidMap[acc.parentId];
 				});
@@ -263,9 +267,9 @@ module.exports = function (fileName, cb){
 				},cb);
 			}
 		], safe.sure(cb, function () {
-			var settings = {};
-			if (defCurrency)
-				settings['currency____'] = defCurrency;
+			var settings = [];
+			if (defCurrency) 
+				settings.push({id:"currency",v:defCurrency})
 			var ret = {tr:transactions, acc:accounts, prices:prices, settings:settings};
 			process.nextTick(function(){
 				cb(null,ret);

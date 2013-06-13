@@ -25,6 +25,24 @@
 			"language":"English"
 		}
 	],
+	"accounts":[
+		{
+			"name": "Test_root_acc_1",
+			"parent":"Root",
+			"currency":"USD"
+		},
+		{
+			"name": "Test_child_acc_1",
+			"name_new": "Test_child_acc_2",
+			"parent":"Test_root_acc_1",
+			"currency":"EUR"
+		},
+		{
+			"name": "Test_root_acc_2",
+			"parent":"Root",
+			"currency":"USD"
+		}
+	],
 	"cashimport":{
 		"file": "/samples/home.xml",
 		"parsedtext":"File parsed. It contains: 4320 transactions, 63 accounts",

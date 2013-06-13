@@ -102,8 +102,9 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 						});
 						if (opts.ctx.i18n_cost) {
 							api.call("cash.getCmdtyLastPrices",safe.sure(cb, function (prices) {
-								handlebars.registerHelper('i18n_cost',function(cmdtySrc, value, options) {
-									cmdtyDst = {space:"ISO4217",id:"RUB"};
+								handlebars.registerHelper('i18n_cost',function(cmdtyRep, cmdtySrc, value, options) {
+									cmdtySrc = cmdtySrc || {space:"ISO4217", id:"USD"};
+									var cmdtyDst = cmdtyRep||{space:"ISO4217", id:"USD"};
 									var key = (cmdtySrc.space+cmdtySrc.id+cmdtyDst.space+cmdtyDst.id);
 									var price = prices[key] || 1;
 									return (price!=1?"( "+i18n_cytext(cmdtySrc.id, value) + ")":"")
