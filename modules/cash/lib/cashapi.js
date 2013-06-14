@@ -7,17 +7,11 @@ var events = require("events");
 var safe = require('safe');
 
 function CashApi (ctx) {
-	var self = this;
 	this._ctx = ctx;
 	this._cash_accounts = null;
 	this._cash_transactions = null;
 	this._cash_prices = null;
 	this._cash_settings = null;
-	this._dataReady = false;
-	this._dataInCalc = false;
-	this._lastAccess = new Date();
-	this._stats = {};
-	this._waitQueue = [];
 	this._coreapi;
 }
 
@@ -58,30 +52,6 @@ CashApi.prototype.getSettings = require('./settings.js').getSettings;
 CashApi.prototype.saveSettings = require('./settings.js').saveSettings;
 CashApi.prototype.clearSettings = require('./settings.js').clearSettings;
 CashApi.prototype.importSettings = require('./settings.js').importSettings;
-
-CashApi.prototype._waitForData = function (cb) {
-	this._lastAccess = new Date();
-	if (this._dataReady) return cb(null);
-		else this._waitQueue.push(cb);
-	if (!this._dataInCalc) {
-		this._calcStats(function () {});
-	}
-};
-
-CashApi.prototype._lockData = function (cb) {
-	if (!this._dataReady)
-		return cb(new Error("Can't lock unready data"));
-	this._dataInCalc = true;
-	this._dataReady = false;
-	return cb();
-};
-
-CashApi.prototype._unLockData = function (cb) {
-	if (!this._dataInCalc) {
-		this._calcStats(function () {});
-	}
-	return cb();
-};
 
 CashApi.prototype._loadData = function (cb) {
 	var self = this;
@@ -183,7 +153,11 @@ CashApi.prototype.init = function (cb) {
 		},
 		function (cb) {
 			self._loadData(cb);
-		}], 
+		},
+		function (cb) {
+			self._calcStats(cb);
+		}
+		], 
 	cb);
 };
 
@@ -213,10 +187,11 @@ CashApi.prototype.getAssetInfo = function (token, asset, cb) {
 CashApi.prototype._calcStats = function _calcStats(cb) {
 	var self = this;
 	// helper functions
-	function getAccStats (accId) {
-		if (self._stats[accId]==null)
-			self._stats[accId] = {_id:accId, value:0, count:0, trDateIndex:[], type: "BANK"};
-		return self._stats[accId];
+	var _stats = [];
+	function getAccStats (accId, cb) {
+		if (_stats[accId]==null)
+			_stats[accId] = {_id:accId, value:0, count:0, trDateIndex:[], type: "BANK"};
+		return _stats[accId];
 	}
 	function getAccPath (acc, cb) {
 		if (acc._id != acc.parentId && acc.parentId) {
@@ -236,9 +211,6 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 	}
 	
 	console.time("Stats");
-	self._dataReady = false;
-	self._dataInCalc = true;
-	self._stats = {};
 	var skip_calc = false;
 	var defCurrency = {space:"ISO4217", id:"USD"};
 	
@@ -267,7 +239,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		price_tree: ['db_stats', function (cb1) {
 			if (skip_calc) return cb1();			
 			console.time('price_tree');
-			self._stats.priceTree = {};
+			var priceTree = {};
 			self._cash_prices.find({}, safe.sure(cb1, function (cursor) {
 				var stop = false;
 				async.doUntil(function (cb) {
@@ -282,8 +254,8 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 							{rate:price.value,key:(price.cmdty.space+price.cmdty.id+price.currency.space+price.currency.id)},
 							{rate:1/price.value,key:(price.currency.space+price.currency.id+price.cmdty.space+price.cmdty.id)}];
 						async.forEachSeries(dirs, function (dir, cb) {
-							var dirTree = self._stats.priceTree[dir.key];
-							if (!dirTree) self._stats.priceTree[dir.key] = dirTree = { key: dir.key };
+							var dirTree = priceTree[dir.key];
+							if (!dirTree) priceTree[dir.key] = dirTree = { key: dir.key };
 							if (dirTree.average==null) {
 								dirTree.average=dir.rate;
 								dirTree.max=dir.rate;
@@ -372,22 +344,21 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 					}));
 				}, function () { return stop; }, safe.sure(cb1, function () {
 					console.timeEnd("Transactions");
-					async.forEachSeries(_.keys(ballances), function (accId, cb) {
-						var accStats = getAccStats(accId);
-						var doc = _.omit(accStats, 'trDateIndex','cmdty');
-						self._cash_accounts_stat.update({ _id: doc._id }, doc,
-								{ upsert: true, w: 1 }, cb);
-					}, cb1);
+					cb1();
 				}));
 			}));
+		}],
+		account_save: ['transaction_stats', function (cb) {
+			if (skip_calc) return cb();
+			async.forEachSeries(_.values(_stats), function (accStats, cb) {
+				var doc = _.omit(accStats, 'trDateIndex','cmdty');
+				self._cash_accounts_stat.update({ _id: doc._id }, doc,
+						{ upsert: true, w: 1 }, cb);
+			}, cb);
 		}]
 		}, function done (err) {
 			if (err) console.log(err);
 			console.timeEnd("Stats");			
-			self._dataReady=true;
-			self._dataInCalc=false;
-			self._pumpWaitQueue();
-			self._stats = {}; // clean data
 			cb();
 		}
 	);
@@ -435,21 +406,6 @@ CashApi.prototype._calcStatsDb = function (cb) {
 	}, safe.sure(cb, function () {
 		cb(null, stats);
 	}));
-};
-
-CashApi.prototype._pumpWaitQueue = function () {
-	var self = this;
-	// peek the first worker
-	if (self._dataReady && self._waitQueue.length) {
-		var wcb = self._waitQueue.shift();
-		wcb(null);
-	}
-	// if we not get locked by first worker and still something in queue do it
-	if (self._dataReady && self._waitQueue.length) {
-		process.nextTick(function () {
-			self._pumpWaitQueue();
-		});
-	}
 };
 
 module.exports.init = function (ctx,cb) {

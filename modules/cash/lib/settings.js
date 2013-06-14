@@ -33,44 +33,22 @@ module.exports.saveSettings = function(token, id, settings, cb) {
 
 module.exports.clearSettings = function (token, ids, cb) {
 	var self = this;
-	if (ids == null) {
-		async.series ([
-			function (cb) {
-				async.parallel([
-					function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-					function (cb) { self._waitForData(cb); }
-				],cb);
-			},
-			function (cb) {
-				self._cash_settings.remove(cb);
-			} 
-		], safe.sure_result(cb, function () {
-		}));
-	} else {
-		async.series ([
-			function (cb) {
-				async.parallel([
-					function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-					function (cb) { self._waitForData(cb); }
-				],cb);
-			},
-			function(cb){
-				self._cash_settings.remove(_.map(ids, function(id) { return new self._ctx.ObjectID(id); }),cb);
-			} 
-		], safe.sure_result(cb, function () {
-		}));
-	}
+	async.series ([
+	   			function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
+	   			function (cb) {
+		   			if (ids == null)
+		   				self._cash_settings.remove(cb);
+		   			else
+						self._cash_settings.remove(_.map(ids, function(id) { return new self._ctx.ObjectID(id); }),cb);
+	   			} 
+	   		], safe.sure_result(cb, function () {
+	   		}));
 };
 
 module.exports.importSettings = function  (token, settings, cb) {
 	var self = this;
 	async.series ([
-		function (cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		},
+		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		function (cb) {
 			async.forEach(settings, function (e, cb) {
 				self._cash_settings.update({'id':e.id},{$set:{v:e.v}},{upsert:true},cb)

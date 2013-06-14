@@ -83,6 +83,9 @@ module.exports = function account(webapp) {
 				function (cb1) {
 					cashapi.importSettings(req.session.apiToken, settings, cb1);
 				},
+				function (cb) {
+					cashapi._calcStats(cb);
+				},
 				function (cb1) {
 					webapp.guessTab(req, {pid:'import-gnucash',name:ctx.i18n(req.session.apiToken, 'cash','GnuCash import'),url:req.url}, cb1);
 				},

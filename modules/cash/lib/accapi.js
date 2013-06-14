@@ -6,12 +6,7 @@ var SkilapError = require("skilap-utils").SkilapError;
 module.exports.getAccount = function (token, id, cb) {
 	var self = this;
 	async.series ([
-		function start(cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		},
+		function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
 		function get(cb) {
 			self._cash_accounts.findOne({'_id': new self._ctx.ObjectID(id.toString())}, cb);
 		}], safe.sure_result(cb, function (result) {
@@ -23,12 +18,7 @@ module.exports.getAccount = function (token, id, cb) {
 module.exports.getAllAccounts = function (token, cb) {
 	var self = this;
 	async.series ([
-		function start(cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		},
+		function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
 		function get(cb) {
 			self._cash_accounts.find({}).toArray(cb);
 		}], safe.sure_result(cb, function (results) {
@@ -40,12 +30,7 @@ module.exports.getAllAccounts = function (token, cb) {
 module.exports.getChildAccounts = function(token, parentId, cb) {
 	var self = this;
 	async.series ([
-		function start(cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		},
+		function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
 		function get(cb) {
 			self._cash_accounts.find({'parentId': new self._ctx.ObjectID(parentId.toString())}).toArray(cb);
 		}
@@ -58,12 +43,7 @@ module.exports.getChildAccounts = function(token, parentId, cb) {
 module.exports.getAccountByPath = function (token,path,cb) {
 	var self = this;
 	async.series ([
-		function start(cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		},
+		function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
 		function find(cb) {
 			self._cash_accounts_stat.findOne({'path': path}, function(err, stat) {
 				if (stat==null)
@@ -108,12 +88,7 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 	var accStats = null;
 	var assInfo = null;
 	async.series ([
-		function (cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		},
+		function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
 		function (cb) {
 			self._cash_accounts_stat.findOne({'_id': new self._ctx.ObjectID(accId.toString())}, function(err, stat) {
 				accStats = stat;
@@ -176,12 +151,7 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 module.exports.deleteAccount = function (token, accId, options, cb){
 	var self = this;
 	async.series([
-		function start(cb1) {
-			async.parallel([
-				function (cb2) { self._coreapi.checkPerm(token,["cash.edit"],cb2); },
-				function (cb2) { self._waitForData(cb2); }
-			],cb1);
-		},
+		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		function processTransactions(cb) {
 			var updates = [];
 			self._cash_transactions.find({}, safe.trap_sure(cb, function (cursor) {
@@ -254,8 +224,8 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 		function deleteAcc(cb1) {
 			self._cash_accounts.remove({'_id': new self._ctx.ObjectID(accId)}, cb1);
 		}
-	], safe.sure_result(cb, function () {
-		self._calcStats(function () {});
+	], safe.sure(cb, function () {
+		self._calcStats(cb);
 	}));
 };
 
@@ -275,29 +245,19 @@ module.exports._getAllChildsId = function (token, parentId, buffer, cb) {
 module.exports.clearAccounts = function (token, ids, cb) {
 	var self = this;
 	async.series ([
-		function (cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		},
+		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		function (cb) {
 			self._cash_accounts.remove(cb);
 		}
-	], safe.sure_result(cb, function () {
-		self._calcStats(function () {});
+	], safe.sure(cb, function () {
+		self._calcStats(cb);
 	}));
 };
 
 module.exports.importAccounts = function  (token, accounts, cb) {
 	var self = this;
 	async.series ([
-		function (cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		},
+		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		function (cb) {
 			async.forEachSeries(accounts, function (e, cb) {
 				e._id = e._id;
@@ -305,7 +265,6 @@ module.exports.importAccounts = function  (token, accounts, cb) {
 			}, cb);
 		},
 	], safe.sure_result(cb,function () {
-		self._calcStats(function () {});
 	}));
 };
 
@@ -342,12 +301,7 @@ module.exports.restoreToDefaults = function (token, cmdty, type, cb){
 	var self = this;
 	var accounts = [];
 	async.series([
-		function start(cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		},
+		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		function (cb) {
 			self._cash_prices.remove(cb);
 		},
@@ -376,8 +330,8 @@ module.exports.restoreToDefaults = function (token, cmdty, type, cb){
 		function (cb) {
 			self.saveSettings(token,"currency",cmdty,cb);
 		}
-	], safe.sure_result(cb, function () {
-		self._calcStats(function () {});
+	], safe.sure(cb, function () {
+		self._calcStats(cb);
 	}));
 };
 
@@ -404,13 +358,8 @@ module.exports.getAssetsTypes = function (token,cb) {
 module.exports.saveAccount = function (token, account, cb) {
 	var self = this;
 	async.waterfall ([
-		function start(cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],cb);
-		},
-		function (t, cb) {
+		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
+		function (cb) {
 			if (account._id)
 				cb(null, new self._ctx.ObjectID(account._id));
 			else
@@ -420,9 +369,8 @@ module.exports.saveAccount = function (token, account, cb) {
 			account._id = id;
 			if (account.parentId) account.parentId = new self._ctx.ObjectID(account.parentId.toString());
 			self._cash_accounts.save(account, cb);
-		}], safe.sure_result(cb,function (result) {
-			self._calcStats(function () {});
-			return account;
+		}], safe.sure(cb,function (result) {
+			self._calcStats(function () { cb(null, account); });
 		})
 	);
 };
@@ -430,13 +378,7 @@ module.exports.saveAccount = function (token, account, cb) {
 module.exports.getAllCurrencies = function(token,cb){
 	var self = this;
 	async.waterfall ([
-		function (cb) {
-			async.parallel([
-				function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
-				function (cb) { self._waitForData(cb); }
-			],
-			safe.sure(cb, function(){ cb(); }));
-		},
+		function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
 		function(cb){
 			async.parallel({
 				curr:function (cb) {

@@ -568,8 +568,9 @@ describe("Cash module",function () {
 					})
 				})			
 			});			
-			self.browser.findElement(By.id("page_menu")).click();	
-			self.browser.findElement(By.linkText("Page settings")).click();
+			self.browser.findElement(By.id("page_menu")).click().then(function () {
+				self.browser.findElement(By.id("settings")).click();
+			});	
 			helpers.runModal.call(self, null, function(modal) {				
 		        modal.findElement(By.xpath("//span[text()='Электричество']")).click();						
 				modal.findElement(By.id("save")).click();
@@ -603,8 +604,9 @@ describe("Cash module",function () {
 					})
 				})			
 			});			
-			self.browser.findElement(By.id("page_menu")).click();	
-			self.browser.findElement(By.linkText("Page settings")).click();
+			self.browser.findElement(By.id("page_menu")).click().then(function () {
+				self.browser.findElement(By.id("settings")).click();
+			});	
 			helpers.runModal.call(self, null, function(modal) {				
 		       self.browser.executeScript("$('select[name=\"accLevel\"]').val('1')");
 		       modal.findElement(By.id("save")).click();
@@ -651,8 +653,9 @@ describe("Cash module",function () {
 					})
 				})			
 			});			
-			self.browser.findElement(By.id("page_menu")).click();	
-			self.browser.findElement(By.linkText("Page settings")).click();
+			self.browser.findElement(By.id("page_menu")).click().then(function () {
+				self.browser.findElement(By.id("settings")).click();
+			});	
 			helpers.runModal.call(self, null, function(modal) {	
 				modal.findElement(By.linkText("General")).click();
 				helpers.fillInput.call(modal, modal.findElement(By.name("maxAcc")), "3");				
@@ -700,8 +703,9 @@ describe("Cash module",function () {
 					})
 				})			
 			});			
-			self.browser.findElement(By.id("page_menu")).click();	
-			self.browser.findElement(By.linkText("Page settings")).click();
+			self.browser.findElement(By.id("page_menu")).click().then(function () {
+				self.browser.findElement(By.id("settings")).click();
+			});	
 			helpers.runModal.call(self, null, function(modal) {				
 		       self.browser.executeScript("$('select[name=\"accType\"]').val('BANK')");
 		       modal.findElement(By.id("save")).click();
@@ -735,8 +739,9 @@ describe("Cash module",function () {
 					})
 				})			
 			});			
-			self.browser.findElement(By.id("page_menu")).click();	
-			self.browser.findElement(By.linkText("Page settings")).click();
+			self.browser.findElement(By.id("page_menu")).click().then(function () {
+				self.browser.findElement(By.id("settings")).click();
+			});	
 			helpers.runModal.call(self, null, function(modal) {
 				modal.findElement(By.linkText("General")).click();				
 				self.browser.executeScript("$('select[name=\"reportCurrency\"]').val('USD')");
@@ -759,8 +764,9 @@ describe("Cash module",function () {
 		it ("Check date range", function(done){
 			var self = this;
 			self.trackError(done);
-			self.browser.findElement(By.id("page_menu")).click();	
-			self.browser.findElement(By.linkText("Page settings")).click();
+			self.browser.findElement(By.id("page_menu")).click().then(function () {
+				self.browser.findElement(By.id("settings")).click();
+			});	
 			helpers.runModal.call(self, null, function(modal) {	
 				modal.findElement(By.linkText("General")).click();
 				helpers.fillInput.call(modal, modal.findElement(By.name("startDate")), "03/01/2012");
