@@ -351,9 +351,8 @@
 			 */
 			if (parseInt(data.sEcho) != objSettings.sEcho)
 				return;
+			$obj.css('top',objSettings.tablePosition+'px');
 
-			$obj.css('top',objSettings.tablePosition+'px');			
-				
 			clearGrid(objSettings);
 			updateGridSettings(data,objSettings);
 			for(var i=0;i<data.aaData.length;i++){
@@ -472,6 +471,8 @@
 				processColumnEditable($updatedCol,objSettings);
 				objSettings.editableColumn = null;
 			}
+			console.timeEnd('renderGrid');
+			console.timeEnd('showGrid');
 		});
 	};
 
@@ -483,6 +484,7 @@
 	 * Draw vertical and horizontal lines instead table borders
 	 */
 	function drawGridBorders($obj,objSettings){
+		console.time('drawGridBorders');
 		objSettings.gridWrapper.find('.ski_vline,.ski_hline').remove();
 		var $vline = $('<div class="ski_vline"></div>');
 		var totalHeight = objSettings.tableHeight + options.rowHeight + objSettings.headerWrapperRef.height();
@@ -511,6 +513,7 @@
 			objSettings.headerWrapperRef.append($hline.clone().css('top',h+'px').addClass(top == h ? 'bold' : ''));
 		}
 		objSettings.isNotDrawBorders = false;
+		console.timeEnd('drawGridBorders');
 	};
 
 	function handleSplitRowsShow(objSettings){

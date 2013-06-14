@@ -18,7 +18,7 @@ function CashApi (ctx) {
 CashApi.prototype.getAccount = require('./accapi.js').getAccount;
 CashApi.prototype.getAllAccounts = require('./accapi.js').getAllAccounts;
 CashApi.prototype.getChildAccounts = require('./accapi.js').getChildAccounts;
-CashApi.prototype._getAllChildsId = require('./accapi.js')._getAllChildsId; 
+CashApi.prototype._getAllChildsId = require('./accapi.js')._getAllChildsId;
 CashApi.prototype.getAccountByPath = require('./accapi.js').getAccountByPath;
 CashApi.prototype.getAccountInfo = require('./accapi.js').getAccountInfo;
 CashApi.prototype.deleteAccount = require('./accapi.js').deleteAccount;
@@ -91,12 +91,12 @@ CashApi.prototype._loadData = function (cb) {
 				self._cash_accounts = results.cash_accounts;
 				self._cash_transactions = results.cash_transactions;
 				self._cash_prices = results.cash_prices;
-				self._cash_settings = results.cash_settings;	
+				self._cash_settings = results.cash_settings;
 				self._cash_accounts_stat = results.cash_accounts_stat;
 				self._cash_register = results.cash_register;
 				self._cash_prices_stat = results.cash_prices_stat;
 			}));
-		}, 
+		},
 		function ensureIndexes(cb) {
 			async.parallel([
 				function (cb) {
@@ -110,16 +110,16 @@ CashApi.prototype._loadData = function (cb) {
 				},
 				function (cb) {
 					self._cash_prices.ensureIndex("date",cb);
-				},				
+				},
 				function (cb) {
 					self._cash_prices.ensureIndex("currency.id",cb);
-				},				
+				},
 				function (cb) {
 					self._cash_prices.ensureIndex("cmdty.id",cb);
-				},				
+				},
 				function (cb) {
 					self._cash_prices_stat.ensureIndex("key",cb);
-				},				
+				},
 				function (cb) {
 					self._cash_transactions.ensureIndex({"splits._id": 1},cb);
 				},
@@ -131,15 +131,15 @@ CashApi.prototype._loadData = function (cb) {
 				},
 				function (cb) {
 					self._cash_register.ensureIndex({"accId": 1 }, cb);
-				},				
+				},
 				function (cb) {
 					self._cash_register.ensureIndex({ "date": 1 }, cb);
 				}
-				
+
 			], cb)
 		}
 	],cb);
-}; 
+};
 
 CashApi.prototype.init = function (cb) {
 	var self = this;
@@ -207,13 +207,13 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		}
 		else {
 			cb(acc.name);
-		} 
+		}
 	}
-	
+
 	console.time("Stats");
 	var skip_calc = false;
 	var defCurrency = {space:"ISO4217", id:"USD"};
-	
+
 	async.auto({
 		def_currency: [function (cb) {
 			// get global default currency because some stuff depend on it
@@ -237,7 +237,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 			}))
 		},
 		price_tree: ['db_stats', function (cb1) {
-			if (skip_calc) return cb1();			
+			if (skip_calc) return cb1();
 			console.time('price_tree');
 			var priceTree = {};
 			self._cash_prices.find({}, safe.sure(cb1, function (cursor) {
@@ -250,7 +250,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 							return cb();
 						}
 						var date = new Date(price.date);
-						var dirs = [ 
+						var dirs = [
 							{rate:price.value,key:(price.cmdty.space+price.cmdty.id+price.currency.space+price.currency.id)},
 							{rate:1/price.value,key:(price.currency.space+price.currency.id+price.cmdty.space+price.cmdty.id)}];
 						async.forEachSeries(dirs, function (dir, cb) {
@@ -288,7 +288,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 			console.time('account_paths');
 			self._cash_accounts.find({}).toArray(safe.sure(cb, function (accounts) {
 				async.forEach(accounts, function (acc, cb) {
-					getAccPath(acc, function (path) { 
+					getAccPath(acc, function (path) {
 						var accStats = getAccStats(acc._id);
 						accStats.path = path;
 						accStats.type = acc.type;
@@ -314,7 +314,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 						}
 						async.forEachSeries(tr.splits, function (split, cb) {
 							var accStats = getAccStats(split.accountId);
-							var act = assetInfo[accStats.type].act;								
+							var act = assetInfo[accStats.type].act;
 							accStats.value+=split.quantity*act;
 							accStats.count++;
 							var trs = {_id:tr._id, date:tr.datePosted, ballance: 0};
@@ -416,7 +416,7 @@ module.exports.init = function (ctx,cb) {
 	});
 };
 
-/* Don't touch this, this can be used to debug/profile cash api 
+/* Don't touch this, this can be used to debug/profile cash api
 var profile = {};
 _.forEach(CashApi.prototype, function (f,k) {
 	var p = function () {

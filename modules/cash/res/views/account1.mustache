@@ -1,0 +1,604 @@
+<div class="row-fluid acc-container">
+	<div class="span11">
+		<table class="table acc-table table-bordered">
+			<thead>
+				<th class="value" width="10%">{{#i18n}}Date{{/i18n}}</th>
+				<th class="number" width="8%" >{{#i18n}}Num{{/i18n}}</th>
+				<th class="description" width="13%" >{{#i18n}}Description{{/i18n}}</th>
+				<th class="account" width="30%" >{{#i18n}}Transfer{{/i18n}}<form name="splitModeForm"  class="pull-right" style="margin:0"><label><input class="splitMode" type="checkbox" style="margin:0;"></form> {{#i18n}}Split{{/i18n}}</label></th>
+				<th class="rstate" width="3%" >R</th>
+				<th class="value" width="8%" >{{verbs.recv}}</th>
+				<th class="value" width="8%" >{{verbs.send}}</th>
+				<th class="value" width="10%" >{{#i18n}}Balance{{/i18n}}</th>
+				<th class="settings" width="10%" ></th>
+			</thead>
+			<tbody>
+
+			</tbody>
+		</table>
+	</div>
+	<div class="span1">
+		<div class="acc-scroll">
+			<div class="acc-scroll-inner"></div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+require(["jquery","safe","lodash","jquery-block","jquery-mousewheel","bootstrap-datepicker"], function ($,safe,_) {
+$(function(){
+	var rowHeight = 30,
+		rowsLimit = 20,
+		iTotalRecords = {{accountSize}},
+		windowBottomOffset = 260,
+		selectedRowId = null,
+		isRecordAdded = false,
+		isRecordUpdated = false,
+		$container = $(".acc-container");
+
+	$container.on('mousewheel', function(event, delta, deltaX, deltaY) {
+		var $accScroll = $container.find(".acc-scroll");
+		$accScroll.scrollTop($accScroll.scrollTop() - deltaY*rowHeight);
+	});
+
+	$container.hover(function() {
+		$(document).bind('mousewheel DOMMouseScroll',function(e){
+			stopWheel(e);
+		});
+	}, function() {
+		$(document).unbind('mousewheel DOMMouseScroll');
+	});
+
+	$(window).on('resize',function(){
+		var oldRowsLimit = rowsLimit;
+		ajustGridSize($container);
+		$container.find(".acc-scroll").scrollTop($container.find(".acc-scroll").scrollTop() - (rowsLimit-oldRowsLimit)*rowHeight);
+	});
+
+	$container.on("click",".acc-item",function(){
+		var $self = $(this);
+		if($self.hasClass("selected"))
+			return false;
+		var $record = $self.closest(".acc-item-record");
+		safe.run(function(cb){
+			require(["async","api"],function(async,api){
+				async.series([
+					function(cb1){
+						if($record.hasClass("selected")){
+							if($self.hasClass("selected"))
+								return cb1();
+							updateOldColumnSelected($record.find(".acc-item.selected"),cb1)
+						}
+						else{
+							var $accItem = $container.find(".acc-item.selected");
+							if($accItem.length == 0)
+								$accItem = $container.find(".acc-item-split.selected");
+							updateOldColumnSelected($accItem,safe.sure(cb1,function(){
+								updateRecord($container.find(".acc-item-record.selected"),safe.sure(cb1,function(result){
+									$container.find(".acc-item-record").removeClass("selected");
+									$record.addClass("selected");
+									selectedRowId = $record.data("id");
+									toggleSplitRows($container);
+									if(result && result.tr){
+										isRecordUpdated = true;
+										$container.find(".acc-scroll").scroll();
+									}
+									else{
+										cb1();
+									}
+								}));
+							}))
+						}
+					},
+					function(cb1){
+						if($self.hasClass("selected"))
+							return cb1();
+						handleColumnClick($self,cb1);
+					}
+				],cb);
+			},cb);
+		},function(err){
+			if(err) appError(err);
+		});
+	});
+
+	$container.on("click",".acc-item-split",function(){
+		var $self = $(this);
+		if($self.hasClass("selected"))
+			return false;
+		var $splitrecord = $self.closest(".acc-item-record-split");
+		var $mainrecord = $container.find(".acc-item-record[data-id=\""+$splitrecord.data("recordid")+"\"]");
+		var $splitrecords = $container.find(".acc-item-record-split[data-recordid=\""+$splitrecord.data("recordid")+"\"]");
+		safe.run(function(cb){
+			require(["async","api"],function(async,api){
+				async.series([
+					function(cb1){
+						updateOldColumnSelected($mainrecord.find(".acc-item.selected"),cb1);
+					},
+					function(cb1){
+						updateOldColumnSelected($splitrecords.find(".acc-item-split.selected"),cb1);
+					},
+					function(cb1){
+						handleColumnClick($self,cb1);
+					}
+				],cb);
+			},cb);
+		},function(err){
+			if(err) appError(err);
+		});
+	});
+
+	$container.on('keypress','.acc-item',function(e){
+		if(e.keyCode == 9){
+			var $nextCol = $(this).next(".acc-item");
+			if($nextCol.length > 0){
+				var colName = $nextCol.data("name");
+				if(colName == "rstate"){
+					$nextCol = $nextCol.next(".acc-item");
+				}
+				else if(colName == "total"){
+					/* get next main row */
+					var $rows = $(this).parent().nextUntil(".acc-item-record");
+					var $nextRow = $rows.eq($rows.length-1).next();
+					$nextCol = $nextRow.find(".acc-item:first");
+					if($nextCol.length == 0){
+						return addNewRecord($(this));
+					}
+				}
+				$nextCol.click();
+			}
+			return false;
+		}
+		if(e.which == 13){
+			if(!$(".typeahead.dropdown-menu").is(":visible")){
+				/* get next main row */
+				var $rows = $(this).parent().nextUntil(".acc-item-record");
+				var $nextRow = $rows.eq($rows.length-1).next();
+				$nextCol = $nextRow.find(".acc-item:first");
+				if($nextCol.length == 0){
+					return addNewRecord($(this));
+				}
+				else
+					$nextCol.click();
+				return false;
+			}
+		}
+	});
+
+	$container.on('keypress','.acc-item-split',function(e){
+		if(e.keyCode == 9){
+			var $nextCol = $(this).next(".acc-item-split");
+			if($nextCol.length > 0){
+				var colName = $nextCol.data("name");
+				if(colName == "rstate"){
+					$nextCol = $nextCol.next(".acc-item-split");
+				}
+				else if(colName == "total"){
+					/* get next main row */
+					var $nextRow = $(this).parent().next(".acc-item-record-split")
+					$nextCol = $nextRow.find(".acc-item-split:first").next();
+				}
+				$nextCol.click();
+			}
+			return false;
+		}
+	});
+
+	$(document).on("click",function(e){
+		if($(e.target).closest('.acc-container').length == 0){
+			var $accItemSelected = $container.find(".acc-item-record.selected .acc-item.selected");
+			if($accItemSelected.length){
+				updateOldColumnSelected($accItemSelected,function(){});
+			}
+			else{
+				updateOldColumnSelected($container.find(".acc-item-record-split.selected .acc-item-split.selected"),function(){});
+			}
+		}
+	});
+
+	$container.on("click",".acc-item .delete-record",function(){
+		var recordId = $(this).closest(".acc-item-record").data("id");
+		$container.block();
+		safe.run(function(cb){
+			require(["api"],function(api){
+				api.call("cash.clearTransactions",[recordId],safe.sure(cb,function(){
+					$container.find(".acc-scroll").scroll();
+					cb();
+				}));
+			},cb);
+		},function(err){
+			if(err){
+				appError(err);
+			}
+			$container.unblock();
+		});
+		return false;
+	});
+
+	$container.find("form[name=\"splitModeForm\"]").get(0).reset();
+	$container.on("change",".splitMode",function(){
+		toggleSplitRows($container);
+	});
+
+	ajustGridSize($container);
+	initGrid($container);
+
+	function ajustGridSize($container){
+		var tableHeight = Math.floor(($(window).height()-windowBottomOffset)/rowHeight)*rowHeight;
+		rowsLimit = Math.floor(tableHeight/rowHeight);
+	}
+
+	function attachScrollEvent($container){
+		$container.find(".acc-scroll").scroll(function(){
+			window.stop();
+			var scrollPosition = $(this).scrollTop();
+			var offset = iTotalRecords - Math.floor((iTotalRecords*rowHeight-scrollPosition)/rowHeight);
+			if(isRecordAdded || isRecordUpdated){
+				$container.block();
+			}
+			loadGrid($container,offset,rowsLimit,function(){$container.unblock();});
+		});
+	}
+
+	function stopWheel(e){
+		if(!e){ /* IE7, IE8, Chrome, Safari */
+			e = window.event;
+		}
+		if(e.preventDefault) { /* Chrome, Safari, Firefox */
+			e.preventDefault();
+		}
+		e.returnValue = false; /* IE7, IE8 */
+	}
+
+	function initGrid($contaner){
+		$container.block();
+		safe.run(function(cb){
+			var offset = iTotalRecords-rowsLimit;
+			if(offset < 0)
+				offset =0;
+			$container.unblock();
+			loadGrid($container,offset,rowsLimit,safe.sure(cb,function(){
+				updateInnerScrollHeight();
+				$container.find(".acc-scroll").scrollTop(iTotalRecords*rowHeight);
+				setTimeout(function(){attachScrollEvent($container)},100);
+				cb();
+			}))
+		},function(err){
+			if(err){
+				appError(err);
+				container.unblock();
+			}
+		});
+	}
+
+	function loadGrid($container,offset,limit,cb){
+		var srowId = $container.find(".acc-item-record.selected").data("id");
+		if(srowId)
+			selectedRowId = srowId;
+		safe.run(function(cb1){
+			getData(offset,limit,safe.sure(cb1,function(data){
+				require(["clitpl"],function(tf){
+					tf.render("account_items",{items:data.aaData,oddeven:0},safe.sure(cb1,function(text,ctx){
+						$container.find("tbody").html(text);
+						$container.find(".acc-item-record").filter(':even').addClass("even");
+						$container.find(".acc-item-record").filter(':odd').addClass("odd");
+						$container.find(".acc-item-record[data-id=\""+selectedRowId+"\"]").addClass("selected");
+						$container.find(".acc-scroll").height($container.find(".acc-table").height()).show();
+						if(isRecordAdded){
+							isRecordAdded = false;
+							$container.find(".acc-item-record[data-id='blank'] .acc-item:first").next().click();
+						}
+						if(isRecordUpdated){
+							isRecordUpdated = false;
+						}
+						toggleSplitRows($container);
+						cb();
+					}));
+				},cb1);
+			}));
+		},function(err){
+			if(err) appError(err);
+			cb(err);
+		})
+	};
+
+	function getData(offset,limit,cb){
+		var jqXHR = $.ajax( {
+			"url": "{{prefix}}/account/{{accountId}}/getgrid",
+			"data":{"sEcho":1,"iDisplayLength":limit,"iDisplayStart":offset},
+			"dataType": "json",
+			"cache": false
+		});
+		jqXHR.done(function(data){
+			cb(null,data);
+		});
+	}
+
+
+	function updateRecord($record,cb){
+		if(!$record || $record.length == 0)
+			return cb();
+
+		var origData = {
+			date: $record.find(".acc-item[data-name=\"date\"]").data("origval"),
+			num: $record.find(".acc-item[data-name=\"num\"]").data("origval").toString(),
+			description: $record.find(".acc-item[data-name=\"description\"]").data("origval"),
+			splits:[]
+		};
+
+		var data = {
+			date: $record.find(".acc-item[data-name=\"date\"]").text(),
+			num: $record.find(".acc-item[data-name=\"num\"]").text(),
+			description: $record.find(".acc-item[data-name=\"description\"]").text(),
+			splits:[]
+		};
+		var trId = $record.data("id");
+		if(trId && trId != "blank"){
+			data.id = trId;
+			origData.id = trId;
+		}
+		$record.parent().find(".acc-item-record-split[data-recordid=\""+$record.data("id")+"\"]").each(function(i,item){
+			var accountId = $(item).find(".acc-item-split[data-name=\"path\"]").data("accid");
+			if(accountId != ""){
+				var spl = {
+					accountId:accountId,
+					num: $(item).find(".acc-item-split[data-name=\"num\"]").text(),
+					description: $(item).find(".acc-item-split[data-name=\"description\"]").text(),
+					path: $(item).find(".acc-item-split[data-name=\"path\"]").text(),
+					deposit: $(item).find(".acc-item-split[data-name=\"deposit\"]").text(),
+					withdrawal: $(item).find(".acc-item-split[data-name=\"withdrawal\"]").text(),
+					rstate: $(item).find(".acc-item-split[data-name=\"rstate\"]").text()
+				};
+				var origspl = {
+					accountId:accountId,
+					num: $(item).find(".acc-item-split[data-name=\"num\"]").data("origval").toString(),
+					description: $(item).find(".acc-item-split[data-name=\"description\"]").data("origval"),
+					path: $(item).find(".acc-item-split[data-name=\"path\"]").data("origval"),
+					deposit: $(item).find(".acc-item-split[data-name=\"deposit\"]").data("origval"),
+					withdrawal: $(item).find(".acc-item-split[data-name=\"withdrawal\"]").data("origval"),
+					rstate: $(item).find(".acc-item-split[data-name=\"rstate\"]").data("origval")
+				};
+				var splId = $(item).data("_id");
+				if(splId != "" && splId != "new"){
+					spl._id = splId;
+					origspl._id = splId;
+				}
+				data.splits.push(spl);
+				origData.splits.push(origspl);
+			}
+		});
+		if(_.isEqual(data,origData))
+			return cb();
+
+		$container.block();
+		var jqXHR = $.ajax({
+			"url": "{{prefix}}/account/{{accountId}}/updaterow",
+			"data":data,
+			"type":"POST",
+			"dataType": "json",
+			"cache": false
+		});
+		jqXHR.done(function(result){
+			$container.unblock();
+			if(result.error){
+				cb(result.error);
+			}
+			else{
+				var isNew = false;
+				if(!data.id){
+					isNew =true;
+					iTotalRecords++;
+					updateInnerScrollHeight();
+				}
+				cb(null,{isNew:isNew,tr:result.tr});
+			}
+		});
+		jqXHR.fail(function(result){
+			$container.unblock();
+			var error={error:'invalidResponse'};
+			cb(error);
+		});
+	}
+
+	function updateOldColumnSelected($column,cb){
+		if(!$column || $column.length == 0)
+			return cb();
+		var editable = $column.data("editable");
+		if(editable){
+			var columnName = $column.data("name");
+			var edittype =  $column.data("edittype");
+			var columnModifiedData = {};
+			var val = $column.find("input").val();
+			$column.find(".tdContent").text(val);
+			columnModifiedData.val = val;
+			if(columnName == "path"){
+				var accid = $column.find("input").data("accid");
+				$column.data("accid",accid);
+				columnModifiedData.accid = accid;
+			}
+
+			if($column.closest(".acc-item-record").length > 0){
+				var relaccid = $column.data("relaccid");
+				if(relaccid){
+					var $record = $column.closest(".acc-item-record");
+					var recordid = $record.data("id");
+					var $splitTargetColumn = $record.parent().find(".acc-item-record-split[data-recordid=\""+recordid+"\"][data-accid=\""+relaccid+"\"] .acc-item-split[data-name=\""+columnName+"\"]");
+					$splitTargetColumn.find(".tdContent").text(columnModifiedData.val);
+					_.each(columnModifiedData,function(v,k){
+						$splitTargetColumn.data(k,v);
+					});
+					var multisplit = $record.data("multisplit");
+					/* we need update deposit or withdrawal for both split rows */
+					if(multisplit != 1 && (columnName == "deposit" || columnName == "withdrawal")){
+						var secondcol = {"deposit":"witdrawal","withdrawal":"deposit"};
+						var $prevSplitRow = $splitTargetColumn.parent().prev(".acc-item-record-split");
+						if($prevSplitRow.length > 0){
+							$splitTargetColumn = $prevSplitRow.find(".acc-item-split[data-name=\""+secondcol[columnName]+"\"]")
+						}
+						else{
+							$splitTargetColumn = $splitTargetColumn.parent().next(".acc-item-record-split").find(".acc-item-split[data-name=\""+secondcol[columnName]+"\"]")
+						}
+						$splitTargetColumn.find(".tdContent").text(columnModifiedData.val);
+						_.each(columnModifiedData,function(v,k){
+							$splitTargetColumn.data(k,v);
+						});
+					}
+				}
+			}
+			else if($column.closest(".acc-item-record-split").length > 0){
+				var $record = $column.closest(".acc-item-record-split");
+				var $mainColumnTarget = $record.parent().find(".acc-item-record[data-id=\""+$record.data("recordid")+"\"] .acc-item[data-name=\""+columnName+"\"]");
+				var relaccid = $mainColumnTarget.data("relaccid");
+				if(relaccid && relaccid == $record.data("accid")){
+					$mainColumnTarget.find(".tdContent").text(columnModifiedData.val);
+					_.each(columnModifiedData,function(v,k){
+						$mainColumnTarget.data(k,v);
+					});
+				}
+				if($record.next(".acc-item-record-split").length == 0){
+					safe.run(function(cb){
+						require(["clitpl"],function(tf){
+							tf.render("grid_item_split_blank",{id:$record.data("recordid")},safe.sure(cb,function(text,ctx){
+								$record.after(text);
+								$record.next(".acc-item-record-split").show();
+								cb();
+							}));
+						},cb);
+					},function(err){
+						if(err) appError(err);
+					});
+				}
+			}
+		}
+		$column.find(".tdContentEditable").html("").hide();
+		$column.find(".tdContent").show();
+		$column.removeClass("selected");
+		cb();
+	}
+
+	function handleColumnClick($column,cb){
+		var editable = $column.data("editable");
+		if(!editable)
+			return cb();
+		var splitblock = $column.data("splitblock");
+		if(splitblock && $container.find(".splitMode").is(":checked"))
+			return cb();
+		var edittype =  $column.data("edittype");
+		var name = $column.data("name");
+
+		require(["clitpl"],function(tf){
+			tf.render("grid_editable_"+editable,{val:$column.find(".tdContent").text()},safe.sure(cb,function(text,ctx){
+				$column.find(".tdContent").hide();
+				$column.find(".tdContentEditable").html(text).show();
+				var $elem = $("#"+ctx.uniq);
+				$elem.focus();
+				if(edittype == "typeahead"){
+					var typeaheadOptions={
+						minLength:0,
+						items:1000,
+						menu: '<ul class="typeahead dropdown-menu" style="max-height:150px;overflow-y:auto;"></ul>'
+					};
+					if(name == "path"){
+						var suggestions = {};
+						typeaheadOptions.source = function(text,process){
+							var jqXHR = $.ajax({
+								"url": "{{prefix}}/account/{{accountId}}/getaccounts",
+								"dataType": "json",
+								"cache": true
+							});
+							jqXHR.done(function(data){
+								suggestions = data;
+								process(_.keys(data));
+							});
+
+						};
+						typeaheadOptions.updater = function(item) {
+							$elem.attr('data-accid', suggestions[item]['id']);
+							$elem.data('accid', suggestions[item]['id']);
+							$elem.attr('data-curr', suggestions[item]['currency']);
+							$elem.data('currency', suggestions[item]['currency']);
+							return item;
+						}
+					}
+					else if(name == "description"){
+						typeaheadOptions.source = function(text,process){
+							var jqXHR = $.ajax({
+								"url": "{{prefix}}/account/{{accountId}}/getdesc",
+								"dataType": "json",
+								"cache": true
+							});
+							jqXHR.done(function(data){
+								process(data);
+							});
+
+						}
+					}
+					$elem.typeahead(typeaheadOptions);
+					$elem.on('click', function(){
+						$elem.trigger("keyup");
+					})
+					//$elem.click();
+				}
+				else if(edittype == "datepicker"){
+					$elem.datepicker();
+					$elem.data("datepicker").show();
+				}
+				$column.addClass("selected");
+
+				if(edittype == "switch"){
+					if($elem.val() == "" || $elem.val() == "c")
+						$elem.val("n");
+					else
+						$elem.val("c");
+
+					$column.parent().find("td[data-name='total']").click();
+				}
+
+				cb();
+			}));
+		},cb);
+	}
+
+	function toggleSplitRows($container){
+		var $checkbox = $container.find(".splitMode");
+		var $selectedRow = $container.find(".acc-item-record.selected");
+		if($selectedRow){
+			var $splits = $container.find(".acc-item-record-split[data-recordid=\""+$selectedRow.data("id")+"\"]");
+			$container.find(".acc-item[data-splitblock=\"1\"] .tdContent").show();
+			if($checkbox.is(":checked")){
+				updateOldColumnSelected($selectedRow.find(".acc-item.selected"),function(){
+					$container.find(".acc-item-record-split").hide();
+					$selectedRow.find(".acc-item[data-splitblock=\"1\"] .tdContent").hide();
+					$splits.show();
+				});
+			}
+			else{
+				$splits.hide();
+				$selectedRow.find(".acc-item[data-splitblock=\"1\"] .tdContent").show();
+			}
+		}
+	}
+
+	function updateInnerScrollHeight(){
+		$container.find(".acc-scroll-inner").height(iTotalRecords*rowHeight);
+	}
+
+	function addNewRecord($column){
+		safe.run(function(cb){
+			updateOldColumnSelected($column,safe.sure(cb,function(){
+				updateRecord($column.parent(),safe.sure(cb,function(result){
+					if(result.isNew){
+						isRecordAdded = true;
+						$container.find(".acc-scroll").scrollTop($container.find(".acc-scroll").scrollTop()+rowHeight);
+					}
+					cb();
+				}));
+			}));
+		},function(err){
+			if(err) appError(err);
+		});
+	}
+
+
+});
+})
+</script>
