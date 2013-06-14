@@ -62,7 +62,7 @@ module.exports.getTransaction = function (token, trId, cb) {
 };
 
 module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
-	var debug = false;
+	var debug = true;
 	if (debug) { console.log("Received"); console.log(arguments); console.log(arguments[1].splits); }
 	if (_.isFunction(leadAccId)) {
 		cb = leadAccId;
@@ -234,7 +234,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 				cb();
 			} else {
 				if (value==0) return cb();
-				self.getSpecialAccount(token,"disballance",trn.currency, safe.sure(cb, function(acc) {
+				self.getSpecialAccount(token,"disballance",trn.currency, safe.sure_result(cb, function(acc) {
 					trn.splits.push({value:-1*value,quantity:-1*value,accountId:acc._id,_id:new self._ctx.ObjectID(),description:""});
 				}));
 			}

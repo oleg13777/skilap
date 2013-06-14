@@ -87,7 +87,8 @@ module.exports.getSpecialAccount = function (token,type,cmdty,cb) {
 
 	self.getAccountByPath(token,name, function (err, acc) {
 		if (err) {
-			if (err.skilap && err.skilap.subject == "NO_SUCH_ACCOUNT") {
+			console.log("ERRR",err);
+			if (err && err.data && err.data.subject == "NO_SUCH_ACCOUNT") {
 				// create one
 				var newacc = {"parentId":0,"cmdty":cmdty,"name":name,"type":"EQUITY"};
 				return self.saveAccount(token, newacc, cb);
@@ -102,7 +103,7 @@ module.exports.getSpecialAccount = function (token,type,cmdty,cb) {
 	});
 };
 
-module.exports.getAccountInfo = function (token, accId, details, cb) {	
+module.exports.getAccountInfo = function (token, accId, details, cb) {
 	var self = this;
 	var accInfo = null;
 	var accStats = null;
@@ -139,7 +140,7 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 				assInfo = info;
 			}));
 		},
-		safe.trap(function (cb) {			
+		safe.trap(function (cb) {
 			var res = {};
 			res._id = accId;
 			_.forEach(details, function (val) {
@@ -167,7 +168,7 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 				}
 			});
 			cb(null, res);
-		})], safe.sure_result(cb, function (results) {			
+		})], safe.sure_result(cb, function (results) {
 			return results[4];
 		})
 	);
@@ -448,7 +449,7 @@ module.exports.getAllCurrencies = function(token,cb){
 						cursor.each(safe.trap_sure(cb, function (acc) {
 							if (acc)
 								usedCurrencies[acc.cmdty.id] = acc.cmdty;
-							else 
+							else
 								cb(null, usedCurrencies);
 						}));
 					}));

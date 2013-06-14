@@ -48,38 +48,12 @@ module.exports = function account(webapp) {
 		var tr = createTransactionFromData(req.body);
 		cashapi.saveTransaction(req.session.apiToken, tr, req.params.id, function(err,trn){
 			if(err){
-				return next(err);
+				return res.send({error:err.message});
 			}
 			res.send({tr:trn});
 		});
 	});
 
-
-	app.post(webapp.prefix+'/account/:id/addrow', function(req, res, next) {
-		var tr = createTransactionFromData(req.body);
-		cashapi.saveTransaction(req.session.apiToken, tr, req.params.id, function(err,trn){
-			if(err){
-				return next(err);
-			}
-			res.send({tr:trn});
-		});
-	});
-
-	app.post(webapp.prefix+'/account/:id/delrow', function(req, res, next) {
-		async.waterfall([
-			function (cb1) {
-				cashapi.clearTransactions(req.session.apiToken, [req.body.recordId], function(err){
-					result = {"recordId":req.body.recordId};
-					if(err){
-						result.error = "1";
-					}
-					res.send(result);
-				});
-			}
-		], function (err) {
-			if (err) return next(err);
-		});
-	});
 
 	app.get(webapp.prefix+'/account/:id/getaccounts', function(req, res, next) {
 		async.waterfall([
@@ -207,7 +181,7 @@ module.exports = function account(webapp) {
 						splitsInfo.push(split);
 					});
 					var path = "",multisplit = null,recv_accid="",send_accid = send.accountId;
-					if (!recv[0] || !accInfo[recv[0].accountId]) continue;
+					//if (!recv[0] || !accInfo[recv[0].accountId]) continue;
 					if(recv.length==1){
 						path = accInfo[recv[0].accountId].path;
 						recv_accid=recv[0].accountId;
