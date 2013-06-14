@@ -28,7 +28,7 @@ require(["jquery","safe","lodash","jquery-block","jquery-mousewheel","bootstrap-
 $(function(){
 	var rowHeight = 30,
 		rowsLimit = 20,
-		iTotalRecords = 0,
+		iTotalRecords = {{accountSize}},
 		windowBottomOffset = 260,
 		selectedRowId = null,
 		isRecordAdded = false,
@@ -252,19 +252,16 @@ $(function(){
 	function initGrid($contaner){
 		$container.block();
 		safe.run(function(cb){
-			getData(0,0,safe.sure(cb,function(data){
-				iTotalRecords = data.iTotalRecords;
-				var offset = iTotalRecords-rowsLimit;
-				if(offset < 0)
-					offset =0;
-				$container.unblock();
-				loadGrid($container,offset,rowsLimit,safe.sure(cb,function(){
-					updateInnerScrollHeight();
-					$container.find(".acc-scroll").scrollTop(iTotalRecords*rowHeight);
-					setTimeout(function(){attachScrollEvent($container)},100);
-					cb();
-				}));
-			}));
+			var offset = iTotalRecords-rowsLimit;
+			if(offset < 0)
+				offset =0;
+			$container.unblock();
+			loadGrid($container,offset,rowsLimit,safe.sure(cb,function(){
+				updateInnerScrollHeight();
+				$container.find(".acc-scroll").scrollTop(iTotalRecords*rowHeight);
+				setTimeout(function(){attachScrollEvent($container)},100);
+				cb();
+			}))
 		},function(err){
 			if(err){
 				appError(err);
