@@ -49,7 +49,7 @@ module.exports.getTransaction = function (token, trId, cb) {
 };
 
 module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
-	var debug = true;
+	var debug = false;
 	if (debug) { console.log("Received"); console.log(arguments); console.log(arguments[1].splits); }
 	if (_.isFunction(leadAccId)) {
 		cb = leadAccId;
@@ -317,7 +317,12 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			self._cash_transactions.save(trn, cb);
 		}
 	], safe.sure(cb,function () {
-		self._calcStats(function () {cb(null, trn);});
+		var accIds = [];
+		if (debug) { console.log("Before stats"); console.log(trn);	}
+		_(trn.splits).forEach(function (split) {
+			accIds.push(split.accountId);
+		});
+		self._calcStatsPartial(accIds, null, false, function () {cb(null, trn);});
 	}));
 };
 
