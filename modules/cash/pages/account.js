@@ -31,7 +31,7 @@ module.exports = function account(webapp) {
 					tabs:vtabs,
 					prefix:prefix,
 					accountId:req.query.id,
-					accountSize:count,
+					accountSize:++count,
 					firstVisible:firstVisible,
 					pageSize:pageSize,
 					scrollGap:scrollGap,
