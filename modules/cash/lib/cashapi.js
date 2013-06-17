@@ -301,7 +301,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 			if (skip_calc) return cb1();
 			console.time("Transactions");
 			var ballances = [];
-			self._cash_transactions.find({}, {sort: {datePosted: 1}}, safe.sure(cb1, function (cursor) {
+			self._cash_transactions.find({}, {sort: {dateEntered: 1, _id: 1}}, safe.sure(cb1, function (cursor) {
 				var stop = false;
 				async.doUntil(function (cb) {
 					cursor.nextObject(safe.sure(cb, function (tr) {
@@ -314,7 +314,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 							var act = assetInfo[accStats.type].act;
 							accStats.value+=split.quantity*act;
 							accStats.count++;
-							var trs = {_id:tr._id, date:tr.datePosted, ballance: 0};
+							var trs = {_id:tr._id, date:tr.dateEntered, ballance: 0};
 							accStats.trDateIndex.push(trs);
 							//!!!!
 							var accId = split.accountId;
@@ -336,7 +336,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 							doc.trId = tr._id;
 							doc.accId = accId;
 							self._cash_register.update({ trId: tr._id, accId: accId }, doc,
-									{ upsert: true, hint: { trId: 1 }, w: 1 }, cb);
+									{ upsert: true, safe: true, hint: { trId: 1 }, w: 1 }, cb);
 						}, cb);
 					}));
 				}, function () { return stop; }, safe.sure(cb1, function () {
@@ -451,7 +451,7 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, upd_price, cb) 
 			console.time("Transactions");
 			var ballances = [];
 			var count = 0;
-			self._cash_transactions.find({'splits.accountId': {$in: accIds}}, {sort: {datePosted: 1}}, safe.sure(cb, function (cursor) {
+			self._cash_transactions.find({'splits.accountId': {$in: accIds}}, {sort: {dateEntered: 1, _id: 1}}, safe.sure(cb, function (cursor) {
 				var stop = false;
 				async.doUntil(function (cb) {
 					cursor.nextObject(safe.sure(cb, function (tr) {
@@ -483,13 +483,13 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, upd_price, cb) 
 							});
 							trs.recv = recv; trs.send = send;
 							ballances[accId] += send.quantity*act;
-							trs.ballance = ballances[accId];
+							trs.ballance = _.clone(ballances[accId]);
 							//!!!!
 							var doc = _.omit(trs, '_id','recv','send');
 							doc.trId = tr._id;
 							doc.accId = accId;
 							self._cash_register.update({ trId: tr._id, accId: accId }, doc,
-									{ upsert: true, hint: { trId: 1 }, w: 1 }, cb);
+									{ upsert: true, hint: { trId: 1 }, safe: true, w: 1 }, cb);
 						}, cb);
 					}));
 				}, function () { return stop; }, safe.sure(cb, function () {
