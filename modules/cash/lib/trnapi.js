@@ -351,7 +351,7 @@ module.exports.clearTransactions = function (token, ids, cb) {
 	   				if (ids == null)
 	   					self._cash_transactions.remove(cb);
 	   				else
-	   					self._cash_transactions.remove({'_id': {$in: ids}}, cb);
+	   					self._cash_transactions.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, cb);
 	   			}
 	   		], safe.sure(cb, function () {
 	   			self._calcStats(cb);

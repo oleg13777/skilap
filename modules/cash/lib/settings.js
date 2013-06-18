@@ -35,12 +35,12 @@ module.exports.clearSettings = function (token, ids, cb) {
 	var self = this;
 	async.series ([
 	   			function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-	   			function (cb) {
-		   			if (ids == null)
-		   				self._cash_settings.remove(cb);
-		   			else
-						self._cash_settings.remove(_.map(ids, function(id) { return new self._ctx.ObjectID(id); }),cb);
-	   			} 
+	   			function (cb) {	
+	   				if (ids == null)
+	   					self._cash_settings.remove(cb);
+	   				else
+	   					self._cash_settings.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, cb);
+	   			}
 	   		], safe.sure_result(cb, function () {
 	   		}));
 };
