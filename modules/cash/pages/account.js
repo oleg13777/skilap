@@ -216,7 +216,8 @@ module.exports = function account(webapp) {
 					});
 				}
 				if(count - idx <= req.query.iDisplayLength){
-					data.aaData.shift();
+					if(idx != 0)
+						data.aaData.shift();
 					var blankSplit = {
 						recordid : "blank",
 						path : "",
