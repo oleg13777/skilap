@@ -7,7 +7,7 @@ module.exports.getAccountRegister = function (token, accId, offset, limit, cb ) 
 	async.waterfall ([
 		function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
 		function (cb) {
-			var cursor = self._cash_register.find({'accId': new self._ctx.ObjectID(accId)}).sort( { 'date': 1 } );
+			var cursor = self._cash_register.find({'accId': new self._ctx.ObjectID(accId)}).sort( { '_id': 1 } );
 			if (offset)
 				cursor.skip(offset);
 			if (limit)
@@ -322,7 +322,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 		_(trn.splits).forEach(function (split) {
 			accIds.push(split.accountId);
 		});
-		self._calcStatsPartial(accIds, null, false, function () {cb(null, trn);});
+		self._calcStatsPartial(accIds, trn.dateEntered, function () {cb(null, trn);});
 	}));
 };
 
