@@ -131,6 +131,9 @@ CashApi.prototype._loadData = function (cb) {
 				},
 				function (cb) {
 					self._cash_register.ensureIndex({ "date": 1 }, cb);
+				},
+				function (cb) {
+					self._cash_register.ensureIndex({ "order": 1 }, cb);
 				}
 
 			], cb)
@@ -301,7 +304,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 			if (skip_calc) return cb1();
 			console.time("Transactions");
 			var ballances = [];
-			self._cash_transactions.find({}, {sort: {dateEntered: 1}}, safe.sure(cb1, function (cursor) {
+			self._cash_transactions.find({}, {sort: {datePosted: 1}}, safe.sure(cb1, function (cursor) {
 				var stop = false;
 				async.doUntil(function (cb) {
 					cursor.nextObject(safe.sure(cb, function (tr) {
@@ -314,7 +317,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 							var act = assetInfo[accStats.type].act;
 							accStats.value+=split.quantity*act;
 							accStats.count++;
-							var trs = {_id:tr._id, date:tr.dateEntered, ballance: 0};
+							var trs = {_id:tr._id, date:tr.datePosted, ballance: 0};
 							accStats.trDateIndex.push(trs);
 							//!!!!
 							var accId = split.accountId;
@@ -335,6 +338,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 							var doc = _.omit(trs, '_id','recv','send');
 							doc.trId = tr._id;
 							doc.accId = accId;
+							doc.order = accStats.count;
 							self._cash_register.update({ trId: tr._id, accId: accId }, doc,
 									{ upsert: true, safe: true, hint: { trId: 1 }, w: 1 }, cb);
 						}, cb);
@@ -367,28 +371,16 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 	// helper functions
 	function getAccStats (accId) {
 		if (_stats[accId]==null)
-			_stats[accId] = {_id:accId, value:0, count:0, trDateIndex:[], type: "BANK"};
+			_stats[accId] = {_id:accId, value:0, count:0, type: "BANK"};
 		return _stats[accId];
 	}
 
 	console.time("Stats Partial");
-	var defCurrency = {space:"ISO4217", id:"USD"};
 	var ballances = [];
+	var counters = [];
+	var toDelete = [];
 
 	async.auto({
-		def_currency: [function (cb) {
-			// get global default currency because some stuff depend on it
-			// store it if it absent
-			self._cash_settings.findOne({'id': "currency"}, safe.sure(cb, function (v) {
-				if (v && v.v) {
-					defCurrency = v.v;
-					cb()
-				}
-				else {
-					self._cash_settings.update({'id':"currency"},{$set:{v:defCurrency}},{upsert:true}, cb)
-				}
-			}))
-		}],
 		load_stats: [function (cb) {
 			self._cash_accounts_stat.find({'_id': {$in: accIds}}, safe.trap_sure(cb, function (cursor) {
 				cursor.each(safe.trap_sure(cb, function (stat) {
@@ -396,91 +388,102 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 						return cb();
 					_stats[stat._id] = stat;
 					_stats[stat._id].value = 0;
-					_stats[stat._id].count = 0;
-					_stats[stat._id].trDateIndex = [];
 				}));
 			}));
 		}],
 		find_last: [function (cb) {
 			if (minDate) {
 				async.forEachSeries(accIds, function (accId, cb) {
-					self._cash_register.findOne({'accId': accId, 'date': {$lt: minDate}}, {sort: {date: -1}}, safe.sure_result(cb, function(tr) {
+					self._cash_register.findOne({'accId': accId, 'date': {$lt: minDate}}, {sort: {order: -1}}, safe.sure_result(cb, function(tr) {
 						if (tr == null) return;
 						ballances[accId] = tr.ballance;
+						counters[accId] = tr.order;
 					}));
 				}, cb);
 			} else
 				cb();
 		}],
-		remove_old: ['find_last', function (cb) {
-			if (minDate)
-				self._cash_register.remove({'accId': {$in: accIds}, 'date': {$gte: minDate}}, { w: 1 }, cb);
-			else
-				self._cash_register.remove({'accId': {$in: accIds}}, { w: 1 }, cb);
+		find_old: ['find_last', function (cb) {
+			async.forEachSeries(accIds, function (accId, cb) {
+				var q = {'accId': accId};
+				if (minDate)
+					q.date = {$gte: minDate};
+				self._cash_register.find(q).toArray(safe.sure_result(cb, function(regs) {
+					toDelete[accId] = _.pluck(regs, '_id');
+				}));
+			}, cb);
 		}],
-		transaction_stats: ['load_stats', 'remove_old', function (cb) {
+		transaction_stats: ['load_stats', 'find_old', function (cb) {
 			console.time("Transactions");
 			var count = 0;
 			var q = {'splits.accountId': {$in: accIds}};
 			if (minDate)
-				q.dateEntered = {$gte: minDate};
-			self._cash_transactions.find(q).toArray(safe.sure(cb, function(trs) {
-				console.time("Sort");
-				trs.sort(function(a, b) {
-					if (a.dateEntered.getTime() != b.dateEntered.getTime()) 
-						return a.dateEntered.getTime() - b.dateEntered.getTime();
-					if (a._id.toString() == b._id.toString())
-						return 0;
-					if (a._id.toString() > b._id.toString())
-						return 1;
-					return -1;
-				});
-				console.timeEnd("Sort");
-				async.forEachSeries(trs, function (tr, cb) {
-					count++;
-					async.forEachSeries(tr.splits, function (split, cb) {
-						if (_.indexOf(_.map(accIds, function(id) { return id.toString(); }), split.accountId.toString()) == -1)
+				q.datePosted = {$gte: minDate};
+			self._cash_transactions.find(q, {sort: {datePosted: 1}}, safe.sure(cb, function (cursor) {
+				var stop = false;
+				async.doUntil(function (cb) {
+					cursor.nextObject(safe.sure(cb, function (tr) {
+						if (!tr) {
+							stop = true;
 							return cb();
-						var accStats = getAccStats(split.accountId);
-						var act = assetInfo[accStats.type].act;
-						accStats.value+=split.quantity*act;
-						accStats.count++;
-						var trs = {_id:tr._id, date:tr.dateEntered, ballance: 0};
-						accStats.trDateIndex.push(trs);
-						//!!!!
-						var accId = split.accountId;
-						if (!ballances[accId])
-							ballances[accId] = 0;
-						var recv = [];
-						var send = null;
-						tr.splits.forEach(function(split) {
-							if (split.accountId == accId)
-								send = split;
-							else
-								recv.push(split);
-						});
-						trs.recv = recv; trs.send = send;
-						ballances[accId] += send.quantity*act;
-						trs.ballance = _.clone(ballances[accId]);
-						//!!!!
-						var doc = _.omit(trs, '_id','recv','send');
-						doc.trId = tr._id;
-						doc.accId = accId;
-						self._cash_register.insert(doc,	{ w: 1 }, cb);
-					}, cb);
-				}, safe.sure(cb, function () {
+						}
+						count++;
+						async.forEachSeries(tr.splits, function (split, cb) {
+							if (_.indexOf(_.map(accIds, function(id) { return id.toString(); }), split.accountId.toString()) == -1)
+								return cb();
+							var accId = split.accountId;
+							var accStats = getAccStats(accId);
+							var act = assetInfo[accStats.type].act;
+							accStats.value+=split.quantity*act;
+							if (!ballances[accId])
+								ballances[accId] = 0;
+							if (!counters[accId])
+								counters[accId] = 0;
+							var send = null;
+							tr.splits.forEach(function(split) {
+								if (split.accountId == accId)
+									send = split;
+							});
+							ballances[accId] += send.quantity*act;
+							counters[accId]++;
+							var doc = { date: tr.datePosted, trId: tr._id, accId: accId, ballance: ballances[accId], order: counters[accId]};
+							self._cash_register.findAndModify({trId: tr._id, accId: accId}, [], {$set:doc},	{ upsert: true, w: 1 }, safe.sure_result(cb, function(obj) {
+								if (!obj || _.isEmpty(obj)) {
+									accStats.count++;
+									return;
+								}
+								var bFound = false;
+								for(var i=0; i<toDelete[accId].length; i++) {
+									if(toDelete[accId][i].toString() == obj._id.toString()) {
+										toDelete[accId].splice(i, 1);
+										bFound = true;
+										break;
+									}
+								}						
+								if (!bFound) 
+									accStats.count++;
+							}));
+						}, cb);
+					}));
+				}, function () { return stop; }, safe.sure(cb, function () {
 					console.log('Partial transactions count:' + count);
 					console.timeEnd("Transactions");
-					cb();
+					return cb();
 				}));
 			}));
 		}],
-		account_save: ['transaction_stats', function (cb) {
+		remove_old: ['transaction_stats', function (cb) {
+			async.forEachSeries(accIds, function (accId, cb) {
+				var accStats = getAccStats(accId);
+				accStats.count -= toDelete[accId].length;
+				self._cash_register.remove({_id: {$in: toDelete[accId]}}, {w: 1}, cb);
+			}, cb);
+		}],
+		account_save: ['remove_old', function (cb) {
 			async.forEachSeries(_.values(_stats), function (accStats, cb) {
 				if (_.indexOf(_.map(accIds, function(id) { return id.toString(); }), accStats._id.toString()) == -1)
 					return cb();
-				var doc = _.omit(accStats, 'trDateIndex','cmdty');
-				self._cash_accounts_stat.update({ _id: doc._id }, doc,
+				self._cash_accounts_stat.update({ _id: accStats._id }, accStats,
 						{ upsert: true, w: 1 }, cb);
 			}, cb);
 		}]

@@ -165,7 +165,7 @@ module.exports = function account(webapp) {
 					var trs = register[i];
 					var recv = trs.recv;
 					var send = trs.send;
-					var dp = new Date(tr.dateEntered);
+					var dp = new Date(tr.datePosted);
 					var splitsInfo=[];
 					var multicurr = 0;
 					_.forEach(tr.splits,function(split){
@@ -283,11 +283,11 @@ module.exports = function account(webapp) {
 			tr._id = data.id;
 		}
 		var dateFormat = new DateFormat(DateFormat.W3C);
-		var datePosted = dateFormat.format(new Date());
-		tr['datePosted'] = datePosted;
+		var dateEntered = dateFormat.format(new Date());
+		tr['dateEntered'] = dateEntered;
 		if(data.date){
-			var dateEntered = dateFormat.format(new Date(data.date));
-			tr['dateEntered'] = dateEntered;
+			var datePosted = dateFormat.format(new Date(data.date));
+			tr['datePosted'] = datePosted;
 		}
 		if(data.num){
 			tr['num'] = data.num;

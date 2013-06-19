@@ -7,7 +7,7 @@ module.exports.getAccountRegister = function (token, accId, offset, limit, cb ) 
 	async.waterfall ([
 		function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
 		function (cb) {
-			var cursor = self._cash_register.find({'accId': new self._ctx.ObjectID(accId)}).sort( { '_id': 1 } );
+			var cursor = self._cash_register.find({'accId': new self._ctx.ObjectID(accId)}).sort( { 'order': 1 } );
 			if (offset)
 				cursor.skip(offset);
 			if (limit)
@@ -58,6 +58,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 	var self = this;
 	var trn={};
 	var leadAcc = null;
+	var oldTrn = null;
 	async.series ([
 		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		// get lead account, if any
@@ -314,7 +315,12 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			trn.datePosted = new Date(trn.datePosted);
 			trn.dateEntered = new Date(trn.dateEntered);
 			if (debug) { console.log("Before save"); console.log(trn);	}
-			self._cash_transactions.save(trn, cb);
+			self._cash_transactions.findAndModify({_id: trn._id}, [], trn, { upsert: true, w: 1 }, safe.sure_result(cb, function(obj) {
+				if (!obj || _.isEmpty(obj))
+					oldTrn = trn;
+				else
+					oldTrn = obj;
+			}));
 		}
 	], safe.sure(cb,function () {
 		var accIds = [];
@@ -322,7 +328,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 		_(trn.splits).forEach(function (split) {
 			accIds.push(split.accountId);
 		});
-		self._calcStatsPartial(accIds, trn.dateEntered, function () {cb(null, trn);});
+		self._calcStatsPartial(accIds, _.min([trn.datePosted, oldTrn.datePosted]), function () {cb(null, trn);});
 	}));
 };
 
