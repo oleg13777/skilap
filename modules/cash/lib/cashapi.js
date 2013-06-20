@@ -555,8 +555,10 @@ CashApi.prototype._calcPriceStatsPartial = function (cmdty, currency, cb) {
 	var self = this;
 	var priceTree = {};
 	var bFound = false;
-	if (cmdty == null || currency == null)
+	if (cmdty == null || currency == null) {
 		self._cash_prices_stat.remove(cb);
+		return;
+	}
 	var key = [cmdty.space+cmdty.id+currency.space+currency.id, currency.space+currency.id+cmdty.space+cmdty.id];
 	self._cash_prices.find({cmdty: cmdty, currency: currency}, safe.sure(cb, function (cursor) {
 		var stop = false;

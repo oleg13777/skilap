@@ -117,16 +117,14 @@ module.exports.clearPrices = function (token, ids, cb) {
 	            	   else
 	            		   self._cash_prices.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, cb);
 	               } 
-	               ], safe.sure_result(cb, function () {
-	            	   /*
+	               ], safe.sure(cb, function () {
 	            	   if (ids == null)
-	            		   self._calcPriceStatsPartial(null, null, cb);
+	            		   self._calcPriceStatsPartial(null, null, function() {cb();});
 	            	   else {
 	            		   async.eachSeries(_.values(objs), function (obj, cb) {
 		            		   self._calcPriceStatsPartial(obj.cmdty, obj.currency, cb);
-	            		   }, cb);
+	            		   }, function() {cb();});
 	            	   }
-	            	   */
 	               }));
 };
 
