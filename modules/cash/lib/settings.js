@@ -20,11 +20,10 @@ module.exports.saveSettings = function(token, id, settings, cb) {
 	self._coreapi.checkPerm(token, ['cash.edit'], safe.sure(cb, function () {
 		self._cash_settings.update({'id':id},{$set:{v:settings}},{upsert:true}, safe.sure(cb, function () {
 			if (id == 'checkRate') {
-				var api = self._ctx.getModuleSync('scheduler').api;
 				if (settings)
-					api.startExchangeRate();
+					self.startExchangeRate();
 				else
-					api.stopExchangeRate();
+					self.stopExchangeRate();
 			}
 			cb();
 		}))

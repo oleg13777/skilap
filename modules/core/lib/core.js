@@ -28,8 +28,7 @@ function Skilap(config_) {
 	var tmodules = [
 		{name:"core", require:"./coreapi"},
 		{name:"cash", require:"skilap-cash"},
-		{name:"tasks", require:"skilap-tasks"},
-		{name:"scheduler",require:"./scheduler"} // it string must be last allways!!!
+		{name:"tasks", require:"skilap-tasks"}
 		];
 	var self = this;
 	var modules = {};

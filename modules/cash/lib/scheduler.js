@@ -42,7 +42,8 @@ module.exports.exchangeRate = function () {
 	var	self = this,
 		col = null,
 		curency = {},
-		pairs = []; 
+		pairs = [], 
+		prices = [];
 	console.log("Start cron");
 
 	async.waterfall([
@@ -85,7 +86,6 @@ module.exports.exchangeRate = function () {
 		function (cb) {
 			curency = prefixify(curency);
 			var cdate = new Date(curency.date);
-			var prices = [];
 			_.each(_.keys(pairs), function(pair) {
 				if (cdate - pairs[pair].date < 1000*60*60*24)
 					return;
@@ -104,7 +104,9 @@ module.exports.exchangeRate = function () {
 	], function (err) {
 		if (err)
 			console.log(err);
-		else
+		else {
+			self._calcPriceStatsAdd(prices, function() {});
 			console.log('Done exchange rate import.');
+		}
 	});
 };

@@ -68,9 +68,12 @@ module.exports.getPriceById = function (token,id,cb) {
 
 module.exports.savePrice = function (token,price,cb) {
 	var self = this;
+	var bAdd = false;
 	async.series ([
 		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		function (cb) {
+			price.date = new Date(price.date);
+			price.value = parseFloat(price.value);
 			if (price._id && price._id != 0) {
 				self._cash_prices.findOne({'_id': new self._ctx.ObjectID(price._id)},safe.sure_result(cb, function (price_) {
 					_.defaults(price,price_);
@@ -78,21 +81,34 @@ module.exports.savePrice = function (token,price,cb) {
 				}));		
 			} else {
 				price._id = new self._ctx.ObjectID();
+				bAdd = true;
 				cb();
 			}
 		}, 
 		function (cb) {
 			self._cash_prices.save(price, cb);
-		}], safe.sure(cb, function () {			
-			self._calcStats(function () { cb(null, price); });
+		}], safe.sure(cb, function () {
+			if (bAdd)
+				self._calcPriceStatsAdd([price], function () { cb(null, price); });
+			else
+				self._calcPriceStatsPartial(price.cmdty, price.currency, function () { cb(null, price); });
 		})
 	);
 };
 
 module.exports.clearPrices = function (token, ids, cb) {
 	var self = this;
+	var objs = [];
 	async.series ([
 	               function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
+	               function (cb) {
+	            	   if (ids)
+	            		   self._cash_prices.find({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, {fields: {cmdty: 1, currency: 1}}).toArray(safe.sure_result(cb, function(vals) {
+	            			   _.each(vals, function (val) {
+	            				  objs[val.cmdty.space+val.cmdty.id+val.currency.space+val.currency.id] = val; 
+	            			   });
+	            		   }));
+	               },
 	               function (cb) {
 	            	   if (ids == null)
 	            		   self._cash_prices.remove(cb);
@@ -100,6 +116,13 @@ module.exports.clearPrices = function (token, ids, cb) {
 	            		   self._cash_prices.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, cb);
 	               } 
 	               ], safe.sure_result(cb, function () {
+	            	   if (ids == null)
+	            		   self._calcPriceStatsPartial(null, null, cb);
+	            	   else {
+	            		   async.eachSeries(_.values(objs), function (obj, cb) {
+		            		   self._calcPriceStatsPartial(obj.cmdty, obj.currency, cb);
+	            		   }, cb);
+	            	   }
 	               }));
 };
 

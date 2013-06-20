@@ -52,6 +52,10 @@ CashApi.prototype.getSettings = require('./settings.js').getSettings;
 CashApi.prototype.saveSettings = require('./settings.js').saveSettings;
 CashApi.prototype.clearSettings = require('./settings.js').clearSettings;
 CashApi.prototype.importSettings = require('./settings.js').importSettings;
+CashApi.prototype.initScheduler = require('./scheduler.js').initScheduler;
+CashApi.prototype.startExchangeRate = require('./scheduler.js').startExchangeRate;
+CashApi.prototype.stopExchangeRate = require('./scheduler.js').stopExchangeRate;
+CashApi.prototype.exchangeRate = require('./scheduler.js').exchangeRate;
 
 CashApi.prototype._loadData = function (cb) {
 	var self = this;
@@ -155,6 +159,9 @@ CashApi.prototype.init = function (cb) {
 			self._loadData(cb);
 		},
 		function (cb) {
+			self.initScheduler(cb);
+		},
+		function (cb) {
 			self._calcStats(cb);
 		}
 		], 
@@ -190,7 +197,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 	// helper functions
 	function getAccStats (accId) {
 		if (_stats[accId]==null)
-			_stats[accId] = {_id:accId, value:0, count:0, trDateIndex:[], type: "BANK"};
+			_stats[accId] = {_id:accId, value:0, count:0, type: "BANK"};
 		return _stats[accId];
 	}
 	function getAccPath (acc, cb) {
@@ -236,11 +243,12 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 				cb();
 			}))
 		},
-		price_tree: ['db_stats', function (cb1) {
-			if (skip_calc) return cb1();
+		price_tree: ['db_stats', function (cb) {
+			if (skip_calc) return cb();
 			console.time('price_tree');
 			var priceTree = {};
-			self._cash_prices.find({}, safe.sure(cb1, function (cursor) {
+			var keys = [];
+			self._cash_prices.find({}, safe.sure(cb, function (cursor) {
 				var stop = false;
 				async.doUntil(function (cb) {
 					cursor.nextObject(safe.sure(cb, function (price) {
@@ -250,37 +258,42 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 							return cb();
 						}
 						var date = new Date(price.date);
-						var dirs = [
-							{rate:price.value,key:(price.cmdty.space+price.cmdty.id+price.currency.space+price.currency.id)},
-							{rate:1/price.value,key:(price.currency.space+price.currency.id+price.cmdty.space+price.cmdty.id)}];
-						async.forEachSeries(dirs, function (dir, cb) {
-							var dirTree = priceTree[dir.key];
-							if (!dirTree) priceTree[dir.key] = dirTree = { key: dir.key };
-							if (dirTree.average==null) {
-								dirTree.average=dir.rate;
-								dirTree.max=dir.rate;
-								dirTree.min=dir.rate;
-								dirTree.last = dir.rate;
-								dirTree.lastDate = date;
-								dirTree.quotes=1;
-							}
-							else {
-								dirTree.average=dirTree.average*dirTree.quotes+dir.rate;
-								dirTree.quotes++;
-								dirTree.average/=dirTree.quotes;
-							}
-							if (dir.rate>dirTree.max)
-								dirTree.max = dir.rate;
-							if (dir.rate<dirTree.min)
-								dirTree.min = dir.rate;
-							if (date>dirTree.lastDate)
-								dirTree.last = dir.rate;
-							dirTree.key = dir.key;
-							delete dirTree._id;
-							self._cash_prices_stat.update({ key: dir.key }, dirTree, { upsert: true, w: 1 }, cb);
-						}, cb);
+						var key = price.cmdty.space+price.cmdty.id+price.currency.space+price.currency.id;
+						keys[key] = key;
+						var dir = {rate:price.value,key:key};
+						var dirTree = priceTree[dir.key];
+						if (!dirTree) priceTree[dir.key] = dirTree = { key: dir.key };
+						if (dirTree.average==null) {
+							dirTree.average=dir.rate;
+							dirTree.max=dir.rate;
+							dirTree.min=dir.rate;
+							dirTree.last = dir.rate;
+							dirTree.lastDate = date;
+							dirTree.quotes=1;
+						}
+						else {
+							dirTree.average=dirTree.average*dirTree.quotes+dir.rate;
+							dirTree.quotes++;
+							dirTree.average/=dirTree.quotes;
+						}
+						if (dir.rate>dirTree.max)
+							dirTree.max = dir.rate;
+						if (dir.rate<dirTree.min)
+							dirTree.min = dir.rate;
+						if (date>dirTree.lastDate) {
+							dirTree.lastDate = date;
+							dirTree.last = dir.rate;
+						}
+						dirTree.key = dir.key;
+						delete dirTree._id;
+						self._cash_prices_stat.update({ key: dir.key }, dirTree, { upsert: true, w: 1 }, cb);
 					}));
-				}, function () { return stop; }, cb1);
+				}, function () { return stop; }, function() { 
+					if (!_.isEmpty(keys))
+						self._cash_prices_stat.remove({ key: {$nin: _.values(key) }}, cb);
+					else
+						self._cash_prices_stat.remove(cb);
+				});
 			}));
 		}],
 		account_paths: ['db_stats', function (cb) {
@@ -318,7 +331,6 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 							accStats.value+=split.quantity*act;
 							accStats.count++;
 							var trs = {_id:tr._id, date:tr.datePosted, ballance: 0};
-							accStats.trDateIndex.push(trs);
 							//!!!!
 							var accId = split.accountId;
 							if (!ballances[accId])
@@ -352,7 +364,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		account_save: ['transaction_stats', function (cb) {
 			if (skip_calc) return cb();
 			async.forEachSeries(_.values(_stats), function (accStats, cb) {
-				var doc = _.omit(accStats, 'trDateIndex','cmdty');
+				var doc = _.omit(accStats, 'cmdty');
 				self._cash_accounts_stat.update({ _id: doc._id }, doc,
 						{ upsert: true, w: 1 }, cb);
 			}, cb);
@@ -493,6 +505,103 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 			cb();
 		}
 	);
+};
+
+CashApi.prototype._calcPriceStatsAdd = function (prices, cb) {
+	var self = this;
+	var priceMap = [];
+	_.each(prices, function(price) {
+		var key = price.cmdty.space+price.cmdty.id+price.currency.space+price.currency.id;
+		priceMap[key] = price;
+	});
+	self._cash_prices_stat.find({'key': {$in: _.keys(priceMap)}}).toArray(safe.sure(cb, function (stats) {
+		_.each(stats, function(stat) {
+			priceMap[stat.key].stat = stat; 
+		});
+		_.each(_.keys(priceMap), function(key) {
+			if (priceMap[key].stat) {
+				//modify
+				if (priceMap[key].stat.min > priceMap[key].value)
+					priceMap[key].stat.min = priceMap[key].value;
+				else if (priceMap[key].stat.max < priceMap[key].value)
+					priceMap[key].stat.max = priceMap[key].value;
+				if (priceMap[key].stat.lastDate < priceMap[key].date) {
+					priceMap[key].stat.lastDate = priceMap[key].date;
+					priceMap[key].stat.last = priceMap[key].value;
+				}
+				priceMap[key].stat.average = (priceMap[key].stat.average*priceMap[key].stat.quotes + priceMap[key].value)/(priceMap[key].stat.quotes + 1);
+				priceMap[key].stat.quotes++;
+
+			} else {
+				//add new
+				priceMap[key].stat = {
+					key: key,
+					average: priceMap[key].value,
+					min: priceMap[key].value,
+					max: priceMap[key].value,
+					last: priceMap[key].value,
+					lastDate: priceMap[key].date,
+					quotes: 1
+				};
+			}
+		});
+		async.forEachSeries(_.values(priceMap), function(price, cb) {
+			self._cash_prices_stat.findAndModify({ key: price.stat.key }, [], price.stat, { upsert: true, w: 1 }, cb);
+		}, cb);
+	}));
+};
+
+CashApi.prototype._calcPriceStatsPartial = function (cmdty, currency, cb) {
+	var self = this;
+	var priceTree = {};
+	var bFound = false;
+	if (cmdty == null || currency == null)
+		self._cash_prices_stat.remove(cb);
+	var key = [cmdty.space+cmdty.id+currency.space+currency.id, currency.space+currency.id+cmdty.space+cmdty.id];
+	self._cash_prices.find({cmdty: cmdty, currency: currency}, safe.sure(cb, function (cursor) {
+		var stop = false;
+		async.doUntil(function (cb) {
+			cursor.nextObject(safe.sure(cb, function (price) {
+				if (!price) {
+					stop = true;
+					return cb();
+				}
+				bFound = true;
+				var date = new Date(price.date);
+				var dir = {rate:price.value,key:(price.cmdty.space+price.cmdty.id+price.currency.space+price.currency.id)};
+				var dirTree = priceTree[dir.key];
+				if (!dirTree) priceTree[dir.key] = dirTree = { key: dir.key };
+				if (dirTree.average==null) {
+					dirTree.average=dir.rate;
+					dirTree.max=dir.rate;
+					dirTree.min=dir.rate;
+					dirTree.last = dir.rate;
+					dirTree.lastDate = date;
+					dirTree.quotes=1;
+				}
+				else {
+					dirTree.average=dirTree.average*dirTree.quotes+dir.rate;
+					dirTree.quotes++;
+					dirTree.average/=dirTree.quotes;
+				}
+				if (dir.rate>dirTree.max)
+					dirTree.max = dir.rate;
+				if (dir.rate<dirTree.min)
+					dirTree.min = dir.rate;
+				if (date>dirTree.lastDate) {
+					dirTree.lastDate = date;
+					dirTree.last = dir.rate;
+				}
+				dirTree.key = dir.key;
+				delete dirTree._id;
+				toDelete = _.filter(toDelete, function(obj) { return obj.key != dir.key; });
+				self._cash_prices_stat.update({ key: dir.key }, dirTree, { upsert: true, w: 1 }, cb);
+			}));
+		}, function () { return stop; }, function() {
+			if (!bFound)
+			self._cash_prices_stat.remove({key: key}, cb);
+		});
+	}));
 };
 
 module.exports.init = function (ctx,cb) {
