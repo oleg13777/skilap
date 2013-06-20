@@ -291,8 +291,6 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 				}, function () { return stop; }, function() { 
 					if (!_.isEmpty(keys))
 						self._cash_prices_stat.remove({ key: {$nin: _.values(key) }}, cb);
-					else
-						self._cash_prices_stat.remove(cb);
 				});
 			}));
 		}],
