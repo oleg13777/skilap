@@ -108,6 +108,8 @@ module.exports.clearPrices = function (token, ids, cb) {
 	            				  objs[val.cmdty.space+val.cmdty.id+val.currency.space+val.currency.id] = val; 
 	            			   });
 	            		   }));
+	            	   else
+	            		   cb();
 	               },
 	               function (cb) {
 	            	   if (ids == null)
@@ -116,6 +118,7 @@ module.exports.clearPrices = function (token, ids, cb) {
 	            		   self._cash_prices.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, cb);
 	               } 
 	               ], safe.sure_result(cb, function () {
+	            	   /*
 	            	   if (ids == null)
 	            		   self._calcPriceStatsPartial(null, null, cb);
 	            	   else {
@@ -123,6 +126,7 @@ module.exports.clearPrices = function (token, ids, cb) {
 		            		   self._calcPriceStatsPartial(obj.cmdty, obj.currency, cb);
 	            		   }, cb);
 	            	   }
+	            	   */
 	               }));
 };
 

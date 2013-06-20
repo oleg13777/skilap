@@ -150,7 +150,7 @@ CashApi.prototype.init = function (cb) {
 	async.parallel([
 		function (cb) {
 			self._ctx.getModule("core",function (err, module) {
-				if (err) return cb1(err);
+				if (err) return cb(err);
 				self._coreapi = module.api;
 				cb();
 			});
@@ -291,10 +291,12 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 				}, function () { return stop; }, function() { 
 					if (!_.isEmpty(keys))
 						self._cash_prices_stat.remove({ key: {$nin: _.values(key) }}, cb);
+					else
+						cb();
 				});
 			}));
 		}],
-		account_paths: ['db_stats', function (cb) {
+		account_paths: ['db_stats', 'price_tree', function (cb) {
 			if (skip_calc) return cb();
 			console.time('account_paths');
 			self._cash_accounts.find({}).toArray(safe.sure(cb, function (accounts) {
@@ -311,11 +313,11 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 				},function (err) { console.timeEnd('account_paths'); cb(err);});
 			}));
 		}],
-		transaction_stats: ['db_stats', 'account_paths', function (cb1) {
-			if (skip_calc) return cb1();
+		transaction_stats: ['db_stats', 'account_paths', function (cb) {
+			if (skip_calc) return cb();
 			console.time("Transactions");
 			var ballances = [];
-			self._cash_transactions.find({}, {sort: {datePosted: 1}}, safe.sure(cb1, function (cursor) {
+			self._cash_transactions.find({}, {sort: {datePosted: 1}}, safe.sure(cb, function (cursor) {
 				var stop = false;
 				async.doUntil(function (cb) {
 					cursor.nextObject(safe.sure(cb, function (tr) {
@@ -353,9 +355,9 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 									{ upsert: true, safe: true, hint: { trId: 1 }, w: 1 }, cb);
 						}, cb);
 					}));
-				}, function () { return stop; }, safe.sure(cb1, function () {
+				}, function () { return stop; }, safe.sure(cb, function () {
 					console.timeEnd("Transactions");
-					cb1();
+					cb();
 				}));
 			}));
 		}],
@@ -363,7 +365,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 			if (skip_calc) return cb();
 			async.forEachSeries(_.values(_stats), function (accStats, cb) {
 				var doc = _.omit(accStats, 'cmdty');
-				self._cash_accounts_stat.update({ _id: doc._id }, doc,
+				self._cash_accounts_stat.findAndModify({ _id: doc._id }, [], doc,
 						{ upsert: true, w: 1 }, cb);
 			}, cb);
 		}]
