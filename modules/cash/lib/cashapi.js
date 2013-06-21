@@ -467,53 +467,57 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 			var q = {'splits.accountId': {$in: accIds}};
 			if (minDate)
 				q.datePosted = {$gte: minDate};
-			self._cash_transactions.find(q, {sort: {datePosted: 1}}, safe.sure(cb, function (cursor) {
-				var stop = false;
-				async.doUntil(function (cb) {
-					cursor.nextObject(safe.sure(cb, function (tr) {
-						if (!tr) {
-							stop = true;
+			self._cash_transactions.find(q).toArray(safe.sure(cb, function(trs) {
+				console.time("Sort");
+				trs.sort(function(a, b) {
+					if (a.datePosted.getTime() != b.datePosted.getTime()) 
+						return a.datePosted.getTime() - b.datePosted.getTime();
+					if (a._id.toString() == b._id.toString())
+						return 0;
+					if (a._id.toString() > b._id.toString())
+						return 1;
+					return -1;
+				});
+				console.timeEnd("Sort");
+				async.forEachSeries(trs, function (tr, cb) {
+					count++;
+					async.forEachSeries(tr.splits, function (split, cb) {
+						if (_.indexOf(_.map(accIds, function(id) { return id.toString(); }), split.accountId.toString()) == -1)
 							return cb();
-						}
-						count++;
-						async.forEachSeries(tr.splits, function (split, cb) {
-							if (_.indexOf(_.map(accIds, function(id) { return id.toString(); }), split.accountId.toString()) == -1)
-								return cb();
-							var accId = split.accountId;
-							var accStats = getAccStats(accId);
-							var act = assetInfo[accStats.type].act;
-							accStats.value+=split.quantity*act;
-							if (!ballances[accId])
-								ballances[accId] = 0;
-							if (!counters[accId])
-								counters[accId] = 0;
-							var send = null;
-							tr.splits.forEach(function(split) {
-								if (split.accountId == accId)
-									send = split;
-							});
-							ballances[accId] += send.quantity*act;
-							counters[accId]++;
-							var doc = { date: tr.datePosted, trId: tr._id, accId: accId, ballance: ballances[accId], order: counters[accId]};
-							self._cash_register.findAndModify({trId: tr._id, accId: accId}, [], {$set:doc},	{ upsert: true, w: 1 }, safe.sure_result(cb, function(obj) {
-								if (!obj || _.isEmpty(obj)) {
-									accStats.count++;
-									return;
+						var accId = split.accountId;
+						var accStats = getAccStats(accId);
+						var act = assetInfo[accStats.type].act;
+						accStats.value+=split.quantity*act;
+						if (!ballances[accId])
+							ballances[accId] = 0;
+						if (!counters[accId])
+							counters[accId] = 0;
+						var send = null;
+						tr.splits.forEach(function(split) {
+							if (split.accountId == accId)
+								send = split;
+						});
+						ballances[accId] += send.quantity*act;
+						counters[accId]++;
+						var doc = { date: tr.datePosted, trId: tr._id, accId: accId, ballance: ballances[accId], order: counters[accId]};
+						self._cash_register.findAndModify({trId: tr._id, accId: accId}, [], {$set:doc},	{ upsert: true, w: 1 }, safe.sure_result(cb, function(obj) {
+							if (!obj || _.isEmpty(obj)) {
+								accStats.count++;
+								return;
+							}
+							var bFound = false;
+							for(var i=0; i<toDelete[accId].length; i++) {
+								if(toDelete[accId][i].toString() == obj._id.toString()) {
+									toDelete[accId].splice(i, 1);
+									bFound = true;
+									break;
 								}
-								var bFound = false;
-								for(var i=0; i<toDelete[accId].length; i++) {
-									if(toDelete[accId][i].toString() == obj._id.toString()) {
-										toDelete[accId].splice(i, 1);
-										bFound = true;
-										break;
-									}
-								}						
-								if (!bFound) 
-									accStats.count++;
-							}));
-						}, cb);
-					}));
-				}, function () { return stop; }, safe.sure(cb, function () {
+							}						
+							if (!bFound) 
+								accStats.count++;
+						}));
+					}, cb);
+				}, safe.sure(cb, function () {
 					console.log('Partial transactions count:' + count);
 					console.timeEnd("Transactions");
 					return cb();
