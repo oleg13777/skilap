@@ -249,12 +249,15 @@ module.exports.clearAccounts = function (token, ids, cb) {
 		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		function (cb) {	
 			if (ids == null)
-				self._cash_accounts.remove(cb);
+				self._cash_accounts.remove({}, {w: 1}, cb);
 			else
-				self._cash_accounts.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, cb);
+				self._cash_accounts.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, {w: 1}, cb);
 		}
 	], safe.sure(cb, function () {
-		self._calcStats(cb);
+		if (ids != null && !_.isEmpty(ids))
+			self._calcStats(cb);
+		else
+			cb();
 	}));
 };
 
@@ -263,10 +266,7 @@ module.exports.importAccounts = function  (token, accounts, cb) {
 	async.series ([
 		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		function (cb) {
-			async.forEachSeries(accounts, function (e, cb) {
-				e._id = e._id;
-				self._cash_accounts.save(e,cb);
-			}, cb);
+			self._cash_accounts.insert(accounts, {w: 1}, cb);
 		},
 	], safe.sure_result(cb,function () {
 	}));
@@ -327,9 +327,7 @@ module.exports.restoreToDefaults = function (token, cmdty, type, cb){
 				cb();
 		},
 		function (cb) {
-			async.forEachSeries(accounts, function (e, cb) {
-				self._cash_accounts.save(e,cb);
-			},cb);
+			self._cash_accounts.insert(accounts, {w: 1}, cb);
 		},
 		function (cb) {
 			self.saveSettings(token,"currency",cmdty,cb);

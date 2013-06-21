@@ -220,6 +220,9 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 	console.time("Stats");
 	var skip_calc = false;
 	var defCurrency = {space:"ISO4217", id:"USD"};
+	var accToDelete = null;
+	var regToDelete = null;
+	var regToSave = [];
 
 	async.auto({
 		def_currency: [function (cb) {
@@ -241,9 +244,21 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 			self._cash_accounts_stat.count(safe.sure(cb, function (c) {
 				skip_calc = c!=0;
 				cb();
-			}))
+			}));
 		},
-		price_tree: ['db_stats', function (cb) {
+		load_old_acc: ['db_stats', function (cb) {
+			if (skip_calc) return cb();
+			self._cash_accounts_stat.find({}, {fields: {_id:1}}).toArray(safe.sure_result(cb, function(accs) {
+				accToDelete = _.pluck(accs, '_id');
+			}));
+		}],
+		load_old_reg: ['db_stats', function (cb) {
+			if (skip_calc) return cb();
+			self._cash_register.find({}, {fields: {_id:1}}).toArray(safe.sure_result(cb, function(regs) {
+				regToDelete = _.pluck(regs, '_id');
+			}));
+		}],
+		price_tree: ['load_old_acc', 'load_old_reg', function (cb) {
 			if (skip_calc) return cb();
 			console.time('price_tree');
 			var priceTree = {};
@@ -351,8 +366,11 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 							doc.trId = tr._id;
 							doc.accId = accId;
 							doc.order = accStats.count;
-							self._cash_register.update({ trId: tr._id, accId: accId }, doc,
-									{ upsert: true, safe: true, hint: { trId: 1 }, w: 1 }, cb);
+							self._cash_register.findAndModify({ trId: tr._id, accId: accId }, [['trId', 1], ['accId', 1]], doc,
+									{ upsert: true, w: 1, hint:  { trId: 1 }}, safe.sure_result(cb, function(doc) {
+										if (doc._id)
+											regToSave.push(doc._id);
+									}));
 						}, cb);
 					}));
 				}, function () { return stop; }, safe.sure(cb, function () {
@@ -365,12 +383,30 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 			if (skip_calc) return cb();
 			async.forEachSeries(_.values(_stats), function (accStats, cb) {
 				var doc = _.omit(accStats, 'cmdty');
+				if (accToDelete.indexOf(doc._id) != -1)
+					accToDelete.splice(accToDelete.indexOf(doc._id), 1);
 				self._cash_accounts_stat.findAndModify({ _id: doc._id }, [], doc,
 						{ upsert: true, w: 1 }, cb);
 			}, cb);
+		}],
+		remove_old_acc: ['account_save', function (cb) {
+			if (skip_calc) return cb();
+			if (accToDelete)
+				self._cash_accounts_stat.remove({'_id': {$in: accToDelete}}, {w: 1}, cb);
+			else cb();
+		}],
+		remove_old_reg: ['account_save', function (cb) {
+			console.time("remove_old_reg");		
+			if (skip_calc) return cb();
+			console.time("remove_old_reg");		
+			regToDelete = _.difference(regToDelete, regToSave);
+			if (regToDelete)
+				self._cash_register.remove({'_id': {$in: regToDelete}}, {w: 1}, cb);
+			else cb();
 		}]
 		}, function done (err) {
 			if (err) console.log(err);
+			console.timeEnd("remove_old_reg");			
 			console.timeEnd("Stats");			
 			cb();
 		}
@@ -431,53 +467,57 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 			var q = {'splits.accountId': {$in: accIds}};
 			if (minDate)
 				q.datePosted = {$gte: minDate};
-			self._cash_transactions.find(q, {sort: {datePosted: 1}}, safe.sure(cb, function (cursor) {
-				var stop = false;
-				async.doUntil(function (cb) {
-					cursor.nextObject(safe.sure(cb, function (tr) {
-						if (!tr) {
-							stop = true;
+			self._cash_transactions.find(q).toArray(safe.sure(cb, function(trs) {
+				console.time("Sort");
+				trs.sort(function(a, b) {
+					if (a.datePosted.getTime() != b.datePosted.getTime()) 
+						return a.datePosted.getTime() - b.datePosted.getTime();
+					if (a._id.toString() == b._id.toString())
+						return 0;
+					if (a._id.toString() > b._id.toString())
+						return 1;
+					return -1;
+				});
+				console.timeEnd("Sort");
+				async.forEachSeries(trs, function (tr, cb) {
+					count++;
+					async.forEachSeries(tr.splits, function (split, cb) {
+						if (_.indexOf(_.map(accIds, function(id) { return id.toString(); }), split.accountId.toString()) == -1)
 							return cb();
-						}
-						count++;
-						async.forEachSeries(tr.splits, function (split, cb) {
-							if (_.indexOf(_.map(accIds, function(id) { return id.toString(); }), split.accountId.toString()) == -1)
-								return cb();
-							var accId = split.accountId;
-							var accStats = getAccStats(accId);
-							var act = assetInfo[accStats.type].act;
-							accStats.value+=split.quantity*act;
-							if (!ballances[accId])
-								ballances[accId] = 0;
-							if (!counters[accId])
-								counters[accId] = 0;
-							var send = null;
-							tr.splits.forEach(function(split) {
-								if (split.accountId == accId)
-									send = split;
-							});
-							ballances[accId] += send.quantity*act;
-							counters[accId]++;
-							var doc = { date: tr.datePosted, trId: tr._id, accId: accId, ballance: ballances[accId], order: counters[accId]};
-							self._cash_register.findAndModify({trId: tr._id, accId: accId}, [], {$set:doc},	{ upsert: true, w: 1 }, safe.sure_result(cb, function(obj) {
-								if (!obj || _.isEmpty(obj)) {
-									accStats.count++;
-									return;
+						var accId = split.accountId;
+						var accStats = getAccStats(accId);
+						var act = assetInfo[accStats.type].act;
+						accStats.value+=split.quantity*act;
+						if (!ballances[accId])
+							ballances[accId] = 0;
+						if (!counters[accId])
+							counters[accId] = 0;
+						var send = null;
+						tr.splits.forEach(function(split) {
+							if (split.accountId == accId)
+								send = split;
+						});
+						ballances[accId] += send.quantity*act;
+						counters[accId]++;
+						var doc = { date: tr.datePosted, trId: tr._id, accId: accId, ballance: ballances[accId], order: counters[accId]};
+						self._cash_register.findAndModify({trId: tr._id, accId: accId}, [], {$set:doc},	{ upsert: true, w: 1 }, safe.sure_result(cb, function(obj) {
+							if (!obj || _.isEmpty(obj)) {
+								accStats.count++;
+								return;
+							}
+							var bFound = false;
+							for(var i=0; i<toDelete[accId].length; i++) {
+								if(toDelete[accId][i].toString() == obj._id.toString()) {
+									toDelete[accId].splice(i, 1);
+									bFound = true;
+									break;
 								}
-								var bFound = false;
-								for(var i=0; i<toDelete[accId].length; i++) {
-									if(toDelete[accId][i].toString() == obj._id.toString()) {
-										toDelete[accId].splice(i, 1);
-										bFound = true;
-										break;
-									}
-								}						
-								if (!bFound) 
-									accStats.count++;
-							}));
-						}, cb);
-					}));
-				}, function () { return stop; }, safe.sure(cb, function () {
+							}						
+							if (!bFound) 
+								accStats.count++;
+						}));
+					}, cb);
+				}, safe.sure(cb, function () {
 					console.log('Partial transactions count:' + count);
 					console.timeEnd("Transactions");
 					return cb();
@@ -596,12 +636,13 @@ CashApi.prototype._calcPriceStatsPartial = function (cmdty, currency, cb) {
 				}
 				dirTree.key = dir.key;
 				delete dirTree._id;
-				toDelete = _.filter(toDelete, function(obj) { return obj.key != dir.key; });
 				self._cash_prices_stat.update({ key: dir.key }, dirTree, { upsert: true, w: 1 }, cb);
 			}));
 		}, function () { return stop; }, function() {
 			if (!bFound)
-			self._cash_prices_stat.remove({key: key}, cb);
+				self._cash_prices_stat.remove({key: key}, cb);
+			else 
+				cb();
 		});
 	}));
 };
