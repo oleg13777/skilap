@@ -72,7 +72,8 @@ module.exports.savePrice = function (token,price,cb) {
 	async.series ([
 		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		function (cb) {
-			price.date = new Date(price.date);
+			console.log(price.date);
+			price.date = new Date(new Date(price.date).getTime() - (new Date()).getTimezoneOffset()*60*1000);
 			price.value = parseFloat(price.value);
 			if (price._id && price._id != 0) {
 				self._cash_prices.findOne({'_id': new self._ctx.ObjectID(price._id)},safe.sure_result(cb, function (price_) {

@@ -249,12 +249,15 @@ module.exports.clearAccounts = function (token, ids, cb) {
 		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		function (cb) {	
 			if (ids == null)
-				self._cash_accounts.remove(cb);
+				self._cash_accounts.remove({}, {w: 1}, cb);
 			else
-				self._cash_accounts.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, cb);
+				self._cash_accounts.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, {w: 1}, cb);
 		}
 	], safe.sure(cb, function () {
-		self._calcStats(cb);
+		if (ids != null && !_.isEmpty(ids))
+			self._calcStats(cb);
+		else
+			cb();
 	}));
 };
 

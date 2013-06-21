@@ -360,7 +360,10 @@ module.exports.clearTransactions = function (token, ids, cb) {
 	   					self._cash_transactions.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, cb);
 	   			}
 	   		], safe.sure(cb, function () {
-	   			self._calcStats(cb);
+	   			if (ids != null && !_.isEmpty(ids))
+	   				self._calcStats(cb);
+	   			else
+	   				cb();
 	   		}));
 };
 
