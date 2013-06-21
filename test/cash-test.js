@@ -134,7 +134,7 @@ describe("Cash module",function () {
 			self.done();
 		});
 	});
-	describe.only("Export and import", function () {
+	describe("Export and import", function () {
 		var sum = '';
 		it("Login as user", function(done) {
 			var self = this;
