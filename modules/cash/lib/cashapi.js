@@ -551,7 +551,10 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 			self._cash_accounts_stat.remove({'_id': {$in: accToDelete}}, {w:1}, cb);
 		}],
 		account_remove_regs: ['account_save', function (cb) {
-			self._cash_register.remove({'accId': {$in: accToDelete}}, {w:1}, cb);
+			self._cash_register.find({'accId': {$in: accToDelete}}, {w:1}).toArray(safe.sure(cb, function(regs) {
+				var trs = _.pluck(regs, 'trId');
+				self._cash_accounts_stat.remove({'_id': {$in: trs}}, {w:1}, cb);
+			}));
 		}]
 		}, function done (err) {
 			if (err) console.log(err);

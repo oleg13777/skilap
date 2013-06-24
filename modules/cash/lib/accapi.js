@@ -223,6 +223,7 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 										if (_(childsSt).indexOf(split.accountId.toString()) > -1){
 											if (options.newSubAccTrnParent) {
 												bUpdate = true;
+												accForRecalc[options.newSubAccTrnParent] = options.newSubAccTrnParent;
 												split.accountId = new self._ctx.ObjectID(options.newSubAccTrnParent);
 											} else
 												updates.push(tr._id);
