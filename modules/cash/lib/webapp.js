@@ -133,15 +133,13 @@ CashWeb.prototype.removeTabs = function (token, tabIds, cb) {
 			self._cash_userviews.findOne({'_id': user._id}, cb);
 		},
 		safe.trap(function (views, cb) {
-			console.log(tabIds);			
 			if (views==null)
 				views={tabs:[]};
 			if (_.isEqual(tabIds,[null]))
 				views.tabs = [];
 			else
 				views.tabs = _.reject(views.tabs, function (t) { return _(tabIds).include(t.pid); } );
-			views._id = user._id;
-			console.log(views);
+			views._id = user._id;			
 			self._cash_userviews.save(views, cb);
 		})], cb
 	);
