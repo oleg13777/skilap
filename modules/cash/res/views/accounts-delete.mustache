@@ -19,14 +19,13 @@ $(function() {
 				rpc.call('cash.deleteAccount', secret, $('#del_acc').val(), options, {
 					success: function (data) {
 						window.parent.$("body").trigger('accountDeletedSuccess');
+						window.parent.$("body .iframeContainer").trigger('closeDialog');
 					},
 					failure: function (reason) {
 						window.parent.$("body").trigger('accountDeletedFailed');
+						window.parent.$("body .iframeContainer").trigger('closeDialog');
 					}
 				});
-				
-				//$(this).dialog("close");
-				window.parent.$("body .iframeContainer").trigger('closeDialog');
 			},
 			"{{#i18n}}Close{{/i18n}}": function() {
 			//	$(this).dialog("close");

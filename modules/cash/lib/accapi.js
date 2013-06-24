@@ -151,36 +151,52 @@ module.exports.getAccountInfo = function (token, accId, details, cb) {
 
 module.exports.deleteAccount = function (token, accId, options, cb){
 	var self = this;
+	var accForRecalc = {};
+	accForRecalc[accId] = accId;
 	async.series([
 		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		function processTransactions(cb) {
 			var updates = [];
-			self._cash_transactions.find({}, safe.trap_sure(cb, function (cursor) {
-				cursor.each(safe.trap_sure(cb, function (tr) {
-					if (tr == null) {
-						// scan done, propagate changes
-						self._cash_transactions.remove({'_id': { $in: updates }}, cb);
-					} else {
+			self._cash_transactions.find({'splits.accountId': new self._ctx.ObjectID(accId.toString())}, safe.trap_sure(cb, function (cursor) {
+				var stop = false;
+				async.doUntil(function (cb) {
+					cursor.nextObject(safe.sure(cb, function (tr) {
+						if (!tr) {
+							stop = true;
+							return cb();
+						}
 						// collecte transactions that need to be altered
-						_(tr.splits).forEach(function (split) {
+						async.forEachSeries(tr.splits, function (split, cb) {
 							if (split.accountId.toString() == accId) {
 								if (options.newParent) {
 									split.accountId = new self._ctx.ObjectID(options.newParent);
-									self._cash_transactions.save(tr, function() {});
-								} else
+									accForRecalc[options.newParent] = options.newParent;
+									self._cash_transactions.update({_id: tr._id}, tr, {w: 1}, cb);
+								} else {
 									updates.push(tr._id);
+									cb();
+								}
+							} else {
+								if (!options.newParent)
+									accForRecalc[split.accountId.toString()] = split.accountId.toString();
+								cb();
 							}
-						});
-					}
-				}));
+						}, cb);
+					}));
+				}, function () { return stop; }, function() {
+					// scan done, propagate changes
+					self._cash_transactions.remove({'_id': { $in: updates }}, cb);
+				});
 			}));
 		},
 		function processSubAccounts(cb1){
 			if (options.newSubParent) {
+				accForRecalc[options.newSubParent] = options.newSubParent;
 				self.getChildAccounts(token, accId, safe.trap_sure(cb1,function(childs){
 					async.forEach(childs, function(ch,cb2) {
+						accForRecalc[ch._id.toString()] = ch._id.toString();
 						ch.parentId = new self._ctx.ObjectID(options.newSubParent);
-						self._cash_accounts.save(ch, cb2);
+						self._cash_accounts.update({_id: ch._id}, ch, {w: 1}, cb2);
 					},cb1);
 				}));
 			} else {
@@ -190,18 +206,22 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 						self._getAllChildsId(token, accId, childs, cb);
 					},
 					function (cb) {
-						childs = _.map(childs, function(c) { return c.toString(); });
+						childsSt = _.map(childs, function(c) { return c.toString(); });
+						_.each(childsSt, function (ch) {accForRecalc[ch] = ch; });
 						var updates = [];
-						self._cash_transactions.find({}, safe.trap_sure(cb, function (cursor) {
-							cursor.each(safe.trap_sure(cb, function (tr) {
-								if (tr == null) {
-									// scan done, propagate changes
-									self._cash_transactions.remove({'_id': { $in: updates }}, cb);
-								} else {
+						self._cash_transactions.find({'splits.accountId': {$in: childs}}, safe.trap_sure(cb, function (cursor) {
+							var stop = false;
+							async.doUntil(function (cb) {
+								cursor.nextObject(safe.sure(cb, function (tr) {
+									if (!tr) {
+										stop = true;
+										return cb();
+									}
 									var bUpdate = false;
 									// collecte transactions that need to be altered
 									_(tr.splits).forEach(function (split) {
-										if (_(childs).indexOf(split.accountId.toString()) > -1){
+										accForRecalc[split.accountId.toString()] = split.accountId.toString();
+										if (_(childsSt).indexOf(split.accountId.toString()) > -1){
 											if (options.newSubAccTrnParent) {
 												bUpdate = true;
 												split.accountId = new self._ctx.ObjectID(options.newSubAccTrnParent);
@@ -210,14 +230,19 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 										}
 									});
 									if (bUpdate) {
-										self._cash_transactions.save(tr, function() {});
+										self._cash_transactions.update({_id: tr._id}, tr, {w: 1}, cb);
+									} else {
+										cb();
 									}
-								}
-							}));
+								}));
+							}, function () { return stop; }, function() {
+								// scan done, propagate changes
+								self._cash_transactions.remove({'_id': { $in: updates }}, cb);
+							});
 						}));
 					},
 					function (cb) {
-						self._cash_accounts.remove({'_id': { $in: _.map(childs, function(ch) { return ch._id;}) }}, cb);
+						self._cash_accounts.remove({'_id': { $in: childs}}, cb);
 					}
 				],cb1);
 			}
@@ -226,7 +251,7 @@ module.exports.deleteAccount = function (token, accId, options, cb){
 			self._cash_accounts.remove({'_id': new self._ctx.ObjectID(accId)}, cb1);
 		}
 	], safe.sure(cb, function () {
-		self._calcStats(cb);
+		self._calcStatsPartial(_.map(_.keys(accForRecalc), function(id) { return new self._ctx.ObjectID(id); }), null, cb);
 	}));
 };
 
@@ -474,8 +499,7 @@ module.exports.getAccountTree = function (token, id, settings, detail, cb) {
 					_.extend(acc, data);
 					acc.repCmdty = settings.cmdty;
 				}));
-			});
-			cb();
+			}, cb);
 		},
 		tree:function (cb) {
 			cb(null, self.createAccountsTree(accounts));

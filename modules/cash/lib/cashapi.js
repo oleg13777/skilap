@@ -220,8 +220,8 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 	console.time("Stats");
 	var skip_calc = false;
 	var defCurrency = {space:"ISO4217", id:"USD"};
-	var accToDelete = [];
-	var regToDelete = [];
+	var accToDelete = {};
+	var regToDelete = {};
 
 	async.auto({
 		def_currency: [function (cb) {
@@ -249,7 +249,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 			if (skip_calc) return cb();
 			self._cash_accounts_stat.find({}, {fields: {_id:1}}).toArray(safe.sure_result(cb, function(accs) {
 				_.each(accs, function (acc) {
-					accToDelete[acc._id] = acc;
+					accToDelete[acc._id] = acc._id;
 				});
 			}));
 		}],
@@ -257,7 +257,7 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 			if (skip_calc) return cb();
 			self._cash_register.find({}, {fields: {_id:1}}).toArray(safe.sure_result(cb, function(regs) {
 				_.each(regs, function (reg) {
-					regToDelete[reg._id] = reg;
+					regToDelete[reg._id] = reg._id;
 				});
 			}));
 		}],
@@ -394,15 +394,14 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		remove_old_acc: ['account_save', function (cb) {
 			if (skip_calc) return cb();
 			if (accToDelete)
-				self._cash_accounts_stat.remove({'_id': {$in: accToDelete}}, {w: 1}, cb);
+				self._cash_accounts_stat.remove({'_id': {$in: _.values(accToDelete)}}, {w: 1}, cb);
 			else cb();
 		}],
 		remove_old_reg: ['account_save', function (cb) {
 			console.time("remove_old_reg");		
 			if (skip_calc) return cb();
-			console.time("remove_old_reg");		
 			if (regToDelete)
-				self._cash_register.remove({'_id': {$in: _.keys(regToDelete)}}, {w: 1}, cb);
+				self._cash_register.remove({'_id': {$in: _.values(regToDelete)}}, {w: 1}, cb);
 			else cb();
 		}]
 		}, function done (err) {
@@ -425,12 +424,21 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 	}
 
 	console.time("Stats Partial");
-	var ballances = [];
-	var counters = [];
-	var toDelete = [];
+	var ballances = {};
+	var counters = {};
+	var toDelete = {};
+	var accToDelete = [];
 
 	async.auto({
-		load_stats: [function (cb) {
+		load_accs: [function (cb) {
+			self._cash_accounts.find({'_id': {$in: accIds}}, {fields: {_id: 1}}).toArray(safe.trap_sure_result(cb, function (accs) {
+				var realAccs = {};
+				_.each(accs, function(acc) { realAccs[acc._id] = acc._id; });
+				accToDelete = _.filter(accIds, function(accId) { return !realAccs[accId]; });
+				accIds = _.filter(accIds, function(accId) { return realAccs[accId]; });
+			}));
+		}],
+		load_stats: ['load_accs', function (cb) {
 			self._cash_accounts_stat.find({'_id': {$in: accIds}}, safe.trap_sure(cb, function (cursor) {
 				cursor.each(safe.trap_sure(cb, function (stat) {
 					if (stat == null)
@@ -440,14 +448,14 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 				}));
 			}));
 		}],
-		find_last: [function (cb) {
+		find_last: ['load_accs', function (cb) {
 			if (minDate) {
 				async.forEachSeries(accIds, function (accId, cb) {
 					self._cash_register.findOne({'accId': accId, 'date': {$lt: minDate}}, {sort: {order: -1}}, safe.sure_result(cb, function(tr) {
 						if (tr == null) return;
 						ballances[accId] = tr.ballance;
 						counters[accId] = tr.order;
-						toDelete[accId] = [];
+						toDelete[accId] = {};
 					}));
 				}, cb);
 			} else
@@ -460,6 +468,8 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 					q.date = {$gte: minDate};
 				self._cash_register.find(q).toArray(safe.sure_result(cb, function(regs) {
 					_.each(regs, function(reg) {
+						if (!toDelete[accId])
+							toDelete[accId] = {};
 						toDelete[accId][reg._id] = reg;
 					});
 				}));
@@ -536,6 +546,12 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 				self._cash_accounts_stat.update({ _id: accStats._id }, accStats,
 						{ upsert: true, w: 1 }, cb);
 			}, cb);
+		}],
+		account_remove: ['account_save', function (cb) {
+			self._cash_accounts_stat.remove({'_id': {$in: accToDelete}}, {w:1}, cb);
+		}],
+		account_remove_regs: ['account_save', function (cb) {
+			self._cash_register.remove({'accId': {$in: accToDelete}}, {w:1}, cb);
 		}]
 		}, function done (err) {
 			if (err) console.log(err);

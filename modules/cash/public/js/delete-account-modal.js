@@ -12,7 +12,6 @@ define(["jquery","eventemitter2","safe", "jquery-block","bootstrap"], function (
 					},					
 				}
 				api.batch(batch, safe.sure(cb, function (res) {
-					console.log(res);
 					var batch = {
 							"account":{
 								"cmd":"api",
