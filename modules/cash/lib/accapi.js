@@ -384,20 +384,22 @@ module.exports.getAssetsTypes = function (token,cb) {
 
 module.exports.saveAccount = function (token, account, cb) {
 	var self = this;
-	async.waterfall ([
+	var childs = [];
+	async.series ([
 		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		function (cb) {
 			if (account._id)
-				cb(null, new self._ctx.ObjectID(account._id));
+				account._id = new self._ctx.ObjectID(account._id);
 			else
-				cb(null, new self._ctx.ObjectID());
-		},
-		function (id, cb) {
-			account._id = id;
+				account._id = new self._ctx.ObjectID();
 			if (account.parentId) account.parentId = new self._ctx.ObjectID(account.parentId.toString());
 			self._cash_accounts.save(account, cb);
+		},
+		function(cb) {
+			self._getAllChildsId(token, account._id, childs, cb);
 		}], safe.sure(cb,function (result) {
-			self._calcStats(function () { cb(null, account); });
+			childs.push(account._id);
+			self._calcPath(childs, function () { cb(null, account); });
 		})
 	);
 };

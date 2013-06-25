@@ -413,6 +413,73 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 	);
 };
 
+CashApi.prototype._calcPath = function (accIds, cb) {
+	var self = this;
+	var _stats = {};	
+	// helper functions
+	function getAccStats (accId) {
+		if (_stats[accId]==null)
+			_stats[accId] = {_id:accId, value:0, count:0, type: "BANK"};
+		return _stats[accId];
+	}
+
+	function getAccPath (acc, cb) {
+		if (acc._id != acc.parentId && acc.parentId) {
+			self._cash_accounts.findOne({'_id': acc.parentId}, function(err, parentAcc) {
+				if (parentAcc==null) {
+					cb("");
+				} else {
+					getAccPath(parentAcc, function (path) {
+						cb(path + "::"+acc.name);
+					});
+				}
+			});
+		}
+		else {
+			cb(acc.name);
+		}
+	}
+
+	console.time("Stats Path");
+
+	async.auto({
+		load_stats: [function (cb) {
+			self._cash_accounts_stat.find({'_id': {$in: accIds}}, safe.trap_sure(cb, function (cursor) {
+				cursor.each(safe.trap_sure(cb, function (stat) {
+					if (stat == null)
+						return cb();
+					_stats[stat._id] = stat;
+				}));
+			}));
+		}],
+		account_paths: ['load_stats', function (cb) {
+			self._cash_accounts.find({'_id': {$in: accIds}}).toArray(safe.sure(cb, function (accounts) {
+				async.forEach(accounts, function (acc, cb) {
+					getAccPath(acc, function (path) {
+						var accStats = getAccStats(acc._id);
+						accStats.path = path;
+						accStats.type = acc.type;
+						accStats.parentId = acc.parentId;
+						accStats.level = path.split("::").length;
+						cb();
+					});
+				}, cb);
+			}));
+		}],
+		account_save: ['account_paths', function (cb) {
+			async.forEachSeries(_.values(_stats), function (doc, cb) {
+				self._cash_accounts_stat.findAndModify({ _id: doc._id }, [], doc,
+						{ upsert: true, w: 1 }, cb);
+			}, cb);
+		}]
+		}, function done (err) {
+			if (err) console.log(err);
+			console.timeEnd("Stats Path");			
+			cb();
+		}
+	);
+};
+
 CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 	var self = this;
 	var _stats = {};	
