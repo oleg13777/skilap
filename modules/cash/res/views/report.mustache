@@ -16,6 +16,8 @@ $(function() {
 			
 	{{>report_graph}}
 	
+	setTimeout(createChart, 50);
+	
 	var $page = $("body");	
 	$("#page_menu #settings").on("click",function(evt){		
 		evt.preventDefault();		
