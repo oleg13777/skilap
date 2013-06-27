@@ -344,28 +344,16 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 							return cb();
 						}
 						async.forEachSeries(tr.splits, function (split, cb) {
-							var accStats = getAccStats(split.accountId);
+							var accId = split.accountId;
+							var accStats = getAccStats(accId);
 							var act = assetInfo[accStats.type].act;
 							accStats.value+=split.quantity*act;
 							accStats.count++;
-							var trs = {_id:tr._id, date:tr.datePosted, ballance: 0};
-							//!!!!
-							var accId = split.accountId;
+							var doc = {date:tr.datePosted, ballance: 0};
 							if (!ballances[accId])
 								ballances[accId] = 0;
-							var recv = [];
-							var send = null;
-							tr.splits.forEach(function(split) {
-								if (split.accountId == accId)
-									send = split;
-								else
-									recv.push(split);
-							});
-							trs.recv = recv; trs.send = send;
-							ballances[accId] += send.quantity*act;
-							trs.ballance = ballances[accId];
-							//!!!!
-							var doc = _.omit(trs, '_id','recv','send');
+							ballances[accId] += split.quantity*act;
+							doc.ballance = ballances[accId];
 							doc.trId = tr._id;
 							doc.accId = accId;
 							doc.order = accStats.count;
@@ -494,7 +482,7 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 	var ballances = {};
 	var counters = {};
 	var toDelete = {};
-	var accToDelete = [];
+	var accToDelete = {};
 
 	async.auto({
 		load_accs: [function (cb) {
@@ -568,17 +556,12 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 						var accId = split.accountId;
 						var accStats = getAccStats(accId);
 						var act = assetInfo[accStats.type].act;
-						accStats.value+=split.quantity*act;
 						if (!ballances[accId])
 							ballances[accId] = 0;
 						if (!counters[accId])
 							counters[accId] = 0;
-						var send = null;
-						tr.splits.forEach(function(split) {
-							if (split.accountId == accId)
-								send = split;
-						});
-						ballances[accId] += send.quantity*act;
+						ballances[accId] += split.quantity*act;
+						accStats.value=ballances[accId];
 						counters[accId]++;
 						var doc = { date: tr.datePosted, trId: tr._id, accId: accId, ballance: ballances[accId], order: counters[accId]};
 						self._cash_register.findAndModify({trId: tr._id, accId: accId}, [], {$set:doc},	{ upsert: true, w: 1 }, safe.sure_result(cb, function(obj) {
@@ -601,6 +584,7 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 		}],
 		remove_old: ['transaction_stats', function (cb) {
 			async.forEachSeries(accIds, function (accId, cb) {
+				if (!toDelete[accId] || _.isEmpty(toDelete[accId])) return cb();
 				var accStats = getAccStats(accId);
 				accStats.count -= toDelete[accId].length;
 				self._cash_register.remove({_id: {$in: _.keys(toDelete[accId])}}, {w: 1}, cb);

@@ -127,7 +127,7 @@ $(function(){
 		});
 	});
 
-	$container.on('keypress','.acc-item',function(e){
+	$container.on('keydown','.acc-item',function(e){
 		if(e.keyCode == 9){
 			var $nextCol = $(this).next(".acc-item");
 			if($nextCol.length > 0){
@@ -593,7 +593,10 @@ $(function(){
 				updateRecord($column.parent(),safe.sure(cb,function(result){
 					if(result.isNew){
 						isRecordAdded = true;
-						$container.find(".acc-scroll").scrollTop($container.find(".acc-scroll").scrollTop()+rowHeight);
+						if (rowsLimit > iTotalRecords) 
+							loadGrid($container,0,rowsLimit,function(){$container.unblock();});
+						else
+							$container.find(".acc-scroll").scrollTop($container.find(".acc-scroll").scrollTop()+rowHeight);
 					}
 					cb();
 				}));

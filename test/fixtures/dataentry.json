@@ -43,6 +43,30 @@
 			"currency":"USD"
 		}
 	],
+	"trs":[
+		{
+			"name": "My wallet",
+			"parent": "Cash",
+			"date": "06/06/2013",
+			"num":"test1",
+			"description":"test1",
+			"path":"Life::Other",
+			"deposit":"100.00",
+			"total":"100.00"
+		},
+		{
+			"name": "My wallet",
+			"parent": "Cash",
+			"date": "07/06/2013",
+			"num":"test2",
+			"description":"test2",
+			"path":"Credit Cards::My card",
+			"deposit":"123.45",
+			"total":"123.45",
+			"name1":"Credit Cards",
+			"name2":"My card"
+		}
+	],
 	"cashimport":{
 		"file": "/samples/home.xml",
 		"parsedtext":"File parsed. It contains: 4320 transactions, 63 accounts",
