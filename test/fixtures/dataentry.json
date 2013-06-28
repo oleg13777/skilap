@@ -50,9 +50,11 @@
 			"date": "06/06/2013",
 			"num":"test1",
 			"description":"test1",
-			"path":"Life::Other",
+			"path":"Life::Food",
 			"deposit":"100.00",
-			"total":"100.00"
+			"total":"100.00",
+			"name1":"Life",
+			"name2":"Food"
 		},
 		{
 			"name": "My wallet",
@@ -65,7 +67,21 @@
 			"total":"123.45",
 			"name1":"Credit Cards",
 			"name2":"My card"
+		},
+		{
+			"name": "My wallet",
+			"parent": "Cash",
+			"date": "08/06/2013",
+			"num":"test3",
+			"description":"test3",
+			"path":"Hobby::Charuty",
+			"deposit":"50.00",
+			"withdrawal":"50.00",
+			"total":"-50.00",
+			"name1":"Hobby",
+			"name2":"Charuty"
 		}
+		
 	],
 	"cashimport":{
 		"file": "/samples/home.xml",

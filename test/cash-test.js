@@ -591,7 +591,8 @@ describe("Cash module",function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
 			});
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
-			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(tr.path + '\n');
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(tr.path);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.RETURN);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']")).click();
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
@@ -726,6 +727,400 @@ describe("Cash module",function () {
 			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + (parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) + "')]]/a[contains(.,'" + tr1.name + "')]"));
 			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr2.name1 + "')]"));
 			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr2.deposit + "')]]/a[contains(.,'" + tr2.name2 + "')]"));
+			self.saveDb('register-test').then(function() {
+				self.done();
+			});
+		});
+	});
+	describe("Registry edit", function () {
+		it("Login as user", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.restoreDb('register-test');
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
+			self.browser.findElement(By.linkText("Cash module")).click();			
+			self.done();
+		});
+		it("Change date for first row by click", function(done) {
+			var self = this;
+			self.trackError(done);
+			var tr = self.fixtures.dataentry.trs[0];
+			var tr1 = self.fixtures.dataentry.trs[1];
+			var tr2 = self.fixtures.dataentry.trs[2];
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
+			});
+			var tmp = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp = !isPresent; } );
+				return tmp;
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']//input")).sendKeys(tr2.date);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='description']")).click();
+
+			var tmp1 = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp1 = !isPresent; } );
+				return tmp1;
+			});
+
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr1.date +"']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div[.='" + tr1.num + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div[.='" + tr1.description + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']/div[.='" + tr1.path + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']/div[.='" + tr1.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='" + tr1.total + "']"));
+
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']/div[.='" + tr2.date +"']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='num']/div[.='" + tr.num + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='description']/div[.='" + tr.description + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='path']/div[.='" + tr.path + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='total']/div[.='" + (parseFloat(tr.deposit) + parseFloat(tr1.deposit)) + "']"));
+			self.done();
+		});
+		it("Home page should have right ballance", function(done) {
+			var self = this;
+			var tr1 = self.fixtures.dataentry.trs[0];
+			var tr2 = self.fixtures.dataentry.trs[1];
+			self.trackError(done);
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Home")).click();	
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + (parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) + "')]]/li/a[.='" + tr2.parent + "']"));
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + (parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) + "')]]/li/a[.='" + tr2.name + "']"));
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert.ok(text.indexOf(parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) != -1, "Sum error");
+			});
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + tr2.deposit + "')]]/li/a[.='" + tr2.name2 + "']"));
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + tr2.deposit + "')]]/li/a[.='" + tr2.name1 + "']"));
+			self.browser.findElement(By.xpath("//h2[contains(.,'Liabilities:')]/span")).getText().then(function(text) {
+				assert.ok(text.indexOf(parseFloat(tr2.deposit)) != -1, "Sum error");
+				self.done();
+			});
+		});
+		it("Change date back by enter", function(done) {
+			var self = this;
+			self.trackError(done);
+			var tr = self.fixtures.dataentry.trs[0];
+			var tr1 = self.fixtures.dataentry.trs[1];
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
+			});
+			var tmp = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp = !isPresent; } );
+				return tmp;
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']//input")).sendKeys(tr.date);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']//input")).sendKeys(Key.RETURN);
+
+			var tmp1 = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp1 = !isPresent; } );
+				return tmp1;
+			});
+
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr.date +"']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div[.='" + tr.num + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div[.='" + tr.description + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']/div[.='" + tr.path + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='" + tr.total + "']"));
+
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']/div[.='" + tr1.date +"']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='num']/div[.='" + tr1.num + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='description']/div[.='" + tr1.description + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='path']/div[.='" + tr1.path + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='deposit']/div[.='" + tr1.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='total']/div[.='" + (parseFloat(tr.deposit) + parseFloat(tr1.deposit)) + "']"));
+			self.done();
+		});
+		it("Home page should have right ballance 2", function(done) {
+			var self = this;
+			var tr1 = self.fixtures.dataentry.trs[0];
+			var tr2 = self.fixtures.dataentry.trs[1];
+			self.trackError(done);
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Home")).click();	
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + (parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) + "')]]/li/a[.='" + tr2.parent + "']"));
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + (parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) + "')]]/li/a[.='" + tr2.name + "']"));
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert.ok(text.indexOf(parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) != -1, "Sum error");
+			});
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + tr2.deposit + "')]]/li/a[.='" + tr2.name2 + "']"));
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + tr2.deposit + "')]]/li/a[.='" + tr2.name1 + "']"));
+			self.browser.findElement(By.xpath("//h2[contains(.,'Liabilities:')]/span")).getText().then(function(text) {
+				assert.ok(text.indexOf(parseFloat(tr2.deposit)) != -1, "Sum error");
+				self.done();
+			});
+		});
+		it("Change num field", function(done) {
+			var self = this;
+			self.trackError(done);
+			var tr = self.fixtures.dataentry.trs[0];
+			var tr1 = self.fixtures.dataentry.trs[1];
+			var tr2 = self.fixtures.dataentry.trs[2];
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
+			});
+			var tmp = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp = !isPresent; } );
+				return tmp;
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input")).sendKeys(tr2.num);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input")).sendKeys(Key.RETURN);
+
+			var tmp1 = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp1 = !isPresent; } );
+				return tmp1;
+			});
+
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr.date +"']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div[.='" + tr2.num + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div[.='" + tr.description + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']/div[.='" + tr.path + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='" + tr.total + "']"));
+
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']/div[.='" + tr1.date +"']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='num']/div[.='" + tr1.num + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='description']/div[.='" + tr1.description + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='path']/div[.='" + tr1.path + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='deposit']/div[.='" + tr1.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='total']/div[.='" + (parseFloat(tr.deposit) + parseFloat(tr1.deposit)) + "']"));
+			self.done();
+		});
+		it("Home page should have right ballance 3", function(done) {
+			var self = this;
+			var tr1 = self.fixtures.dataentry.trs[0];
+			var tr2 = self.fixtures.dataentry.trs[1];
+			self.trackError(done);
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Home")).click();	
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + (parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) + "')]]/li/a[.='" + tr2.parent + "']"));
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + (parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) + "')]]/li/a[.='" + tr2.name + "']"));
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert.ok(text.indexOf(parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) != -1, "Sum error");
+			});
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + tr2.deposit + "')]]/li/a[.='" + tr2.name2 + "']"));
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + tr2.deposit + "')]]/li/a[.='" + tr2.name1 + "']"));
+			self.browser.findElement(By.xpath("//h2[contains(.,'Liabilities:')]/span")).getText().then(function(text) {
+				assert.ok(text.indexOf(parseFloat(tr2.deposit)) != -1, "Sum error");
+				self.done();
+			});
+		});
+		it("Change description and account field", function(done) {
+			var self = this;
+			self.trackError(done);
+			var tr = self.fixtures.dataentry.trs[0];
+			var tr1 = self.fixtures.dataentry.trs[1];
+			var tr2 = self.fixtures.dataentry.trs[2];
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
+			});
+			var tmp = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp = !isPresent; } );
+				return tmp;
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']//input")).sendKeys(tr2.description);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).sendKeys(tr2.path);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
+			var tmp1 = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp1 = !isPresent; } );
+				return tmp1;
+			});
+
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr.date +"']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div[.='" + tr2.num + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div[.='" + tr2.description + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']/div[.='" + tr2.path + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='" + tr.total + "']"));
+
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']/div[.='" + tr1.date +"']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='num']/div[.='" + tr1.num + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='description']/div[.='" + tr1.description + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='path']/div[.='" + tr1.path + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='deposit']/div[.='" + tr1.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='total']/div[.='" + (parseFloat(tr.deposit) + parseFloat(tr1.deposit)) + "']"));
+			self.done();
+		});
+		it("Home page should have right ballance 4", function(done) {
+			var self = this;
+			var tr1 = self.fixtures.dataentry.trs[0];
+			var tr2 = self.fixtures.dataentry.trs[1];
+			self.trackError(done);
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Home")).click();	
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + (parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) + "')]]/li/a[.='" + tr2.parent + "']"));
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + (parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) + "')]]/li/a[.='" + tr2.name + "']"));
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert.ok(text.indexOf(parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) != -1, "Sum error");
+			});
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + tr2.deposit + "')]]/li/a[.='" + tr2.name2 + "']"));
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + tr2.deposit + "')]]/li/a[.='" + tr2.name1 + "']"));
+			self.browser.findElement(By.xpath("//h2[contains(.,'Liabilities:')]/span")).getText().then(function(text) {
+				assert.ok(text.indexOf(parseFloat(tr2.deposit)) != -1, "Sum error");
+				self.done();
+			});
+		});
+		it("Accounts page should have right ballance", function(done) {
+			var self = this;
+			var tr1 = self.fixtures.dataentry.trs[0];
+			var tr2 = self.fixtures.dataentry.trs[1];
+			var tr3 = self.fixtures.dataentry.trs[2];
+			self.trackError(done);
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr1.parent + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + (parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) + "')]]/a[contains(.,'" + tr1.name + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr2.name1 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr2.deposit + "')]]/a[contains(.,'" + tr2.name2 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr3.name1 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr1.deposit + "')]]/a[contains(.,'" + tr3.name2 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr1.name1 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr1.name2 + "')]"));
+			self.done();
+		});
+		it("Change spent field", function(done) {
+			var self = this;
+			self.trackError(done);
+			var tr = self.fixtures.dataentry.trs[0];
+			var tr1 = self.fixtures.dataentry.trs[1];
+			var tr2 = self.fixtures.dataentry.trs[2];
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
+			});
+			var tmp = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp = !isPresent; } );
+				return tmp;
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']//input")).sendKeys(Key.TAB);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']//input")).sendKeys(tr2.withdrawal);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']//input")).sendKeys(Key.TAB);
+			var tmp1 = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp1 = !isPresent; } );
+				return tmp1;
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr.date +"']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div[.='" + tr2.num + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div[.='" + tr2.description + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']/div[.='" + tr2.path + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']/div[.='']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']/div[.='" + tr2.withdrawal + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='" + tr2.total + "']"));
+
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']/div[.='" + tr1.date +"']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='num']/div[.='" + tr1.num + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='description']/div[.='" + tr1.description + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='path']/div[.='" + tr1.path + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='deposit']/div[.='" + tr1.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='total']/div[.='" + (parseFloat(tr1.deposit) - parseFloat(tr2.withdrawal)) + "']"));
+			self.done();
+		});
+		it("Home page should have right ballance 4", function(done) {
+			var self = this;
+			var tr = self.fixtures.dataentry.trs[0];
+			var tr1 = self.fixtures.dataentry.trs[1];
+			var tr2 = self.fixtures.dataentry.trs[2];
+			self.trackError(done);
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Home")).click();	
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + (parseFloat(tr1.deposit) - parseFloat(tr2.withdrawal)) + "')]]/li/a[.='" + tr.parent + "']"));
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + (parseFloat(tr1.deposit) - parseFloat(tr2.withdrawal)) + "')]]/li/a[.='" + tr.name + "']"));
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert.ok(text.indexOf(parseFloat(tr1.deposit) - parseFloat(tr2.withdrawal)) != -1, "Sum error");
+			});
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + tr1.deposit + "')]]/li/a[.='" + tr1.name2 + "']"));
+			self.browser.findElement(By.xpath("//ul[span[contains(., '" + tr1.deposit + "')]]/li/a[.='" + tr1.name1 + "']"));
+			self.browser.findElement(By.xpath("//h2[contains(.,'Liabilities:')]/span")).getText().then(function(text) {
+				assert.ok(text.indexOf(parseFloat(tr1.deposit)) != -1, "Sum error");
+				self.done();
+			});
+		});
+		it("Accounts page should have right ballance", function(done) {
+			var self = this;
+			var tr1 = self.fixtures.dataentry.trs[0];
+			var tr2 = self.fixtures.dataentry.trs[1];
+			var tr3 = self.fixtures.dataentry.trs[2];
+			self.trackError(done);
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr1.parent + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + (parseFloat(tr2.deposit) - parseFloat(tr3.withdrawal)) + "')]]/a[contains(.,'" + tr1.name + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr2.name1 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr2.deposit + "')]]/a[contains(.,'" + tr2.name2 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr3.name1 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr3.withdrawal + "')]]/a[contains(.,'" + tr3.name2 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr1.name1 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr1.name2 + "')]"));
 			self.done();
 		});
 	});

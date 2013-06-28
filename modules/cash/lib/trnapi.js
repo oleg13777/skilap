@@ -59,6 +59,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 	var trn={};
 	var leadAcc = null;
 	var oldTrn = null;
+	var accIds = {};
 	async.series ([
 		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
 		// get lead account, if any
@@ -85,6 +86,9 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			if (debug) { console.log("Before sync on update"); console.log(tr); }
 			if (tr._id) {
 				self._cash_transactions.findOne({'_id': new self._ctx.ObjectID(tr._id)}, safe.trap_sure_result(cb,function (tr_) {
+					_(tr_.splits).forEach(function (split) {
+						accIds[split.accountId] = split.accountId;
+					});
 					// get all the missing properties from existing transaction except splits
 					var fprops = _.without(_(tr_).keys(),"splits");
 					var ftr = _.pick(tr_,fprops);
@@ -323,12 +327,11 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			}));
 		}
 	], safe.sure(cb,function () {
-		var accIds = [];
 		if (debug) { console.log("Before stats"); console.log(trn);	}
 		_(trn.splits).forEach(function (split) {
-			accIds.push(split.accountId);
+			accIds[split.accountId] = split.accountId;
 		});
-		self._calcStatsPartial(accIds, _.min([trn.datePosted, oldTrn.datePosted]), function () {cb(null, trn);});
+		self._calcStatsPartial(_.values(accIds), _.min([trn.datePosted, oldTrn.datePosted]), function () {cb(null, trn);});
 	}));
 };
 

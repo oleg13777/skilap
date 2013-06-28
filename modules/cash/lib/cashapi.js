@@ -667,7 +667,7 @@ CashApi.prototype._calcPriceStatsPartial = function (cmdty, currency, cb) {
 		self._cash_prices_stat.remove(cb);
 		return;
 	}
-	var key = [cmdty.space+cmdty.id+currency.space+currency.id, currency.space+currency.id+cmdty.space+cmdty.id];
+	var key = cmdty.space+cmdty.id+currency.space+currency.id;
 	self._cash_prices.find({cmdty: cmdty, currency: currency}, safe.sure(cb, function (cursor) {
 		var stop = false;
 		async.doUntil(function (cb) {
