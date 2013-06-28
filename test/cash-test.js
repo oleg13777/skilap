@@ -1105,7 +1105,7 @@ describe("Cash module",function () {
 				self.done();
 			});
 		});
-		it("Accounts page should have right ballance", function(done) {
+		it("Accounts page should have right ballance 4", function(done) {
 			var self = this;
 			var tr1 = self.fixtures.dataentry.trs[0];
 			var tr2 = self.fixtures.dataentry.trs[1];
@@ -1121,6 +1121,81 @@ describe("Cash module",function () {
 			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr3.withdrawal + "')]]/a[contains(.,'" + tr3.name2 + "')]"));
 			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr1.name1 + "')]"));
 			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr1.name2 + "')]"));
+			self.done();
+		});
+	});
+	describe("Reconcile value editing", function () {
+		it("Login as user", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.restoreDb('register-test');
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
+			self.browser.findElement(By.linkText("Cash module")).click();			
+			self.done();
+		});
+		it("Simple click", function(done) {
+			var self = this;
+			self.trackError(done);
+			var tr = self.fixtures.dataentry.trs[0];
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
+			});
+			var tmp = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp = !isPresent; } );
+				return tmp;
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='n']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']")).click();
+			var tmp1 = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp1 = !isPresent; } );
+				return tmp1;
+			});
+
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='c']"));
+			self.browser.navigate().refresh();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
+			});
+			var tmp2 = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp2 = !isPresent; } );
+				return tmp2;
+			});
+			self.done();
+		});
+		it("Splits click", function(done) {
+			var self = this;
+			self.trackError(done);
+			var tr = self.fixtures.dataentry.trs[0];
+			self.browser.findElement(By.xpath("//label[contains(., 'Split')]/input")).click();
+			self.browser.findElement(By.xpath("//tr/td/div[.='" + tr.name1 + "::" + tr.name2 + "']")).click();
+			self.browser.findElement(By.xpath("//tr[td/div[.='" + tr.name1 + "::" + tr.name2 + "']]/td[@data-name='rstate']/div[.='c']"));
+			self.browser.findElement(By.xpath("//tr[td/div[.='" + tr.parent + "::" + tr.name + "']]/td[@data-name='rstate']/div[.='c']"));
+			self.browser.findElement(By.xpath("//label[contains(., 'Split')]/input")).click();
+			
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='c']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='n']"));
+			});
+			var tmp1 = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp1 = !isPresent; } );
+				return tmp1;
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='n']"));
+			self.browser.findElement(By.xpath("//label[contains(., 'Split')]/input")).click();
+			self.browser.findElement(By.xpath("//tr[td/div[.='" + tr.name1 + "::" + tr.name2 + "']]/td[@data-name='rstate']/div[.='n']"));
+			self.browser.findElement(By.xpath("//tr[td/div[.='" + tr.parent + "::" + tr.name + "']]/td[@data-name='rstate']/div[.='n']"));
 			self.done();
 		});
 	});

@@ -351,7 +351,7 @@ $(function(){
 					path: $(item).find(".acc-item-split[data-name=\"path\"]").text(),
 					deposit: $(item).find(".acc-item-split[data-name=\"deposit\"]").text(),
 					withdrawal: $(item).find(".acc-item-split[data-name=\"withdrawal\"]").text(),
-					rstate: $(item).find(".acc-item-split[data-name=\"rstate\"]").text()
+					rstate: $(item).find(".acc-item-split[data-name=\"rstate\"]").text() || "n"
 				};
 				var origspl = {
 					accountId:accountId,
@@ -431,6 +431,15 @@ $(function(){
 					_.each(columnModifiedData,function(v,k){
 						$splitTargetColumn.data(k,v);
 					});
+					
+					if (columnName == "rstate"){
+						var $splitTargetColumn = $record.parent().find(".acc-item-record-split[data-recordid=\""+recordid+"\"][data-_id!=\"new\"] .acc-item-split[data-name=\""+columnName+"\"]");
+						$splitTargetColumn.find(".tdContent").text(columnModifiedData.val);
+						_.each(columnModifiedData,function(v,k){
+							$splitTargetColumn.data(k,v);
+						});
+					}
+
 					var multisplit = $record.data("multisplit");
 					/* we need update deposit or withdrawal for both split rows */
 					if(multisplit != 1 && (columnName == "deposit" || columnName == "withdrawal")){
@@ -477,7 +486,13 @@ $(function(){
 		$column.find(".tdContentEditable").html("").hide();
 		$column.find(".tdContent").show();
 		$column.removeClass("selected");
-		cb();
+
+		if (!$container.find(".splitMode").is(":checked") && edittype == "switch") {
+			updateRecord($column.parent(),safe.sure(cb,function(result){
+				cb();
+			}));
+		} else
+			cb();
 	}
 
 	function handleColumnClick($column,cb){
@@ -556,8 +571,8 @@ $(function(){
 						$elem.val("c");
 
 					$column.parent().find("td[data-name='total']").click();
+					
 				}
-
 				cb();
 			}));
 		},cb);
