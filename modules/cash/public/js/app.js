@@ -3,7 +3,7 @@ require.config({
 	paths: {
 		"hbs": _prefix+"/hbs",
 		"cash": _prefix+"/js",
-		"jquery": "jquery-1.9.0.min",		
+		"jquery": "jquery",		
 		"jquery-form": "/common/js/jquery.form",		
 		"jquery-ui": "/common/js/jquery-ui-1.10.1.custom.min",
 		"jquery-block": "/common/js/jquery.blockUI",			
@@ -13,6 +13,7 @@ require.config({
 		"bootstrap-datepicker": "/common/js/locales/bootstrap-datepicker."+_user.language.charAt(0)+_user.language.charAt(1),
 		"bootstrap-datepicker-core": "/common/js/bootstrap-datepicker",
 		"jquery-mousewheel": _prefix+"/js/jquery.mousewheel",
+		"bootstrap-typeahead": "/common/js/bootstrap-typeahead"
 	},
 	shim:{
 		"gettext": {
@@ -42,6 +43,9 @@ require.config({
 		"bootstrap-datepicker": {
 			deps:["bootstrap-datepicker-core"]
 		},
+		"bootstrap-typeahead": {
+			deps:["bootstrap","lodash"]
+		},		
 		"jquery-mousewheel":{
 			deps:["jquery"]
 		}

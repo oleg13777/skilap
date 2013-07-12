@@ -538,6 +538,8 @@ describe("Cash module",function () {
 			self.done();
 		});
 	});
+
+describe("Registry", function () {
 	describe("Registry input", function () {
 		it("Login as user", function(done) {
 			var self = this;
@@ -666,13 +668,22 @@ describe("Cash module",function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
 			});
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(tr2.description);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
+			});
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(Key.TAB);
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
 			});
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(tr2.path);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return v; } );
+			});					
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.RETURN);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
+			});					
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.TAB);
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
@@ -965,12 +976,18 @@ describe("Cash module",function () {
 			});
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']//input")).sendKeys(tr2.description);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
+			});			
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']//input")).sendKeys(Key.TAB);
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input"));
 			});
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).sendKeys(tr2.path);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return v; } );
+			});					
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
 			var tmp1 = false;
@@ -1512,6 +1529,9 @@ describe("Cash module",function () {
 			});
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(tr.description);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
+			});			
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(Key.TAB);
 
 			self.browser.wait(function () {
@@ -1523,12 +1543,21 @@ describe("Cash module",function () {
 				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='description']//input"));
 			});
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='description']//input")).sendKeys(tr.description);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
+			});			
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='description']//input")).sendKeys(Key.TAB);
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path']//input"));
 			});
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path']//input")).sendKeys(tr.path);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead"));
+			});			
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
+			});			
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path']//input")).sendKeys(Key.TAB);
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='deposit']//input"));
@@ -1550,6 +1579,9 @@ describe("Cash module",function () {
 				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='description']//input"));
 			});
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='description']//input")).sendKeys(tr.description);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
+			});			
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='description']//input")).sendKeys(Key.TAB);
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='path']//input"));
@@ -1575,12 +1607,21 @@ describe("Cash module",function () {
 				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='description']//input"));
 			});
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='description']//input")).sendKeys(tr.description);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
+			});			
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='description']//input")).sendKeys(Key.TAB);
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='path']//input"));
 			});
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='path']//input")).sendKeys(tr.split3n);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead"));
+			});			
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
+			});			
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='path']//input")).sendKeys(Key.TAB);
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='deposit']//input"));
@@ -1602,12 +1643,21 @@ describe("Cash module",function () {
 				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='description']//input"));
 			});
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='description']//input")).sendKeys(tr.description);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
+			});			
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='description']//input")).sendKeys(Key.TAB);
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path']//input"));
 			});
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path']//input")).sendKeys(tr.split4n);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead"));
+			});			
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
+			});			
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path']//input")).sendKeys(Key.TAB);
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='deposit']//input"));
@@ -1687,6 +1737,9 @@ describe("Cash module",function () {
 			});
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(tr.path);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead"));
+			});			
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.RETURN);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']")).click();
 			self.browser.wait(function () {
@@ -2016,13 +2069,22 @@ describe("Cash module",function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
 			});
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(tr2.description);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
+			});					
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(Key.TAB);
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
 			});
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(tr2.path);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return v; } );
+			});					
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.RETURN);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
+			});					
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.TAB);
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
@@ -2103,6 +2165,7 @@ describe("Cash module",function () {
 			});
 		});
 	});
+});
 	describe("Reports", function () {
 		it("Login as user", function(done) {
 			var self = this;
