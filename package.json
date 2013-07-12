@@ -39,5 +39,6 @@
     , "later" : ""
     , "moment" : "2.x"
     , "request" : ""
+    , "mkdirp" : ""
     }
 }

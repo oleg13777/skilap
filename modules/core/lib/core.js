@@ -447,7 +447,13 @@ function Skilap(config_) {
 			} else {
 				var tingo = require("tingodb")({});
 				var store = cfg.tingo.path;
+				if (store.slice(0, 2) == '~/') {
+					var home = process.env.HOME || process.env.USERPROFILE;
+					store = home + store.slice(1);
+				}
 				store = path.resolve(store);
+				var mkdirp = require('mkdirp');
+				mkdirp.sync(store);
 				var dbc = new tingo.Db(store, {});
 				self.ObjectID = tingo.ObjectID;
 			}
