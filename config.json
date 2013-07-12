@@ -2,7 +2,9 @@
 	"app":{
 		"secret":"skilap",
 		"cookie":"skiid",
-		"engine":"mongodb"
+		"engine":"mongodb",
+		"https": false,
+		"port": 80
 	},
 	"mongo":{
 		"host":"127.0.0.1",

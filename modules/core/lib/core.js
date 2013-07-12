@@ -400,21 +400,35 @@ function Skilap(config_) {
 			}],
 			function end(err) {
 				console.timeEnd("startApp");
-				if (err) cb(err);
-/*				var options = {
-					key: fs.readFileSync(path.resolve('./privatekey.pem')),
-					cert: fs.readFileSync(path.resolve('./certificate.pem'))
-				};
-				var https = express(options);*/
-				var http = express();
-//				https.use(webapp);
-				http.use(webapp);
-//				https.listen(443);
-				http.listen(80);
-
-				 //console.log("Express server listening on port %d in %s mode", webapp.address().port, webapp.settings.env);
-				self.emit("WebStarted");
-				cb();
+				if (err) return cb(err);
+				self.getConfig(safe.sure(cb, function (cfg) {
+					cfg = cfg.app || {};
+					var app = express();
+					var server, port;
+					if (cfg.https) {
+						var options = {
+							key: fs.readFileSync(path.resolve('./privatekey.pem')),
+							cert: fs.readFileSync(path.resolve('./certificate.pem'))
+						};
+						var https = require('https');
+						server = https.createServer(options, app);
+						port = 443;
+					} else {
+						var http = require('http');
+						server = http.createServer(app);
+						port = 80;
+					}
+					app.use(webapp);
+					if (cfg.port == 'auto' || cfg.port === 0) port = 0;
+					else if (cfg.port) port = +cfg.port;
+					server.listen(port);
+					server.once('listening', function () {
+						var port = server.address().port;
+						console.log('Express server listening on port ' + port + ' in ' + webapp.settings.env + ' mode');
+						self.emit('WebStarted', port, cfg.https);
+						cb();
+					});
+				}));
 			});
 	}
 

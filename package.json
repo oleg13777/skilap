@@ -2,6 +2,7 @@
     "name": "application-name"
   , "version": "0.0.1"
   , "private": true
+  , "main": "app.html"
   , "dependencies": {
       "express": "3.x.x"
     , "connect": ""

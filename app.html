@@ -1,0 +1,16 @@
+<html>
+	<head>
+		<script>
+			function bodyOnLoad() {
+				var app = require('./app.js');
+				app.on('WebStarted', function (port, secure) {
+					var url = (secure ? 'https' : 'http') + '://localhost:' + port + '/';
+					window.location.assign(url);
+				});
+			}
+		</script>
+	</head>
+	<body onload="bodyOnLoad()">
+		<h1>Loading...</h1>
+	</body>
+</html>

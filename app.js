@@ -14,4 +14,5 @@ if (process.argv[2]=="automated") {
 	app.startApp(__dirname+"/data",function (err) {
 		if (err) console.log(err);
 	});
+	module.exports = app;
 }
