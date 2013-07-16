@@ -421,10 +421,11 @@ function Skilap(config_) {
 					app.use(webapp);
 					if (cfg.port == 'auto' || cfg.port === 0) port = 0;
 					else if (cfg.port) port = +cfg.port;
-					server.listen(port);
+					server.listen(port, cfg.host);
 					server.once('listening', function () {
+						var host = server.address().address;
 						var port = server.address().port;
-						console.log('Express server listening on port ' + port + ' in ' + webapp.settings.env + ' mode');
+						console.log('Express server listening on ' + host + ':' + port + ' in ' + webapp.settings.env + ' mode');
 						self.emit('WebStarted', port, cfg.https);
 						cb();
 					});
