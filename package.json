@@ -3,6 +3,11 @@
   , "version": "0.0.1"
   , "private": true
   , "main": "app.html"
+  , "window": {
+	"toolbar": false,
+	"width": 1024,
+	"height": 600
+  }
   , "dependencies": {
       "express": "3.x.x"
     , "connect": ""
