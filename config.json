@@ -3,6 +3,7 @@
 		"secret":"skilap",
 		"cookie":"skiid",
 		"engine":"mongodb",
+		"demo": false,
 		"https": false,
 		"port": 80
 	},

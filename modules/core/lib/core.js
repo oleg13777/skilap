@@ -459,7 +459,37 @@ function Skilap(config_) {
 			}
 			dbc.open(safe.sure(cb,function(db) {
 				_db = db;
-				cb(null,_db);
+				function createSampleUser(cb) {
+					if (!cfg.app.demo) return cb();
+					db.collection('core_users', safe.sure(cb, function (coll) {
+						var doc = {
+							firstName: 'John',
+							lastName: 'Smith',
+							login: 'sample',
+							timeZone: '0.0',
+							language: 'en_US',
+							password: 'sample',
+							permissions: [
+								"core.me.view",
+								"core.me.edit",
+								"core.user.view",
+								"core.user.edit",
+								"core.sysadmin",
+								"cash.view",
+								"cash.add",
+								"cash.edit",
+								"task.view",
+								"task.add",
+								"task.edit"
+							],
+							screenName: "John S."
+						};
+						coll.update({ login: doc.login }, doc, { w: 1, upsert: true }, cb);
+					}));
+				}
+				createSampleUser(safe.sure(cb, function () {
+					cb(null, _db);
+				}));
 			}))
 		}))
 	}

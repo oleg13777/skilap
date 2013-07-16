@@ -11,12 +11,21 @@ module.exports = function (webapp) {
 	})
 
 	app.get("/", webapp.layout(), function(req, res, next) {
-		async.waterfall([
-			async.apply(ctx.getModulesInfo,req.session.apiToken),
-			function render (modules) {
-				res.render(__dirname+"/../res/views/index", {modules: modules});
-			}],
-			next
-		);
+		ctx.getConfig(function (err, cfg) {
+			if (cfg.app.demo) {
+				api.loginByPass(req.session.apiToken, 'sample', 'sample', function (err, user) {
+					if (err) next(err);
+					else res.redirect('/cash');
+				});
+			} else {
+				async.waterfall([
+					async.apply(ctx.getModulesInfo,req.session.apiToken),
+					function render (modules) {
+						res.render(__dirname+"/../res/views/index", {modules: modules});
+					}],
+					next
+				);
+			}
+		});
 	});
 }
