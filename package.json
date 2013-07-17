@@ -1,9 +1,11 @@
 {
-    "name": "application-name"
+    "name": "skilap"
   , "version": "0.0.1"
   , "private": true
   , "main": "app.html"
   , "window": {
+	"title": "Skilap",
+	"icon": "public/img/skilap-logo-small.png",
 	"toolbar": false,
 	"width": 1024,
 	"height": 600
