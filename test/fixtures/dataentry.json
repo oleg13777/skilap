@@ -80,8 +80,23 @@
 			"total":"-50.00",
 			"name1":"Hobby",
 			"name2":"Charuty"
+		},
+		{
+			"name": "My wallet",
+			"parent": "Cash",
+			"date": "06/06/2013",
+			"num":"test1",
+			"description":"test1",
+			"path":"MyTest1::MyTest2",
+			"deposit":"100.00",
+			"total":"100.00",
+			"name1":"MyTest1",
+			"name2":"MyTest2"
+		},
+		{
+			"name1":"MyTest1",
+			"name2":"MyTest3"
 		}
-		
 	],
 	"cashimport":{
 		"file": "/samples/home.xml",

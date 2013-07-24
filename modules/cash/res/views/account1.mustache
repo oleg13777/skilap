@@ -97,7 +97,7 @@ $(function(){
 				],cb);
 			},cb);
 		},function(err){
-			if(err) appError(err);
+			if(err && err != 1) appError(err);
 		});
 	});
 
@@ -123,7 +123,7 @@ $(function(){
 				],cb);
 			},cb);
 		},function(err){
-			if(err) appError(err);
+			if(err && err != 1) appError(err);
 		});
 	});
 
@@ -184,6 +184,9 @@ $(function(){
 	});
 
 	$(document).on("click",function(e){
+		if ($modal) {
+			return e.preventDefault();
+		} 
 		if($(e.target).closest('.acc-container').length == 0){
 			var $accItemSelected = $container.find(".acc-item-record.selected .acc-item.selected");
 			if($accItemSelected.length){
@@ -403,23 +406,71 @@ $(function(){
 			cb(error);
 		});
 	}
-
+	
+	var $modal;
 	function updateOldColumnSelected($column,cb){
+		if(!$column || $column.length == 0)
+			return cb();
+		var editable = $column.data("editable");
+		if(editable){
+			var val = $column.find("input").val();
+			$column.find(".tdContent").text(val);
+			var columnName = $column.data("name");
+			var columnModifiedData = {};
+			if(columnName == "path"){
+				var accid = $column.find("input").data("accid");
+				var accountName = $column.find(".tdContent").text();
+				if (!accid && accountName && !$modal) {
+					$container.block();
+					safe.run(function (cb) {
+						require(['api','clitpl','safe','bootstrap'], function (api,tf,safe) {
+							tf.render('account1_create', {}, safe.sure(cb,function(text, ctx) {
+								$container.unblock();
+								$("body").append(text);
+								$modal = $("#"+ctx.uniq).modal();
+								$modal.on("frm-saved", function (e) {
+									api.call('cash.ensureAccount', accountName, '{{accountId}}', safe.sure(cb, function (acc) {
+										accid = acc._id;
+										$column.find("input").data("accid", accid);
+										$column.find("input").attr("data-accid", accid);
+										$column.data("accid",accid);
+										columnModifiedData.accid = accid;
+										$modal.modal('hide')
+										updateOldColumnSelectedHelper($column, columnModifiedData, cb);
+									}))
+								})
+								$modal.on("frm-closed", function (e) {
+									cb(1);
+								})
+							}))
+						},cb)
+					}, function (err) {
+						$modal = null;
+						if (err && err != 1) appError(err);
+						if (err == 1) $column.find("input").trigger('focus');
+						$container.unblock();
+						cb(err);
+					})	
+				} else {
+					$column.data("accid",accid);
+					columnModifiedData.accid = accid;
+					updateOldColumnSelectedHelper($column, columnModifiedData, cb);
+				}
+			} else 
+				updateOldColumnSelectedHelper($column, columnModifiedData, cb);
+		}
+	}
+
+	function updateOldColumnSelectedHelper($column, columnModifiedData, cb){
 		if(!$column || $column.length == 0)
 			return cb();
 		var editable = $column.data("editable");
 		if(editable){
 			var columnName = $column.data("name");
 			var edittype =  $column.data("edittype");
-			var columnModifiedData = {};
 			var val = $column.find("input").val();
 			$column.find(".tdContent").text(val);
 			columnModifiedData.val = val;
-			if(columnName == "path"){
-				var accid = $column.find("input").data("accid");
-				$column.data("accid",accid);
-				columnModifiedData.accid = accid;
-			}
 
 			if($column.closest(".acc-item-record").length > 0){
 				var relaccid = $column.data("relaccid");

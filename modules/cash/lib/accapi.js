@@ -404,6 +404,82 @@ module.exports.saveAccount = function (token, account, cb) {
 	);
 };
 
+module.exports.ensureParent = function (token, accountName, leadAcc, cb) {
+	var self = this;
+	var childs = [];
+	var parentId;
+	var account = {};
+	self.getAccountByPath(token, accountName, function(err, res) {
+		if (res) return cb(null, res);
+		async.series ([
+			function (cb) { 
+				var index = accountName.lastIndexOf("::");
+				if (index == -1) return cb();
+				var path = accountName.slice(0, index);
+				accountName = accountName.slice(index + 2);
+				self.ensureParent(token, path, leadAcc, safe.sure_result(cb, function(acc) {
+					parentId = acc._id;
+				}));
+			},
+			function (cb) {
+				account.cmdty = leadAcc.cmdty;
+				account.type = leadAcc.type;
+				account.name = accountName;
+				account._id = new self._ctx.ObjectID();
+				if (parentId)
+					account.parentId = parentId;
+				self._cash_accounts.save(account, cb);
+			}], safe.sure(cb,function (result) {
+				childs.push(account._id);
+				self._calcPath(childs, function () { cb(null, account); });
+			})
+		);
+	});
+};
+
+module.exports.ensureAccount = function (token, accountName, leadAccId, cb) {
+	var self = this;
+	var childs = [];
+	var leadAcc = {
+			cmdty: { "space" : "ISO4217" , "id" : "USD"},
+			type: "CASH"
+	};
+	var parentId;
+	var account = {};
+	self.getAccountByPath(token, accountName, function(err, res) {
+		if (res) return cb(null, res);
+		async.series ([
+			function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
+			function (cb) { 
+				self.getAccount(token, leadAccId, safe.sure_result(cb, function(res) {
+					if (res) leadAcc = res;
+				}));
+			},
+			function (cb) { 
+				var index = accountName.lastIndexOf("::");
+				if (index == -1) return cb();
+				var path = accountName.slice(0, index);
+				accountName = accountName.slice(index + 2);
+				self.ensureParent(token, path, leadAcc, safe.sure_result(cb, function(acc) {
+					parentId = acc._id;
+				}));
+			},
+			function (cb) {
+				account.cmdty = leadAcc.cmdty;
+				account.type = leadAcc.type;
+				account.name = accountName;
+				account._id = new self._ctx.ObjectID();
+				if (parentId)
+					account.parentId = parentId;
+				self._cash_accounts.save(account, cb);
+			}], safe.sure(cb,function (result) {
+				childs.push(account._id);
+				self._calcPath(childs, function () { cb(null, account); });
+			})
+		);
+	});
+};
+
 module.exports.getAllCurrencies = function(token,cb){
 	var self = this;
 	async.waterfall ([

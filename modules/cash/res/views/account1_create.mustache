@@ -1,0 +1,29 @@
+<div id="{{uniq}}" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h3 id="myModalLabel">{{#i18n}}Create confirmation{{/i18n}}</h3>
+	</div>
+	<div class="modal-body">
+		<div class='localctx'>
+			{{#i18n}}Create new account?{{/i18n}}
+		</div>
+	</div>
+	<div class="modal-footer">
+		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		<button class="btn btn-primary" id="save">Create</button>
+	</div>			
+</div>
+<script>
+require(["jquery","jquery-block"],function($){
+	$(function(e) {
+		$form = $("#{{uniq}}");
+		$form.on('hidden',function () {
+			$form.trigger("frm-closed");
+			$form.remove();
+		});		
+		$form.find("#save").on("click", function (event) {
+			event.preventDefault();
+			$form.trigger("frm-saved");
+		})
+	})
+})
