@@ -73,7 +73,7 @@ $(function(){
 							if($accItem.length == 0)
 								$accItem = $container.find(".acc-item-split.selected");
 							updateOldColumnSelected($accItem,safe.sure(cb1,function(){
-								updateRecord($container.find(".acc-item-record.selected"),safe.sure(cb1,function(result){
+								updateRecord($container.find(".acc-item-record.selected"),false,safe.sure(cb1,function(result){
 									$container.find(".acc-item-record").removeClass("selected");
 									$record.addClass("selected");
 									selectedRowId = $record.data("id");
@@ -217,6 +217,17 @@ $(function(){
 		return false;
 	});
 
+	$container.on("click",".acc-item-split .deleteSplit",function(){
+		var $row = $(this).closest(".acc-item-record-split");
+		$row.remove();
+		var $update = $container.find(".acc-item-record.selected");
+		$container.block();
+		updateRecord($update,true,function(err, result){
+			$container.unblock();
+		});
+		return false;
+	});
+
 	$container.find("form[name=\"splitModeForm\"]").get(0).reset();
 	$container.on("change",".splitMode",function(){
 		toggleSplitRows($container);
@@ -285,7 +296,7 @@ $(function(){
 		safe.run(function(cb1){
 			getData(offset,limit,safe.sure(cb1,function(data){
 				require(["clitpl"],function(tf){
-					tf.render("account_items",{items:data.aaData,oddeven:0},safe.sure(cb1,function(text,ctx){
+					tf.render("account_items",{items:data.aaData,oddeven:0,splitMode:$container.find(".splitMode").is(":checked")},safe.sure(cb1,function(text,ctx){
 						$container.find("tbody").html(text);
 						$container.find(".acc-item-record").filter(':even').addClass("even");
 						$container.find(".acc-item-record").filter(':odd').addClass("odd");
@@ -322,7 +333,7 @@ $(function(){
 	}
 
 
-	function updateRecord($record,cb){
+	function updateRecord($record,force,cb){
 		if(!$record || $record.length == 0)
 			return cb();
 
@@ -374,7 +385,7 @@ $(function(){
 				origData.splits.push(origspl);
 			}
 		});
-		if(_.isEqual(data,origData))
+		if(!force && _.isEqual(data,origData))
 			return cb();
 
 		$container.block();
@@ -420,7 +431,8 @@ $(function(){
 			if(columnName == "path"){
 				var accid = $column.find("input").data("accid");
 				var accountName = $column.find(".tdContent").text();
-				if (!accid && accountName && !$modal) {
+				var oldval = $column.data("val");
+				if (!accid && accountName && !$modal && oldval != val) {
 					$container.block();
 					safe.run(function (cb) {
 						require(['api','clitpl','safe','bootstrap'], function (api,tf,safe) {
@@ -431,9 +443,8 @@ $(function(){
 								$modal.on("frm-saved", function (e) {
 									api.call('cash.ensureAccount', accountName, '{{accountId}}', safe.sure(cb, function (acc) {
 										accid = acc._id;
-										$column.find("input").data("accid", accid);
-										$column.find("input").attr("data-accid", accid);
-										$column.data("accid",accid);
+										$column.data("accid", accid);
+										$column.attr("data-accid", accid);
 										columnModifiedData.accid = accid;
 										$modal.modal('hide')
 										updateOldColumnSelectedHelper($column, columnModifiedData, cb);
@@ -464,8 +475,10 @@ $(function(){
 	function updateOldColumnSelectedHelper($column, columnModifiedData, cb){
 		if(!$column || $column.length == 0)
 			return cb();
+		var oldval = $column.data("val");
+		var val = $column.find("input").val();
 		var editable = $column.data("editable");
-		if(editable){
+		if(editable && oldval != val){
 			var columnName = $column.data("name");
 			var edittype =  $column.data("edittype");
 			var val = $column.find("input").val();
@@ -520,6 +533,9 @@ $(function(){
 					});
 				}
 				if($record.next(".acc-item-record-split").length == 0){
+					var $record = $column.closest(".acc-item-record-split");
+					$record.removeAttr("name");
+					$record.find(".deleteSplit").css("visibility", "visible");
 					safe.run(function(cb){
 						require(["clitpl"],function(tf){
 							tf.render("grid_item_split_blank",{id:$record.data("recordid")},safe.sure(cb,function(text,ctx){
@@ -539,7 +555,7 @@ $(function(){
 		$column.removeClass("selected");
 
 		if (!$container.find(".splitMode").is(":checked") && edittype == "switch") {
-			updateRecord($column.parent(),safe.sure(cb,function(result){
+			updateRecord($column.parent(),false,safe.sure(cb,function(result){
 				cb();
 			}));
 		} else
@@ -656,7 +672,7 @@ $(function(){
 	function addNewRecord($column){
 		safe.run(function(cb){
 			updateOldColumnSelected($column,safe.sure(cb,function(){
-				updateRecord($column.parent(),safe.sure(cb,function(result){
+				updateRecord($column.parent(),false,safe.sure(cb,function(result){
 					if(result.isNew){
 						isRecordAdded = true;
 						if (rowsLimit > iTotalRecords) 
