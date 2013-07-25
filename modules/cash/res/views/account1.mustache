@@ -130,6 +130,13 @@ $(function(){
 	$container.on('keydown','.acc-item',function(e){
 		if(e.keyCode == 9){
 			var $nextCol = $(this).next(".acc-item");
+			var splitMode = $container.find(".splitMode").is(":checked");
+			if($(this).data("name") == "description" && splitMode) {
+				var $nextRow = $(this).parent().next(".acc-item-record-split")
+				$nextCol = $nextRow.find(".acc-item-split:first").next();
+				$nextCol.click();
+				return false;
+			}
 			if($nextCol.length > 0){
 				var colName = $nextCol.data("name");
 				if(colName == "rstate"){
@@ -164,7 +171,7 @@ $(function(){
 		}
 	});
 
-	$container.on('keypress','.acc-item-split',function(e){
+	$container.on('keydown','.acc-item-split',function(e){
 		if(e.keyCode == 9){
 			var $nextCol = $(this).next(".acc-item-split");
 			if($nextCol.length > 0){
@@ -180,6 +187,22 @@ $(function(){
 				$nextCol.click();
 			}
 			return false;
+		}
+		if(e.which == 13){
+			if(!$(".typeahead.dropdown-menu").is(":visible")){
+				var $self = $(this);
+				var $update = $container.find(".acc-item-record.selected");
+				var $update1 = $container.find(".acc-item-split.selected");
+				$container.block();
+				updateOldColumnSelected($update1, function(err, res) {
+					updateRecord($update,true,function(err, result){
+						toggleSplitRows($container);
+						isRecordUpdated = true;
+						$container.find(".acc-scroll").scroll();
+						$container.unblock();
+					});
+				});
+			}
 		}
 	});
 
@@ -374,7 +397,7 @@ $(function(){
 					path: $(item).find(".acc-item-split[data-name=\"path\"]").data("origval"),
 					deposit: $(item).find(".acc-item-split[data-name=\"deposit\"]").data("origval"),
 					withdrawal: $(item).find(".acc-item-split[data-name=\"withdrawal\"]").data("origval"),
-					rstate: $(item).find(".acc-item-split[data-name=\"rstate\"]").data("origval")
+					rstate: $(item).find(".acc-item-split[data-name=\"rstate\"]").data("origval") || "n"
 				};
 				var splId = $(item).data("_id");
 				if(splId != "" && splId != "new"){

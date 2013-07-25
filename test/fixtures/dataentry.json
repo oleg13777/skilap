@@ -96,6 +96,23 @@
 		{
 			"name1":"MyTest1",
 			"name2":"MyTest3"
+		},
+		{
+			"name": "My wallet",
+			"parent": "Cash",
+			"date": "08/06/2013",
+			"num":"test2",
+			"description":"test2",
+			"path":"Life::Food",
+			"deposit":"100.00",
+			"total":"100.00",
+			"name1":"Life",
+			"name2":"Food",
+			"split3n":"Real assets::Goods",
+			"split3v":"120.00",
+			"split4n":"Real assets::Furniture",
+			"split4n1":"Furniture",
+			"split4v":"150.00"
 		}
 	],
 	"cashimport":{

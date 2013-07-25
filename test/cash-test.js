@@ -1392,6 +1392,304 @@ describe("Cash module",function () {
 			self.done();
 		});
 	});
+	describe("Split mode input", function () {
+		it("Login as user", function(done) {
+			var self = this;
+			self.trackError(done);
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
+			self.done();
+		});	
+		it("Creat empty", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.linkText("Cash module")).click();
+			self.browser.findElement(By.xpath("//*[contains(.,'Assets:')]"));
+			self.browser.findElement(By.linkText("Data")).click();	
+			self.browser.findElement(By.linkText("New register")).click();	
+			self.browser.findElement(By.id("acc_curency")).sendKeys("USD");
+			self.browser.findElement(By.xpath("//input[@value='Confirm']")).click();
+			self.done();
+		});
+		it("Add transaction", function(done) {
+			var self = this;
+			self.trackError(done);
+			var tr = self.fixtures.dataentry.trs[0];
+			self.browser.findElement(By.xpath("//a[contains(.,'" + tr.name + "')]")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
+			});
+			var tmp = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp = !isPresent; } );
+				return tmp;
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(tr.date);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).sendKeys(tr.num);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(tr.description);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(tr.path);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.RETURN);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr.deposit + '\n');
+			var tmp1 = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date + "']")).then(function (isPresent)
+						 { tmp1 = isPresent; } );
+				return tmp1;
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date +"']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr.num + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr.description + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']/div[.='" + tr.path + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + tr.total + "']"));
+			self.done();
+		});
+		it("Splits click", function(done) {
+			var self = this;
+			self.trackError(done);
+			var tr = self.fixtures.dataentry.trs[0];
+			self.browser.findElement(By.xpath("//label[contains(., 'Split')]/input")).click();
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr.num + "']")).click();
+			self.done();
+		});
+
+		it("Click on input row, it should expand in in split mode.", function(done) {
+			var self = this;
+			self.trackError(done);
+			var tr = self.fixtures.dataentry.trs[0];
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]"));
+			
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path' and contains(.,'" + tr.path + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='withdrawal' and contains(.,'" + tr.deposit + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='path' and contains(.,'" + tr.parent + "::" + tr.name + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='deposit' and contains(.,'" + tr.deposit + "')]"));
+			
+			self.done();
+		});
+		
+		it("Verify that some fields are non editable.", function(done) {
+			var self = this;
+			var tr = self.fixtures.dataentry.trs[0];
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date + "']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div/input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div/input"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr.num + "']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div/input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div/input"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr.description + "']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div/input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div/input"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']")).click();
+			self.browser.sleep(100);
+			self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']/div/input")).then(function(val) {
+				assert.ok(!val, "Input error");
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']")).click();
+			self.browser.sleep(100);
+			self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div/input")).then(function(val) {
+				assert.ok(!val, "Input error");
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='withdrawal']")).click();
+			self.browser.sleep(100);
+			self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='withdrawal']/div/input")).then(function(val) {
+				assert.ok(!val, "Input error");
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']")).click();
+			self.browser.sleep(100);
+			self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div/input")).then(function(val) {
+				assert.ok(!val, "Input error");
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[1]")).click();
+			self.browser.sleep(100);
+			self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[1]/div/input")).then(function(val) {
+				assert.ok(!val, "Input error");
+			});
+			self.done();
+		});
+
+		it("Input data starting from date using tab key.", function(done) {
+			var self = this;
+			var tr = self.fixtures.dataentry.trs[5];
+			self.trackError(done);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div/input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']//input")).sendKeys(tr.date);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div/input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']//input")).sendKeys(tr.num);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div/input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']//input")).sendKeys(tr.description);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']//input")).sendKeys(Key.TAB);
+
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='num']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='num']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='description']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='description']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='deposit']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='deposit']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='withdrawal']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='withdrawal']//input")).sendKeys(Key.TAB);
+
+			//
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='num']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='num']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='description']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='description']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='path']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='path']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='deposit']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='deposit']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='withdrawal']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='withdrawal']//input")).sendKeys(Key.TAB);
+			
+			//
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='num']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='num']//input")).sendKeys(tr.num);
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='num']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='description']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='description']//input")).sendKeys(tr.description);
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='description']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='path']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='path']//input")).sendKeys(tr.split3n);
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='path']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='deposit']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='deposit']//input")).sendKeys(tr.split3v);
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='deposit']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='withdrawal']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='withdrawal']//input")).sendKeys(Key.TAB);
+			
+			//
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='num']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='num']//input")).sendKeys(tr.num);
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='num']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='description']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='description']//input")).sendKeys(tr.description);
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='description']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path']//input")).sendKeys(tr.split4n);
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='deposit']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='deposit']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='withdrawal']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='withdrawal']//input")).sendKeys(tr.split4v);
+			//delete
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td/a")).click();
+			//save
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='withdrawal']//input")).sendKeys(Key.RETURN);
+			var tmp = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp = !isPresent; } );
+				return tmp;
+			});
+			//check Disballance row
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path' and contains(., 'Disballance')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='deposit' and contains(., '" + tr.split4v + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td"));
+			self.done();
+		});
+
+		it("Accounts page should have right ballance", function(done) {
+			var self = this;
+			var tr = self.fixtures.dataentry.trs[5];
+			self.trackError(done);
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.xpath("//a[contains(.,'" + tr.name1 + "')]"));	
+			self.browser.findElement(By.xpath("//li[contains(./div/a,'" + tr.name1 + "')]//div[contains(./a,'" + tr.name2 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr.name1 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'-$ " + tr.deposit + "')]]/a[contains(.,'" + tr.name2 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr.deposit + "')]]/a[contains(.,'" + tr.name + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'-$ " + tr.split4v + "')]]/a[contains(.,'" + tr.split4n1 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr.split4v + "')]]/a[contains(.,'Disballance')]"));
+			self.done();
+		});
+	});
 	describe("Reports", function () {
 		it("Login as user", function(done) {
 			var self = this;
