@@ -105,14 +105,19 @@
 			"description":"test2",
 			"path":"Life::Food",
 			"deposit":"100.00",
-			"total":"100.00",
+			"total":"0.00",
 			"name1":"Life",
 			"name2":"Food",
 			"split3n":"Real assets::Goods",
 			"split3v":"120.00",
 			"split4n":"Real assets::Furniture",
 			"split4n1":"Furniture",
-			"split4v":"150.00"
+			"split4v":"150.00",
+			"v2":"200.00",
+			"t1":"-100.00",
+			"t2":"0.00",
+			"t3":"-200.00",
+			"t4":"-100.00"
 		}
 	],
 	"cashimport":{

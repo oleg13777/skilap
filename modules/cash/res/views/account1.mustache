@@ -201,12 +201,12 @@ $(function(){
 						$container.find(".acc-scroll").scroll();
 						$container.unblock();
 						
-						setTimeout(function () {
-							var $selected = $container.find(".acc-item-record.selected");
-							var $nextCol = $selected.find(".acc-item:first").next();
-							$nextCol.click();
-						},200)
-						
+						if ($update.date("id") == "blank")
+							setTimeout(function () {
+								var $selected = $container.find(".acc-item-record.selected");
+								var $nextCol = $selected.find(".acc-item:first").next();
+								$nextCol.click();
+							},200)
 					});
 				});
 			}
@@ -250,6 +250,16 @@ $(function(){
 	$container.on("click",".acc-item-split .deleteSplit",function(){
 		var $row = $(this).closest(".acc-item-record-split");
 		$row.remove();
+		var $update = $container.find(".acc-item-record.selected");
+		if ($update.data("id") != "blank") {
+			$container.block();
+			updateRecord($update,true,function(err, result){
+				toggleSplitRows($container);
+				isRecordUpdated = true;
+				$container.find(".acc-scroll").scroll();
+				$container.unblock();
+			});
+		}
 		return false;
 	});
 
