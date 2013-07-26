@@ -1921,6 +1921,188 @@ describe("Cash module",function () {
 			self.done();
 		});
 	});
+	describe("Registry delete", function () {
+		it("Login as user", function(done) {
+			var self = this;
+			self.trackError(done);
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
+			self.done();
+		});	
+		it("Creat empty", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.linkText("Cash module")).click();
+			self.browser.findElement(By.xpath("//*[contains(.,'Assets:')]"));
+			self.browser.findElement(By.linkText("Data")).click();	
+			self.browser.findElement(By.linkText("New register")).click();	
+			self.browser.findElement(By.id("acc_curency")).sendKeys("USD");
+			self.browser.findElement(By.xpath("//input[@value='Confirm']")).click();
+			self.done();
+		});
+		it("Add transaction", function(done) {
+			var self = this;
+			self.trackError(done);
+			var tr = self.fixtures.dataentry.trs[0];
+			self.browser.findElement(By.xpath("//a[contains(.,'" + tr.name + "')]")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
+			});
+			var tmp = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp = !isPresent; } );
+				return tmp;
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(tr.date);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).sendKeys(tr.num);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(tr.description);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(tr.path);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.RETURN);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr.deposit + '\n');
+			var tmp1 = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date + "']")).then(function (isPresent)
+						 { tmp1 = isPresent; } );
+				return tmp1;
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date +"']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr.num + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr.description + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']/div[.='" + tr.path + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + tr.total + "']"));
+			self.done();
+		});
+		it("Add transaction 2", function(done) {
+			var self = this;
+			self.trackError(done);
+			var tr1 = self.fixtures.dataentry.trs[0];
+			var tr2 = self.fixtures.dataentry.trs[1];
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(tr2.date);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).sendKeys(tr2.num);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(tr2.description);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(tr2.path);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.RETURN);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr2.deposit);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(Key.TAB);
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='withdrawal']//input"));
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='withdrawal']//input")).sendKeys(Key.TAB);
+			var tmp2 = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr2.date + "']")).then(function (isPresent)
+						 { tmp2 = isPresent; } );
+				return tmp2;
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr2.date + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr2.num + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr2.description + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']/div[.='" + tr2.path + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='" + tr2.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + (parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) + "']"));
+			self.done();
+		});
+		it("Accounts page should have right ballance 1", function(done) {
+			var self = this;
+			var tr1 = self.fixtures.dataentry.trs[0];
+			var tr2 = self.fixtures.dataentry.trs[1];
+			self.trackError(done);
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr1.name1 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr1.deposit + "')]]/a[contains(.,'" + tr1.name2 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr2.name1 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr2.deposit + "')]]/a[contains(.,'" + tr2.name2 + "')]"));
+			self.saveDb('register-test').then(function() {
+				self.done();
+			});
+		});
+		it("Delete transaction", function(done) {
+			var self = this;
+			self.trackError(done);
+			var tr = self.fixtures.dataentry.trs[0];
+			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
+			self.browser.wait(function () {
+				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
+			});
+			var tmp = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp = !isPresent; } );
+				return tmp;
+			});
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td//button[@data-toggle='dropdown']")).click();
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td//a[.='Delete']")).click();
+
+			var tmp = false;
+			self.browser.wait(function () {
+				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+						 { tmp = !isPresent; } );
+				return tmp;
+			});
+			self.done();
+		});
+		it("Accounts page should have right ballance 2", function(done) {
+			var self = this;
+			var tr1 = self.fixtures.dataentry.trs[0];
+			var tr2 = self.fixtures.dataentry.trs[1];
+			self.trackError(done);
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr1.name1 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr1.name2 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr2.name1 + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr2.deposit + "')]]/a[contains(.,'" + tr2.name2 + "')]"));
+			self.saveDb('register-test').then(function() {
+				self.done();
+			});
+		});
+	});
 	describe("Reports", function () {
 		it("Login as user", function(done) {
 			var self = this;
