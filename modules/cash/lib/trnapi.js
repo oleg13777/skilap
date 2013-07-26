@@ -196,7 +196,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			// check what we have
 			var value=0; var leadSplit = false; var nonEditedSplit = false;
 			_(trn.splits).forEach(function (split) {
-				if (leadAcc && split.accountId==leadAcc._id)
+				if (leadAcc && split.accountId==leadAcc._id && split.value != 0)
 					leadSplit = split;
 				if (split.isModified==false)
 					nonEditedSplit = split;
