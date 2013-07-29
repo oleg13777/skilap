@@ -82,9 +82,8 @@ describe("Cash module",function () {
 			self.browser.findElement(By.id("firstCurrency")).sendKeys("USD");
 			self.browser.findElement(By.id("secondCurrency")).sendKeys("EUR");
 			self.browser.findElement(By.xpath("//button[.='Apply']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//button[.='Add']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//button[.='Add']"));
+
 			self.browser.findElement(By.xpath("//button[.='Add']")).click();
 			helpers.runModal.call(this, null, function(modal) {
 		        modal.findElement(By.id("datepicker")).sendKeys("05/20/13");
@@ -99,9 +98,7 @@ describe("Cash module",function () {
 			var self = this;
 			self.trackError(done);
 			self.browser.findElement(By.xpath("//td[@class='rate' and .='1.5']")).click();	
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//button[.='Edit']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//button[.='Edit']"));
 			self.browser.findElement(By.xpath("//button[.='Edit']")).click();
 			helpers.runModal.call(this, null, function(modal) {
 				modal.findElement(By.id("datepicker")).clear();	
@@ -118,9 +115,7 @@ describe("Cash module",function () {
 			var self = this;
 			self.trackError(done);
 			self.browser.findElement(By.xpath("//td[@class='rate' and .='1.6']")).click();	
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//button[.='Delete']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//button[.='Delete']"));
 			self.browser.findElement(By.xpath("//button[.='Delete']")).click();
 			helpers.runModal.call(this, null, function(modal) {
 				modal.findElement(By.id("save")).click();
@@ -151,17 +146,11 @@ describe("Cash module",function () {
 			self.browser.executeScript("document.getElementById('upload-file').setAttribute('style', '')");
 			self.browser.findElement(By.id("upload-file")).sendKeys(__dirname + self.fixtures.dataentry.cashimport.file);
 			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//h3[.='" + self.fixtures.dataentry.cashimport.parsedtext + "']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//h3[.='" + self.fixtures.dataentry.cashimport.parsedtext + "']"));
 			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//*[contains(.,'" + self.fixtures.dataentry.cashimport.finishedtext + "')]"));
-			});
+			helpers.waitElement.call(this, By.xpath("//*[contains(.,'" + self.fixtures.dataentry.cashimport.finishedtext + "')]"));
 			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//h2[contains(.,'Assets:')]"));
-			});			
+			helpers.waitElement.call(this, By.xpath("//h2[contains(.,'Assets:')]"));
 			self.saveDb('cash-gnucash').then(function() {
 				self.done();
 			});
@@ -204,17 +193,11 @@ describe("Cash module",function () {
 			self.browser.executeScript("document.getElementById('upload-file').setAttribute('style', '')");
 			self.browser.findElement(By.id("upload-file")).sendKeys(__dirname + "/data/raw.zip");
 			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//h3[.='" + self.fixtures.dataentry.cashimport.parsedtext + "']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//h3[.='" + self.fixtures.dataentry.cashimport.parsedtext + "']"));
 			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//*[contains(.,'" + self.fixtures.dataentry.cashimport.finishedtext + "')]"));
-			});
+			helpers.waitElement.call(this, By.xpath("//*[contains(.,'" + self.fixtures.dataentry.cashimport.finishedtext + "')]"));
 			self.browser.findElement(By.xpath("//button[@type='submit']")).click();	
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//h2[contains(.,'Assets:')]"));
-			});			
+			helpers.waitElement.call(this, By.xpath("//h2[contains(.,'Assets:')]"));
 			self.done();
 		});
 		it("Home page balance should be the same as before", function(done) {
@@ -334,9 +317,7 @@ describe("Cash module",function () {
 		        modal.findElement(By.id("sub_acc_parent")).sendKeys(accParent);
 				modal.findElement(By.id("delete")).click();
 			});
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//div[contains(./a,'" + accParent + "')]/span"));
-			});	
+			helpers.waitElement.call(this, By.xpath("//div[contains(./a,'" + accParent + "')]/span"));
 			self.browser.findElement(By.xpath("//li[contains(./div/a,'" + accParent + "')]//div[contains(./a,'" + accChild + "')]"));	
 			self.browser.findElement(By.xpath("//div[contains(./a,'" + accParent + "')]/span")).getText().then(function(text) {
 				assert.ok(sumBefore != text, "Move error");
@@ -446,9 +427,7 @@ describe("Cash module",function () {
 		        modal.findElement(By.id("sub_acc_parent")).sendKeys(accParent);
 				modal.findElement(By.id("delete")).click();
 			});
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//div[contains(./a,'" + accParent + "')]/span"));
-			});	
+			helpers.waitElement.call(this, By.xpath("//div[contains(./a,'" + accParent + "')]/span"));
 			self.browser.findElement(By.xpath("//li[contains(./div/a,'" + accParent + "')]//div[contains(./a,'" + accChild + "')]"));	
 			self.browser.findElement(By.xpath("//div[contains(./a,'" + accParent + "')]/span")).getText().then(function(text) {
 				assert.ok(sumBefore != text, "Move error");
@@ -563,45 +542,28 @@ describe("Registry", function () {
 			self.trackError(done);
 			var tr = self.fixtures.dataentry.trs[0];
 			self.browser.findElement(By.xpath("//a[contains(.,'" + tr.name + "')]")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(tr.date);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).sendKeys(tr.num);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(tr.description);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(tr.path);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.RETURN);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr.deposit + '\n');
-			var tmp1 = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date + "']")).then(function (isPresent)
-						 { tmp1 = isPresent; } );
-				return tmp1;
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr.description + "']"));
@@ -639,59 +601,34 @@ describe("Registry", function () {
 			var tr1 = self.fixtures.dataentry.trs[0];
 			var tr2 = self.fixtures.dataentry.trs[1];
 			self.browser.findElement(By.xpath("//div/a[contains(.,'" + tr1.name + "')]")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(tr2.date);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).sendKeys(tr2.num);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(tr2.description);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
-			});
+			helpers.waitNoElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(tr2.path);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return v; } );
-			});					
+			helpers.waitElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.RETURN);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
-			});					
+			helpers.waitNoElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr2.deposit);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='withdrawal']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='withdrawal']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='withdrawal']//input")).sendKeys(Key.TAB);
-			var tmp2 = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr2.date + "']")).then(function (isPresent)
-						 { tmp2 = isPresent; } );
-				return tmp2;
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr2.date + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr2.date + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr2.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr2.description + "']"));
@@ -753,15 +690,11 @@ describe("Registry", function () {
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']//input")).sendKeys(tr2.date);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='description']")).click();
@@ -809,15 +742,11 @@ describe("Registry", function () {
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']//input")).sendKeys(tr.date);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']//input")).sendKeys(Key.RETURN);
@@ -866,15 +795,11 @@ describe("Registry", function () {
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input")).sendKeys(tr2.num);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input")).sendKeys(Key.RETURN);
@@ -923,29 +848,19 @@ describe("Registry", function () {
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']//input")).sendKeys(tr2.description);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
-			});			
+			helpers.waitNoElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).sendKeys(tr2.path);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return v; } );
-			});					
+			helpers.waitElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
 
@@ -1011,21 +926,15 @@ describe("Registry", function () {
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']//input")).sendKeys(Key.TAB);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']//input")).sendKeys(tr2.withdrawal);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']//input")).sendKeys(Key.TAB);
@@ -1102,9 +1011,7 @@ describe("Registry", function () {
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='n']"));
@@ -1113,9 +1020,7 @@ describe("Registry", function () {
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='c']"));
 			self.browser.navigate().refresh();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
 			helpers.waitUnblock.call(this);
 			self.done();
@@ -1132,9 +1037,7 @@ describe("Registry", function () {
 			
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='c']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='n']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='n']"));
 
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='n']"));
@@ -1167,45 +1070,28 @@ describe("Registry", function () {
 			self.trackError(done);
 			var tr = self.fixtures.dataentry.trs[0];
 			self.browser.findElement(By.xpath("//a[contains(.,'" + tr.name + "')]")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(tr.date);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).sendKeys(tr.num);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(tr.description);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(tr.path);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.RETURN);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr.deposit + '\n');
-			var tmp1 = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date + "']")).then(function (isPresent)
-						 { tmp1 = isPresent; } );
-				return tmp1;
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr.description + "']"));
@@ -1221,25 +1107,17 @@ describe("Registry", function () {
 
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(tr.date);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).sendKeys(tr.num);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(tr.description);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(tr.path);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.TAB);
@@ -1247,16 +1125,9 @@ describe("Registry", function () {
 				modal.findElement(By.id("save")).click();
 			});
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr.deposit + '\n');
-			var tmp1 = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date + "']")).then(function (isPresent)
-						 { tmp1 = isPresent; } );
-				return tmp1;
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr.description + "']"));
@@ -1285,15 +1156,11 @@ describe("Registry", function () {
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).sendKeys(tr1.name1 + "::" + tr1.name2);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).sendKeys(Key.TAB);
@@ -1349,9 +1216,7 @@ describe("Registry", function () {
 			self.trackError(done);
 			var tr = self.fixtures.dataentry.trs[5];
 			self.browser.findElement(By.xpath("//a[contains(.,'" + tr.name + "')]")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//label[contains(., 'Split')]/input")).click();
@@ -1374,22 +1239,15 @@ describe("Registry", function () {
 		
 		it("Verify that some fields are non editable.", function(done) {
 			var self = this;
-			var tr = self.fixtures.dataentry.trs[5];
 			self.trackError(done);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']/div/input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']/div/input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']/div/input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='num']/div/input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='num']/div/input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']/div/input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='description']/div/input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='description']/div/input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']/div/input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']")).click();
 			self.browser.sleep(100);
@@ -1424,160 +1282,92 @@ describe("Registry", function () {
 			var tr = self.fixtures.dataentry.trs[5];
 			self.trackError(done);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']/div")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']/div/input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']/div/input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(tr.date);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='num']/div/input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='num']/div/input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).sendKeys(tr.num);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='description']/div/input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='description']/div/input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(tr.description);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
-			});			
+			helpers.waitNoElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(Key.TAB);
 
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='num']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='num']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='num']//input")).sendKeys(tr.num);
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='num']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='description']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='description']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='description']//input")).sendKeys(tr.description);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
-			});			
+			helpers.waitNoElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='description']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path']//input")).sendKeys(tr.path);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead"));
-			});			
+			helpers.waitElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
-			});			
+			helpers.waitNoElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='deposit']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='deposit']//input")).sendKeys(tr.deposit);
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='deposit']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='withdrawal']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='withdrawal']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='withdrawal']//input")).sendKeys(Key.TAB);
 
 			//
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='num']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='num']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='num']//input")).sendKeys(tr.num);
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='num']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='description']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='description']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='description']//input")).sendKeys(tr.description);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
-			});			
+			helpers.waitNoElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='description']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='path']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='path']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='deposit']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='deposit']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='withdrawal']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='withdrawal']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='withdrawal']//input")).sendKeys(tr.deposit);
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='withdrawal']//input")).sendKeys(Key.TAB);
 			
 			//
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='num']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='num']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='num']//input")).sendKeys(tr.num);
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='num']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='description']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='description']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='description']//input")).sendKeys(tr.description);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
-			});			
+			helpers.waitNoElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='description']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='path']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='path']//input")).sendKeys(tr.split3n);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead"));
-			});			
+			helpers.waitElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
-			});			
+			helpers.waitNoElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='path']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='deposit']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='deposit']//input")).sendKeys(tr.split3v);
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='deposit']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='withdrawal']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='withdrawal']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='withdrawal']//input")).sendKeys(Key.TAB);
 			
 			//
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='num']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='num']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='num']//input")).sendKeys(tr.num);
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='num']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='description']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='description']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='description']//input")).sendKeys(tr.description);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
-			});			
+			helpers.waitNoElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='description']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path']//input")).sendKeys(tr.split4n);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead"));
-			});			
+			helpers.waitElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
-			});			
+			helpers.waitNoElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='deposit']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='deposit']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='withdrawal']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='withdrawal']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='withdrawal']//input")).sendKeys(tr.split4v);
 			//delete
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td/a")).click();
@@ -1614,41 +1404,27 @@ describe("Registry", function () {
 			self.trackError(done);
 			var tr = self.fixtures.dataentry.trs[5];
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(tr.date);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).sendKeys(tr.num);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(tr.description);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(tr.path);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead"));
-			});			
+			helpers.waitElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.RETURN);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr.deposit + '\n');
 
 			helpers.waitUnblock.call(this);
@@ -1702,60 +1478,34 @@ describe("Registry", function () {
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][2]/td[@data-name='total' and contains(., '" + tr.t2 + "')]"));
 
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div/input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div/input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div/input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div/input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div/input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div/input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']//input")).sendKeys(Key.TAB);
 
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='num']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='num']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='num']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='description']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='description']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='description']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='deposit']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='deposit']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='withdrawal']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='withdrawal']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='withdrawal']//input")).sendKeys(Key.TAB);
 
 			//
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='num']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='num']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='num']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='description']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='description']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='description']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='path']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='path']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='deposit']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='deposit']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='withdrawal']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='withdrawal']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='withdrawal']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='withdrawal']//input")).sendKeys(tr.v2);
 			
@@ -1780,19 +1530,13 @@ describe("Registry", function () {
 
 			//
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='path']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='path']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='path']//input")).sendKeys(tr.split3n);
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='path']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='deposit']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='deposit']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='withdrawal']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='withdrawal']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='withdrawal']//input")).sendKeys(tr.split3v);
 			//save
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='withdrawal']//input")).sendKeys(Key.RETURN);
@@ -1815,9 +1559,7 @@ describe("Registry", function () {
 			self.trackError(done);
 
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='withdrawal']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='withdrawal']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='withdrawal']//input"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='withdrawal']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='withdrawal']//input")).sendKeys(tr.split4v);
 			//save
@@ -1877,44 +1619,27 @@ describe("Registry", function () {
 			self.trackError(done);
 			var tr = self.fixtures.dataentry.trs[0];
 			self.browser.findElement(By.xpath("//a[contains(.,'" + tr.name + "')]")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(tr.date);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).sendKeys(tr.num);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(tr.description);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(tr.path);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.RETURN);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr.deposit + '\n');
-			var tmp1 = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date + "']")).then(function (isPresent)
-						 { tmp1 = isPresent; } );
-				return tmp1;
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr.description + "']"));
@@ -1929,53 +1654,30 @@ describe("Registry", function () {
 			var tr1 = self.fixtures.dataentry.trs[0];
 			var tr2 = self.fixtures.dataentry.trs[1];
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(tr2.date);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).sendKeys(tr2.num);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(tr2.description);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
-			});					
+			helpers.waitNoElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(tr2.path);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return v; } );
-			});					
+			helpers.waitElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.RETURN);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.css(".typeahead")).then(function (v) { return !v; } );
-			});					
+			helpers.waitNoElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr2.deposit);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(Key.TAB);
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='withdrawal']//input"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='withdrawal']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='withdrawal']//input")).sendKeys(Key.TAB);
-			var tmp2 = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr2.date + "']")).then(function (isPresent)
-						 { tmp2 = isPresent; } );
-				return tmp2;
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr2.date + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr2.date + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr2.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr2.description + "']"));
@@ -1995,18 +1697,14 @@ describe("Registry", function () {
 			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr1.deposit + "')]]/a[contains(.,'" + tr1.name2 + "')]"));
 			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr2.name1 + "')]"));
 			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr2.deposit + "')]]/a[contains(.,'" + tr2.name2 + "')]"));
-			self.saveDb('register-test').then(function() {
-				self.done();
-			});
+			self.done();
 		});
 		it("Delete transaction", function(done) {
 			var self = this;
 			self.trackError(done);
 			var tr = self.fixtures.dataentry.trs[0];
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td//button[@data-toggle='dropdown']")).click();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td//a[.='Delete']")).click();
@@ -2025,9 +1723,7 @@ describe("Registry", function () {
 			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr1.name2 + "')]"));
 			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr2.name1 + "')]"));
 			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr2.deposit + "')]]/a[contains(.,'" + tr2.name2 + "')]"));
-			self.saveDb('register-test').then(function() {
-				self.done();
-			});
+			self.done();
 		});
 	});
 });
@@ -2045,9 +1741,7 @@ describe("Registry", function () {
 			self.trackError(done);
 			self.browser.findElement(By.linkText("Report")).click();	
 			self.browser.findElement(By.linkText("Spend/receive bar chart")).click();
-			self.browser.wait(function () {
-				return self.browser.isElementPresent(By.id("highcharts-0"));
-			});	
+			helpers.waitElement.call(this, By.id("highcharts-0"));
 			self.done();
 		});
 		it ("Check Accounts selection", function(done){

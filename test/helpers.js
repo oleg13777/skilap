@@ -68,6 +68,22 @@ module.exports.waitUnblock = function () {
 	});
 };
 
+module.exports.waitElement = function (element) {
+	var self = this;
+	self.browser.wait(function () {
+		return self.browser.isElementPresent(element).then(function (isPresent)
+				 { return isPresent; } );
+	});
+};
+
+module.exports.waitNoElement = function (element) {
+	var self = this;
+	self.browser.wait(function () {
+		return self.browser.isElementPresent(element).then(function (isPresent)
+				 { return !isPresent; } );
+	});
+};
+
 module.exports.fillInput = function(input,val){
 	input.getAttribute("value").then(function(text){
 		if(text != ""){
