@@ -566,12 +566,8 @@ describe("Registry", function () {
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			});
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+			
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
@@ -646,12 +642,8 @@ describe("Registry", function () {
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			});
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
@@ -764,12 +756,8 @@ describe("Registry", function () {
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			});
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']")).click();
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']//input"));
@@ -778,13 +766,7 @@ describe("Registry", function () {
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']//input")).sendKeys(tr2.date);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='description']")).click();
 
-			var tmp1 = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp1 = !isPresent; } );
-				return tmp1;
-			});
-
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr1.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div[.='" + tr1.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div[.='" + tr1.description + "']"));
@@ -830,12 +812,8 @@ describe("Registry", function () {
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			});
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']")).click();
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']//input"));
@@ -844,13 +822,7 @@ describe("Registry", function () {
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']//input")).sendKeys(tr.date);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']//input")).sendKeys(Key.RETURN);
 
-			var tmp1 = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp1 = !isPresent; } );
-				return tmp1;
-			});
-
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div[.='" + tr.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div[.='" + tr.description + "']"));
@@ -897,12 +869,8 @@ describe("Registry", function () {
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			});
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']")).click();
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input"));
@@ -911,13 +879,7 @@ describe("Registry", function () {
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input")).sendKeys(tr2.num);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input")).sendKeys(Key.RETURN);
 
-			var tmp1 = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp1 = !isPresent; } );
-				return tmp1;
-			});
-
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div[.='" + tr2.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div[.='" + tr.description + "']"));
@@ -964,12 +926,8 @@ describe("Registry", function () {
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			});
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']")).click();
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']//input"));
@@ -990,13 +948,8 @@ describe("Registry", function () {
 			});					
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
-			var tmp1 = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp1 = !isPresent; } );
-				return tmp1;
-			});
 
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div[.='" + tr2.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div[.='" + tr2.description + "']"));
@@ -1061,12 +1014,8 @@ describe("Registry", function () {
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			});
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']")).click();
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']//input"));
@@ -1080,12 +1029,8 @@ describe("Registry", function () {
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']//input")).sendKeys(tr2.withdrawal);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']//input")).sendKeys(Key.TAB);
-			var tmp1 = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp1 = !isPresent; } );
-				return tmp1;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div[.='" + tr2.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div[.='" + tr2.description + "']"));
@@ -1160,32 +1105,19 @@ describe("Registry", function () {
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			});
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='n']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']")).click();
-			var tmp1 = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp1 = !isPresent; } );
-				return tmp1;
-			});
 
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='c']"));
 			self.browser.navigate().refresh();
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			});
-			var tmp2 = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp2 = !isPresent; } );
-				return tmp2;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.done();
 		});
 		it("Splits click", function(done) {
@@ -1203,12 +1135,8 @@ describe("Registry", function () {
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='n']"));
 			});
-			var tmp1 = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp1 = !isPresent; } );
-				return tmp1;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='n']"));
 			self.browser.findElement(By.xpath("//label[contains(., 'Split')]/input")).click();
 			self.browser.findElement(By.xpath("//tr[td/div[.='" + tr.name1 + "::" + tr.name2 + "']]/td[@data-name='rstate']/div[.='n']"));
@@ -1242,12 +1170,8 @@ describe("Registry", function () {
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			});
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
@@ -1294,12 +1218,8 @@ describe("Registry", function () {
 			var self = this;
 			self.trackError(done);
 			var tr = self.fixtures.dataentry.trs[3];
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
@@ -1368,12 +1288,8 @@ describe("Registry", function () {
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			});
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']")).click();
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input"));
@@ -1436,12 +1352,8 @@ describe("Registry", function () {
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			});
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//label[contains(., 'Split')]/input")).click();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']")).click();
 			self.done();
@@ -1671,12 +1583,8 @@ describe("Registry", function () {
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td/a")).click();
 			//save
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='withdrawal']//input")).sendKeys(Key.RETURN);
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']/div")).click();
 			//check Disballance row
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path' and contains(., 'Disballance')]"));
@@ -1709,12 +1617,8 @@ describe("Registry", function () {
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			});
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
@@ -1746,12 +1650,8 @@ describe("Registry", function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
 			});
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr.deposit + '\n');
-			var tmp1 = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp1 = !isPresent; } );
-				return tmp1;
-			});
+
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr.description + "']"));
@@ -1861,12 +1761,8 @@ describe("Registry", function () {
 			
 			//save
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='withdrawal']//input")).sendKeys(Key.RETURN);
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+
+			helpers.waitUnblock.call(this);
 			//check ballance after
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][1]/td[@data-name='total' and contains(., '" + tr.t3 + "')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][2]/td[@data-name='total' and contains(., '" + tr.t4 + "')]"));
@@ -1900,12 +1796,7 @@ describe("Registry", function () {
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='withdrawal']//input")).sendKeys(tr.split3v);
 			//save
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='withdrawal']//input")).sendKeys(Key.RETURN);
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+			helpers.waitUnblock.call(this);
 			//check ballance after
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][1]/td[@data-name='total' and contains(., '" + tr.t3 + "')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][2]/td[@data-name='total' and contains(., '" + tr.t4 + "')]"));
@@ -1931,12 +1822,7 @@ describe("Registry", function () {
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='withdrawal']//input")).sendKeys(tr.split4v);
 			//save
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='path']/div")).click();
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']/div")).click();
 			//check ballance after
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][1]/td[@data-name='total' and contains(., '" + tr.t3 + "')]"));
@@ -1955,13 +1841,7 @@ describe("Registry", function () {
 			var tr = self.fixtures.dataentry.trs[5];
 			self.trackError(done);
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td/a")).click();
-
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+			helpers.waitUnblock.call(this);
 			//check ballance after
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][1]/td[@data-name='total' and contains(., '" + tr.t3 + "')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][2]/td[@data-name='total' and contains(., '" + tr.t4 + "')]"));
@@ -2000,12 +1880,7 @@ describe("Registry", function () {
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			});
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
@@ -2132,21 +2007,11 @@ describe("Registry", function () {
 			self.browser.wait(function () {
 				return self.browser.isElementPresent(By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			});
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td//button[@data-toggle='dropdown']")).click();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td//a[.='Delete']")).click();
 
-			var tmp = false;
-			self.browser.wait(function () {
-				self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
-						 { tmp = !isPresent; } );
-				return tmp;
-			});
+			helpers.waitUnblock.call(this);
 			self.done();
 		});
 		it("Accounts page should have right ballance 2", function(done) {

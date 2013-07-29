@@ -60,6 +60,14 @@ module.exports.waitModalUnload = function (selector) {
 	});	
 }
 
+module.exports.waitUnblock = function () {
+	var self = this;
+	self.browser.wait(function () {
+		return self.browser.isElementPresent(By.xpath("//div[@class='blockUI blockOverlay']")).then(function (isPresent)
+				 { return !isPresent; } );
+	});
+};
+
 module.exports.fillInput = function(input,val){
 	input.getAttribute("value").then(function(text){
 		if(text != ""){
