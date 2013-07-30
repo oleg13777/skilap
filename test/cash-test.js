@@ -1726,6 +1726,118 @@ describe("Registry", function () {
 			self.done();
 		});
 	});
+	describe("Multicurrency test", function () {
+		it("Login as user", function(done) {
+			var self = this;
+			self.trackError(done);
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
+			self.done();
+		});	
+		it("Creat empty", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.linkText("Cash module")).click();
+			self.browser.findElement(By.xpath("//*[contains(.,'Assets:')]"));
+			self.browser.findElement(By.linkText("Data")).click();	
+			self.browser.findElement(By.linkText("New register")).click();	
+			self.browser.findElement(By.id("acc_curency")).sendKeys("USD");
+			self.browser.findElement(By.xpath("//input[@value='Confirm']")).click();
+			self.done();
+		});
+		it("Add price for USD in RUB", function(done) {
+			var self = this;
+			self.trackError(done);
+			var rate = self.fixtures.dataentry.rates[0];
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Rate Currency Editor")).click();	
+			self.browser.findElement(By.id("firstCurrency")).sendKeys(rate.name1);
+			self.browser.findElement(By.id("secondCurrency")).sendKeys(rate.name2);
+			self.browser.findElement(By.xpath("//button[.='Apply']")).click();
+			helpers.waitElement.call(this, By.xpath("//button[.='Add']"));
+
+			self.browser.findElement(By.xpath("//button[.='Add']")).click();
+			helpers.runModal.call(this, null, function(modal) {
+		        modal.findElement(By.id("datepicker")).sendKeys(rate.date);
+				modal.findElement(By.id("newrate")).sendKeys(rate.rate);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.done();
+		});
+		it("Add price for RUB in USD", function(done) {
+			var self = this;
+			self.trackError(done);
+			var rate = self.fixtures.dataentry.rates[1];
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Rate Currency Editor")).click();	
+			self.browser.findElement(By.id("firstCurrency")).sendKeys(rate.name1);
+			self.browser.findElement(By.id("secondCurrency")).sendKeys(rate.name2);
+			self.browser.findElement(By.xpath("//button[.='Apply']")).click();
+			helpers.waitElement.call(this, By.xpath("//button[.='Add']"));
+
+			self.browser.findElement(By.xpath("//button[.='Add']")).click();
+			helpers.runModal.call(this, null, function(modal) {
+		        modal.findElement(By.id("datepicker")).sendKeys(rate.date);
+				modal.findElement(By.id("newrate")).sendKeys(rate.rate);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.done();
+		});
+		it("Create root test account", function(done) {
+			var self = this;
+			self.trackError(done);
+			var acc1 = self.fixtures.dataentry.accounts[3];		
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.id("add_new")).click();
+			helpers.runModal.call(self, null, function(modal) {
+		        modal.findElement(By.id("acc_name")).sendKeys(acc1.name);
+				modal.findElement(By.id("acc_parent")).sendKeys(acc1.parent);	
+				modal.findElement(By.id("acc_curency")).sendKeys(acc1.currency);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//a[contains(.,'" + acc1.name + "')]"));	
+			self.done();
+		});
+		it("Add transaction", function(done) {
+			var self = this;
+			self.trackError(done);
+			var tr = self.fixtures.dataentry.trs[6];
+			var acc = self.fixtures.dataentry.accounts[3];		
+			var rate = self.fixtures.dataentry.rates[0];
+			self.browser.findElement(By.xpath("//a[contains(.,'" + tr.name + "')]")).click();
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
+			helpers.waitUnblock.call(this);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']")).click();
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(acc.name);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.RETURN);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']")).click();
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr.deposit + '\n');
+			helpers.runModal.call(this, null, function(modal) {
+				self.browser.findElement(By.xpath("//div[contains(., 'Approximate rate: " + rate.rate + "')]"));
+				self.browser.findElement(By.xpath("//div[contains(., 'Approximate value: " + (parseFloat(rate.rate)*parseFloat(tr.deposit)) + "')]"));
+				modal.findElement(By.id("save")).click();
+			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank']/td[@data-name='date']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + tr.deposit + "']"));
+			self.done();
+		});
+		it("Accounts page should have right ballance 1", function(done) {
+			var self = this;
+			var tr = self.fixtures.dataentry.trs[6];
+			var acc = self.fixtures.dataentry.accounts[3];		
+			self.trackError(done);
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr.parent + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr.deposit + "')]]/a[contains(.,'" + tr.name + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'" + tr.mtotal + "')]]/a[contains(.,'" + acc.name + "')]"));
+			self.done();
+		});
+	});
 });
 	describe("Reports", function () {
 		it("Login as user", function(done) {

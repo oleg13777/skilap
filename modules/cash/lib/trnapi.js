@@ -162,7 +162,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 
 					// if split cmdty not equal to trn currency and both values defined, nothing to do
 					// except save rate
-					if (!_.isUndefined(spl.value) && !_.isUndefined(spl.quantity)){
+					if (!_.isUndefined(spl.value) && spl.value != 0 && !_.isUndefined(spl.quantity) && spl.quantity != 0){
 						var rate = (spl.quantity/spl.value).toFixed(5);
 						price = {cmdty: trn.currency, currency: splitAccount.cmdty, date: trn.dateEntered, value: rate, source: "transaction"};
 						self.savePrice(token, price, cb);
@@ -172,8 +172,9 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 						var irate = 1;
 						// value is known
 						self.getCmdtyPrice(token, trn.currency, splitAccount.cmdty, null, null, function(err,rate){
-							if(err && !(err.skilap && err.skilap.subject == "UnknownRate"))
+							if(err && !(err.skilap && err.skilap.subject == "UnknownRate")) {
 								return cb(err);
+							}
 
 							if (!err && rate!=0)
 								irate = rate;

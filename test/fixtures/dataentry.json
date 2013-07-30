@@ -41,6 +41,11 @@
 			"name": "Test_root_acc_2",
 			"parent":"Root",
 			"currency":"USD"
+		},
+		{
+			"name": "Test_RUB",
+			"parent":"Root",
+			"currency":"RUB"
 		}
 	],
 	"trs":[
@@ -118,6 +123,26 @@
 			"t2":"0.00",
 			"t3":"-200.00",
 			"t4":"-100.00"
+		},
+		{
+			"name": "My wallet",
+			"parent": "Cash",
+			"deposit":"100.00",
+			"mtotal":"3,000.00"
+		}
+	],
+	"rates":[
+		{
+			"name1": "USD",
+			"name2": "RUB",
+			"date": "07/25/2003",
+			"rate": "30"
+		},
+		{
+			"name1": "RUB",
+			"name2": "USD",
+			"date": "07/25/2003",
+			"rate": "0.03333"
 		}
 	],
 	"cashimport":{

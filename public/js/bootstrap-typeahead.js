@@ -253,9 +253,10 @@
     }
 
   , click: function (e) {
+      this.select()
+      this.$element.select()
       e.stopPropagation()
       e.preventDefault()
-      this.select()
     }
 
   , mouseenter: function (e) {

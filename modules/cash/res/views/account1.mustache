@@ -66,7 +66,12 @@ $(function(){
 						if($record.hasClass("selected")){
 							if($self.hasClass("selected"))
 								return cb1();
-							updateOldColumnSelected($record.find(".acc-item.selected"),cb1)
+							updateOldColumnSelected($record.find(".acc-item.selected"),function(err, res) {
+								if (err == 1)
+									return cb1(null, res);
+								else
+									return cb1(err, res);
+							})
 						}
 						else{
 							var $accItem = $container.find(".acc-item.selected");
@@ -195,6 +200,7 @@ $(function(){
 				var $update1 = $container.find(".acc-item-split.selected");
 				$container.block();
 				updateOldColumnSelected($update1, function(err, res) {
+					if (err) return;
 					updateRecord($update,true,function(err, result){
 						toggleSplitRows($container);
 						isRecordUpdated = true;
@@ -460,6 +466,7 @@ $(function(){
 		var editable = $column.data("editable");
 		if(editable){
 			var val = $column.find("input").val();
+			var oldAcc = $column.find(".tdContent").text();
 			$column.find(".tdContent").text(val);
 			var columnName = $column.data("name");
 			var columnModifiedData = {};
@@ -467,7 +474,7 @@ $(function(){
 				var accid = $column.find("input").data("accid");
 				var accountName = $column.find(".tdContent").text();
 				var oldval = $column.data("val");
-				if (!accid && accountName && !$modal && oldval != val) {
+				if (!accid && accountName && oldAcc != val && !$modal && oldval != val) {
 					$container.block();
 					safe.run(function (cb) {
 						require(['api','clitpl','safe','bootstrap'], function (api,tf,safe) {
@@ -542,18 +549,66 @@ $(function(){
 					var multisplit = $record.data("multisplit");
 					/* we need update deposit or withdrawal for both split rows */
 					if(multisplit != 1 && (columnName == "deposit" || columnName == "withdrawal")){
-						var secondcol = {"deposit":"withdrawal","withdrawal":"deposit"};
-						var $prevSplitRow = $splitTargetColumn.parent().prev(".acc-item-record-split");
-						if($prevSplitRow.length > 0){
-							$splitTargetColumn = $prevSplitRow.find(".acc-item-split[data-name=\""+secondcol[columnName]+"\"]");
+						var mainCurr = $record.data("curr");
+						var editCurr = $record.find(".acc-item[data-name='path']").data("curr");
+						var date = $record.find(".acc-item[data-name='date']").data("val");
+						if(mainCurr && editCurr && mainCurr != editCurr){
+							$container.block();
+							safe.run(function (cb) {
+								require(['api','clitpl','safe','bootstrap'], function (api,tf,safe) {
+									api.call('cash.getCmdtyPrice', {id: mainCurr}, {id: editCurr}, date, 'safe', safe.sure(cb, function (price) {
+										tf.render('account1_curr', {val: price*val, rate: price}, safe.sure(cb,function(text, ctx) {
+											$container.unblock();
+											$("body").append(text);
+											$modal = $("#"+ctx.uniq).modal();
+											$modal.on("frm-saved", function (e) {
+												$modal.modal('hide')
+												cb();
+											})
+											$modal.on("frm-closed", function (e) {
+												cb(1);
+											})
+										}))
+									}))
+								},cb)
+							}, function (err) {
+								$modal = null;
+								if (err && err != 1) appError(err);
+								$container.unblock();
+								if (!err) {
+									var secondcol = {"deposit":"withdrawal","withdrawal":"deposit"};
+									var $prevSplitRow = $splitTargetColumn.parent().prev(".acc-item-record-split");
+									if($prevSplitRow.length > 0){
+										$splitTargetColumn = $prevSplitRow.find(".acc-item-split[data-name=\""+secondcol[columnName]+"\"]");
+									}
+									else{
+										$splitTargetColumn = $splitTargetColumn.parent().next(".acc-item-record-split").find(".acc-item-split[data-name=\""+secondcol[columnName]+"\"]");
+									}
+									$splitTargetColumn.find(".tdContent").text(columnModifiedData.val);
+									_.each(columnModifiedData,function(v,k){
+										$splitTargetColumn.data(k,v);
+									});
+									$column.find(".tdContentEditable").html("").hide();
+									$column.find(".tdContent").show();
+									$column.removeClass("selected");
+								}
+								cb(err);
+							})	
+							return;
+						} else {
+							var secondcol = {"deposit":"withdrawal","withdrawal":"deposit"};
+							var $prevSplitRow = $splitTargetColumn.parent().prev(".acc-item-record-split");
+							if($prevSplitRow.length > 0){
+								$splitTargetColumn = $prevSplitRow.find(".acc-item-split[data-name=\""+secondcol[columnName]+"\"]");
+							}
+							else{
+								$splitTargetColumn = $splitTargetColumn.parent().next(".acc-item-record-split").find(".acc-item-split[data-name=\""+secondcol[columnName]+"\"]");
+							}
+							$splitTargetColumn.find(".tdContent").text(columnModifiedData.val);
+							_.each(columnModifiedData,function(v,k){
+								$splitTargetColumn.data(k,v);
+							});
 						}
-						else{
-							$splitTargetColumn = $splitTargetColumn.parent().next(".acc-item-record-split").find(".acc-item-split[data-name=\""+secondcol[columnName]+"\"]");
-						}
-						$splitTargetColumn.find(".tdContent").text(columnModifiedData.val);
-						_.each(columnModifiedData,function(v,k){
-							$splitTargetColumn.data(k,v);
-						});
 					}
 				}
 			}
@@ -638,6 +693,8 @@ $(function(){
 							$elem.data('accid', suggestions[item]['id']);
 							$elem.attr('data-curr', suggestions[item]['currency']);
 							$elem.data('currency', suggestions[item]['currency']);
+							$column.attr('data-curr', suggestions[item]['currency']);
+							$column.data('currency', suggestions[item]['currency']);
 							return item;
 						}
 					}
@@ -719,7 +776,7 @@ $(function(){
 				}));
 			}));
 		},function(err){
-			if(err) appError(err);
+			if(err && err != 1) appError(err);
 		});
 	}
 

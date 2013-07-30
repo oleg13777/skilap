@@ -15,13 +15,16 @@
 </div>
 <script>
 require(["jquery","jquery-block"],function($){
+	var save = false;
 	$(function(e) {
 		$form = $("#{{uniq}}");
 		$form.on('hidden',function () {
-			$form.trigger("frm-closed");
+			if (!save)
+				$form.trigger("frm-closed");
 			$form.remove();
 		});		
 		$form.find("#save").on("click", function (event) {
+			save = true;
 			event.preventDefault();
 			$form.trigger("frm-saved");
 		})
