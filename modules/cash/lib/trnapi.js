@@ -48,6 +48,53 @@ module.exports.getTransaction = function (token, trId, cb) {
 	}));
 };
 
+module.exports.updateTransactionExcangeRate = function (token, trId, newRate, cb) {
+	var self = this;
+	var tr = null;
+	var updated = false;
+	var accIds = [];
+	var accs = {};
+	var accInfoIds = [];
+	
+	async.series ([
+		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
+		function (cb) {	
+			self._cash_transactions.findOne({'_id': new self._ctx.ObjectID(trId)}, safe.sure_result(cb, function (transaction) {
+				tr = transaction;
+			})); 
+		}, 
+		function (cb) {
+			self._cash_accounts.find({'_id': {$in: _.pluck(tr.splits, 'accountId')}}).toArray(safe.sure_result(cb, function (accounts) {
+				_.each(accounts, function(acc) {
+					accs[acc._id] = acc;
+				});
+			}));
+		}, 
+		function (cb) {	
+			_(tr.splits).forEach(function (split) {
+				if (accs[split.accountId].cmdty.id != tr.currency.id) {
+					split.quantity = split.value*parseFloat(newRate);
+					accIds.push(split.accountId);
+					updated = true;
+				}
+			});
+			cb();
+		}, 
+		function (cb) {
+			if (updated)
+				self._cash_transactions.findAndModify({_id: tr._id}, [], tr, { upsert: true, w: 1 }, cb);
+			else cb();
+		}, 
+		function (cb) {
+			if (updated)
+				self._calcStatsPartial(_.values(accIds), tr.datePosted, cb);
+			else cb();
+		} 
+	], safe.sure(cb, function () {
+		cb(null, tr);
+	}));
+};
+
 module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 	var debug = false;
 	if (debug) { console.log("Received"); console.log(arguments); console.log(arguments[1].splits); }
@@ -172,7 +219,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 						var irate = 1;
 						// value is known
 						self.getCmdtyPrice(token, trn.currency, splitAccount.cmdty, null, null, function(err,rate){
-							if(err && !(err.skilap && err.skilap.subject == "UnknownRate")) {
+							if(err && !(err.data && err.data.subject == "UnknownRate")) {
 								return cb(err);
 							}
 

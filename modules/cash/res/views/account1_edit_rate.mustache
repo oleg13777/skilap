@@ -1,0 +1,41 @@
+<div id="{{uniq}}" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h3 id="myModalLabel">{{#i18n}}Edit exchange rate{{/i18n}}</h3>
+	</div>
+	<div class="modal-body">
+		<div class='localctx' />
+		<form class="form-horizontal" method="POST">
+			<fieldset>
+				<div class="control-group">
+					<label class="control-label" for="rate">New excange rate</label>
+					<div class="controls">
+						<input type="text" name="rate" id="newrate" data-value="" value="" class="text ui-widget-content ui-corner-all" />
+					</div>
+				</div>
+			</fieldset>
+		</form>
+	</div>
+	<div class="modal-footer">
+		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		<button class="btn btn-primary" id="save">Save</button>
+	</div>			
+</div>
+<script>
+require(["jquery","jquery-block"],function($){
+	var save = false;
+	$(function(e) {
+		$form = $("#{{uniq}}");
+		$form.on('hidden',function () {
+			if (!save)
+				$form.trigger("frm-closed");
+			$form.remove();
+		});		
+		$form.find("#save").on("click", function (event) {
+			save = true;
+			event.preventDefault();
+			console.log("test");
+			$form.trigger("frm-saved", [$form.find("input[name='rate']").val()]);
+		})
+	})
+})

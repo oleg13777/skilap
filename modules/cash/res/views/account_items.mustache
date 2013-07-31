@@ -16,6 +16,9 @@
 				<button class="btn btn-mini dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
 				<ul class="dropdown-menu">
 					<li><a class="delete-record" href="#">{{#i18n}}Delete{{/i18n}}</a></li>
+					{{#if multicurr}}
+					<li><a class="edit-rate" href="#">{{#i18n}}Edit rate{{/i18n}}</a></li>
+					{{/if}}
 				</ul>
 			</div>
 			{{/if}}

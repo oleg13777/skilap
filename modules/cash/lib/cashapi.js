@@ -44,6 +44,7 @@ CashApi.prototype.savePrice = require('./priceapi.js').savePrice;
 CashApi.prototype.parseGnuCashXml = require('./gnucash.js');
 CashApi.prototype.getAccountRegister = require('./trnapi.js').getAccountRegister;
 CashApi.prototype.getTransaction = require('./trnapi.js').getTransaction;
+CashApi.prototype.updateTransactionExcangeRate = require('./trnapi.js').updateTransactionExcangeRate;
 CashApi.prototype.saveTransaction = require('./trnapi.js').saveTransaction;
 CashApi.prototype.importTransactions = require('./trnapi.js').importTransactions;
 CashApi.prototype.clearTransactions = require('./trnapi.js').clearTransactions;
