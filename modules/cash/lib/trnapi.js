@@ -53,6 +53,8 @@ module.exports.updateTransactionExcangeRate = function (token, trId, newRate, cb
 	var tr = null;
 	var updated = false;
 	var accIds = [];
+	var accs = {};
+	var accInfoIds = [];
 	
 	async.series ([
 		function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
@@ -61,9 +63,16 @@ module.exports.updateTransactionExcangeRate = function (token, trId, newRate, cb
 				tr = transaction;
 			})); 
 		}, 
+		function (cb) {
+			self._cash_accounts.find({'_id': {$in: _.pluck(tr.splits, 'accountId')}}).toArray(safe.sure_result(cb, function (accounts) {
+				_.each(accounts, function(acc) {
+					accs[acc._id] = acc;
+				});
+			}));
+		}, 
 		function (cb) {	
 			_(tr.splits).forEach(function (split) {
-				if (split.value != split.quantity) {
+				if (accs[split.accountId].cmdty.id != tr.currency.id) {
 					split.quantity = split.value*parseFloat(newRate);
 					accIds.push(split.accountId);
 					updated = true;
@@ -210,7 +219,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 						var irate = 1;
 						// value is known
 						self.getCmdtyPrice(token, trn.currency, splitAccount.cmdty, null, null, function(err,rate){
-							if(err && !(err.skilap && err.skilap.subject == "UnknownRate")) {
+							if(err && !(err.data && err.data.subject == "UnknownRate")) {
 								return cb(err);
 							}
 
