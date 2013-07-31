@@ -390,8 +390,9 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 		remove_old_reg: ['account_save', function (cb) {
 			console.time("remove_old_reg");		
 			if (skip_calc) return cb();
-			if (regToDelete)
+			if (regToDelete) {
 				self._cash_register.remove({'_id': {$in: _.values(regToDelete)}}, {w: 1}, cb);
+			}
 			else cb();
 		}]
 		}, function done (err) {
@@ -566,7 +567,7 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 						accStats.value=ballances[accId];
 						counters[accId]++;
 						var doc = { date: tr.datePosted, trId: tr._id, accId: accId, ballance: ballances[accId], order: counters[accId]};
-						self._cash_register.findAndModify({trId: tr._id, accId: accId}, [], {$set:doc},	{ upsert: true, w: 1 }, safe.sure_result(cb, function(obj) {
+						self._cash_register.findAndModify({trId: tr._id, accId: accId}, [], {$set:doc},	{ upsert: true, w: 1 , hint:{trId:1}}, safe.sure_result(cb, function(obj) {
 							if (!obj || _.isEmpty(obj)) {
 								accStats.count++;
 								return;

@@ -210,6 +210,13 @@ describe("Cash module",function () {
 		});
 	});
 	describe("Manage accounts", function () {
+		before(function(done) {
+			var self = this;
+			self.trackError(done);
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
+			self.browser.findElement(By.linkText("Cash module")).click();			
+			self.done();
+		});			
 		it("Create root test account", function(done) {
 			var self = this;
 			self.trackError(done);
@@ -518,7 +525,7 @@ describe("Cash module",function () {
 		});
 	});
 
-describe("Registry", function () {
+describe.only("Registry", function () {
 	describe("Registry input", function () {
 		it("Login as user", function(done) {
 			var self = this;

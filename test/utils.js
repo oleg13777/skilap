@@ -13,6 +13,7 @@ var fs = require('fs');
 var wrench = require('wrench')
 
 var childs = [];
+var appProcess = null;
 process.on('uncaughtException', function(err) {
 	console.log(err);
 	_.each(childs, function (c) {
@@ -78,7 +79,8 @@ module.exports.getApp = function (opts,cb) {
 			if (msg.c=='startapp_repl')
 				cb(msg.data);
 		})
-		childs.push(process);
+		appProcess = app;
+		childs.push(app);
 	}))
 }
 
@@ -178,11 +180,42 @@ module.exports.getFirefox = function (cb) {
 }
 
 module.exports.makeDbSnapshot = function (snapname, cb) {
-	mutils.dumpDatabase("tcp://localhost:27017/skilapqa",__dirname+"/snapshots/"+snapname,cb);
+	console.log(arguments);	
+	if (cfg.db=="mongodb") 
+		mutils.dumpDatabase("tcp://localhost:27017/skilapqa",__dirname+"/snapshots/mongo-"+snapname,cb);
+	else {
+		safe.trap(cb, function () {
+			wrench.copyDirSyncRecursive(__dirname+"/snapshots/__tingodb",__dirname+"/snapshots/tingo-"+snapname,{forceDelete:true,preserveFiles:true});
+			cb();
+		})()
+	}
 }
 
 module.exports.restoreDbSnapshot = function (snapname, cb) {
-	mutils.restoreDatabase("tcp://localhost:27017/skilapqa",__dirname+"/snapshots/"+snapname,cb);
+	console.log(arguments);
+	if (cfg.db=="mongodb") 	
+		mutils.restoreDatabase("tcp://localhost:27017/skilapqa",__dirname+"/snapshots/mongo-"+snapname,cb);
+	else {
+		safe.trap(cb, function () {
+			wrench.copyDirSyncRecursive(__dirname+"/snapshots/tingo-"+snapname,__dirname+"/snapshots/__tingodb",{forceDelete:true,preserveFiles:true});
+			if (appProcess)
+				appProcess.kill('SIGTERM');
+			acfg = {
+				"app":{engine:"tingodb"},
+				"tingo":{"path":__dirname+"/snapshots/__tingodb"}
+			}
+			var app = childProcess.fork(__dirname+"/../app.js",['automated'], cfg.silent==true?{silent:true}:{});
+			app.send({c:'startapp',
+				data:acfg
+			})
+			app.on('message',function (msg) {
+				if (msg.c=='startapp_repl')
+					cb(msg.data);
+			})
+			appProcess = app;
+			childs.push(app);				
+		})()
+	}
 }
 
 module.exports.noerror = function (f) {
