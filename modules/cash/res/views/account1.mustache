@@ -253,6 +253,33 @@ $(function(){
 		return false;
 	});
 
+	$container.on("click",".acc-item .edit-rate",function(){
+		var recordId = $(this).closest(".acc-item-record").data("id");
+		$container.block();
+		safe.run(function (cb) {
+			require(['api','clitpl','safe','bootstrap'], function (api,tf,safe) {
+				tf.render('account1_edit_rate', {}, safe.sure(cb,function(text, ctx) {
+					$container.unblock();
+					$("body").append(text);
+					$modal = $("#"+ctx.uniq).modal();
+					$modal.on("frm-saved", function (e, val) {
+						api.call('cash.updateTransactionExcangeRate', recordId, val, safe.sure_result(cb, function (tr) {
+							$modal.modal('hide')
+							$container.find(".acc-scroll").scroll();
+						}))
+					})
+					$modal.on("frm-closed", function (e) {
+						cb();
+					})
+				}))
+			},cb)
+		}, function (err) {
+			$modal = null;
+			$container.unblock();
+		})	
+		return false;
+	});
+
 	$container.on("click",".acc-item-split .deleteSplit",function(){
 		var $row = $(this).closest(".acc-item-record-split");
 		$row.remove();

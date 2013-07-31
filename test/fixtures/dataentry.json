@@ -128,7 +128,9 @@
 			"name": "My wallet",
 			"parent": "Cash",
 			"deposit":"100.00",
-			"mtotal":"3,000.00"
+			"deposit1":"50.00",
+			"mtotal":"3,000.00",
+			"mtotal1":"1,500.00"
 		}
 	],
 	"rates":[
@@ -136,7 +138,8 @@
 			"name1": "USD",
 			"name2": "RUB",
 			"date": "07/25/2003",
-			"rate": "30"
+			"rate": "30",
+			"newrate": "60"
 		},
 		{
 			"name1": "RUB",
