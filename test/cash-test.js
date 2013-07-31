@@ -18,7 +18,7 @@ var assert = require('assert');
 			this.restoreDb('debug');
 		});
  *	For skip current test
- * 		describe.skip
+ * 		describe
  * 	For run only current test
  * 		describe.only
  * 	When error occurs, screenshot is available in test's dir (active)
@@ -400,7 +400,7 @@ describe("Cash module",function () {
 	});
 	describe("Manage sub accounts (delete)", function () {
 		var all = '';
-		it("Login as user", function(done) {
+		beforeEach(function(done) {
 			var self = this;
 			self.trackError(done);
 			self.restoreDb('cash-gnucash');	
@@ -447,14 +447,6 @@ describe("Cash module",function () {
 			});
 			self.done();
 		});
-		it("Login as user", function(done) {
-			var self = this;
-			self.trackError(done);
-			self.restoreDb('cash-gnucash');	
-			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
-			self.browser.findElement(By.linkText("Cash module")).click();			
-			self.done();
-		});		
 		it("Delete transactions and delete sub accounts and delete subaccount transactions", function(done) {
 			var self = this;
 			self.trackError(done);
@@ -481,14 +473,6 @@ describe("Cash module",function () {
 			});
 			self.done();
 		});
-		it("Login as user", function(done) {
-			var self = this;
-			self.trackError(done);
-			self.restoreDb('cash-gnucash');	
-			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
-			self.browser.findElement(By.linkText("Cash module")).click();			
-			self.done();
-		});		
 		it("Delete transactions and delete sub accounts moving transaction to another account", function(done) {
 			var self = this;
 			self.trackError(done);
@@ -525,11 +509,12 @@ describe("Cash module",function () {
 		});
 	});
 
-describe.only("Registry", function () {
+describe("Registry", function () {
 	describe("Registry input", function () {
 		it("Login as user", function(done) {
 			var self = this;
 			self.trackError(done);
+			this.restoreDb('core-users');	
 			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
 			self.done();
 		});	
@@ -2280,7 +2265,7 @@ describe.only("Registry", function () {
 			self.done();
 		})						
 	})
-	describe.skip("Settings", function () {
+	describe("Settings", function () {
 		it("TBD")
 	})
 	

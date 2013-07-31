@@ -37,9 +37,9 @@ module.exports.setConfig = function (cfg_) {
 	cfg = cfg_;
 }
 
+var tag = "skilapqa";
 module.exports.getApp = function (opts,cb) {
 	var fixture = opts.fixture || false;
-	var tag = "skilapqa";
 	var acfg = {};
 	function doMongo(cb) {
 		var dbs = require("mongodb").Db(tag, new Server('localhost', 27017),{w:1});
@@ -180,7 +180,6 @@ module.exports.getFirefox = function (cb) {
 }
 
 module.exports.makeDbSnapshot = function (snapname, cb) {
-	console.log(arguments);	
 	if (cfg.db=="mongodb") 
 		mutils.dumpDatabase("tcp://localhost:27017/skilapqa",__dirname+"/snapshots/mongo-"+snapname,cb);
 	else {
@@ -192,30 +191,41 @@ module.exports.makeDbSnapshot = function (snapname, cb) {
 }
 
 module.exports.restoreDbSnapshot = function (snapname, cb) {
-	console.log(arguments);
-	if (cfg.db=="mongodb") 	
-		mutils.restoreDatabase("tcp://localhost:27017/skilapqa",__dirname+"/snapshots/mongo-"+snapname,cb);
-	else {
-		safe.trap(cb, function () {
-			wrench.copyDirSyncRecursive(__dirname+"/snapshots/tingo-"+snapname,__dirname+"/snapshots/__tingodb",{forceDelete:true,preserveFiles:true});
-			if (appProcess)
-				appProcess.kill('SIGTERM');
+	(function (cb) {
+		if (cfg.db=="mongodb") 	
+			mutils.restoreDatabase("tcp://localhost:27017/skilapqa",__dirname+"/snapshots/mongo-"+snapname,cb);
+		else {
+			safe.trap(cb, function () {
+				wrench.copyDirSyncRecursive(__dirname+"/snapshots/tingo-"+snapname,__dirname+"/snapshots/__tingodb",{forceDelete:true,preserveFiles:true});
+				cb();
+			})()
+		}
+	})(function () {
+		if (appProcess)
+			appProcess.kill('SIGTERM');
+		var acfg;
+		if (cfg.db=="mongodb") {
+			acfg = {
+			"app":{engine:"mongodb"},
+			"mongo":{"host":"127.0.0.1","port":27017,"db":tag}
+			}
+		} else {
 			acfg = {
 				"app":{engine:"tingodb"},
 				"tingo":{"path":__dirname+"/snapshots/__tingodb"}
 			}
-			var app = childProcess.fork(__dirname+"/../app.js",['automated'], cfg.silent==true?{silent:true}:{});
-			app.send({c:'startapp',
-				data:acfg
-			})
-			app.on('message',function (msg) {
-				if (msg.c=='startapp_repl')
-					cb(msg.data);
-			})
-			appProcess = app;
-			childs.push(app);				
-		})()
-	}
+		}
+		var app = childProcess.fork(__dirname+"/../app.js",['automated'], cfg.silent==true?{silent:true}:{});
+		app.send({c:'startapp',
+			data:acfg
+		})
+		app.on('message',function (msg) {
+			if (msg.c=='startapp_repl')
+				cb(msg.data);
+		})
+		appProcess = app;
+		childs.push(app);				
+	})
 }
 
 module.exports.noerror = function (f) {

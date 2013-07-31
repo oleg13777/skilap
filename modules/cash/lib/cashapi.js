@@ -573,7 +573,7 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 								accStats.count++;
 								return;
 							}
-							if (toDelete[accId][obj._id])
+							if (toDelete[accId] && toDelete[accId][obj._id])
 								delete toDelete[accId][obj._id];
 							else
 								accStats.count++;
