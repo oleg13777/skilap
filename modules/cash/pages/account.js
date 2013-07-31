@@ -297,6 +297,9 @@ module.exports = function account(webapp) {
 		if (data.description) {
 			tr['description'] = data.description;
 		}
+		if (data.saveRate) {
+			tr['saveRate'] = data.saveRate;
+		}
 
 		tr['splits'] = [];
 		if(data.splits) {
