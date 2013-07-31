@@ -419,6 +419,7 @@ module.exports.ensureParent = function (token, accountName, leadAcc, cb) {
 				accountName = accountName.slice(index + 2);
 				self.ensureParent(token, path, leadAcc, safe.sure_result(cb, function(acc) {
 					parentId = acc._id;
+					leadAcc = acc;
 				}));
 			},
 			function (cb) {
@@ -462,6 +463,7 @@ module.exports.ensureAccount = function (token, accountName, leadAccId, cb) {
 				accountName = accountName.slice(index + 2);
 				self.ensureParent(token, path, leadAcc, safe.sure_result(cb, function(acc) {
 					parentId = acc._id;
+					leadAcc = acc;
 				}));
 			},
 			function (cb) {
