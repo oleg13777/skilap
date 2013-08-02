@@ -1,38 +1,82 @@
 <div id="{{uniq}}" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
 	<div class="modal-header">
 		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-		<h3 id="myModalLabel">{{#i18n}}Create confirmation{{/i18n}}</h3>
+		<h3 id="myModalLabel">{{#i18n}}Create multicurrency transaction?{{/i18n}}</h3>
 	</div>
 	<div class="modal-body">
-		<div class='localctx'>
-			{{#i18n}}Create multicurrency transaction?{{/i18n}}
-			<div class='localctx'>
-				{{#i18n}}Approximate rate: {{rate}}{{/i18n}}
-			</div>
-			<div class='localctx'>
-				{{#i18n}}Approximate value: {{val}}{{/i18n}}
-			</div>
-		</div>
+		<div class='localctx'></div>
+		<form class="form-horizontal" method="POST">
+			<fieldset>
+				<div class="control-group">
+					<label class="control-label" for="rate">{{curr1}} {{#i18n}}to{{/i18n}} {{curr2}} {{#i18n}}exchnage rate{{/i18n}}</label>
+					<div class="controls">
+						<input type="text" name="rate" id="rate" data-value="{{rate}}" value="{{rate}}" class="text ui-widget-content ui-corner-all" />
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="rate">{{#i18n}}Value{{/i18n}}</label>
+					<div class="controls">
+						<input type="text" name="quantity" id="quantity" data-value="{{quantity}}" value="{{quantity}}" class="text ui-widget-content ui-corner-all" />
+					</div>
+				</div>
+				<div class="control-group">
+					<label class='control-label'>{{#i18n}}Update prices{{/i18n}}:</label>
+					<div class="controls">
+						<input id="updateprice" type="checkbox">
+					</div>
+				</div>	
+			</fieldset>
+		</form>
 	</div>
 	<div class="modal-footer">
 		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-		<button class="btn btn-primary" id="save">Create</button>
+		<button class="btn btn-primary" id="save1">Create</button>
 	</div>			
 </div>
 <script>
+var rval = {{rate}};
+var qval = {{quantity}};
+var val = {{val}};
 require(["jquery","jquery-block"],function($){
 	var save = false;
 	$(function(e) {
 		$form = $("#{{uniq}}");
+		$rate = $("#rate");
+		$quantity = $("#quantity");
+		$save = $("#save1");
 		$form.on('hidden',function () {
 			if (!save)
 				$form.trigger("frm-closed");
 			$form.remove();
 		});		
-		$form.find("#save").on("click", function (event) {
+		$form.find("#save1").on("click", function (event) {
 			save = true;
 			event.preventDefault();
-			$form.trigger("frm-saved");
+			$form.trigger("frm-saved", [rval, qval, $form.find('#updateprice').length>0]);
 		})
+		$rate.on('keyup',function () {
+			rval = parseFloat($(this).val());
+			qval = val*rval;
+			rval = Math.round(rval*100)/100;
+			if (_.isNaN(qval))
+				qval = "";				
+			$quantity.val(qval);
+			updateSave();
+		});		
+		$quantity.on('keyup',function () {
+			qval = parseFloat($(this).val());
+			rval = qval/val;
+			rval = Math.round(rval*10000)/10000;
+			if (_.isNaN(rval))
+				rval = "";				
+			$rate.val(rval);
+			updateSave();
+		});
+		function updateSave() {
+			if (_.isNumber(rval) && _.isNumber(qval) && !_.isNaN(rval) && !_.isNaN(qval))
+				$save.removeAttr('disabled');
+			else  
+				$save.attr('disabled', true);
+		}		
 	})
-})
+}) 

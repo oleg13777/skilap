@@ -211,8 +211,10 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 					// except save rate
 					if (!_.isUndefined(spl.value) && spl.value != 0 && !_.isUndefined(spl.quantity) && spl.quantity != 0){
 						var rate = (spl.quantity/spl.value).toFixed(5);
-						price = {cmdty: trn.currency, currency: splitAccount.cmdty, date: trn.dateEntered, value: rate, source: "transaction"};
-						self.savePrice(token, price, cb);
+						if (tr.saveRate) {
+							var price = {cmdty: trn.currency, currency: splitAccount.cmdty, date: trn.dateEntered, value: rate, source: "transaction"};
+							self.savePrice(token, price, cb);
+						} else cb();
 					}
 					else{
 						// otherwise lets try to fill missing value
