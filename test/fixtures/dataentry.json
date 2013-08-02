@@ -79,12 +79,12 @@
 			"date": "08/06/2013",
 			"num":"test3",
 			"description":"test3",
-			"path":"Hobby::Charuty",
+			"path":"Hobby::Charity",
 			"deposit":"50.00",
 			"withdrawal":"50.00",
 			"total":"-50.00",
 			"name1":"Hobby",
-			"name2":"Charuty"
+			"name2":"Charity"
 		},
 		{
 			"name": "My wallet",

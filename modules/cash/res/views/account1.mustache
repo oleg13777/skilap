@@ -734,7 +734,7 @@ $(function(){
 							});
 							jqXHR.done(function(data){
 								suggestions = data;
-								process(_.keys(data));
+								process(_.sortBy(_.keys(data), function(name) { return name; }));
 							});
 
 						};
