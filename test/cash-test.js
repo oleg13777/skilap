@@ -1810,8 +1810,8 @@ describe("Registry", function () {
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr.deposit + '\n');
 			helpers.runModal.call(this, null, function(modal) {
-				self.browser.findElement(By.xpath("//div[contains(., 'Approximate rate: " + rate.rate + "')]"));
-				self.browser.findElement(By.xpath("//div[contains(., 'Approximate value: " + (parseFloat(rate.rate)*parseFloat(tr.deposit)) + "')]"));
+				self.browser.findElement(By.xpath("//input[@id='rate' and contains(@value, '" + rate.rate + "')]"));
+				self.browser.findElement(By.xpath("//input[@id='quantity' and contains(@value, '" + (parseFloat(rate.rate)*parseFloat(tr.deposit)) + "')]"));
 				modal.findElement(By.id("save")).click();
 			});
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank']/td[@data-name='date']"));
