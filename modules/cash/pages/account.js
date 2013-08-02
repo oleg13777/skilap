@@ -304,10 +304,10 @@ module.exports = function account(webapp) {
 		tr['splits'] = [];
 		if(data.splits) {
 			_.forEach(data.splits,function(spl){
-				var depositVal  = (spl.deposit && spl.deposit != "") ? eval(sanitizeNumericField(spl.deposit)) : 0;
-				var depositQuantity  =  spl.deposit_quantity && spl.deposit_quantity != "" ? eval(sanitizeNumericField(spl.deposit_quantity)) : 0;
-				var withdrawalVal  = spl.withdrawal != "" ? eval(sanitizeNumericField(spl.withdrawal)) : 0;
-				var withdrawalQuantity  = spl.withdrawal_quantity && spl.withdrawal_quantity != "" ? eval(sanitizeNumericField(spl.withdrawal_quantity)) : 0;
+				var depositVal  = (spl.deposit && spl.deposit != "") ? evalNumericField(spl.deposit) : 0;
+				var depositQuantity  =  spl.deposit_quantity && spl.deposit_quantity != "" ? evalNumericField(spl.deposit_quantity) : 0;
+				var withdrawalVal  = spl.withdrawal != "" ? evalNumericField(spl.withdrawal) : 0;
+				var withdrawalQuantity  = spl.withdrawal_quantity && spl.withdrawal_quantity != "" ? evalNumericField(spl.withdrawal_quantity) : 0;
 				splitVal = depositVal - withdrawalVal;
 				splitQuantity = depositQuantity - withdrawalQuantity;
 				var modifiedSplit = {
@@ -329,6 +329,10 @@ module.exports = function account(webapp) {
 		return tr;
 	};
 
+	var evalNumericField = function(field){
+		return Math.round(eval(field.replace(/[^\d\+-/\*()\.,]+/g, '').toString())*10000)/10000;
+	};
+	
 	var sanitizeNumericField = function(field){
 		return field.replace(/[^0-9\.+*/\-]+/g, '');
 	};

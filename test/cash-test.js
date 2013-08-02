@@ -554,7 +554,7 @@ describe("Registry", function () {
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.RETURN);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
-			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr.deposit + '\n');
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr.deposite + '\n');
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr.num + "']"));

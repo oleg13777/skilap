@@ -56,6 +56,7 @@
 			"num":"test1",
 			"description":"test1",
 			"path":"Life::Food",
+			"deposite":"2*10 + 100 - 5*4",
 			"deposit":"100.00",
 			"total":"100.00",
 			"name1":"Life",
