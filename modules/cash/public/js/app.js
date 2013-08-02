@@ -22,6 +22,9 @@ require.config({
 				delete this.Getext;
 			}
 		},
+		"highcharts": {
+			deps:["jquery"]
+		},		
 		"bootstrap": {
 			deps:["jquery"]
 		},

@@ -309,6 +309,8 @@ $(function(){
 	var scrollTimer = null;
 	function attachScrollEvent($container){
 		$container.find(".acc-scroll").scroll(function(){
+			// don't update ourselves when we blocked or modal active
+			if ($container.data("blockUI.isBlocked") || $(".modal").length>0 ) return;
 			if (scrollTimer)
 				clearTimeout(scrollTimer);
 			var $this = $(this);
