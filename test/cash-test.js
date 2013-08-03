@@ -664,7 +664,7 @@ describe("Registry", function () {
 			});
 		});
 	});
-	describe("Registry edit", function () {
+	describe.only("Registry edit", function () {
 		it("Login as user", function(done) {
 			var self = this;
 			self.trackError(done);
@@ -689,6 +689,7 @@ describe("Registry", function () {
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']//input")).sendKeys(tr2.date);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']//input")).sendKeys(Key.TAB);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='description']")).click();
 
 			helpers.waitUnblock.call(this);
