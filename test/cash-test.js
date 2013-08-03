@@ -28,12 +28,16 @@ var assert = require('assert');
 
 describe("Cash module",function () {
 	this.timeout(120000);
+	before(function () {
+		this.jobName = "Skilap - Cash module"
+	})	
 	before(tutils.setupContext);
 	before(function (done) {
 		this.browser.manage().window().setSize(1280,768);	
 		this.restoreDb('core-users');	
 		this.fixture('dataentry').then(tutils.noerror(done));
 	});
+	after(tutils.shutdownContext)
 	afterEach(tutils.afterEach);
 
 	describe("Default dataset", function () {

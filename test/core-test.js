@@ -28,12 +28,16 @@ var assert = require('assert');
 
 describe("Core module",function () {
 	this.timeout(120000);
+	before(function () {
+		this.jobName = "Skilap - Core module"
+	})
 	before(tutils.setupContext);
 	var curUser = 0;
 	var newUser = 0;
 	after(function (done) {
 		this.saveDb('core-users').then(tutils.noerror(done));
 	});
+	after(tutils.shutdownContext)	
 	before(function (done) {
 		this.fixture('dataentry').then(tutils.noerror(done));
 		this.browser.manage().window().setSize(1280,768);

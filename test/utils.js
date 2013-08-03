@@ -10,6 +10,7 @@ var mutils = require('mongo-utils');
 var async = require('async');
 var fs = require('fs');
 var wrench = require('wrench')
+var request = require('request');
 
 var childs = [];
 var appProcess = null;
@@ -108,8 +109,7 @@ module.exports.getBrowser = function(cb) {
 					if (/Started ChromeDriver/.test(line)) {
 						driver = new webdriver.Builder().
 							usingServer("http://localhost:9515").
-							withCapabilities({'browserName': 'firefox'}).
-							build();
+							withCapabilities({'browserName': 'firefox'})
 						cb(null, driver);
 					} else if (/Error/.test(line))
 						cb(new Error("Browser can't be started"));
@@ -141,19 +141,13 @@ module.exports.getBrowser = function(cb) {
 						var error = null;
 						driver = new webdriver.Builder().
 							usingServer("http://localhost:4445/wd/hub").
-							withCapabilities({'browserName': 'chrome',"record-video":false,"record-screenshots":false,platform:"Linux",username:'sergeyksv','accessKey':'aa36bc29-dda3-4652-9c19-8099ac7224cc'}).
-							build();
+							withCapabilities({'browserName': 'chrome',"record-video":false,"record-screenshots":false,platform:"Linux",username:'sergeyksv','accessKey':'aa36bc29-dda3-4652-9c19-8099ac7224cc'});
 						cb(null, driver);
 					}
 				}
 			})
 		}
-	})(safe.sure(cb, function (driver) {
-		driver.setFileDetector(webdriver.FileDetector.LocalFileDetector);
-		driver.manage().timeouts().implicitlyWait(0).then(function () {
-			cb(null,driver);
-		})
-	}))
+	})(cb)
 }
 
 module.exports.getFirefox = function (cb) {
@@ -237,63 +231,80 @@ module.exports.notError = function (v) {
 var tutils = module.exports;
 var configured = false;
 module.exports.setupContext = function (done) {
-	if (configured) return done()
-	configured = true;
-	
-	var self = this;
-	this._uncaughtException = function(err){
-		self.browser.takeScreenshot().then(function(text){
-			require("fs").writeFileSync(__dirname+"/screenshot_err.png",new Buffer(text, 'base64'));
-			self._done(err);
-		});
-	}
-	this.trackError = function (done) {
-		this._done = done;
-		this.browser.controlFlow().once('uncaughtException', this._uncaughtException)
-	}
-	this.fixture = function (tag) {
-		var self = this;
-		if (!self.fixtures)
-			self.fixtures={};
-		return this.browser.controlFlow().execute(function () {
-			if (self.fixtures[tag])
-				return self.fixtures[tag];
-			return webdriver.promise.checkedNodeCall(function(cb) {
-				fs.readFile(__dirname+"/fixtures/"+tag+".json", safe.sure(cb, function (data) {
-					self.fixtures[tag]=JSON.parse(data.toString())
-					cb(null, self.fixtures[tag]);
-				}))
+	var self = this;	
+	var tasks = [];
+	if (!configured) {
+		configured = true;
+		
+		this._uncaughtException = function(err){
+			self.browser.takeScreenshot().then(function(text){
+				require("fs").writeFileSync(__dirname+"/screenshot_err.png",new Buffer(text, 'base64'));
+				self._done(err);
+			});
+		}
+		this.trackError = function (done) {
+			this._done = done;
+			this.browser.controlFlow().once('uncaughtException', this._uncaughtException)
+		}
+		this.fixture = function (tag) {
+			var self = this;
+			if (!self.fixtures)
+				self.fixtures={};
+			return this.browser.controlFlow().execute(function () {
+				if (self.fixtures[tag])
+					return self.fixtures[tag];
+				return webdriver.promise.checkedNodeCall(function(cb) {
+					fs.readFile(__dirname+"/fixtures/"+tag+".json", safe.sure(cb, function (data) {
+						self.fixtures[tag]=JSON.parse(data.toString())
+						cb(null, self.fixtures[tag]);
+					}))
+				})
 			})
-		})
-	}
-	this.restoreDb = function (tag) {
-		this.browser.controlFlow().execute(function () {
-			return webdriver.promise.checkedNodeCall(function(cb) {
-				tutils.restoreDbSnapshot(tag,cb)
+		}
+		this.restoreDb = function (tag) {
+			this.browser.controlFlow().execute(function () {
+				return webdriver.promise.checkedNodeCall(function(cb) {
+					tutils.restoreDbSnapshot(tag,cb)
+				})
 			})
-		})
-	}
-	this.saveDb = function (tag) {
-		return this.browser.controlFlow().execute(function () {
-			return webdriver.promise.checkedNodeCall(function(cb) {
-				tutils.makeDbSnapshot(tag,cb)
+		}
+		this.saveDb = function (tag) {
+			return this.browser.controlFlow().execute(function () {
+				return webdriver.promise.checkedNodeCall(function(cb) {
+					tutils.makeDbSnapshot(tag,cb)
+				})
 			})
+		}
+		this.done = function () {
+			this.browser.controlFlow().execute(this._done);
+		}
+		tasks.push(function(cb) {
+			tutils.getApp({fixture:"empty"},cb);
 		})
-	}
-	this.done = function () {
-		this.browser.controlFlow().execute(this._done);
-	}
-	async.parallel([
-		function(cb) {
-			tutils.getBrowser(safe.sure(done, function (browser_) {
-				self.browser = browser_;
+		tasks.push(function(cb) {
+			tutils.getBrowser(safe.sure(done, function (builder_) {
+				self.builder = builder_;
 				cb();
 			}))
-		},
-		function(cb) {
-			tutils.getApp({fixture:"empty"},cb);
-		}
-	],done)
+		})
+	}
+	if (!self.browser) {
+		tasks.push(function(cb) {
+			var driver = self.builder.build();
+			driver.setFileDetector(webdriver.FileDetector.LocalFileDetector);
+	-       driver.manage().timeouts().implicitlyWait(0).then(function () {
+				self.browser = driver;
+	-           cb(null);				
+			})
+			driver.getSession().then(function (session) {
+				self.sessionId = session.id;
+				if (cfg.browser == "remote") 
+					sauceRest(self.sessionId,{name:self.jobName || "Skilap",
+						build: process.env.TRAVIS_JOB_ID || Math.round(new Date().getTime() / (1000*60))},function () {});
+			})
+		})
+	}
+	async.series(tasks,done)
 }
 
 module.exports.afterEach = function () {
@@ -302,3 +313,31 @@ module.exports.afterEach = function () {
 		delete this._done;
 	}
 }
+
+module.exports.shutdownContext = function (done) {
+	var self =this;
+	var browser = this.browser;
+	delete this.browser;
+	browser.quit().then(function () {
+		if (cfg.browser != "remote")
+			return done();
+		sauceRest(self.sessionId,{
+		  passed: true
+		},done)
+	})
+};
+
+function sauceRest(jobId,data,done) {
+  var httpOpts = {
+	url: 'http://sergeyksv:aa36bc29-dda3-4652-9c19-8099ac7224cc@saucelabs.com/rest/v1/sergeyksv/jobs/' + jobId,
+	method: 'PUT',
+	headers: {
+	  'Content-Type': 'text/json'
+	},
+	body: JSON.stringify(data),
+	jar: false /* disable cookies: avoids CSRF issues */
+  };
+
+  request(httpOpts, done);
+}
+	
