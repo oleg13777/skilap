@@ -27,7 +27,7 @@ var assert = require('assert');
  * */
 
 describe("Core module",function () {
-	this.timeout(60000);
+	this.timeout(120000);
 	before(tutils.setupContext);
 	var curUser = 0;
 	var newUser = 0;
