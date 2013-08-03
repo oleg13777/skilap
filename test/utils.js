@@ -31,7 +31,7 @@ process.on('exit', function () {
 	})
 })
 
-var cfg = {db:"mongodb",browser:"chrome", silent:"true"} 
+var cfg = {db:"tingodb",browser:"remote", silent:"true"} 
 module.exports.setConfig = function (cfg_) {
 	_.defaults(cfg_,cfg);
 	cfg = cfg_;
@@ -99,7 +99,7 @@ module.exports.getBrowser = function(cb) {
 					build();
 				cb(null,driver)
 			})
-		} if (browser=="chrome") {
+		} else if (browser=="chrome") {
 			var phantom = childProcess.spawn(__dirname+"/selenium/chromedriver");
 			var driver = null;
 			var error = null;
@@ -125,7 +125,27 @@ module.exports.getBrowser = function(cb) {
 					}
 				}
 			});
-		}
+		} else if (browser=="remote") {
+			var connect = childProcess.spawn("java",['-jar',__dirname+"/selenium/Sauce-Connect.jar",'sergeyksv','aa36bc29-dda3-4652-9c19-8099ac7224cc']);
+			childs.push(connect);			
+			var driver = null;
+			var error = null;
+			connect.stdout.on('data', function (data) {
+				var line = data.toString();
+				// console.log(line);
+				if (driver==null) {
+					if (/Connected! You may start your tests/.test(line)) {
+						var driver = null;
+						var error = null;
+						driver = new webdriver.Builder().
+							usingServer("http://localhost:4445/wd/hub").
+							withCapabilities({'browserName': 'chrome',username:'sergeyksv','accessKey':'aa36bc29-dda3-4652-9c19-8099ac7224cc'}).
+							build();
+						cb(null, driver);
+					}
+				}
+			})
+		}		
 		else {
 			var phantom = childProcess.spawn(phantomjs.path, ["--webdriver=9134"]);
 			var driver = null;
@@ -156,6 +176,7 @@ module.exports.getBrowser = function(cb) {
 			childs.push(phantom);
 		}
 	})(safe.sure(cb, function (driver) {
+		driver.setFileDetector(webdriver.FileDetector.LocalFileDetector);
 		driver.manage().timeouts().implicitlyWait(0).then(function () {
 			cb(null,driver);
 		})
