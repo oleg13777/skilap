@@ -4,7 +4,7 @@ var tutils = require('./test/utils.js')
 var argv = require('optimist')
     .default('db', "tingodb")
     .default('browser', "remote")    
-    .default('silent',false)
+    .default('silent',true)
     .argv
 
 tutils.setConfig({
