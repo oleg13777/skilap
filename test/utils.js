@@ -2,7 +2,6 @@ var Db = require('mongodb').Db;
 var Server = require('mongodb').Server;
 var safe = require('safe');
 var childProcess = require('child_process')
-var phantomjs = require('phantomjs')
 var webdriver = require('selenium-webdriver');
 var SeleniumServer = require('selenium-webdriver/remote').SeleniumServer;
 var main = require('skilap-core');
@@ -148,35 +147,6 @@ module.exports.getBrowser = function(cb) {
 					}
 				}
 			})
-		}		
-		else {
-			var phantom = childProcess.spawn(phantomjs.path, ["--webdriver=9134"]);
-			var driver = null;
-			var error = null;
-			phantom.stdout.on('data', function (data) {
-				var line = data.toString();
-				if (driver==null) {
-					if (/GhostDriver - Main - running /.test(line)) {
-						driver = new webdriver.Builder().
-							usingServer("http://localhost:9134").
-							withCapabilities({'browserName': 'firefox'}).
-							build();
-						cb(null, driver);
-					} else if (/Error/.test(line))
-						cb(new Error("Browser can't be started"));
-				} else {
-					if (error)
-						error+=line;
-					if (/Error/.test(line)) {
-						error = line;
-						setTimeout(function () {
-							driver.controlFlow().abortNow_(new Error(error))
-						},100)
-					}
-				}
-			});
-
-			childs.push(phantom);
 		}
 	})(safe.sure(cb, function (driver) {
 		driver.setFileDetector(webdriver.FileDetector.LocalFileDetector);
