@@ -6,7 +6,7 @@ var _ = require("lodash");
 
 module.exports.login = function (user, check) {
 	var self = this;
-	this.browser.get("http://localhost/login");
+	this.browser.get("http://localhost:8080/login");
 	// wait for page load
 	self.browser.wait(function () {
 		return self.browser.isElementPresent(By.name("name")).then(function (v) {return v; });

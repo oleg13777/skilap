@@ -44,7 +44,7 @@ module.exports.getApp = function (opts,cb) {
 	function doMongo(cb) {
 		var dbs = require("mongodb").Db(tag, new Server('localhost', 27017),{w:1});
 		acfg = {
-			"app":{engine:"mongodb"},
+			"app":{engine:"mongodb",port:8080},
 			"mongo":{"host":"127.0.0.1","port":27017,"db":tag}
 		}
 		dbs.open(safe.sure(cb, function (db) {
@@ -53,7 +53,7 @@ module.exports.getApp = function (opts,cb) {
 	}
 	function doTingo(cb) {
 		acfg = {
-			"app":{engine:"tingodb"},
+			"app":{engine:"tingodb",port:8080},
 			"tingo":{"path":__dirname+"/snapshots/__tingodb"}
 		}
 		safe.trap(cb, function () {
@@ -230,12 +230,12 @@ module.exports.restoreDbSnapshot = function (snapname, cb) {
 		var acfg;
 		if (cfg.db=="mongodb") {
 			acfg = {
-			"app":{engine:"mongodb"},
+			"app":{engine:"mongodb",port:8080},
 			"mongo":{"host":"127.0.0.1","port":27017,"db":tag}
 			}
 		} else {
 			acfg = {
-				"app":{engine:"tingodb"},
+				"app":{engine:"tingodb",port:8080},
 				"tingo":{"path":__dirname+"/snapshots/__tingodb"}
 			}
 		}

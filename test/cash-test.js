@@ -175,7 +175,7 @@ describe("Cash module",function () {
 				var file = fs.createWriteStream(__dirname + "/data/raw.zip");
 				var options = {
 						  host: "localhost",
-						  port: 80,
+						  port: 8080,
 						  path: '/cash/export/raw',
 						  headers: {"Cookie": c}
 						};
