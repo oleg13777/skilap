@@ -44,6 +44,8 @@
     , "moment" : "2.x"
     , "request" : ""
     , "mkdirp" : ""
+    , "mongodb" : ""
+    , "mongo-utils" : ""
     }
     , "scripts": {
        "test":"node test"
