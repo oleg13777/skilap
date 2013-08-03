@@ -130,9 +130,12 @@ module.exports.getBrowser = function(cb) {
 			childs.push(connect);			
 			var driver = null;
 			var error = null;
+			connect.stderr.on('data', function (data) {
+				console.log(data.toString())
+			})
 			connect.stdout.on('data', function (data) {
 				var line = data.toString();
-				// console.log(line);
+				console.log(line);
 				if (driver==null) {
 					if (/Connected! You may start your tests/.test(line)) {
 						var driver = null;
