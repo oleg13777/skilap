@@ -237,6 +237,7 @@ module.exports.setupContext = function (done) {
 		configured = true;
 		
 		this._uncaughtException = function(err){
+			self.passed = false;
 			self.browser.takeScreenshot().then(function(text){
 				require("fs").writeFileSync(__dirname+"/screenshot_err.png",new Buffer(text, 'base64'));
 				self._done(err);
@@ -275,7 +276,9 @@ module.exports.setupContext = function (done) {
 				})
 			})
 		}
-		this.done = function () {
+		this.done = function (err) {
+			if (err)
+				self.passed = false;
 			this.browser.controlFlow().execute(this._done);
 		}
 		tasks.push(function(cb) {
@@ -305,6 +308,7 @@ module.exports.setupContext = function (done) {
 		})
 	}
 	async.series(tasks,done)
+	self.passed = true;
 }
 
 module.exports.afterEach = function () {
@@ -322,7 +326,7 @@ module.exports.shutdownContext = function (done) {
 		if (cfg.browser != "remote")
 			return done();
 		sauceRest(self.sessionId,{
-		  passed: true
+		  passed: self.passed
 		},done)
 	})
 };

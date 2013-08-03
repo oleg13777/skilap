@@ -34,18 +34,17 @@ describe("Cash module",function () {
 	before(tutils.setupContext);
 	before(function (done) {
 		this.browser.manage().window().setSize(1280,768);	
-		this.restoreDb('core-users');	
 		this.fixture('dataentry').then(tutils.noerror(done));
 	});
 	after(tutils.shutdownContext)
 	afterEach(tutils.afterEach);
 
 	describe("Default dataset", function () {
-		var curUser = 0;
-		it("Login as user", function(done) {
+		before(function(done) {
 			var self = this;
 			self.trackError(done);
-			helpers.login.call(self, self.fixtures.dataentry.users[curUser], true);
+			self.restoreDb('core-users');	
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
 			self.done();
 		});
 		it("Can be created", function(done) {
@@ -78,6 +77,14 @@ describe("Cash module",function () {
 		});
 	});
 	describe("Manage prices", function () {
+		before(function(done) {
+			var self = this;
+			self.trackError(done);
+			self.restoreDb('core-users');				
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
+			self.browser.findElement(By.linkText("Cash module")).click();
+			self.done();
+		});
 		it("Add price for USD in EUR", function(done) {
 			var self = this;
 			self.trackError(done);
@@ -135,9 +142,10 @@ describe("Cash module",function () {
 	});
 	describe("Export and import", function () {
 		var sum = '';
-		it("Login as user", function(done) {
+		before(function(done) {
 			var self = this;
 			self.trackError(done);
+			self.restoreDb('core-users');				
 			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
 			self.browser.findElement(By.linkText("Cash module")).click();			
 			self.done();
@@ -217,6 +225,7 @@ describe("Cash module",function () {
 		before(function(done) {
 			var self = this;
 			self.trackError(done);
+			self.restoreDb('core-users');				
 			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
 			self.browser.findElement(By.linkText("Cash module")).click();			
 			self.done();
