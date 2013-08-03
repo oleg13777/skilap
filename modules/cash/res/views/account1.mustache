@@ -237,7 +237,8 @@ $(function(){
 		safe.run(function(cb){
 			require(["api"],function(api){
 				api.call("cash.clearTransactions",[recordId],safe.sure(cb,function(){
-					$container.find(".acc-scroll").scroll();
+					updateContainer();
+					//$container.find(".acc-scroll").scroll();
 					cb();
 				}));
 			},cb);
@@ -323,6 +324,19 @@ $(function(){
 				loadGrid($container,offset,rowsLimit,function(){$container.unblock();});
 			},100)
 		});
+	}
+	
+	function updateContainer() {
+		if (scrollTimer)
+			clearTimeout(scrollTimer);
+		scrollTimer = setTimeout(function () {
+			var scrollPosition = $container.find(".acc-scroll").scrollTop();
+			var offset = iTotalRecords - Math.floor((iTotalRecords*rowHeight-scrollPosition)/rowHeight);
+			if(isRecordAdded || isRecordUpdated){
+				$container.block();
+			}
+			loadGrid($container,offset,rowsLimit,function(){$container.unblock();});
+		},100)
 	}
 
 	function stopWheel(e){
@@ -584,8 +598,19 @@ $(function(){
 					var multisplit = $record.data("multisplit");
 					/* we need update deposit or withdrawal for both split rows */
 					if(multisplit != 1 && (columnName == "deposit" || columnName == "withdrawal")){
-						var mainCurr = $record.data("curr");
-						var editCurr = $record.find(".acc-item[data-name='path']").data("curr");
+						var mainCurr;
+						var editCurr;
+						
+						var reverse = true;
+						if (columnName == "withdrawal") {
+							mainCurr = $record.data("curr");
+							editCurr = $record.find(".acc-item[data-name='path']").data("curr");
+							reverse = false;
+						} else {
+							editCurr = $record.data("curr");
+							mainCurr = $record.find(".acc-item[data-name='path']").data("curr");
+						}
+						if (columnName == "withdrawal")
 						var date = $record.find(".acc-item[data-name='date']").data("val");
 						if(mainCurr && editCurr && mainCurr != editCurr){
 							$container.block();
@@ -597,13 +622,34 @@ $(function(){
 											rate: price, 
 											curr1: mainCurr,
 											curr2: editCurr,
-											quantity:  Math.round(price*val*100)/100
+											quantity:  (price*val).toFixed(2),
+											date: date,
+											bs: false
 										};
+										if (reverse) {
+											data.val = (val/price).toFixed(2);
+											data.quantity = val
+											data.bs = true;
+										}
 										tf.render('account1_curr', data, safe.sure(cb,function(text, ctx) {
+											var $splitMainColumnD = $record.parent().find(".acc-item-record-split[data-recordid=\""+recordid+"\"][data-accid=\""+relaccid+"\"] .acc-item-split[data-name=\"deposit\"]");
+											var $splitMainColumnW = $record.parent().find(".acc-item-record-split[data-recordid=\""+recordid+"\"][data-accid=\""+relaccid+"\"] .acc-item-split[data-name=\"withdrawal\"]");
+											var $splitTargetColumnD;
+											var $splitTargetColumnW;
+											var $prevSplitRow = $splitMainColumnW.parent().prev(".acc-item-record-split");
+											if($prevSplitRow.length > 0){
+												$splitTargetColumnD = $prevSplitRow.find(".acc-item-split[data-name=\"deposit\"]");
+												$splitTargetColumnW = $prevSplitRow.find(".acc-item-split[data-name=\"withdrawal\"]");
+											}
+											else{
+												$splitTargetColumnD = $splitTargetColumn.parent().next(".acc-item-record-split").find(".acc-item-split[data-name=\"deposit\"]");
+												$splitTargetColumnW = $splitTargetColumn.parent().next(".acc-item-record-split").find(".acc-item-split[data-name=\"withdrawal\"]");
+											}
+												
 											$container.unblock();
 											$("body").append(text);
 											$modal = $("#"+ctx.uniq).modal();
-											$modal.on("frm-saved", function (e, rval, qval, bsave) {
+											$modal.on("frm-saved", function (e, rval, sval, bval, bchange, bsave) {
 												$modal.modal('hide')
 												var secondcol = {"deposit":"withdrawal","withdrawal":"deposit"};
 												var $prevSplitRow = $splitTargetColumn.parent().prev(".acc-item-record-split");
@@ -613,28 +659,81 @@ $(function(){
 												else{
 													$splitTargetColumn = $splitTargetColumn.parent().next(".acc-item-record-split").find(".acc-item-split[data-name=\""+secondcol[columnName]+"\"]");
 												}
-												$splitTargetColumn.find(".tdContent").text(columnModifiedData.val);
-												_.each(columnModifiedData,function(v,k){
-													$splitTargetColumn.data(k,v);
-												});
 												$column.find(".tdContentEditable").html("").hide();
 												$column.find(".tdContent").show();
 												$column.removeClass("selected");
 												
-												$splitTargetColumn.data("quantity", qval);
 												$column.parent().data("saveRate", bsave);
+												if (!bchange) {
+													if (columnName == "deposit") {
+														$splitMainColumnD.find(".tdContent").text(bval);
+														$splitMainColumnD.data('val',bval);
+													
+														$splitTargetColumnW.find(".tdContent").text(bval);
+														$splitTargetColumnW.data('val', bval);
+														$splitTargetColumnW.data("quantity", sval);
+
+														$column.find(".tdContent").text(bval);
+													} else {
+														$splitMainColumnW.find(".tdContent").text(sval);
+														$splitMainColumnW.data('val',sval);
+													
+														$splitTargetColumnD.find(".tdContent").text(sval);
+														$splitTargetColumnD.data('val', sval);
+														$splitTargetColumnD.data("quantity", bval);
+
+														$column.find(".tdContent").text(sval);
+													}
+												} else {
+													if (columnName == "deposit") {
+														$splitMainColumnW.find(".tdContent").text(sval);
+														$splitMainColumnW.data('val',sval);
+														$splitMainColumnD.find(".tdContent").text('');
+														$splitMainColumnD.data('val','');
+													
+														$splitTargetColumnD.find(".tdContent").text(sval);
+														$splitTargetColumnD.data('val', sval);
+														$splitTargetColumnD.data("quantity", bval);
+
+														$column.find(".tdContent").text(sval);
+													} else {
+														$splitMainColumnD.find(".tdContent").text(bval);
+														$splitMainColumnD.data('val',bval);
+														$splitMainColumnW.find(".tdContent").text('');
+														$splitMainColumnW.data('val','');
+													
+														$splitTargetColumnW.find(".tdContent").text(bval);
+														$splitTargetColumnW.data('val', bval);
+														$splitTargetColumnW.data("quantity", sval);
+
+														$column.find(".tdContent").text(bval);
+													}
+												}
 												updateRecord($column.parent(),false,safe.sure(cb,function(result){
 													if(result.isNew){
 														isRecordAdded = true;
 														if (rowsLimit > iTotalRecords) 
 															loadGrid($container,0,rowsLimit,function(){$container.unblock();});
-														else
-															$container.find(".acc-scroll").scrollTop($container.find(".acc-scroll").scrollTop()+rowHeight);
+														updateContainer();
 													}
 													cb(1);
 												}));
 											})
 											$modal.on("frm-closed", function (e) {
+												$splitMainColumnD.find(".tdContent").text('');
+												$splitMainColumnD.data('val','');
+												$splitMainColumnW.find(".tdContent").text('');
+												$splitMainColumnW.data('val','');
+											
+												$splitTargetColumnD.find(".tdContent").text('');
+												$splitTargetColumnD.data('val', '');
+												$splitTargetColumnW.find(".tdContent").text('');
+												$splitTargetColumnW.data('val', '');
+
+												$column.find(".tdContent").text('');
+												$column.find("input").val('');
+												$column.find("input").select();
+												
 												cb(1);
 											})
 										}))

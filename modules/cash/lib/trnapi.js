@@ -210,9 +210,15 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 					// if split cmdty not equal to trn currency and both values defined, nothing to do
 					// except save rate
 					if (!_.isUndefined(spl.value) && spl.value != 0 && !_.isUndefined(spl.quantity) && spl.quantity != 0){
-						var rate = (spl.quantity/spl.value).toFixed(5);
+						if (spl.quantity > 0)
+							var rate = (spl.quantity/spl.value).toFixed(5);
+						else
+							var rate = (spl.value/spl.quantity).toFixed(5);
 						if (tr.saveRate) {
-							var price = {cmdty: trn.currency, currency: splitAccount.cmdty, date: trn.dateEntered, value: rate, source: "transaction"};
+							if (spl.quantity > 0)
+								var price = {cmdty: trn.currency, currency: splitAccount.cmdty, date: trn.dateEntered, value: rate, source: "transaction"};
+							else
+								var price = {currency: trn.currency, cmdty: splitAccount.cmdty, date: trn.dateEntered, value: rate, source: "transaction"};
 							self.savePrice(token, price, cb);
 						} else cb();
 					}
