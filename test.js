@@ -2,8 +2,8 @@ var Mocha = require('mocha');
 var path = require('path');
 var tutils = require('./test/utils.js')
 var argv = require('optimist')
-    .default('db', "mongodb")
-    .default('browser', "chrome")    
+    .default('db', "tingodb")
+    .default('browser', "remote")    
     .default('silent',true)
     .argv
 
