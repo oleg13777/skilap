@@ -141,7 +141,7 @@ module.exports.getBrowser = function(cb) {
 						var error = null;
 						driver = new webdriver.Builder().
 							usingServer("http://localhost:4445/wd/hub").
-							withCapabilities({'browserName': 'chrome',"record-video":false,"record-screenshots":false,platform:"Linux",username:'sergeyksv','accessKey':'aa36bc29-dda3-4652-9c19-8099ac7224cc'});
+							withCapabilities({'browserName': 'chrome',"record-video":false,"record-screenshots":false,username:'sergeyksv','accessKey':'aa36bc29-dda3-4652-9c19-8099ac7224cc'});
 						cb(null, driver);
 					}
 				}
