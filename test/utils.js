@@ -294,7 +294,8 @@ module.exports.setupContext = function (done) {
 	if (!self.browser) {
 		tasks.push(function(cb) {
 			var driver = self.builder.build();
-			driver.setFileDetector(webdriver.FileDetector.LocalFileDetector);
+			if (cfg.browser == "remote") 			
+				driver.setFileDetector(webdriver.FileDetector.LocalFileDetector);
 	-       driver.manage().timeouts().implicitlyWait(0).then(function () {
 				self.browser = driver;
 	-           cb(null);				
