@@ -664,7 +664,7 @@ describe("Registry", function () {
 			});
 		});
 	});
-	describe.only("Registry edit", function () {
+	describe("Registry edit", function () {
 		it("Login as user", function(done) {
 			var self = this;
 			self.trackError(done);
