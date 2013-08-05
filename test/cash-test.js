@@ -2011,6 +2011,43 @@ describe("Registry", function () {
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='deposit' and contains(.,'" + tr.deposit1 + "')]"));
 			self.done();
 		});
+		it("Edit changing currency", function(done) {
+			var self = this;
+			self.trackError(done);
+			var tr = self.fixtures.dataentry.trs[6];
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + tr.name + "')]/span/a[./i[@title='edit']]")).click();	
+			helpers.runModal.call(self, null, function(modal) {
+		        modal.findElement(By.id("acc_curency")).sendKeys("RU");
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//div[span[contains(.,'( " + tr.deposit1 + " " + tr.newcurr +")')]]/a[contains(.,'" + tr.name + "')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr.newdeposit + "')]]/a[contains(.,'" + tr.name + "')]"));
+			self.done();
+		});
+		it("Default currency test", function(done) {
+			var self = this;
+			self.trackError(done);
+			var all = null;
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Home")).click();
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert(text.indexOf('руб') == -1, "Default currency error");
+				all = text;
+			});
+			self.browser.findElement(By.linkText("Home")).click();	
+			self.browser.findElement(By.linkText("Page settings")).click();	
+			helpers.runModal.call(self, null, function(modal) {
+		        modal.findElement(By.id("tr_parent")).sendKeys("RU");
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert(all != text, "Default currency error");
+				assert(text.indexOf('руб') != -1, "Default currency error");
+			});
+			self.done();
+		});
 	});
 });
 	describe("Reports", function () {

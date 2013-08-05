@@ -131,7 +131,9 @@
 			"deposit":"100.00",
 			"deposit1":"50.00",
 			"mtotal":"3,000.00",
-			"mtotal1":"1,500.00"
+			"mtotal1":"1,500.00",
+			"newcurr":"руб",
+			"newdeposit":"1.67"
 		}
 	],
 	"rates":[
