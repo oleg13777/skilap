@@ -1718,7 +1718,7 @@ describe("Registry", function () {
 			self.done();
 		});
 	});
-	describe.only("Multicurrency test", function () {
+	describe("Multicurrency test", function () {
 		it("Login as user", function(done) {
 			var self = this;
 			self.trackError(done);
