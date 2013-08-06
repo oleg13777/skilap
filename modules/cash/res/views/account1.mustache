@@ -630,6 +630,20 @@ $(function(){
 											data.quantity = val
 										}
 										tf.render('account1_curr', data, safe.sure(cb,function(text, ctx) {
+											var $splitMainColumnD = $record.parent().find(".acc-item-record-split[data-recordid=\""+recordid+"\"][data-accid=\""+relaccid+"\"] .acc-item-split[data-name=\"deposit\"]");
+											var $splitMainColumnW = $record.parent().find(".acc-item-record-split[data-recordid=\""+recordid+"\"][data-accid=\""+relaccid+"\"] .acc-item-split[data-name=\"withdrawal\"]");
+											var $splitTargetColumnD;
+											var $splitTargetColumnW;
+											var $prevSplitRow = $splitMainColumnW.parent().prev(".acc-item-record-split");
+											if($prevSplitRow.length > 0){
+												$splitTargetColumnD = $prevSplitRow.find(".acc-item-split[data-name=\"deposit\"]");
+												$splitTargetColumnW = $prevSplitRow.find(".acc-item-split[data-name=\"withdrawal\"]");
+											}
+											else{
+												$splitTargetColumnD = $splitTargetColumn.parent().next(".acc-item-record-split").find(".acc-item-split[data-name=\"deposit\"]");
+												$splitTargetColumnW = $splitTargetColumn.parent().next(".acc-item-record-split").find(".acc-item-split[data-name=\"withdrawal\"]");
+											}
+												
 											$container.unblock();
 											$("body").append(text);
 											$modal = $("#"+ctx.uniq).modal();
@@ -646,20 +660,6 @@ $(function(){
 												$column.find(".tdContentEditable").html("").hide();
 												$column.find(".tdContent").show();
 												$column.removeClass("selected");
-												
-												var $splitMainColumnD = $record.parent().find(".acc-item-record-split[data-recordid=\""+recordid+"\"][data-accid=\""+relaccid+"\"] .acc-item-split[data-name=\"deposit\"]");
-												var $splitMainColumnW = $record.parent().find(".acc-item-record-split[data-recordid=\""+recordid+"\"][data-accid=\""+relaccid+"\"] .acc-item-split[data-name=\"withdrawal\"]");
-												var $splitTargetColumnD;
-												var $splitTargetColumnW;
-												var $prevSplitRow = $splitMainColumnW.parent().prev(".acc-item-record-split");
-												if($prevSplitRow.length > 0){
-													$splitTargetColumnD = $prevSplitRow.find(".acc-item-split[data-name=\"deposit\"]");
-													$splitTargetColumnW = $prevSplitRow.find(".acc-item-split[data-name=\"withdrawal\"]");
-												}
-												else{
-													$splitTargetColumnD = $splitTargetColumn.parent().next(".acc-item-record-split").find(".acc-item-split[data-name=\"deposit\"]");
-													$splitTargetColumnW = $splitTargetColumn.parent().next(".acc-item-record-split").find(".acc-item-split[data-name=\"withdrawal\"]");
-												}
 												
 												$column.parent().data("saveRate", bsave);
 												if (!bchange) {
@@ -713,12 +713,25 @@ $(function(){
 														if (rowsLimit > iTotalRecords) 
 															loadGrid($container,0,rowsLimit,function(){$container.unblock();});
 														updateContainer();
-//															$container.find(".acc-scroll").scrollTop($container.find(".acc-scroll").scrollTop()+rowHeight);
 													}
 													cb(1);
 												}));
 											})
 											$modal.on("frm-closed", function (e) {
+												$splitMainColumnD.find(".tdContent").text('');
+												$splitMainColumnD.data('val','');
+												$splitMainColumnW.find(".tdContent").text('');
+												$splitMainColumnW.data('val','');
+											
+												$splitTargetColumnD.find(".tdContent").text('');
+												$splitTargetColumnD.data('val', '');
+												$splitTargetColumnW.find(".tdContent").text('');
+												$splitTargetColumnW.data('val', '');
+
+												$column.find(".tdContent").text('');
+												$column.find("input").val('');
+												$column.find("input").select();
+												
 												cb(1);
 											})
 										}))

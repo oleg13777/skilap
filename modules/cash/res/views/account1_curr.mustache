@@ -19,13 +19,15 @@
 					</div>
 				</div>	
 				<div class="control-group">
-					<label class="control-label" for="rate">Rate</label>
+					<label class="control-label" for="rate">Rate:</label>
 					<div class="controls">
-						<span class="input-group-addon">1x</span>
-						<span class="input-group-addon" id="first_cur">{{curr1}}</span>
-						<input type="text" name="rate" id="rate" data-value="{{rate}}" value="{{rate}}" class="text ui-widget-content ui-corner-all" />
-						<span class="input-group-addon" id="second_cur">{{curr2}}</span>
-						<span class="add-on"><i id="rate_lock" class="icon-unlock"></i></span>
+						<div class="input-prepend input-append">
+							<span>1x</span>
+							<span class="add-on" id="first_cur">1x {{curr1}}</span>
+							<input type="text" name="rate" id="rate" data-value="{{rate}}" value="{{rate}}" class="text ui-widget-content ui-corner-all" />
+							<span class="add-on" id="second_cur">{{curr2}}</span>
+							<span class="add-on"><i id="rate_lock" class="icon-unlock"></i></span>
+						</div>
 					</div>
 				</div>
 				<div class="control-group">
@@ -37,15 +39,19 @@
 				<div class="control-group">
 					<label class="control-label" for="sell">{{#i18n}}Sell{{/i18n}}</label>
 					<div class="controls">
-						<input type="text" name="sell" id="sell" data-value="{{val}}" value="{{val}}" class="text ui-widget-content ui-corner-all" />
-						<span class="add-on"><i id="sell_lock" class="icon-unlock"></i></span>
+						<div class="input-append">
+							<input type="text" name="sell" id="sell" data-value="{{val}}" value="{{val}}" class="text ui-widget-content ui-corner-all" />
+							<span class="add-on"><i id="sell_lock" class="icon-unlock"></i></span>
+						</div>
 					</div>
 				</div>
 				<div class="control-group">
 					<label class="control-label" for="buy">{{#i18n}}Buy{{/i18n}}</label>
 					<div class="controls">
-						<input type="text" name="buy" id="buy" data-value="{{quantity}}" value="{{quantity}}" class="text ui-widget-content ui-corner-all" readonly />
-						<span class="add-on"><i id="buy_lock" class="icon-lock"></i></span>
+						<div class="input-append">
+							<input type="text" name="buy" id="buy" data-value="{{quantity}}" value="{{quantity}}" class="text ui-widget-content ui-corner-all" readonly />
+							<span class="add-on"><i id="buy_lock" class="icon-lock"></i></span>
+						</div>
 					</div>
 				</div>
 			</fieldset>
@@ -153,18 +159,22 @@ require(["jquery","safe","jquery-block"],function($, safe){
 			}
 		})
 		
+		function roundVal(val) {
+			return Math.round(val*100)/100;
+		}
+		
 		function updateRate(rate) {
-			rval = rate;
+			rval = roundVal(Math.round(rate*10000)/10000);
 			if (rate >= 1) {
-				$("#first_cur").text(curr1);
+				$("#first_cur").text("1x " + curr1);
 				$("#second_cur").text(curr2);
 				reverse = false;
-				$rate.val(rate);
+				$rate.val(rval);
 			} else {
-				$("#first_cur").text(curr2);
+				$("#first_cur").text("1x " + curr2);
 				$("#second_cur").text(curr1);
 				reverse = true;
-				$rate.val(1/rate);
+				$rate.val(Math.round(1/rate*10000)/10000);
 			}
 		}
 		updateRate($rate.val());
@@ -174,18 +184,18 @@ require(["jquery","safe","jquery-block"],function($, safe){
 			sval = parseFloat($sell.val());
 			bval = parseFloat($buy.val());
 			if ($rate.attr('readonly')) {
-				updateRate(Math.round(bval/sval*10000)/10000);
+				updateRate(bval/sval);
 			} else if ($sell.attr('readonly')) {
 				if (!reverse)
-					sval = bval/rval;
+					sval = roundVal(bval/rval);
 				else
-					sval = bval*rval;
+					sval = roundVal(bval*rval);
 				$sell.val(sval);
 			} else if ($buy.attr('readonly')) {
 				if (!reverse)
-					bval = sval*rval;
+					bval = roundVal(sval*rval);
 				else
-					bval = sval/rval;
+					bval = roundVal(sval/rval);
 				$buy.val(bval);
 			}
 		}
