@@ -1718,7 +1718,7 @@ describe("Registry", function () {
 			self.done();
 		});
 	});
-	describe("Multicurrency test", function () {
+	describe.only("Multicurrency test", function () {
 		it("Login as user", function(done) {
 			var self = this;
 			self.trackError(done);
@@ -1811,7 +1811,7 @@ describe("Registry", function () {
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr.deposit + '\n');
 			helpers.runModal.call(this, null, function(modal) {
 				self.browser.findElement(By.xpath("//input[@id='rate' and contains(@value, '" + rate.rate + "')]"));
-				self.browser.findElement(By.xpath("//input[@id='quantity' and contains(@value, '" + (parseFloat(rate.rate)*parseFloat(tr.deposit)) + "')]"));
+				self.browser.findElement(By.xpath("//input[@id='sell' and contains(@value, '" + (parseFloat(rate.rate)*parseFloat(tr.deposit)) + "')]"));
 				modal.findElement(By.id("save")).click();
 			});
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank']/td[@data-name='date']"));

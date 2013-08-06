@@ -622,12 +622,14 @@ $(function(){
 											rate: price, 
 											curr1: mainCurr,
 											curr2: editCurr,
-											quantity:  Math.round(price*val*100)/100,
-											date: date
+											quantity:  (price*val).toFixed(2),
+											date: date,
+											bs: false
 										};
 										if (reverse) {
-											data.val = Math.round(val/price*100)/100;
+											data.val = (val/price).toFixed(2);
 											data.quantity = val
+											data.bs = true;
 										}
 										tf.render('account1_curr', data, safe.sure(cb,function(text, ctx) {
 											var $splitMainColumnD = $record.parent().find(".acc-item-record-split[data-recordid=\""+recordid+"\"][data-accid=\""+relaccid+"\"] .acc-item-split[data-name=\"deposit\"]");

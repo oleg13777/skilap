@@ -71,6 +71,7 @@ var curr1 = "{{curr1}}";
 var curr2 = "{{curr2}}";
 var date = "{{date}}";
 var reverse = false;
+var bs = "{{bs}}";
 require(["jquery","safe","jquery-block"],function($, safe){
 	var save = false;
 	$(function(e) {
@@ -160,11 +161,11 @@ require(["jquery","safe","jquery-block"],function($, safe){
 		})
 		
 		function roundVal(val) {
-			return Math.round(val*100)/100;
+			return parseFloat(val).toFixed(2);
 		}
 		
 		function updateRate(rate) {
-			rval = roundVal(Math.round(rate*10000)/10000);
+			rval = parseFloat(rate).toFixed(4); 
 			if (rate >= 1) {
 				$("#first_cur").text("1x " + curr1);
 				$("#second_cur").text(curr2);
@@ -174,9 +175,12 @@ require(["jquery","safe","jquery-block"],function($, safe){
 				$("#first_cur").text("1x " + curr2);
 				$("#second_cur").text(curr1);
 				reverse = true;
-				$rate.val(Math.round(1/rate*10000)/10000);
+				$rate.val((1/rate).toFixed(4));
 			}
+			$rate.attr('value', $rate.val());
 		}
+		if (bs) 
+			updateViews('sell', 'rate', 'buy');
 		updateRate($rate.val());
 		updateVal();
 		function updateVal() {
@@ -191,12 +195,14 @@ require(["jquery","safe","jquery-block"],function($, safe){
 				else
 					sval = roundVal(bval*rval);
 				$sell.val(sval);
+				$sell.attr('value', sval);
 			} else if ($buy.attr('readonly')) {
 				if (!reverse)
 					bval = roundVal(sval*rval);
 				else
 					bval = roundVal(sval/rval);
 				$buy.val(bval);
+				$buy.attr('value', sval);
 			}
 		}
 		
