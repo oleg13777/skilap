@@ -92,7 +92,12 @@ require(['jquery',"bootstrap"], function ($) { $(function () {
 			require(['api','safe'], function (api, safe) {
 				api.call('cash.web_removeTabs',self.data('pid'),safe.sure(cb, function () {
 					if (self.parents("li").hasClass("active")){
-						location.href="{{prefix}}";
+						$prev = $(self.parents("li")).prev();
+						if (!$prev[0])
+							location.href="{{prefix}}";
+						else
+							$prev.find('a')[0].click();
+						self.parents("li").remove();
 					} else {
 						self.parents("li").remove();
 					}
