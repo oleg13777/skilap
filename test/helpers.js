@@ -84,6 +84,13 @@ module.exports.waitNoElement = function (element) {
 	});
 };
 
+module.exports.waitNoElement = function (element) {
+	var self = this;
+	self.browser.wait(function () {
+		return self.browser.isElementPresent(element);
+	});
+};
+
 module.exports.fillInput = function(input,val){
 	input.getAttribute("value").then(function(text){
 		if(text != ""){

@@ -51,9 +51,11 @@ describe("Cash module",function () {
 			var self = this;
 			self.trackError(done);
 			self.browser.findElement(By.linkText("Cash module")).click();
+			helpers.waitElement.call(this,By.css("body.ready"));				
 			self.browser.findElement(By.xpath("//*[contains(.,'Assets:')]"));
 			self.browser.findElement(By.linkText("Data")).click();	
 			self.browser.findElement(By.linkText("New register")).click();	
+			helpers.waitElement.call(this,By.css("form#props"));				
 			self.browser.findElement(By.id("acc_curency")).sendKeys("USD");
 			self.browser.findElement(By.xpath("//input[@value='Confirm']")).click();
 			self.done();

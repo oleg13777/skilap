@@ -30,6 +30,7 @@
 require(["jquery","jquery-block","bootstrap"], function ($) {
 $(document).ready(function() {
 	$page = $("#users");
+	$page.addClass("ready");
 	$page.on('click', "a[name=\"editUser\"]", function(evt){
 		evt.preventDefault();		
 		$this = $(this);

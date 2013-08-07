@@ -56,7 +56,9 @@ describe("Core module",function () {
 			var u = this.fixtures.dataentry.users[newUser];		
 			newUser = 1;
 			this.browser.findElement(By.linkText("Core module")).click();
+			helpers.waitElement.call(this,By.css("#user"));				
 			this.browser.findElement(By.linkText("Manage users")).click();	
+			helpers.waitElement.call(this,By.css("#users.ready"));			
 			this.browser.findElement(By.name("addNewUser")).click();	
 			
 			var modal = helpers.waitModalLoad.call(this);
@@ -81,6 +83,7 @@ describe("Core module",function () {
 			this.trackError(done);
 			var self = this;
 			this.browser.findElement(By.linkText("Manage users")).click();	
+			helpers.waitElement.call(this,By.css("#users.ready"));				
 			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//button[@class='btn dropdown-toggle']")).click();	
 			this.browser.findElement(By.xpath("//table[@class='table table-condensed']/tbody/tr[1]//a[@name='editPerm']")).click();	
 			

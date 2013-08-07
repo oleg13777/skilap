@@ -95,8 +95,7 @@ module.exports.getBrowser = function(cb) {
 			server.start().then(function () {
 				var driver = new webdriver.Builder().
 					usingServer(server.address()).
-					withCapabilities({'browserName': browser}).
-					build();
+					withCapabilities({'browserName': browser});
 				cb(null,driver)
 			})
 		} else if (browser=="chrome") {
