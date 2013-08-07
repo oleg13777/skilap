@@ -124,7 +124,9 @@ module.exports.getBrowser = function(cb) {
 				}
 			});
 		} else if (browser=="remote") {
-			var connect = childProcess.spawn("java",['-jar',__dirname+"/selenium/Sauce-Connect.jar",'sergeyksv','aa36bc29-dda3-4652-9c19-8099ac7224cc']);
+			if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY)
+				return cb(new Error("Remote testing requires SAUCE_USERNAME and SAUCE_ACCESS_KEY environtment variables set"));
+			var connect = childProcess.spawn("java",['-jar',__dirname+"/selenium/Sauce-Connect.jar",process.env.SAUCE_USERNAME,process.env.SAUCE_ACCESS_KEY]);
 			childs.push(connect);			
 			var driver = null;
 			var error = null;
@@ -140,7 +142,7 @@ module.exports.getBrowser = function(cb) {
 						var error = null;
 						driver = new webdriver.Builder().
 							usingServer("http://localhost:4445/wd/hub").
-							withCapabilities({'browserName': 'chrome',"record-video":false,"record-screenshots":false,username:'sergeyksv','accessKey':'aa36bc29-dda3-4652-9c19-8099ac7224cc'});
+							withCapabilities({'browserName': 'chrome',"record-video":false,"record-screenshots":false,username:process.env.SAUCE_USERNAME,'accessKey':process.env.SAUCE_ACCESS_KEY});
 						cb(null, driver);
 					}
 				}
@@ -333,7 +335,7 @@ module.exports.shutdownContext = function (done) {
 
 function sauceRest(jobId,data,done) {
   var httpOpts = {
-	url: 'http://sergeyksv:aa36bc29-dda3-4652-9c19-8099ac7224cc@saucelabs.com/rest/v1/sergeyksv/jobs/' + jobId,
+	url: 'http://'+process.env.SAUCE_USERNAME+':'+process.env.SAUCE_ACCESS_KEY+'@saucelabs.com/rest/v1/'+process.env.SAUCE_USERNAME+'/jobs/' + jobId,
 	method: 'PUT',
 	headers: {
 	  'Content-Type': 'text/json'
