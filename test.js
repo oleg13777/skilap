@@ -19,6 +19,8 @@ var mocha = new Mocha({
 });
 mocha.addFile(path.join("./test/core-test.js"));
 mocha.addFile(path.join("./test/cash-test.js"));
+mocha.addFile(path.join("./test/cash-registry-test.js"));
+mocha.addFile(path.join("./test/cash-reports-test.js"));
 
 // Now, you can run the tests.
 mocha.run(function(failures){
