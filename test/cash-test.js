@@ -703,8 +703,99 @@ describe("Cash module",function () {
 		});
 	});
 
-	describe("Settings", function () {
-		it("TBD");
+	describe("Settings test", function () {
+		it("Login as user", function(done) {
+			var self = this;
+			self.trackError(done);
+			this.restoreDb('core-users');	
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
+			self.done();
+		});	
+		it("Creat empty", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.linkText("Cash module")).click();
+			self.browser.findElement(By.xpath("//*[contains(.,'Assets:')]"));
+			self.browser.findElement(By.linkText("Data")).click();	
+			self.browser.findElement(By.linkText("New register")).click();	
+			self.browser.findElement(By.id("acc_curency")).sendKeys("USD");
+			self.browser.findElement(By.xpath("//input[@value='Confirm']")).click();
+			self.done();
+		});
+		it("Add price for USD in RUB", function(done) {
+			var self = this;
+			self.trackError(done);
+			var rate = self.fixtures.dataentry.rates[0];
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Rate Currency Editor")).click();	
+			self.browser.findElement(By.id("firstCurrency")).sendKeys(rate.name1);
+			self.browser.findElement(By.id("secondCurrency")).sendKeys(rate.name2);
+			self.browser.findElement(By.xpath("//button[.='Apply']")).click();
+			helpers.waitElement.call(this, By.xpath("//button[.='Add']"));
+
+			self.browser.findElement(By.xpath("//button[.='Add']")).click();
+			helpers.runModal.call(this, null, function(modal) {
+		        modal.findElement(By.id("datepicker")).sendKeys(rate.date);
+				modal.findElement(By.id("newrate")).sendKeys(rate.rate);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.done();
+		});
+		it("Add price for RUB in USD", function(done) {
+			var self = this;
+			self.trackError(done);
+			var rate = self.fixtures.dataentry.rates[1];
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Rate Currency Editor")).click();	
+			self.browser.findElement(By.id("firstCurrency")).sendKeys(rate.name1);
+			self.browser.findElement(By.id("secondCurrency")).sendKeys(rate.name2);
+			self.browser.findElement(By.xpath("//button[.='Apply']")).click();
+			helpers.waitElement.call(this, By.xpath("//button[.='Add']"));
+
+			self.browser.findElement(By.xpath("//button[.='Add']")).click();
+			helpers.runModal.call(this, null, function(modal) {
+		        modal.findElement(By.id("datepicker")).sendKeys(rate.date);
+				modal.findElement(By.id("newrate")).sendKeys(rate.newrate);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.done();
+		});
+		it("Check currency", function(done) {
+			var self = this;
+			self.trackError(done);
+			var all = null;
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Home")).click();
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert(text.indexOf('$') != -1, "Default currency error");
+				assert(text.indexOf('руб') == -1, "Default currency error");
+				all = text;
+			});
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'Accidental')]"));
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Settings")).click();	
+
+			helpers.runModal.call(self, null, function(modal) {
+		        modal.findElement(By.id("tr_parent")).sendKeys("RU");
+				modal.findElement(By.id("save")).click();
+			});
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Home")).click();
+			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
+				assert(text.indexOf('$') == -1, "Default currency error");
+				assert(text.indexOf('руб') != -1, "Default currency error");
+				all = text;
+			});
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'Accidental')]"));
+			self.browser.findElement(By.xpath("//div[span[contains(.,'руб')]]/a[contains(.,'Accidental')]"));
+			helpers.waitUnblock.call(this);
+			self.done();
+		});
 	});
-	
 });

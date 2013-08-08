@@ -68,8 +68,7 @@ module.exports = function account(webapp) {
 						repCmdty = cfg.cmdty;
 					cashapi.getSettings(req.session.apiToken, 'currency', repCmdty, safe.sure(cb, function (defCmdty) {
 						accCmdty = defCmdty;
-						if (!repCmdty)
-							repCmdty = defCmdty;
+						repCmdty = defCmdty;
 						cb();
 					}))
 				}));

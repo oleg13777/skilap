@@ -39,7 +39,9 @@ $(document).ready(function() {
 				modal.show();
 				modal.once('shown', function () { $me.unblock(); })
 				modal.once('result', function (type, acc) {
-					if (type!='saved') 
+					console.log("aaaaa");
+					console.log(type);
+					if (type=='saved') 
 						location.reload();										
 					modal.hide()
 					cb();				
