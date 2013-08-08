@@ -22,11 +22,10 @@
 					<label class="control-label" for="rate">{{#i18n}}Rate{{/i18n}}:</label>
 					<div class="controls">
 						<div class="input-prepend input-append">
-							<span>1x</span>
 							<span class="add-on" id="first_cur">1x {{curr1}}</span>
-							<input type="text" name="rate" id="rate" data-value="{{rate}}" value="{{rate}}" class="text ui-widget-content ui-corner-all" />
+							<input class="input-small" type="text" name="rate" id="rate" data-value="{{rate}}" value="{{rate}}" class="text ui-widget-content ui-corner-all" />
 							<span class="add-on" id="second_cur">{{curr2}}</span>
-							<span class="add-on"><i id="rate_lock" class="icon-unlock"></i></span>
+							<button class="btn" type="button" id="rate_lock" ><i class="icon-unlock"></i></button>
 						</div>
 					</div>
 				</div>
@@ -40,9 +39,9 @@
 					<label class="control-label" for="sell">{{#i18n}}Sell{{/i18n}}:</label>
 					<div class="controls">
 						<div class="input-append">
-							<input type="text" name="sell" id="sell" data-value="{{val}}" value="{{val}}" class="text ui-widget-content ui-corner-all" />
+							<input class="input-small" type="text" name="sell" id="sell" data-value="{{val}}" value="{{val}}" class="text ui-widget-content ui-corner-all" />
 							<span class="add-on" id="sell_cur">{{curr1}}</span>
-							<span class="add-on"><i id="sell_lock" class="icon-unlock"></i></span>
+							<button class="btn" id="sell_lock"><i class="icon-unlock"></i></button>
 						</div>
 					</div>
 				</div>
@@ -50,9 +49,9 @@
 					<label class="control-label" for="buy">{{#i18n}}Buy{{/i18n}}:</label>
 					<div class="controls">
 						<div class="input-append">
-							<input type="text" name="buy" id="buy" data-value="{{quantity}}" value="{{quantity}}" class="text ui-widget-content ui-corner-all" readonly />
+							<input class="input-small" type="text" name="buy" id="buy" data-value="{{quantity}}" value="{{quantity}}" class="text ui-widget-content ui-corner-all" readonly />
 							<span class="add-on" id="buy_cur">{{curr2}}</span>
-							<span class="add-on"><i id="buy_lock" class="icon-lock"></i></span>
+							<button class="btn" id="buy_lock"><i class="icon-lock"></i></button>
 						</div>
 					</div>
 				</div>
@@ -122,25 +121,26 @@ require(["jquery","safe","jquery-block"],function($, safe){
 			
 		function updateViews(check, uncheck1, uncheck2) {
 			$check = $form.find("#" + check);
-			$check_lock = $form.find("#" + check + "_lock");
+			$check_lock = $form.find("#" + check + "_lock i");
 			$check.attr('readonly', true);
 			$check_lock.removeClass("icon-unlock");
 			$check_lock.addClass("icon-lock");
 			
 			$uncheck1 = $form.find("#" + uncheck1);
-			$uncheck1_lock = $form.find("#" + uncheck1 + "_lock");
+			$uncheck1_lock = $form.find("#" + uncheck1 + "_lock i");
 			$uncheck1.removeAttr('readonly');
 			$uncheck1_lock.addClass("icon-unlock");
 			$uncheck1_lock.removeClass("icon-lock");
 				
 			$uncheck2 = $form.find("#" + uncheck2);
-			$uncheck2_lock = $form.find("#" + uncheck2 + "_lock");
+			$uncheck2_lock = $form.find("#" + uncheck2 + "_lock i");
 			$uncheck2.removeAttr('readonly');
 			$uncheck2_lock.addClass("icon-unlock");
 			$uncheck2_lock.removeClass("icon-lock");
 		}
 		
 		$rate_lock.on("click", function (event) {
+			event.preventDefault();
 			if ($rate.attr('readonly')) {
 				updateViews('sell', 'rate', 'buy');
 			} else {
@@ -149,6 +149,7 @@ require(["jquery","safe","jquery-block"],function($, safe){
 		})
 		
 		$sell_lock.on("click", function (event) {
+			event.preventDefault();			
 			if ($sell.attr('readonly')) {
 				updateViews('buy', 'sell', 'rate');
 			} else {
@@ -157,6 +158,7 @@ require(["jquery","safe","jquery-block"],function($, safe){
 		})
 
 		$buy_lock.on("click", function (event) {
+			event.preventDefault();			
 			if ($buy.attr('readonly')) {
 				updateViews('sell', 'rate', 'buy');
 			} else {
