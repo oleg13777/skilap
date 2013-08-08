@@ -1579,4 +1579,161 @@ describe("Cash module registry",function () {
 			self.done();
 		});
 	});
+	describe("Multicurrency dialog test", function () {
+		it("Login as user", function(done) {
+			var self = this;
+			self.trackError(done);
+			this.restoreDb('core-users');	
+			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
+			self.done();
+		});	
+		it("Creat empty", function(done) {
+			var self = this;
+			self.trackError(done);
+			self.browser.findElement(By.linkText("Cash module")).click();
+			self.browser.findElement(By.xpath("//*[contains(.,'Assets:')]"));
+			self.browser.findElement(By.linkText("Data")).click();	
+			self.browser.findElement(By.linkText("New register")).click();	
+			self.browser.findElement(By.id("acc_curency")).sendKeys("USD");
+			self.browser.findElement(By.xpath("//input[@value='Confirm']")).click();
+			self.done();
+		});
+		it("Add price for USD in RUB", function(done) {
+			var self = this;
+			self.trackError(done);
+			var rate = self.fixtures.dataentry.rates[0];
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Rate Currency Editor")).click();	
+			self.browser.findElement(By.id("firstCurrency")).sendKeys(rate.name1);
+			self.browser.findElement(By.id("secondCurrency")).sendKeys(rate.name2);
+			self.browser.findElement(By.xpath("//button[.='Apply']")).click();
+			helpers.waitElement.call(this, By.xpath("//button[.='Add']"));
+
+			self.browser.findElement(By.xpath("//button[.='Add']")).click();
+			helpers.runModal.call(this, null, function(modal) {
+		        modal.findElement(By.id("datepicker")).sendKeys(rate.date);
+				modal.findElement(By.id("newrate")).sendKeys(rate.rate);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.done();
+		});
+		it("Add price for RUB in USD", function(done) {
+			var self = this;
+			self.trackError(done);
+			var rate = self.fixtures.dataentry.rates[1];
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Rate Currency Editor")).click();	
+			self.browser.findElement(By.id("firstCurrency")).sendKeys(rate.name1);
+			self.browser.findElement(By.id("secondCurrency")).sendKeys(rate.name2);
+			self.browser.findElement(By.xpath("//button[.='Apply']")).click();
+			helpers.waitElement.call(this, By.xpath("//button[.='Add']"));
+
+			self.browser.findElement(By.xpath("//button[.='Add']")).click();
+			helpers.runModal.call(this, null, function(modal) {
+		        modal.findElement(By.id("datepicker")).sendKeys(rate.date);
+				modal.findElement(By.id("newrate")).sendKeys(rate.newrate);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.done();
+		});
+		it("Create root test account", function(done) {
+			var self = this;
+			self.trackError(done);
+			var acc1 = self.fixtures.dataentry.accounts[3];		
+			
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			helpers.waitElement.call(this, By.id("add_new"));
+			self.browser.findElement(By.id("add_new")).click();
+			helpers.runModal.call(self, null, function(modal) {
+		        modal.findElement(By.id("acc_name")).sendKeys(acc1.name);
+				modal.findElement(By.id("acc_parent")).sendKeys(acc1.parent);	
+				modal.findElement(By.id("acc_curency")).sendKeys(acc1.currency);	
+				modal.findElement(By.id("save")).click();
+			});
+			self.browser.findElement(By.xpath("//a[contains(.,'" + acc1.name + "')]"));	
+			self.done();
+		});
+		it("Add transaction", function(done) {
+			var self = this;
+			self.trackError(done);
+			var tr = self.fixtures.dataentry.trs[6];
+			var acc = self.fixtures.dataentry.accounts[3];		
+			self.browser.findElement(By.xpath("//a[contains(.,'" + tr.name + "')]")).click();
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
+			helpers.waitUnblock.call(this);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']")).click();
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(acc.name);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).sendKeys(Key.RETURN);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']")).click();
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input"));
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr.deposit + '\n');
+			helpers.runModal.call(this, null, function(modal) {
+				//check readonly
+				modal.findElement(By.xpath("//input[@id='rate' and not(@readonly)]"));
+				modal.findElement(By.xpath("//input[@id='sell' and @readonly]"));
+				modal.findElement(By.xpath("//input[@id='buy' and not(@readonly)]"));
+				modal.findElement(By.id("rate_lock")).click();
+				helpers.waitElement.call(self, By.xpath("//input[@id='rate' and @readonly]"));
+				modal.findElement(By.xpath("//input[@id='rate' and @readonly]"));
+				modal.findElement(By.xpath("//input[@id='sell' and not(@readonly)]"));
+				modal.findElement(By.xpath("//input[@id='buy' and not(@readonly)]"));
+
+				//check currency names and valse
+				modal.findElement(By.xpath("//label[contains(., 'Sell RUB, buy USD')]/input[@id='plain' and @checked]"));
+				modal.findElement(By.xpath("//label[contains(., 'Sell USD, buy RUB')]/input[@id='inverse']"));
+				modal.findElement(By.xpath("//span[@id='first_cur' and .='1x USD']"));
+				modal.findElement(By.xpath("//span[@id='second_cur' and .='RUB']"));
+				modal.findElement(By.xpath("//input[@id='rate' and contains(@value, '33.33')]"));
+				modal.findElement(By.xpath("//input[@id='sell' and contains(@value, '3333')]"));
+				modal.findElement(By.xpath("//span[@id='sell_cur' and .='RUB']"));
+				modal.findElement(By.xpath("//input[@id='buy' and contains(@value, '100.00')]"));
+				modal.findElement(By.xpath("//span[@id='buy_cur' and .='USD']"));
+
+				modal.findElement(By.xpath("//label[contains(., 'Sell USD, buy RUB')]/input[@id='inverse']")).click();
+				helpers.waitUnblock.call(self);
+				modal.findElement(By.xpath("//input[@id='rate' and not(@readonly)]"));
+				modal.findElement(By.xpath("//input[@id='sell' and not(@readonly)]"));
+				modal.findElement(By.xpath("//input[@id='buy' and @readonly]"));
+				
+				//check currency names and value
+				modal.findElement(By.xpath("//label[contains(., 'Sell RUB, buy USD')]/input[@id='plain']"));
+				modal.findElement(By.xpath("//label[contains(., 'Sell USD, buy RUB')]/input[@id='inverse']")).getAttribute('checked').then(function(v) {
+					assert(v, "Not checked");
+				});
+				modal.findElement(By.xpath("//span[@id='first_cur' and .='1x USD']"));
+				modal.findElement(By.xpath("//span[@id='second_cur' and .='RUB']"));
+				modal.findElement(By.xpath("//input[@id='rate' and contains(@value, '30.00')]"));
+				modal.findElement(By.xpath("//input[@id='sell' and contains(@value, '3333')]"));
+				modal.findElement(By.xpath("//span[@id='sell_cur' and .='USD']"));
+				modal.findElement(By.xpath("//input[@id='buy' and contains(@value, '99999')]"));
+				modal.findElement(By.xpath("//span[@id='buy_cur' and .='RUB']"));
+
+				modal.findElement(By.xpath("//input[@id='rate']")).clear();
+				modal.findElement(By.xpath("//input[@id='rate']")).sendKeys('20');
+				modal.findElement(By.xpath("//input[@id='sell' and contains(@value, '3333')]"));
+				modal.findElement(By.xpath("//input[@id='buy' and contains(@value, '66666')]"));
+				modal.findElement(By.id("updateprice")).click();
+				modal.findElement(By.id("save")).click();
+			});
+			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank']/td[@data-name='date']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='withdrawal']/div[contains(., '3333')]"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[contains(.,'3333')]"));
+			self.done();
+		});
+		it("Check price for USD in RUB", function(done) {
+			var self = this;
+			self.trackError(done);
+			var rate = self.fixtures.dataentry.rates[0];
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Rate Currency Editor")).click();	
+			self.browser.findElement(By.id("firstCurrency")).sendKeys(rate.name1);
+			self.browser.findElement(By.id("secondCurrency")).sendKeys(rate.name2);
+			self.browser.findElement(By.xpath("//button[.='Apply']")).click();
+			self.browser.findElement(By.xpath("//td[@class='rate' and .='20']"));	
+			self.done();
+		});
+	});
 });

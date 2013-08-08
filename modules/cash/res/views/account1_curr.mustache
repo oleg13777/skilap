@@ -19,7 +19,7 @@
 					</div>
 				</div>	
 				<div class="control-group">
-					<label class="control-label" for="rate">Rate:</label>
+					<label class="control-label" for="rate">{{#i18n}}Rate{{/i18n}}:</label>
 					<div class="controls">
 						<div class="input-prepend input-append">
 							<span>1x</span>
@@ -37,19 +37,21 @@
 					</div>
 				</div>	
 				<div class="control-group">
-					<label class="control-label" for="sell">{{#i18n}}Sell{{/i18n}}</label>
+					<label class="control-label" for="sell">{{#i18n}}Sell{{/i18n}}:</label>
 					<div class="controls">
 						<div class="input-append">
 							<input type="text" name="sell" id="sell" data-value="{{val}}" value="{{val}}" class="text ui-widget-content ui-corner-all" />
+							<span class="add-on" id="sell_cur">{{curr1}}</span>
 							<span class="add-on"><i id="sell_lock" class="icon-unlock"></i></span>
 						</div>
 					</div>
 				</div>
 				<div class="control-group">
-					<label class="control-label" for="buy">{{#i18n}}Buy{{/i18n}}</label>
+					<label class="control-label" for="buy">{{#i18n}}Buy{{/i18n}}:</label>
 					<div class="controls">
 						<div class="input-append">
 							<input type="text" name="buy" id="buy" data-value="{{quantity}}" value="{{quantity}}" class="text ui-widget-content ui-corner-all" readonly />
+							<span class="add-on" id="buy_cur">{{curr2}}</span>
 							<span class="add-on"><i id="buy_lock" class="icon-lock"></i></span>
 						</div>
 					</div>
@@ -63,30 +65,32 @@
 	</div>			
 </div>
 <script>
-var rval = {{rate}};
-var bval = 0;
-var sval = 0;
-var val = {{val}};
-var curr1 = "{{curr1}}";
-var curr2 = "{{curr2}}";
-var date = "{{date}}";
-var reverse = false;
-var bs = "{{bs}}";
 require(["jquery","safe","jquery-block"],function($, safe){
 	var save = false;
+	var rval = {{rate}};
+	var bval = 0;
+	var sval = 0;
+	var val = {{val}};
+	var curr1 = "{{curr1}}";
+	var curr2 = "{{curr2}}";
+	var date = "{{date}}";
+	var reverse = false;
+	var bs = "{{bs}}";
 	$(function(e) {
 		$form = $("#{{uniq}}");
-		$rate = $("#rate");
-		$quantity = $("#quantity");
-		$save = $("#save1");
-		$rate_lock = $("#rate_lock");
-		$sell_lock = $("#sell_lock");
-		$buy_lock = $("#buy_lock");
-		$rate = $("#rate");
-		$sell = $("#sell");
-		$buy = $("#buy");
-		$plain = $("#plain");
-		$inverse = $("#inverse");
+		$rate = $form.find("#rate");
+		$quantity = $form.find("#quantity");
+		$save = $form.find("#save1");
+		$rate_lock = $form.find("#rate_lock");
+		$sell_lock = $form.find("#sell_lock");
+		$buy_lock = $form.find("#buy_lock");
+		$rate = $form.find("#rate");
+		$sell = $form.find("#sell");
+		$buy = $form.find("#buy");
+		$sell_cur = $form.find("#sell_cur");
+		$buy_cur = $form.find("#buy_cur");
+		$plain = $form.find("#plain");
+		$inverse = $form.find("#inverse");
 		$form.on('hidden',function () {
 			if (!save)
 				$form.trigger("frm-closed");
@@ -117,20 +121,20 @@ require(["jquery","safe","jquery-block"],function($, safe){
 		}	
 			
 		function updateViews(check, uncheck1, uncheck2) {
-			$check = $("#" + check);
-			$check_lock = $("#" + check + "_lock");
+			$check = $form.find("#" + check);
+			$check_lock = $form.find("#" + check + "_lock");
 			$check.attr('readonly', true);
 			$check_lock.removeClass("icon-unlock");
 			$check_lock.addClass("icon-lock");
 			
-			$uncheck1 = $("#" + uncheck1);
-			$uncheck1_lock = $("#" + uncheck1 + "_lock");
+			$uncheck1 = $form.find("#" + uncheck1);
+			$uncheck1_lock = $form.find("#" + uncheck1 + "_lock");
 			$uncheck1.removeAttr('readonly');
 			$uncheck1_lock.addClass("icon-unlock");
 			$uncheck1_lock.removeClass("icon-lock");
 				
-			$uncheck2 = $("#" + uncheck2);
-			$uncheck2_lock = $("#" + uncheck2 + "_lock");
+			$uncheck2 = $form.find("#" + uncheck2);
+			$uncheck2_lock = $form.find("#" + uncheck2 + "_lock");
 			$uncheck2.removeAttr('readonly');
 			$uncheck2_lock.addClass("icon-unlock");
 			$uncheck2_lock.removeClass("icon-lock");
@@ -167,16 +171,18 @@ require(["jquery","safe","jquery-block"],function($, safe){
 		function updateRate(rate) {
 			rval = parseFloat(rate).toFixed(4); 
 			if (rate >= 1) {
-				$("#first_cur").text("1x " + curr1);
-				$("#second_cur").text(curr2);
+				$form.find("#first_cur").text("1x " + curr1);
+				$form.find("#second_cur").text(curr2);
 				reverse = false;
 				$rate.val(rval);
 			} else {
-				$("#first_cur").text("1x " + curr2);
-				$("#second_cur").text(curr1);
+				$form.find("#first_cur").text("1x " + curr2);
+				$form.find("#second_cur").text(curr1);
 				reverse = true;
 				$rate.val((1/rate).toFixed(4));
 			}
+			$form.find("#sell_cur").text(curr1);
+			$form.find("#buy_cur").text(curr2);
 			$rate.attr('value', $rate.val());
 		}
 		if (bs) 
@@ -202,7 +208,7 @@ require(["jquery","safe","jquery-block"],function($, safe){
 				else
 					bval = roundVal(sval/rval);
 				$buy.val(bval);
-				$buy.attr('value', sval);
+				$buy.attr('value', bval);
 			}
 		}
 		
