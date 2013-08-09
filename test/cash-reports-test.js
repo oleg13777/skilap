@@ -290,9 +290,5 @@ describe("Cash module",function () {
 			})	
 			self.done();
 		})						
-	})
-	describe("Settings", function () {
-		it("TBD")
-	})
-	
+	})	
 })
