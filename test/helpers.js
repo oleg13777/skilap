@@ -74,6 +74,9 @@ module.exports.waitElement = function (element) {
 		return self.browser.isElementPresent(element).then(function (isPresent)
 				 { return isPresent; } );
 	});
+//	self.browser.wait(function () {
+//		return self.browser.findElement(element).isDisplayed();
+//	});
 };
 
 module.exports.waitNoElement = function (element) {

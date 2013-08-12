@@ -1,3 +1,4 @@
+<div id="import">
 {{#GnuCash}}
 <h2>{{#i18n}}Import Gnu Cash{{/i18n}}</h2>
 {{/GnuCash}}
@@ -35,10 +36,13 @@
 {{#i18n}}Wrong data. Please try again.{{/i18n}}
 </div>	
 {{/error}}	
+</div>	
 
 <script type="text/javascript">
 	require(["jquery"],function ($) {
-		$(function(){
+		$(document).ready(function() {
+			var $page = $("#import");		
+			$page.addClass("ready");
 			$(".fakeUploadBrowse").click(function(){
 				$("#upload-file").click();
 			});

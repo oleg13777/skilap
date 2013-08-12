@@ -2,7 +2,7 @@ function createChart() {
 {{#if barflow}}
 	chart = new Highcharts.Chart({
 		chart: {
-			renderTo: 'container',
+			renderTo: 'report',
 			defaultSeriesType: 'column'
 		},
 		title: {
@@ -51,7 +51,7 @@ function createChart() {
 {{#if pieflow}}
 chart = new Highcharts.Chart({
 	chart: {
-		renderTo: 'container',
+		renderTo: 'report',
 		plotBackgroundColor: null,
 		plotBorderWidth: null,
 		plotShadow: false

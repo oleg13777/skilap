@@ -15,6 +15,7 @@
 require(["jquery","jquery-block","bootstrap"], function ($) {
 $(document).ready(function() {
 	$page = $("#accounts-tree");
+	$page.addClass("ready");
 	$page.on("click", "#add_new",function(evt){
 		evt.preventDefault();		
 		$this = $(this);

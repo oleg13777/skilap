@@ -51,7 +51,7 @@ describe("Cash module",function () {
 			var self = this;
 			self.trackError(done);
 			self.browser.findElement(By.linkText("Cash module")).click();
-			helpers.waitElement.call(this,By.css("body.ready"));				
+			helpers.waitElement.call(this,By.css("#index.ready"));				
 			self.browser.findElement(By.xpath("//*[contains(.,'Assets:')]"));
 			self.browser.findElement(By.linkText("Data")).click();	
 			self.browser.findElement(By.linkText("New register")).click();	
@@ -84,14 +84,17 @@ describe("Cash module",function () {
 			self.trackError(done);
 			self.restoreDb('core-users');				
 			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
-			self.browser.findElement(By.linkText("Cash module")).click();
 			self.done();
 		});
 		it("Add price for USD in EUR", function(done) {
 			var self = this;
 			self.trackError(done);
+			
+			self.browser.findElement(By.linkText("Cash module")).click();
+			helpers.waitElement.call(this,By.css("#index.ready"));				
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Rate Currency Editor")).click();	
+			helpers.waitElement.call(this,By.css("#priceeditor.ready"));				
 			self.browser.findElement(By.id("firstCurrency")).sendKeys("USD");
 			self.browser.findElement(By.id("secondCurrency")).sendKeys("EUR");
 			self.browser.findElement(By.xpath("//button[.='Apply']")).click();
@@ -155,8 +158,10 @@ describe("Cash module",function () {
 		it("Import sample gnucash file", function(done) {
 			var self = this;
 			self.trackError(done);
+			helpers.waitElement.call(this,By.css("#index.ready"));				
 			self.browser.findElement(By.linkText("Data")).click();	
 			self.browser.findElement(By.linkText("Import Gnu Cash")).click();	
+			helpers.waitElement.call(this,By.css("#import.ready"));				
 			self.browser.findElement(By.xpath("//ul/li[.='Home']"));	
 			self.browser.findElement(By.xpath("//ul/li[contains(@class, 'active')]/a[.='GnuCash import']"));
 			self.browser.executeScript("document.getElementById('upload-file').setAttribute('style', '')");
@@ -208,8 +213,10 @@ describe("Cash module",function () {
 		it("Import Skilap Cash", function(done) {
 			var self = this;
 			self.trackError(done);
+			helpers.waitElement.call(this, By.linkText("Data"));
 			self.browser.findElement(By.linkText("Data")).click();	
 			self.browser.findElement(By.linkText("Import Skilap Cash")).click();	
+			helpers.waitElement.call(this,By.css("#import.ready"));				
 			self.browser.findElement(By.xpath("//ul/li[.='Home']"));	
 			self.browser.findElement(By.xpath("//ul/li[contains(@class, 'active')]/a[.='Raw import']"));	
 			self.browser.executeScript("document.getElementById('upload-file').setAttribute('style', '')");
@@ -249,8 +256,10 @@ describe("Cash module",function () {
 			self.trackError(done);
 			var acc1 = self.fixtures.dataentry.accounts[0];		
 			
+			helpers.waitElement.call(this,By.css("#index.ready"));				
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
+			helpers.waitElement.call(this,By.css("#accounts-tree.ready"));				
 			self.browser.findElement(By.id("add_new")).click();
 			helpers.runModal.call(self, null, function(modal) {
 		        modal.findElement(By.id("acc_name")).sendKeys(acc1.name);
@@ -268,6 +277,7 @@ describe("Cash module",function () {
 			
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
+			helpers.waitElement.call(this,By.css("#accounts-tree.ready"));				
 			self.browser.findElement(By.id("add_new")).click();
 			helpers.runModal.call(self, null, function(modal) {
 		        modal.findElement(By.id("acc_name")).sendKeys(acc2.name);
@@ -282,11 +292,11 @@ describe("Cash module",function () {
 		it("Edit changing parent and name", function(done) {
 			var self = this;
 			self.trackError(done);
-			var child = self.fixtures.dataentry.accounts[1];		
 			var parent2 = self.fixtures.dataentry.accounts[2];
 			
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
+			helpers.waitElement.call(this,By.css("#accounts-tree.ready"));				
 			self.browser.findElement(By.id("add_new")).click();
 			helpers.runModal.call(self, null, function(modal) {
 		        modal.findElement(By.id("acc_name")).sendKeys(parent2.name);
@@ -295,7 +305,6 @@ describe("Cash module",function () {
 				modal.findElement(By.id("save")).click();
 			});
 			self.browser.findElement(By.xpath("//a[contains(.,'" + parent2.name + "')]"));	
-			self.browser.findElement(By.xpath("//div[contains(./a,'" + child.name + "')]/span/a[./i[@title='edit']]")).click();	
 			self.done();
 		});
 		it("Edit changing parent and name", function(done) {
@@ -303,6 +312,7 @@ describe("Cash module",function () {
 			self.trackError(done);
 			var child = self.fixtures.dataentry.accounts[1];		
 			var parent2 = self.fixtures.dataentry.accounts[2];
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + child.name + "')]/span/a/i[@title='edit']")).click();	
 			helpers.runModal.call(self, null, function(modal) {
 		        modal.findElement(By.id("acc_name")).clear();
 		        modal.findElement(By.id("acc_name")).sendKeys(child.name_new);
@@ -328,8 +338,7 @@ describe("Cash module",function () {
 		it("Move transactions and subaccounts to another account", function(done) {
 			var self = this;
 			self.trackError(done);
-			self.browser.findElement(By.linkText("View")).click();	
-			self.browser.findElement(By.linkText("Home")).click();	
+			helpers.waitElement.call(self,By.css("#index.ready"));				
 			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
 				all = text;
 			});
@@ -339,11 +348,12 @@ describe("Cash module",function () {
 			var sumBefore = '';
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
+			helpers.waitElement.call(self,By.css("#accounts-tree.ready"));		
 			self.browser.findElement(By.xpath("//div[contains(./a,'" + accParent + "')]/span")).getText().then(function(text) {
 				sumBefore = text;
 			});
 			self.browser.findElement(By.xpath("//li[contains(./div/a,'" + accDelete + "')]//div[contains(./a,'" + accChild + "')]"));	
-			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a[./i[@title='delete']]")).click();
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a/i[@title='delete']")).click();
 			helpers.runModal.call(self, null, function(modal) {
 				modal.findElement(By.xpath("//div[@id='sub_tr']//input[@id='move']")).click();
 		        modal.findElement(By.id("tr_parent")).sendKeys(accParent);
@@ -351,7 +361,7 @@ describe("Cash module",function () {
 		        modal.findElement(By.id("sub_acc_parent")).sendKeys(accParent);
 				modal.findElement(By.id("delete")).click();
 			});
-			helpers.waitElement.call(this, By.xpath("//div[contains(./a,'" + accParent + "')]/span"));
+			helpers.waitElement.call(self, By.xpath("//div[contains(./a,'" + accParent + "')]/span"));
 			self.browser.findElement(By.xpath("//li[contains(./div/a,'" + accParent + "')]//div[contains(./a,'" + accChild + "')]"));	
 			self.browser.findElement(By.xpath("//div[contains(./a,'" + accParent + "')]/span")).getText().then(function(text) {
 				assert.ok(sumBefore != text, "Move error");
@@ -359,6 +369,7 @@ describe("Cash module",function () {
 			
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Home")).click();
+			helpers.waitElement.call(self,By.css("#index.ready"));				
 			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
 				assert.ok(all == text, "Move sum error");
 			});
@@ -370,8 +381,9 @@ describe("Cash module",function () {
 			
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
+			helpers.waitElement.call(this,By.css("#accounts-tree.ready"));				
 			var accDelete = 'QIWI Bank';
-			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a[./i[@title='delete']]")).click();
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a/i[@title='delete']")).click();
 			helpers.runModal.call(self, null, function(modal) {
 				modal.findElement(By.xpath("//div[@id='sub_tr']//input[@id='del']")).click();
 				modal.findElement(By.xpath("//div[@id='sub_acc']//input[@id='del']")).click();
@@ -384,6 +396,7 @@ describe("Cash module",function () {
 			
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Home")).click();
+			helpers.waitElement.call(this,By.css("#index.ready"));				
 			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
 				assert.ok(all != text, "Delete sum error");
 				all = text;
@@ -396,13 +409,14 @@ describe("Cash module",function () {
 			
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
+			helpers.waitElement.call(this,By.css("#accounts-tree.ready"));				
 			var accDelete = 'Разное';
 			var accParent = 'Особый Bank';
 			var sumBefore = '';
 			self.browser.findElement(By.xpath("//div[contains(./a,'" + accParent + "')]/span")).getText().then(function(text) {
 				sumBefore = text;
 			});
-			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a[./i[@title='delete']]")).click();
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a/i[@title='delete']")).click();
 			helpers.runModal.call(self, null, function(modal) {
 				modal.findElement(By.xpath("//div[@id='sub_tr']//input[@id='del']")).click();
 				modal.findElement(By.xpath("//div[@id='sub_acc']//input[@id='del']")).click();
@@ -419,6 +433,7 @@ describe("Cash module",function () {
 			
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Home")).click();
+			helpers.waitElement.call(this,By.css("#index.ready"));				
 			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
 				assert.ok(all != text, "Delete sum error");
 			});
@@ -438,13 +453,13 @@ describe("Cash module",function () {
 		it("Move transactions and subaccounts to another account", function(done) {
 			var self = this;
 			self.trackError(done);
-			self.browser.findElement(By.linkText("View")).click();	
-			self.browser.findElement(By.linkText("Home")).click();
+			helpers.waitElement.call(this,By.css("#index.ready"));				
 			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
 				all = text;
 			});
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
+			helpers.waitElement.call(this,By.css("#accounts-tree.ready"));				
 			var accParent = 'Imbalance-RUB';
 			var accDelete = 'Test1';
 			var accChild = 'test2';
@@ -453,7 +468,7 @@ describe("Cash module",function () {
 				sumBefore = text;
 			});
 			self.browser.findElement(By.xpath("//li[contains(./div/a,'" + accDelete + "')]//div[contains(./a,'" + accChild + "')]"));	
-			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a[./i[@title='delete']]")).click();
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a/i[@title='delete']")).click();
 			helpers.runModal.call(self, null, function(modal) {
 				modal.findElement(By.xpath("//div[@id='sub_tr']//input[@id='move']")).click();
 		        modal.findElement(By.id("tr_parent")).sendKeys(accParent);
@@ -469,6 +484,7 @@ describe("Cash module",function () {
 			
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Home")).click();
+			helpers.waitElement.call(this,By.css("#index.ready"));				
 			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
 				assert.ok(all == text, "Move sum error");
 			});
@@ -477,11 +493,11 @@ describe("Cash module",function () {
 		it("Delete transactions and delete sub accounts and delete subaccount transactions", function(done) {
 			var self = this;
 			self.trackError(done);
-			
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
+			helpers.waitElement.call(this,By.css("#accounts-tree.ready"));				
 			var accDelete = 'Test1';
-			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a[./i[@title='delete']]")).click();
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a/i[@title='delete']")).click();
 			helpers.runModal.call(self, null, function(modal) {
 				modal.findElement(By.xpath("//div[@id='sub_tr']//input[@id='del']")).click();
 				modal.findElement(By.xpath("//div[@id='sub_acc']//input[@id='del']")).click();
@@ -494,6 +510,7 @@ describe("Cash module",function () {
 			
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Home")).click();
+			helpers.waitElement.call(this,By.css("#index.ready"));				
 			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
 				assert.ok(all != text, "Delete sum error");
 				all = text;
@@ -506,13 +523,14 @@ describe("Cash module",function () {
 			
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
+			helpers.waitElement.call(this,By.css("#accounts-tree.ready"));				
 			var accDelete = 'Test1';
 			var accParent = 'Особый Bank';
 			var sumBefore = '';
 			self.browser.findElement(By.xpath("//div[contains(./a,'" + accParent + "')]/span")).getText().then(function(text) {
 				sumBefore = text;
 			});
-			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a[./i[@title='delete']]")).click();
+			self.browser.findElement(By.xpath("//div[contains(./a,'" + accDelete + "')]/span/a/i[@title='delete']")).click();
 			helpers.runModal.call(self, null, function(modal) {
 				modal.findElement(By.xpath("//div[@id='sub_tr']//input[@id='del']")).click();
 				modal.findElement(By.xpath("//div[@id='sub_acc']//input[@id='del']")).click();
@@ -529,6 +547,7 @@ describe("Cash module",function () {
 			
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Home")).click();
+			helpers.waitElement.call(this,By.css("#index.ready"));				
 			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
 				assert.ok(all != text, "Delete sum error");
 			});
@@ -543,6 +562,7 @@ describe("Cash module",function () {
 			self.restoreDb('cash-gnucash');	
 			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
 			self.browser.findElement(By.linkText("Cash module")).click();	
+			helpers.waitElement.call(this,By.css("#index.ready"));				
 			self.browser.findElement(By.xpath("//ul[contains(@class, 'nav-tabs')]/li[contains(@class, 'active')]/a[.='Home']"));	
 			self.browser.findElement(By.xpath("//ul[contains(@class, 'nav-tabs')]/li[1]/a[.='Home']"));	
 			self.browser.isElementPresent(By.xpath("//ul[contains(@class, 'nav-tabs')]/li[2]")).then(function (isPresent) {
@@ -576,8 +596,11 @@ describe("Cash module",function () {
 				assert.ok(text == 'Bar flow chart', "Bad name");
 			});
 
-			self.browser.findElement(By.id("page_menu")).click();	
-			self.browser.findElement(By.id("settings")).click();
+			self.browser.findElement(By.xpath("//ul[@id='page_menu']/li/a")).click();	
+			self.browser.wait(function () {
+				return self.browser.findElement(By.xpath("//ul[@id='page_menu']//a[@id='settings']")).isDisplayed();
+			});
+			self.browser.findElement(By.xpath("//ul[@id='page_menu']//a[@id='settings']")).click();
 			helpers.runModal.call(self, null, function(modal) {				
 		        modal.findElement(By.xpath("//span[text()='Электричество']")).click();						
 		        modal.findElement(By.xpath("//ul[@id='myTab']/li/a[contains(., 'General')]")).click();						
@@ -585,6 +608,7 @@ describe("Cash module",function () {
 		        modal.findElement(By.xpath("//input[@id='reportName']")).sendKeys("New name");						
 				modal.findElement(By.id("save")).click();
 			});
+			helpers.waitElement.call(this, By.id("highcharts-0"));
 			self.browser.findElement(By.css(".highcharts-title")).getText().then(function(text) {
 				assert.ok(text == 'New name', "Bad new name");
 			});
@@ -606,6 +630,7 @@ describe("Cash module",function () {
 				assert.ok(!isPresent, "Rename error");
 			});
 			self.browser.findElement(By.xpath("//ul[contains(@class, 'nav-tabs')]/li[1]/a[.='Home']")).click();	
+			helpers.waitElement.call(this,By.css("#index.ready"));				
 			self.done();
 		});
 		it ("Open report page using menu. Verify its default state.", function(done){
@@ -715,9 +740,11 @@ describe("Cash module",function () {
 			var self = this;
 			self.trackError(done);
 			self.browser.findElement(By.linkText("Cash module")).click();
+			helpers.waitElement.call(this,By.css("#index.ready"));				
 			self.browser.findElement(By.xpath("//*[contains(.,'Assets:')]"));
 			self.browser.findElement(By.linkText("Data")).click();	
 			self.browser.findElement(By.linkText("New register")).click();	
+			helpers.waitElement.call(this,By.css("form#props"));				
 			self.browser.findElement(By.id("acc_curency")).sendKeys("USD");
 			self.browser.findElement(By.xpath("//input[@value='Confirm']")).click();
 			self.done();
@@ -728,6 +755,7 @@ describe("Cash module",function () {
 			var rate = self.fixtures.dataentry.rates[0];
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Rate Currency Editor")).click();	
+			helpers.waitElement.call(this,By.css("#priceeditor.ready"));				
 			self.browser.findElement(By.id("firstCurrency")).sendKeys(rate.name1);
 			self.browser.findElement(By.id("secondCurrency")).sendKeys(rate.name2);
 			self.browser.findElement(By.xpath("//button[.='Apply']")).click();
@@ -747,6 +775,7 @@ describe("Cash module",function () {
 			var rate = self.fixtures.dataentry.rates[1];
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Rate Currency Editor")).click();	
+			helpers.waitElement.call(this,By.css("#priceeditor.ready"));				
 			self.browser.findElement(By.id("firstCurrency")).sendKeys(rate.name1);
 			self.browser.findElement(By.id("secondCurrency")).sendKeys(rate.name2);
 			self.browser.findElement(By.xpath("//button[.='Apply']")).click();
@@ -766,6 +795,7 @@ describe("Cash module",function () {
 			var all = null;
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Home")).click();
+			helpers.waitElement.call(this,By.css("#index.ready"));				
 			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
 				assert(text.indexOf('$') != -1, "Default currency error");
 				assert(text.indexOf('руб') == -1, "Default currency error");
@@ -773,6 +803,7 @@ describe("Cash module",function () {
 			});
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
+			helpers.waitElement.call(this,By.css("#accounts-tree.ready"));				
 			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'Accidental')]"));
 			
 			self.browser.findElement(By.linkText("View")).click();	
@@ -785,6 +816,7 @@ describe("Cash module",function () {
 			
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Home")).click();
+			helpers.waitElement.call(this,By.css("#index.ready"));				
 			self.browser.findElement(By.xpath("//h2[contains(.,'Assets:')]/span")).getText().then(function(text) {
 				assert(text.indexOf('$') == -1, "Default currency error");
 				assert(text.indexOf('руб') != -1, "Default currency error");
@@ -792,6 +824,7 @@ describe("Cash module",function () {
 			});
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
+			helpers.waitElement.call(this,By.css("#accounts-tree.ready"));				
 			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'Accidental')]"));
 			self.browser.findElement(By.xpath("//div[span[contains(.,'руб')]]/a[contains(.,'Accidental')]"));
 			helpers.waitUnblock.call(this);

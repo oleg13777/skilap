@@ -1,5 +1,9 @@
 <script type="text/javascript">	
 require(["jquery","highcharts"], function ($) {
+$(document).ready(function() {
+	$page = $("#priceeditor");
+	$page.addClass("ready");
+	
 		var graphOptions = {
             chart: {
                 renderTo: 'graphContainer',
@@ -251,7 +255,9 @@ require(["jquery","highcharts"], function ($) {
 			*/
 		});		
 	});
+});
 </script>
+<div id="priceeditor">
 <h2>{{#i18n}}Select pair of currencies to edit rate exchanging currency{{/i18n}}</h2>
 <form id="currencySelectorForm" class="well form-inline">	
 	<input type="hidden" name="offset" value="0" />
@@ -277,6 +283,7 @@ require(["jquery","highcharts"], function ($) {
 </div>
 <div class="span5">
 	<div id="graphContainer"></div>
+</div>
 </div>
 </div>
 

@@ -1,3 +1,4 @@
+<div id="accounts">
 <div class="row-fluid acc-container">
 	<div class="span11">
 		<table class="table acc-table table-bordered">
@@ -23,9 +24,12 @@
 		</div>
 	</div>
 </div>
+</div>
 <script type="text/javascript">
 require(["jquery","safe","lodash","jquery-block","jquery-mousewheel","bootstrap-datepicker","bootstrap-typeahead"], function ($,safe,_) {
-$(function(){
+$(document).ready(function() {
+	$page = $("#accounts");
+	$page.addClass("ready");
 	var rowHeight = 30,
 		rowsLimit = 20,
 		iTotalRecords = {{accountSize}},
@@ -131,6 +135,7 @@ $(function(){
 
 	$container.on('keydown','.acc-item',function(e){
 		if(e.keyCode == 9){
+			$(".typeahead.dropdown-menu").remove();
 			var $nextCol = $(this).next(".acc-item");
 			var splitMode = $container.find(".splitMode").is(":checked");
 			if($(this).data("name") == "description" && splitMode) {
@@ -160,6 +165,7 @@ $(function(){
 		if(e.which == 13){
 			if(!$(".typeahead.dropdown-menu").is(":visible")){
 				/* get next main row */
+				$(".typeahead.dropdown-menu").remove();
 				var $rows = $(this).parent().nextUntil(".acc-item-record");
 				var $nextRow = $rows.eq($rows.length-1).next();
 				$nextCol = $nextRow.find(".acc-item:first");
@@ -175,6 +181,7 @@ $(function(){
 
 	$container.on('keydown','.acc-item-split',function(e){
 		if(e.keyCode == 9){
+			$(".typeahead.dropdown-menu").remove();
 			var $nextCol = $(this).next(".acc-item-split");
 			if($nextCol.length > 0){
 				var colName = $nextCol.data("name");
@@ -287,8 +294,7 @@ $(function(){
 			updateRecord($update,true,function(err, result){
 				toggleSplitRows($container);
 				isRecordUpdated = true;
-				$container.find(".acc-scroll").scroll();
-				$container.unblock();
+				updateContainer();
 			});
 		}
 		return false;

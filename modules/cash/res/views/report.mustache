@@ -1,15 +1,17 @@
-<div id="container" style="width: 100%; height: 700px;"></div>
+<div id="report" style="width: 100%; height: 700px;"></div>
 
 <script type="text/javascript">
 require(["jquery","jquery-block","highcharts"], function ($) {
-$(function() {	
+$(document).ready(function() {
+	$page = $("#container");
+	$page.addClass("ready");
 	var chart;
 	$(window).on('resize',function(){
 		adaptHeight();
 	});
 
 	function adaptHeight() {
-		$("#container").height($(window).height()-$(".navbar.navbar-fixed-top").height()-20);
+		$("#report").height($(window).height()-$(".navbar.navbar-fixed-top").height()-20);
 	}
 	
 	adaptHeight();
