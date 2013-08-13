@@ -748,7 +748,7 @@ describe("Cash module registry",function () {
 		});
 	});
 	describe("Split mode input and edit", function () {
-		it("Login as user", function(done) {
+		before(function(done) {
 			var self = this;
 			self.trackError(done);
 			self.restoreDb('register-test');
@@ -967,7 +967,7 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
-			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(tr.date);
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).sendKeys(tr.date1);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']//input")).sendKeys(tr.num);

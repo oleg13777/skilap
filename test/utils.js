@@ -89,7 +89,7 @@ module.exports.getBrowser = function(cb) {
 		var browser = cfg.browser;
 		if (browser=="firefox") {
 			var server = new SeleniumServer({
-			  jar: __dirname + "/selenium/selenium-server-standalone-2.32.0.jar",
+			  jar: __dirname + "/selenium/selenium-server-standalone-2.35.0.jar",
 			  port: 4444
 			});
 			server.start().then(function () {

@@ -831,17 +831,21 @@ $(document).ready(function() {
 						items:1000,
 						menu: '<ul class="typeahead dropdown-menu" style="max-height:150px;overflow-y:auto;"></ul>'
 					};
+					var thid = 0;
 					if(name == "path"){
 						var suggestions = {};
 						typeaheadOptions.source = function(text,process){
+							var idl = ++thid;
 							var jqXHR = $.ajax({
 								"url": "{{prefix}}/account/{{accountId}}/getaccounts",
 								"dataType": "json",
 								"cache": true
 							});
 							jqXHR.done(function(data){
-								suggestions = data;
-								process(_.sortBy(_.keys(data), function(name) { return name; }));
+								if ($elem.is(":visible") && idl==thid) {
+									suggestions = data;									
+									process(_.sortBy(_.keys(data), function(name) { return name; }));
+								}
 							});
 
 						};
@@ -857,13 +861,15 @@ $(document).ready(function() {
 					}
 					else if(name == "description"){
 						typeaheadOptions.source = function(text,process){
+							var idl = ++thid;							
 							var jqXHR = $.ajax({
 								"url": "{{prefix}}/account/{{accountId}}/getdesc",
 								"dataType": "json",
 								"cache": true
 							});
 							jqXHR.done(function(data){
-								process(data);
+								if ($elem.is(":visible") && idl==thid)								
+									process(data);
 							});
 
 						}

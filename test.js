@@ -3,7 +3,7 @@ var path = require('path');
 var tutils = require('./test/utils.js')
 var argv = require('optimist')
     .default('db', "tingodb")
-    .default('browser', "remote")    
+    .default('browser', "firefox")    
     .default('silent',true)
     .argv
 
