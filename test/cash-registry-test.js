@@ -1804,9 +1804,20 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Rate Currency Editor")).click();	
 			helpers.waitElement.call(self,By.css("#priceeditor.ready"));				
-			self.browser.findElement(By.id("firstCurrency")).sendKeys("C");
-			self.browser.findElement(By.id("secondCurrency")).sendKeys(rate.name2);
+			self.browser.findElement(By.id("firstCurrency")).sendKeys("EUR");
+			self.browser.findElement(By.id("secondCurrency")).sendKeys("CU");
+			//TODO 
+			self.browser.sleep(1000);
+			self.browser.findElement(By.xpath("//button[.='Apply']")).click();
+			helpers.waitElement.call(self, By.xpath("//button[.='Edit']"));
+			//TODO 
+			self.browser.sleep(1000);
 			self.browser.findElement(By.id("firstCurrency")).sendKeys(rate.name1);
+			//TODO 
+			self.browser.sleep(1000);
+			self.browser.findElement(By.id("secondCurrency")).sendKeys(rate.name2);
+			//TODO 
+			self.browser.sleep(1000);
 			self.browser.findElement(By.xpath("//button[.='Apply']")).click();
 			helpers.waitElement.call(self,By.xpath("//td[@class='rate' and .='20']"));				
 			self.browser.findElement(By.xpath("//td[@class='rate' and .='20']"));	

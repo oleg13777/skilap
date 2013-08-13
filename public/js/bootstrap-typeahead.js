@@ -154,23 +154,41 @@
   , next: function (event) {
       var active = this.$menu.find('.active').removeClass('active')
         , next = active.next()
+        , top = false
 
       if (!next.length) {
         next = $(this.$menu.find('li')[0])
+        top = true
       }
 
       next.addClass('active')
+      var bottomPosition = next.position().top + next.height()
+      var menuHeight = this.$menu.innerHeight()
+      if (menuHeight < bottomPosition || top)
+          if (top)
+        	  this.$menu.scrollTop(0);
+          else
+        	  this.$menu.scrollTop(this.$menu.scrollTop() + bottomPosition - menuHeight);
     }
 
   , prev: function (event) {
       var active = this.$menu.find('.active').removeClass('active')
         , prev = active.prev()
+        , last = false
 
       if (!prev.length) {
         prev = this.$menu.find('li').last()
+        last = true;
       }
 
       prev.addClass('active')
+      var menuScroll = this.$menu.scrollTop()
+      var topPosition = menuScroll + prev.position().top
+      if (menuScroll > topPosition || last)
+          if (last) {
+        	  this.$menu.scrollTop(prev.position().top - this.$menu.innerHeight() + prev.height())
+          } else
+        	  this.$menu.scrollTop(topPosition)
     }
 
   , listen: function () {
