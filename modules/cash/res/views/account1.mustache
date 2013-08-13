@@ -37,7 +37,8 @@ $(document).ready(function() {
 		selectedRowId = null,
 		isRecordAdded = false,
 		isRecordUpdated = false,
-		$container = $(".acc-container");
+		$container = $(".acc-container"),
+		lastModData = null;
 
 	$container.on('mousewheel', function(event, delta, deltaX, deltaY) {
 		var $accScroll = $container.find(".acc-scroll");
@@ -70,13 +71,13 @@ $(document).ready(function() {
 						if($record.hasClass("selected")){
 							if($self.hasClass("selected"))
 								return cb1();
-							updateOldColumnSelected($record.find(".acc-item.selected"),cb1);
+							updateOldColumnSelected($record.find(".acc-item.selected"), cb1);
 						}
 						else{
 							var $accItem = $container.find(".acc-item.selected");
 							if($accItem.length == 0)
 								$accItem = $container.find(".acc-item-split.selected");
-							updateOldColumnSelected($accItem,function(err, res){
+							updateOldColumnSelected($accItem, function(err, res){
 								if (err == 1) return cb(null, res);
 								if (err) return cb(err, res);
 								updateRecord($container.find(".acc-item-record.selected"),false,safe.sure(cb1,function(result){
@@ -118,10 +119,10 @@ $(document).ready(function() {
 			require(["async","api"],function(async,api){
 				async.series([
 					function(cb1){
-						updateOldColumnSelected($mainrecord.find(".acc-item.selected"),cb1);
+						updateOldColumnSelected($mainrecord.find(".acc-item.selected"), cb1);
 					},
 					function(cb1){
-						updateOldColumnSelected($splitrecords.find(".acc-item-split.selected"),cb1);
+						updateOldColumnSelected($splitrecords.find(".acc-item-split.selected"), cb1);
 					},
 					function(cb1){
 						handleColumnClick($self,cb1);
@@ -177,6 +178,14 @@ $(document).ready(function() {
 				return false;
 			}
 		}
+		if(e.which == 27){
+			if ($(".typeahead.dropdown-menu").is(":visible")) {
+				$(".typeahead.dropdown-menu").remove();
+				return false;
+			}
+			updateContainer();
+			return false;
+		}
 	});
 
 	$container.on('keydown','.acc-item-split',function(e){
@@ -211,7 +220,7 @@ $(document).ready(function() {
 						$container.find(".acc-scroll").scroll();
 						$container.unblock();
 						
-						if ($update.date("id") == "blank")
+						if ($update.data("id") == "blank")
 							setTimeout(function () {
 								var $selected = $container.find(".acc-item-record.selected");
 								var $nextCol = $selected.find(".acc-item:first").next();
@@ -220,6 +229,14 @@ $(document).ready(function() {
 					});
 				});
 			}
+		}
+		if(e.which == 27){
+			if ($(".typeahead.dropdown-menu").is(":visible")) {
+				$(".typeahead.dropdown-menu").remove();
+				return false;
+			}
+			updateContainer();
+			return;
 		}
 	});
 
@@ -230,10 +247,10 @@ $(document).ready(function() {
 		if($(e.target).closest('.acc-container').length == 0){
 			var $accItemSelected = $container.find(".acc-item-record.selected .acc-item.selected");
 			if($accItemSelected.length){
-				updateOldColumnSelected($accItemSelected,function(){});
+				updateOldColumnSelected($accItemSelected, function(){});
 			}
 			else{
-				updateOldColumnSelected($container.find(".acc-item-record-split.selected .acc-item-split.selected"),function(){});
+				updateOldColumnSelected($container.find(".acc-item-record-split.selected .acc-item-split.selected"), function(){});
 			}
 		}
 	});
@@ -382,6 +399,8 @@ $(document).ready(function() {
 			selectedRowId = srowId;
 		safe.run(function(cb1){
 			getData(offset,limit,safe.sure(cb1,function(data){
+				if (lastModData) 
+					data.aaData[data.aaData.length - 1].date = lastModData;
 				require(["clitpl"],function(tf){
 					tf.render("account_items",{items:data.aaData,oddeven:0,splitMode:$container.find(".splitMode").is(":checked")},safe.sure(cb1,function(text,ctx){
 						$container.find("tbody").html(text);
@@ -482,6 +501,8 @@ $(document).ready(function() {
 		if(!force && _.isEqual(data,origData)) {
 			return cb();
 		}
+		if ($record.data("id") == 'blank')
+			lastModData = data.date;
 
 		$container.block();
 		var jqXHR = $.ajax({
@@ -514,7 +535,7 @@ $(document).ready(function() {
 	}
 	
 	var $modal;
-	function updateOldColumnSelected($column,cb){
+	function updateOldColumnSelected($column, cb){
 		if(!$column || $column.length == 0)
 			return cb();
 		var editable = $column.data("editable");
@@ -581,6 +602,8 @@ $(document).ready(function() {
 			var val = $column.find("input").val();
 			$column.find(".tdContent").text(val);
 			columnModifiedData.val = val;
+			if(columnName == "path" || columnName == "description")
+				$column.attr("title", val);
 
 			if($column.closest(".acc-item-record").length > 0){
 				var relaccid = $column.data("relaccid");
@@ -907,7 +930,7 @@ $(document).ready(function() {
 			var $splits = $container.find(".acc-item-record-split[data-recordid=\""+$selectedRow.data("id")+"\"]");
 			$container.find(".acc-item[data-splitblock=\"1\"] .tdContent").show();
 			if($checkbox.is(":checked")){
-				updateOldColumnSelected($selectedRow.find(".acc-item.selected"),function(){
+				updateOldColumnSelected($selectedRow.find(".acc-item.selected"), function(){
 					$container.find(".acc-item-record-split").hide();
 					$selectedRow.find(".acc-item[data-splitblock=\"1\"] .tdContent").hide();
 					$splits.show();
@@ -926,7 +949,7 @@ $(document).ready(function() {
 
 	function addNewRecord($column){
 		safe.run(function(cb){
-			updateOldColumnSelected($column,safe.sure(cb,function(){
+			updateOldColumnSelected($column, safe.sure(cb,function(){
 				updateRecord($column.parent(),false,safe.sure(cb,function(result){
 					if(result && result.isNew){
 						isRecordAdded = true;
