@@ -447,7 +447,8 @@ describe("Cash module",function () {
 			self.trackError(done);
 			self.restoreDb('cash-gnucash');	
 			helpers.login.call(self, self.fixtures.dataentry.users[0], true);
-			self.browser.findElement(By.linkText("Cash module")).click();			
+			self.browser.findElement(By.linkText("Cash module")).click();		
+			helpers.waitElement.call(this,By.css("#index.ready"));						
 			self.done();
 		});		
 		it("Move transactions and subaccounts to another account", function(done) {
