@@ -89,7 +89,7 @@ module.exports.getBrowser = function(cb) {
 		var browser = cfg.browser;
 		if (browser=="firefox") {
 			var server = new SeleniumServer({
-			  jar: __dirname + "/selenium/selenium-server-standalone-2.32.0.jar",
+			  jar: __dirname + "/selenium/selenium-server-standalone-2.35.0.jar",
 			  port: 4444
 			});
 			server.start().then(function () {
@@ -142,7 +142,7 @@ module.exports.getBrowser = function(cb) {
 						var error = null;
 						driver = new webdriver.Builder().
 							usingServer("http://localhost:4445/wd/hub").
-							withCapabilities({'browserName': 'chrome',"record-video":false,"record-screenshots":false,username:process.env.SAUCE_USERNAME,'accessKey':process.env.SAUCE_ACCESS_KEY});
+							withCapabilities({'browserName': process.env.SAUCE_BROWSER || 'chrome',"record-video":false,"record-screenshots":false,username:process.env.SAUCE_USERNAME,'accessKey':process.env.SAUCE_ACCESS_KEY});
 						cb(null, driver);
 					}
 				}
