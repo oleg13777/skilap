@@ -79,8 +79,8 @@ module.exports.exchangeRate = function () {
 				request('http://download.finance.yahoo.com/d/quotes.csv?s='+e+'=X&f=sl1d1t1ba&e=.csv', function (err, response, body) {
 					if (response.statusCode == 200 && body) {
 						var arr = body.trim().split(",");
-						if (parseFloat(arr[1]) && arr[2] && moment.utc(arr[2]).format("YYYY/MM/DD")) {
-							curency["date"] = moment.utc(arr[2]).format("YYYY/MM/DD");
+						if (parseFloat(arr[1]) && arr[2] && moment.utc(arr[2])) {
+							curency["date"] = moment(arr[2]);
 							curency[e] = parseFloat(arr[1]);
 						}
 					}
@@ -90,15 +90,15 @@ module.exports.exchangeRate = function () {
 		},
 		function (cb) {
 			curency = prefixify(curency);
-			var cdate = new Date(curency.date);
+			var cdate = curency.date.valueOf();
 			_.each(_.keys(pairs), function(pair) {
-				if (cdate - pairs[pair].date < 1000*60*60*24)
+				if (cdate - moment(pairs[pair].date).valueOf() < 1000*60*60*24)
 					return;
 				prices.push({
 					'_id': new self._ctx.ObjectID(),
 					'cmdty': pairs[pair].cmdty,
 					'currency': pairs[pair].currency,
-					'date': cdate,
+					'date': new Date(cdate),
 					'source': 'yahoo',
 					'value': curency[pair]
 				});
