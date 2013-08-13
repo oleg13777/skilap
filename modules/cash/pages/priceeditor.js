@@ -1,8 +1,6 @@
 var async = require("async");
 var safe = require('safe');
 var _ = require('underscore');
-var DateFormat = require('dateformatjs').DateFormat;
-var df = new DateFormat("MM/dd/yyyy");
 
 module.exports = function priceeditor(webapp) {
 	var app = webapp.web;
@@ -19,7 +17,7 @@ module.exports = function priceeditor(webapp) {
 					});
 					var paging,pagingPrices;
 					var offset = parseInt(req.query.offset ? req.query.offset : 0);
-					var limit = 10;
+					var limit = 25;
 					var len = prices.length;
 					if(len > limit){
 						pagingPrices = prices.slice(offset,offset + Math.min(limit,len));
@@ -37,9 +35,6 @@ module.exports = function priceeditor(webapp) {
 					else{
 						pagingPrices = prices;
 					}
-					_.forEach(pagingPrices,function(price){
-						price.date = df.format(new Date(price.date));							
-					});	
 					firstPrice =_.first(prices);
 					var lastRate;
 					if(firstPrice)
@@ -49,28 +44,9 @@ module.exports = function priceeditor(webapp) {
 						prices:pagingPrices,
 						firstCurr:req.query.firstCurr,
 						secondCurr:req.query.secondCurr,
-						currentDate:df.format(new Date()),
 						lastRate:lastRate,
 						paging:paging});
 				}));			
-			}
-			else if(req.query.mode){
-				var dateFormat = new DateFormat(DateFormat.W3C);
-				var date = dateFormat.format(new Date(req.query.date));
-				var cmdty = {space:"ISO4217",id:req.query.from};
-				var currency = {space:"ISO4217",id:req.query.to};	
-				price = {cmdty:cmdty,currency:currency,date:date,value:req.query.value,source:"edit"};
-				if(req.query.id != 0){
-					price._id = req.query.id;
-				}	
-				cashapi.savePrice(req.session.apiToken,price,safe.trap_sure(next, function(pricen) {
-					pricen.date = df.format(new Date(pricen.date));
-					pricen.layout = false;
-					res.render(__dirname+"/../res/views/priceeditor_tr",pricen);
-				}));				
-			}
-			else if(req.query.deleteId){
-				cashapi.clearPrices(req.session.apiToken,[req.query.deleteId],safe.sure(next,function () {res.send({});}));
 			}
 			else if(req.query.redrawGraph) {
 				cashapi.getPricesByPair(req.session.apiToken,{from:req.query.from,to:req.query.to},safe.trap_sure(next,function(prices){

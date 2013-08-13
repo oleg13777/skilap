@@ -84,7 +84,7 @@ $(document).ready(function() {
 			jqXHR.done(function(res){	
 				graphOptions.title.text = from+' {{#i18n}}to{{/i18n}} '+to+' {{#i18n}}exchange rate{{/i18n}}';
 				graphOptions.series[0].name = from+' to '+to;	
-				graphOptions.yAxis.max = res.max;			
+				graphOptions.yAxis.max = res.max.value;			
 				graphOptions.series[0].data = res.data;
 				var chart = new Highcharts.Chart(graphOptions);				
 			});
@@ -98,7 +98,7 @@ $(document).ready(function() {
 		
 		$(".rateCtrlBtn").attr('disabled','disabled');
 		/* on change currency */
-		$("#currencySelectorForm select").on('change',function(){
+		$page.on('change', "#currencySelectorForm select",function(){
 			var current=0,target=1;
 			if(selectList[1] == $(this).get(0)){
 				current = 1;target = 0;
@@ -118,7 +118,7 @@ $(document).ready(function() {
 		});
 		
 		var oldFrom,oldTo;				
-		$("#currencySelectorForm").submit(function(){
+		$page.on("submit", "#currencySelectorForm", function(){
 			var $self = $(this);
 			var from = $self.find('#firstCurrency option:selected').val();
 			var to = $self.find('#secondCurrency option:selected').val();
@@ -130,6 +130,10 @@ $(document).ready(function() {
 			});
 			jqXHR.done(function(data){
 				$(".rateEditorContainer").html(data);
+				$pagination = $(".rateEditorContainer .pagination")
+				$pagination.remove();
+				$page.find("#pagination").html($pagination);
+				
 				$(".rateCtrlBtn").attr('disabled','disabled');
 				$(".add.rateCtrlBtn").removeAttr('disabled');				
 				if(oldFrom != from || oldTo != to){				
@@ -138,19 +142,22 @@ $(document).ready(function() {
 					redrawPriceGraph();
 				}
 			});
+			$page.find("H2").hide();
+			$self.remove();
+			$page.find("#rightcol").prepend($self);
 			return false;
 		});
 		
-		$(document).on('click',".pagination .pageNum",function(){
+		$page.on('click',".pagination .pageNum",function(){
 			if($(this).parent().hasClass("active"))
 				return false;
 			$("#currencySelectorForm input[name=\"offset\"]").val($(this).data("offset"));
 			$("#currencySelectorForm").submit();
 		});		
 		
-		$(document).on('click',"#rateTable tbody tr",function(){
-			$("#rateTable tbody tr").removeClass('selected');
-			$(this).addClass('selected');
+		$page.on('click',"#rateTable tbody tr",function(){
+			$("#rateTable tbody tr").removeClass('success');
+			$(this).addClass('success');
 			$(".edit.rateCtrlBtn,.delete.rateCtrlBtn").removeAttr('disabled');
 		});
 		
@@ -166,9 +173,9 @@ $(document).ready(function() {
 			else if($(this).hasClass('edit')){
 				title = '{{#i18n}}Edit Rate Currency{{/i18n}}';
 				mode = 'edit';
-				id = $("#rateTable tr.selected").data('id');
-				rate = $("#rateTable tr.selected td.rate").text();
-				currentDate = $("#rateTable tr.selected td.date").text();
+				id = $("#rateTable tr.success").data('id');
+				rate = $("#rateTable tr.success td.rate").text();
+				currentDate = $("#rateTable tr.success td.date").text();
 			}
 			var from = $('#firstCurrency option:selected').val();
 			var to = $('#secondCurrency option:selected').val();
@@ -186,7 +193,7 @@ $(document).ready(function() {
 						$modal.on("frm-saved", function (e, pricen) {
 							tf.render('priceeditor_tr', pricen, safe.sure(cb, function(text) {
 								if(id != 0){								
-									$("#rateTable tr.selected[data-id='"+id+"']").replaceWith(text);
+									$("#rateTable tr.success[data-id='"+id+"']").replaceWith(text);
 								}
 								else{
 									$("#rateTable tbody").prepend(text);
@@ -205,7 +212,7 @@ $(document).ready(function() {
 			return false;
 		});
 		$(".delete.rateCtrlBtn").click(function(){
-			var id = $("#rateTable tr.selected").data('id');
+			var id = $("#rateTable tr.success").data('id');
 			var $me = $(this).parent()
 			$me.block();
 			(function (cb) {
@@ -215,7 +222,7 @@ $(document).ready(function() {
 						$("body").append(text);
 						var $modal = $("#"+ctx.uniq).modal();
 						$modal.on("frm-saved", function (e, pricen) {
-							$("#rateTable tr.selected[data-id='"+id+"']").remove();
+							$("#rateTable tr.success[data-id='"+id+"']").remove();
 							redrawPriceGraph();
 							$modal.modal('hide')
 						})
@@ -225,40 +232,14 @@ $(document).ready(function() {
 				if (err) appError(err);
 				$me.unblock();
 			})
-			/*
-			var $dialog =$ ("#dialogRateCurrency-delete");
-			$dialog.removeClass('invisible').dialog({				
-				resizable: false,
-				height:140,
-				modal: true,
-				buttons: {
-					"{{#i18n}}Delete{{/i18n}}": function() {
-				cashapi.clearPrices(req.session.apiToken,[req.query.deleteId],safe.sure(next,function () {res.send({});}));
-						var jqXHR = $.ajax({
-							url:"{{prefix}}/priceeditor",
-							data:{deleteId:id},
-							dataType:"json"								
-						});
-						jqXHR.done(function(data){
-							if(!data.error){
-								$("#rateTable tr.selected[data-id='"+id+"']").remove();
-							}							
-							$dialog.dialog("close");
-							redrawPriceGraph();
-						});						
-					},
-					"{{#i18n}}Cancel{{/i18n}}": function() {
-						$dialog.dialog( "close" );
-					}
-				}
-			});
-			*/
 		});		
 	});
 });
 </script>
 <div id="priceeditor">
-<h2>{{#i18n}}Select pair of currencies to edit rate exchanging currency{{/i18n}}</h2>
+<div class=row>
+<div class="span6">
+<h2>{{#i18n}}Select pair of currencies to edit{{/i18n}}</h2>
 <form id="currencySelectorForm" class="well form-inline">	
 	<input type="hidden" name="offset" value="0" />
 	<select id="firstCurrency" name="firstCurr">
@@ -270,20 +251,23 @@ $(document).ready(function() {
 	</select>	
 	<button type="submit" class="btn btn-primary">{{#i18n}}Apply{{/i18n}}</button>
 </form>
-<div class="row">
-<div class="span4">	
 	<div class="btn-group">
 		<button class="btn add rateCtrlBtn" disabled="disabled" >{{#i18n}}Add{{/i18n}}</button>
 		<button class="btn edit rateCtrlBtn" disabled="disabled" >{{#i18n}}Edit{{/i18n}}</button>
 		<button class="btn delete rateCtrlBtn" disabled="disabled" >{{#i18n}}Delete{{/i18n}}</button>
     </div>	
+    <br><br>
 	<div class="rateEditorContainer">
 
 	</div>
+
 </div>
-<div class="span5">
+<div id="rightcol" class="span6">
 	<div id="graphContainer"></div>
+</div>	
 </div>
+<div class="row">
+<div id="pagination"></div>
 </div>
 </div>
 

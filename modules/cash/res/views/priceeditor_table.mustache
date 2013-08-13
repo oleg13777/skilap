@@ -1,4 +1,4 @@
-<table id="rateTable" class="table">
+<table id="rateTable" class="table table-bordered table-condensed">
 	<thead>
 		<tr>
 			<th class="date" >{{#i18n}}Date{{/i18n}}</th>
@@ -8,10 +8,8 @@
 	</thead>
 	<tbody>
 		{{#prices}}
-			<tr data-id={{_id}}>				
-				<td class="date" >{{date}}</td>
-				<td class="frate" >{{fvalue}}</td>				
-				<td class="rate" >{{value}}</td>
+			<tr data-id={{_id}}>	
+				{{> priceeditor_tr}}
 			</tr>			
 		{{/prices}}
 	</tbody>
@@ -22,23 +20,4 @@
 		<li class="{{#active}}active{{/active}}"><a class="pageNum" href="javascript:void(0);" data-offset="{{offset}}">{{num}}</a></li>
 	{{/paging}}
 	</ul>
-</div>
-<div id="dialogRateCurrency" class="invisible" >
-	<form>
-		<fieldset>
-			<input type="hidden" id="from" name="from" value="{{firstCurr}}" />
-			<input type="hidden" id="to" name="to" value="{{secondCurr}}" />
-			<input type="text" style="display:block;width:1px;height:1px;position:absolute;top:0;left:0;"/>
-			<label for="date">Date</label>
-			<input type="text" name="date" id="date" data-value="{{currentDate}}" class="text ui-widget-content ui-corner-all" />
-			<label for="rate">Rate currency</label>
-			<input type="text" name="rate" id="rate" data-value="{{lastRate}}" class="text ui-widget-content ui-corner-all" />
-			<span>1 {{firstCurr}} = x {{secondCurr}}</span>			
-		</fieldset>
-	</form>
-</div>
-<div id="dialogRateCurrency-delete" class="invisible" title="{{#i18n}}Delete confirmation{{/i18n}}" >
-	<p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
-		{{#i18n}}Delete selected rate currency?{{/i18n}}
-	</p>
 </div>
