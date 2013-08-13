@@ -43,8 +43,16 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 
 			if (opts.ctx.i18n_date) {
 				tasks.push(function (cb) {
-					require(["moment"], function () {
+					var deps = ["moment"];
+					var lc = _user.language.charAt(0)+_user.language.charAt(1);
+					if (lc!="en")
+						deps.push("moment_"+lc);
+					require(deps, function (moment) {
+						moment.lang(lc);
 						handlebars.registerHelper('i18n_date',function(d, options) {
+							var f = "L";							
+							if (d=="format")
+								return moment.langData().longDateFormat(f).toLowerCase();
 							var f = "L";
 							r = d.toString();
 							try {

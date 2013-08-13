@@ -118,16 +118,14 @@ function Skilap(config_) {
 							return self.i18n(req.session.apiToken, res.locals.ldomain || domain, options.fn(this));						
 						});
 												
-						Handlebars.registerHelper('i18n_date', function(options) {
-							return options.fn(this);																									
-						});		
-							
 						Handlebars.registerHelper('i18n_currency', function(iso, value, options) {
 							return self.i18n_cytext(req.session.apiToken, iso, value);																									
 						});
 						
 						Handlebars.registerHelper('i18n_date', function (d,options) {
 							var f = "L";
+							if (d=="format")
+								return moment.langData().longDateFormat(f).toLowerCase();							
 							var r = d.toString();
 							try {
 								var lm = moment(d);

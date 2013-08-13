@@ -9,7 +9,8 @@ require.config({
 		"jquery-block": "/common/js/jquery.blockUI",			
 		"bootstrap": "/common/js/bootstrap.min",
 		"highcharts": "/common/js/highcharts/highcharts",
-		"moment-core": "moment/min/moment.min",		
+		"moment": "moment/min/moment.min",	
+		"moment_ru": "moment/min/lang/ru",		
 		"skigrid": _prefix+"/js/jquery.skiGrid",
 		"bootstrap-datepicker": "/common/js/locales/bootstrap-datepicker."+_user.language.charAt(0)+_user.language.charAt(1),
 		"bootstrap-datepicker-core": "/common/js/bootstrap-datepicker",
@@ -38,9 +39,6 @@ require.config({
 		"jquery-ui": {
 		   deps:["jquery"]
 		},
-		"skigrid": {
-			deps:["jquery"]
-		},
 		"bootstrap-datepicker-core": {
 			deps:["jquery","bootstrap"]
 		},
@@ -60,15 +58,6 @@ require.config({
             mName: 'cash'
         }
     }
-});
-
-define("moment", ['moment-core'], function(){
-	var mlp = {"en_US":"en", "pt_BR":"pt-br", "de_DE":"de"};
-	var mlc = mlp[_user.language] || "en";
-	if (mlc != "en")
-		require(["moment/min/lang/"+mlc]);
-
-	return moment;
 });
 
 define("api", function () {
