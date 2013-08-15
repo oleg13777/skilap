@@ -37,7 +37,8 @@ $(document).ready(function() {
 		selectedRowId = null,
 		isRecordAdded = false,
 		isRecordUpdated = false,
-		$container = $(".acc-container");
+		$container = $(".acc-container"),
+		lastModData = null;
 
 	$container.on('mousewheel', function(event, delta, deltaX, deltaY) {
 		var $accScroll = $container.find(".acc-scroll");
@@ -382,6 +383,8 @@ $(document).ready(function() {
 			selectedRowId = srowId;
 		safe.run(function(cb1){
 			getData(offset,limit,safe.sure(cb1,function(data){
+				if (lastModData) 
+					data.aaData[data.aaData.length - 1].date = lastModData;
 				require(["clitpl"],function(tf){
 					tf.render("account_items",{items:data.aaData,oddeven:0,splitMode:$container.find(".splitMode").is(":checked")},safe.sure(cb1,function(text,ctx){
 						$container.find("tbody").html(text);
@@ -481,6 +484,11 @@ $(document).ready(function() {
 		});
 		if(!force && _.isEqual(data,origData)) {
 			return cb();
+		}
+		if ($record.data("id") == 'blank') {
+			console.log("save date");
+			lastModData = data.date;
+			console.log(lastModData);
 		}
 
 		$container.block();

@@ -95,6 +95,8 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']/div[.='" + tr.path + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + tr.total + "']"));
+			//check date
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']/div[@class='tdContent' and .='" + tr.date + "']"))
 			self.done();
 		});
 		it("Home page should have right ballance", function(done) {
@@ -161,6 +163,8 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']/div[.='" + tr2.path + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='" + tr2.deposit + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + (parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) + "']"));
+			//check date
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']/div[@class='tdContent' and .='" + tr2.date + "']"))
 			self.done();
 		});
 		it("Home page should have right ballance 2", function(done) {
