@@ -71,13 +71,13 @@ $(document).ready(function() {
 						if($record.hasClass("selected")){
 							if($self.hasClass("selected"))
 								return cb1();
-							updateOldColumnSelected($record.find(".acc-item.selected"), false, cb1);
+							updateOldColumnSelected($record.find(".acc-item.selected"), cb1);
 						}
 						else{
 							var $accItem = $container.find(".acc-item.selected");
 							if($accItem.length == 0)
 								$accItem = $container.find(".acc-item-split.selected");
-							updateOldColumnSelected($accItem, false, function(err, res){
+							updateOldColumnSelected($accItem, function(err, res){
 								if (err == 1) return cb(null, res);
 								if (err) return cb(err, res);
 								updateRecord($container.find(".acc-item-record.selected"),false,safe.sure(cb1,function(result){
@@ -119,10 +119,10 @@ $(document).ready(function() {
 			require(["async","api"],function(async,api){
 				async.series([
 					function(cb1){
-						updateOldColumnSelected($mainrecord.find(".acc-item.selected"), false, cb1);
+						updateOldColumnSelected($mainrecord.find(".acc-item.selected"), cb1);
 					},
 					function(cb1){
-						updateOldColumnSelected($splitrecords.find(".acc-item-split.selected"), false, cb1);
+						updateOldColumnSelected($splitrecords.find(".acc-item-split.selected"), cb1);
 					},
 					function(cb1){
 						handleColumnClick($self,cb1);
@@ -212,7 +212,7 @@ $(document).ready(function() {
 				var $update = $container.find(".acc-item-record.selected");
 				var $update1 = $container.find(".acc-item-split.selected");
 				$container.block();
-				updateOldColumnSelected($update1, false, function(err, res) {
+				updateOldColumnSelected($update1, function(err, res) {
 					if (err) return;
 					updateRecord($update,true,function(err, result){
 						toggleSplitRows($container);
@@ -247,10 +247,10 @@ $(document).ready(function() {
 		if($(e.target).closest('.acc-container').length == 0){
 			var $accItemSelected = $container.find(".acc-item-record.selected .acc-item.selected");
 			if($accItemSelected.length){
-				updateOldColumnSelected($accItemSelected, false, function(){});
+				updateOldColumnSelected($accItemSelected, function(){});
 			}
 			else{
-				updateOldColumnSelected($container.find(".acc-item-record-split.selected .acc-item-split.selected"), false, function(){});
+				updateOldColumnSelected($container.find(".acc-item-record-split.selected .acc-item-split.selected"), function(){});
 			}
 		}
 	});
@@ -535,7 +535,7 @@ $(document).ready(function() {
 	}
 	
 	var $modal;
-	function updateOldColumnSelected($column, reset,cb){
+	function updateOldColumnSelected($column, cb){
 		if(!$column || $column.length == 0)
 			return cb();
 		var editable = $column.data("editable");
@@ -564,7 +564,7 @@ $(document).ready(function() {
 										$column.attr("data-accid", accid);
 										columnModifiedData.accid = accid;
 										$modal.modal('hide')
-										updateOldColumnSelectedHelper($column, columnModifiedData, reset, cb);
+										updateOldColumnSelectedHelper($column, columnModifiedData, cb);
 									}))
 								})
 								$modal.on("frm-closed", function (e) {
@@ -583,26 +583,27 @@ $(document).ready(function() {
 				} else {
 					$column.data("accid",accid);
 					columnModifiedData.accid = accid;
-					updateOldColumnSelectedHelper($column, columnModifiedData, reset, cb);
+					updateOldColumnSelectedHelper($column, columnModifiedData, cb);
 				}
 			} else 
-				updateOldColumnSelectedHelper($column, columnModifiedData, reset, cb);
+				updateOldColumnSelectedHelper($column, columnModifiedData, cb);
 		}
 	}
 
-	function updateOldColumnSelectedHelper($column, columnModifiedData, reset, cb){
+	function updateOldColumnSelectedHelper($column, columnModifiedData, cb){
 		if(!$column || $column.length == 0)
 			return cb();
 		var oldval = $column.data("val");
 		var val = $column.find("input").val();
 		var editable = $column.data("editable");
-		if(editable && (oldval != val || reset)){
+		if(editable && oldval != val){
 			var columnName = $column.data("name");
 			var edittype =  $column.data("edittype");
 			var val = $column.find("input").val();
 			$column.find(".tdContent").text(val);
 			columnModifiedData.val = val;
-			console.log(val);
+			if(columnName == "path" || columnName == "description")
+				$column.attr("title", val);
 
 			if($column.closest(".acc-item-record").length > 0){
 				var relaccid = $column.data("relaccid");
@@ -929,7 +930,7 @@ $(document).ready(function() {
 			var $splits = $container.find(".acc-item-record-split[data-recordid=\""+$selectedRow.data("id")+"\"]");
 			$container.find(".acc-item[data-splitblock=\"1\"] .tdContent").show();
 			if($checkbox.is(":checked")){
-				updateOldColumnSelected($selectedRow.find(".acc-item.selected"), false, function(){
+				updateOldColumnSelected($selectedRow.find(".acc-item.selected"), function(){
 					$container.find(".acc-item-record-split").hide();
 					$selectedRow.find(".acc-item[data-splitblock=\"1\"] .tdContent").hide();
 					$splits.show();
@@ -948,7 +949,7 @@ $(document).ready(function() {
 
 	function addNewRecord($column){
 		safe.run(function(cb){
-			updateOldColumnSelected($column, false, safe.sure(cb,function(){
+			updateOldColumnSelected($column, safe.sure(cb,function(){
 				updateRecord($column.parent(),false,safe.sure(cb,function(result){
 					if(result && result.isNew){
 						isRecordAdded = true;

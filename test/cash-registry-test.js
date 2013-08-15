@@ -800,7 +800,7 @@ describe("Cash module registry",function () {
 			self.done();
 		});
 	});
-	describe.("Split mode input and edit", function () {
+	describe("Split mode input and edit", function () {
 		before(function(done) {
 			var self = this;
 			self.trackError(done);
