@@ -305,16 +305,13 @@ $(document).ready(function() {
 
 	$container.on("click",".acc-item-split .deleteSplit",function(){
 		var $row = $(this).closest(".acc-item-record-split");
-		$row.remove();
-		var $update = $container.find(".acc-item-record.selected");
-		if ($update.data("id") != "blank") {
-			$container.block();
-			updateRecord($update,true,function(err, result){
-				toggleSplitRows($container);
-				isRecordUpdated = true;
-				updateContainer();
-			});
-		}
+		var $item = $row.find(".acc-item-split[data-name=\"deposit\"]");
+		$item.text("");
+		$item.data("val", "")
+		$item = $row.find(".acc-item-split[data-name=\"withdrawal\"]");
+		$item.text("");
+		$item.data("val", "")
+		$row.hide();
 		return false;
 	});
 

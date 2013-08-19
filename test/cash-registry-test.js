@@ -982,11 +982,12 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td/a/i")).click();
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path' and contains(.,'" + tr.path + "')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='path' and contains(.,'" + tr.parent + "::" + tr.name + "')]"));
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='path' and contains(.,'" + tr.split4n + "')]"));
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path' and contains(.,'')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and contains(@style, 'none')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path' and contains(.,'" + tr.split4n + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='path' and contains(.,'')]"));
 
 			//esc
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='withdrawal']//input")).sendKeys(Key.ESCAPE);
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='withdrawal']//input")).sendKeys(Key.ESCAPE);
 			helpers.waitUnblock.call(this);
 
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path' and contains(.,'')]"));
@@ -1087,7 +1088,7 @@ describe("Cash module registry",function () {
 			//delete
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td/a/i")).click();
 			//save
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='withdrawal']//input")).sendKeys(Key.RETURN);
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='withdrawal']//input")).sendKeys(Key.RETURN);
 
 			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']/div")).click();
@@ -1301,7 +1302,10 @@ describe("Cash module registry",function () {
 			var tr = self.fixtures.dataentry.trs[5];
 			self.trackError(done);
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td/a/i")).click();
+			//save
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='path']/div")).click();
 			helpers.waitUnblock.call(this);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']/div")).click();
 			//check ballance after
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][1]/td[@data-name='total' and contains(., '" + tr.t3 + "')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][2]/td[@data-name='total' and contains(., '" + tr.t4 + "')]"));
