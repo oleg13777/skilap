@@ -15,7 +15,7 @@ var request = require('request');
 module.exports.initScheduler = function (cb) {
 	var self = this;
 
-	self.scheduler_rate = new cronJob('0 * * * * *', function() {
+	self.scheduler_rate = new cronJob('0 0 * * * *', function() {
 		process.nextTick(function () {
 			try {
 				self.exchangeRate();
