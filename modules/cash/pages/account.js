@@ -216,9 +216,7 @@ module.exports = function account(webapp) {
 						multisplit:recv.length > 1 ? 1 : 0
 					});
 				}
-				if(count - idx <= req.query.iDisplayLength){
-					if(idx != 0)
-						data.aaData.shift();
+				if(count - idx < req.query.iDisplayLength){
 					var blankSplit = {
 						recordid : "blank",
 						path : "",

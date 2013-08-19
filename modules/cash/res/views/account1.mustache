@@ -30,7 +30,7 @@ require(["jquery","safe","lodash","jquery-block","jquery-mousewheel","bootstrap-
 $(document).ready(function() {
 	$page = $("#accounts");
 	$page.addClass("ready");
-	var rowHeight = 30,
+	var rowHeight = 31,
 		rowsLimit = 20,
 		iTotalRecords = {{accountSize}},
 		windowBottomOffset = 260,
@@ -261,6 +261,7 @@ $(document).ready(function() {
 		safe.run(function(cb){
 			require(["api"],function(api){
 				api.call("cash.clearTransactions",[recordId],safe.sure(cb,function(){
+					iTotalRecords--;
 					updateContainer();
 					//$container.find(".acc-scroll").scroll();
 					cb();
@@ -326,8 +327,8 @@ $(document).ready(function() {
 	initGrid($container);
 
 	function ajustGridSize($container){
-		var tableHeight = Math.floor(($(window).height()-windowBottomOffset)/rowHeight)*rowHeight;
-		rowsLimit = Math.floor(tableHeight/rowHeight);
+		rowsLimit = Math.floor(($(window).height()-windowBottomOffset)/rowHeight);
+		var tableHeight = rowsLimit*rowHeight;
 	}
 
 	var scrollTimer = null;
@@ -340,10 +341,11 @@ $(document).ready(function() {
 			var $this = $(this);
 			scrollTimer = setTimeout(function () {
 				var scrollPosition = $this.scrollTop();
-				var offset = iTotalRecords - Math.floor((iTotalRecords*rowHeight-scrollPosition)/rowHeight);
+				var offset = Math.floor((scrollPosition)/rowHeight);
 				if(isRecordAdded || isRecordUpdated){
 					$container.block();
 				}
+				
 				loadGrid($container,offset,rowsLimit,function(){$container.unblock();});
 			},100)
 		});
@@ -358,7 +360,11 @@ $(document).ready(function() {
 			if(isRecordAdded || isRecordUpdated){
 				$container.block();
 			}
-			loadGrid($container,offset,rowsLimit,function(){$container.unblock();});
+			loadGrid($container,offset,rowsLimit,function(){
+				updateInnerScrollHeight();
+				$container.find(".acc-scroll").scrollTop(iTotalRecords*rowHeight - rowsLimit*rowHeight);
+				$container.unblock();
+			});
 		},100)
 	}
 
@@ -381,7 +387,7 @@ $(document).ready(function() {
 			$container.unblock();
 			loadGrid($container,offset,rowsLimit,safe.sure(cb,function(){
 				updateInnerScrollHeight();
-				$container.find(".acc-scroll").scrollTop(iTotalRecords*rowHeight);
+				$container.find(".acc-scroll").scrollTop(iTotalRecords*rowHeight - rowsLimit*rowHeight);
 				setTimeout(function(){attachScrollEvent($container)},100);
 				cb();
 			}))
@@ -944,7 +950,7 @@ $(document).ready(function() {
 	}
 
 	function updateInnerScrollHeight(){
-		$container.find(".acc-scroll-inner").height(iTotalRecords*rowHeight);
+		$container.find(".acc-scroll-inner").height(iTotalRecords*rowHeight + $container.find("thead").height());
 	}
 
 	function addNewRecord($column){
@@ -952,11 +958,14 @@ $(document).ready(function() {
 			updateOldColumnSelected($column, safe.sure(cb,function(){
 				updateRecord($column.parent(),false,safe.sure(cb,function(result){
 					if(result && result.isNew){
+						/*
 						isRecordAdded = true;
 						if (rowsLimit > iTotalRecords) 
 							loadGrid($container,0,rowsLimit,function(){$container.unblock();});
 						else
 							$container.find(".acc-scroll").scrollTop($container.find(".acc-scroll").scrollTop()+rowHeight);
+							*/
+						updateContainer();
 					}
 					cb();
 				}));

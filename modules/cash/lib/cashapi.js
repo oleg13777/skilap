@@ -346,12 +346,16 @@ CashApi.prototype._calcStats = function _calcStats(cb) {
 							stop = true;
 							return cb();
 						}
+						var added = {};
 						async.forEachSeries(tr.splits, function (split, cb) {
 							var accId = split.accountId;
 							var accStats = getAccStats(accId);
 							var act = assetInfo[accStats.type].act;
-							accStats.value+=split.quantity*act;
-							accStats.count++;
+							accStats.value += split.quantity*act;
+							if (!added[accId]) {
+								added[accId] = accId;
+								accStats.count++;
+							}
 							var doc = {date:tr.datePosted, ballance: 0};
 							if (!ballances[accId])
 								ballances[accId] = 0;

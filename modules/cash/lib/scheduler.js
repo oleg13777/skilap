@@ -15,7 +15,7 @@ var request = require('request');
 module.exports.initScheduler = function (cb) {
 	var self = this;
 
-	self.scheduler_rate = new cronJob('0 0 * * * *', function() {
+	self.scheduler_rate = new cronJob('0 * * * * *', function() {
 		process.nextTick(function () {
 			try {
 				self.exchangeRate();
@@ -74,13 +74,15 @@ module.exports.exchangeRate = function () {
 			}, cb);
 		},
 		function (cb) {
+			if (!_.keys(pairs).length)
+				return cb('Currency not found');
 			console.log('Do check rates with currencies: ' + _.keys(pairs));
 			async.forEach(_.keys(pairs), function (e, cb) {
 				request('http://download.finance.yahoo.com/d/quotes.csv?s='+e+'=X&f=sl1d1t1ba&e=.csv', function (err, response, body) {
 					if (response.statusCode == 200 && body) {
 						var arr = body.trim().split(",");
-						if (parseFloat(arr[1]) && arr[2] && moment.utc(arr[2])) {
-							curency["date"] = moment(arr[2]);
+						if (parseFloat(arr[1]) && arr[2] && arr[3]) {
+							curency["date"] = moment(arr[2].toString() + " " + arr[3].toString(), "MM/DD/YYYY HH:mmA");
 							curency[e] = parseFloat(arr[1]);
 						}
 					}
@@ -91,6 +93,8 @@ module.exports.exchangeRate = function () {
 		function (cb) {
 			curency = prefixify(curency);
 			var cdate = curency.date.valueOf();
+			if (_.isNaN(cdate))
+				return cb("Wrong date from server");
 			_.each(_.keys(pairs), function(pair) {
 				if (cdate - moment(pairs[pair].date).valueOf() < 1000*60*60*24)
 					return;
@@ -98,7 +102,7 @@ module.exports.exchangeRate = function () {
 					'_id': new self._ctx.ObjectID(),
 					'cmdty': pairs[pair].cmdty,
 					'currency': pairs[pair].currency,
-					'date': new Date(cdate),
+					'date': curency.date.toDate(),
 					'source': 'yahoo',
 					'value': curency[pair]
 				});
