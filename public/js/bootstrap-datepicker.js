@@ -751,6 +751,7 @@
 		validParts: /dd?|mm?|MM?|yy(?:yy)?/g,
 		nonpunctuation: /[^ -\/:-@\[-`{-~\t\n\r]+/g,
 		parseFormat: function(format){
+			console.log(format);
 			// IE treats \0 as a string end in inputs (truncating the value),
 			// so it's a bad format delimiter, anyway
 			var separators = format.replace(this.validParts, '\0').split('\0'),

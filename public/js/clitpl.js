@@ -41,6 +41,32 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 
 			var tasks = [function (cb) {cb()}];
 
+			if (opts.ctx.i18n_date) {
+				tasks.push(function (cb) {
+					var deps = ["moment"];
+					var lc = _user.language.charAt(0)+_user.language.charAt(1);
+					if (lc!="en")
+						deps.push("moment_"+lc);
+					require(deps, function (moment) {
+						moment.lang(lc);
+						handlebars.registerHelper('i18n_date',function(d, options) {
+							var f = "L";							
+							if (d=="format")
+								return moment.langData().longDateFormat(f).toLowerCase();
+							var f = "L";
+							r = d.toString();
+							try {
+								var lm = moment(d);
+								if (lm.isValid()){
+									r = lm.format(f);
+								}
+							} catch(e) {};
+							return r;
+						})
+						cb();
+					}, cb)
+				})
+			}
 			if (opts.ctx.i18n) {
 				tasks.push(function (cb) {
 					var deps = ["gettext"];
@@ -153,6 +179,7 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 				opts.ctx.i18n_currency = opts.ctx.i18n_currency || scan.tf.indexOf("helpers.i18n_currency")!=-1;				
 				opts.ctx.i18n_cost = opts.ctx.i18n_cost || scan.tf.indexOf("helpers.i18n_cost")!=-1;								
 				opts.ctx.i18n_cmdtytext = opts.ctx.i18n_cmdtytext || scan.tf.indexOf("helpers.i18n_cmdtytext")!=-1;								
+				opts.ctx.i18n_date = opts.ctx.i18n_cmdtytext || scan.tf.indexOf("helpers.i18n_date")!=-1;	
 			})
 			this.compile(scans,opts, function (err, templates) {
 				if (err) return cb(err);

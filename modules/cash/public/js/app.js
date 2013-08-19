@@ -9,6 +9,8 @@ require.config({
 		"jquery-block": "/common/js/jquery.blockUI",			
 		"bootstrap": "/common/js/bootstrap.min",
 		"highcharts": "/common/js/highcharts/highcharts",
+		"moment": "moment/min/moment.min",	
+		"moment_ru": "moment/min/lang/ru",		
 		"skigrid": _prefix+"/js/jquery.skiGrid",
 		"bootstrap-datepicker": "/common/js/locales/bootstrap-datepicker."+_user.language.charAt(0)+_user.language.charAt(1),
 		"bootstrap-datepicker-core": "/common/js/bootstrap-datepicker",
@@ -36,9 +38,6 @@ require.config({
 		},
 		"jquery-ui": {
 		   deps:["jquery"]
-		},
-		"skigrid": {
-			deps:["jquery"]
 		},
 		"bootstrap-datepicker-core": {
 			deps:["jquery","bootstrap"]

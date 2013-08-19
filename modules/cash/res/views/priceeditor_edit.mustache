@@ -12,7 +12,7 @@
 				<div class="control-group">
 					<label class="control-label" for="date">Date</label>
 					<div class="controls">
-						<input type="text" name="date" id="datepicker" data-value="{{currentDate}}" value="{{currentDate}}" class="text ui-widget-content ui-corner-all" />
+						<input type="text" name="date" id="datepicker" data-date-format="{{i18n_date 'format'}}" data-value="{{currentDate}}" value="{{currentDate}}" class="text ui-widget-content ui-corner-all" />
 					</div>
 				</div>
 				<div class="control-group">
@@ -43,7 +43,7 @@ require(["jquery","bootstrap-datepicker","jquery-block"],function($){
 			$form.block();
 			(function(cb) {
 				require(["api","safe"], function (api,safe) {
-					var date = $("#datepicker").val();
+					var date = $("#datepicker").data("datepicker").getDate();
 					var cmdty = {space:"ISO4217",id:"{{firstCurr}}"};
 					var currency = {space:"ISO4217",id:"{{secondCurr}}"};	
 					var rate = $("#newrate").val();
