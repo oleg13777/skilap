@@ -75,6 +75,10 @@ require(["jquery","safe","jquery-block"],function($, safe){
 	var date = "{{date}}";
 	var reverse = false;
 	var bs = "{{bs}}";
+	var evalNumericField = function(field){
+		return eval(field.replace(/[^\d\+-/\*()\.,]+/g, '').toString());
+	};
+	
 	$(function(e) {
 		$form = $("#{{uniq}}");
 		$rate = $form.find("#rate");
@@ -193,8 +197,8 @@ require(["jquery","safe","jquery-block"],function($, safe){
 		updateVal();
 		function updateVal() {
 			rval = parseFloat($rate.val());
-			sval = parseFloat($sell.val());
-			bval = parseFloat($buy.val());
+			sval = evalNumericField($sell.val());
+			bval = evalNumericField($buy.val());
 			if ($rate.attr('readonly')) {
 				updateRate(bval/sval);
 			} else if ($sell.attr('readonly')) {
