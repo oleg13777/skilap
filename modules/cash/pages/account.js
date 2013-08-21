@@ -1,6 +1,5 @@
 var DateFormat = require('dateformatjs').DateFormat;
 var df = new DateFormat("MM/dd/yyyy");
-var sprintf = require('sprintf').sprintf;
 var _ = require('underscore');
 var async = require('async');
 var safe = require('safe');
@@ -13,9 +12,13 @@ module.exports = function account(webapp) {
 	var prefix = webapp.prefix;
 
 	app.get(webapp.prefix+'/account', webapp.layout(), function(req, res, next) {
-		var count = 0, verbs=0;
+		var count = 0, verbs=0, acc;
 		async.waterfall([
-			function (cb1) {
+			function (cb) {
+				cashapi.getAccount(req.session.apiToken, req.query.id, cb)
+			},
+			function (acc_, cb1) {
+				acc = acc_;
 				cashapi.getAccountInfo(req.session.apiToken, req.query.id,['count','path','verbs'], cb1);
 			},
 			function (data, cb1) {
@@ -36,7 +39,8 @@ module.exports = function account(webapp) {
 					pageSize:pageSize,
 					scrollGap:scrollGap,
 					host:req.headers.host,
-					verbs:verbs
+					verbs:verbs,
+					currency:acc.cmdty.id
 				});
 			})
 		], function (err) {
@@ -46,6 +50,7 @@ module.exports = function account(webapp) {
 
 	app.post(webapp.prefix+'/account/:id/updaterow', function(req, res, next) {
 		var tr = createTransactionFromData(req.body);
+		console.log(tr);
 		cashapi.saveTransaction(req.session.apiToken, tr, req.params.id, function(err,trn){
 			if(err){
 				return res.send({error:err.message});
@@ -176,8 +181,10 @@ module.exports = function account(webapp) {
 						split.recordid = tr._id;
 						split.path = accInfo[split.accountId].path;
 						split.currency = accInfo[split.accountId].currency;
-						split.deposit = split.quantity>0 ? sprintf("%.2f",split.quantity):'';
-						split.withdrawal = split.quantity<=0?sprintf("%.2f",split.quantity*-1):'';
+						split.deposit = split.quantity>0 ? split.quantity:'';
+						split.withdrawal = split.quantity<=0?split.quantity*-1:'';
+						split.deposit_value = split.value>0 ? split.value:'';
+						split.withdrawal_value = split.value<=0?split.value*-1:'';						
 						splitsInfo.push(split);
 					});
 					var path = "",multisplit = null,recv_accid="",send_accid = send.accountId;
@@ -205,12 +212,13 @@ module.exports = function account(webapp) {
 						send_accid:send_accid,
 						path_curr: (recv.length==1 && accInfo[recv[0].accountId].currency != accInfo[req.params.id].currency ? accInfo[recv[0].accountId].currency :null),
 						acc_curr: accInfo[req.params.id].currency,
+						tr_curr: tr.currency.id,
 						rstate: (send.rstate ? send.rstate:"n"),
-						deposit:(send.quantity>0?sprintf("%.2f",send.quantity):''),
-						deposit_quantity: (recv.length == 1 && recv[0].quantity<=0?sprintf("%.2f",recv[0].quantity*-1):''),
-						withdrawal:(send.quantity<=0?sprintf("%.2f",send.quantity*-1):''),
-						withdrawal_quantity: (recv.length == 1 && recv[0].quantity>0?sprintf("%.2f",recv[0].quantity):''),
-						total:sprintf("%.2f",trs.ballance),
+						deposit:(send.quantity>0?send.quantity:''),
+						deposit_value: (recv.length == 1 && recv[0].value<=0?recv[0].value*-1:''),
+						withdrawal:(send.quantity<=0?send.quantity*-1:''),
+						withdrawal_value: (recv.length == 1 && recv[0].value>0?recv[0].value:''),
+						total:trs.ballance,
 						splits:splitsInfo,
 						multicurr:multicurr,
 						multisplit:recv.length > 1 ? 1 : 0
@@ -235,6 +243,7 @@ module.exports = function account(webapp) {
 						send_accid:accInfo[req.params.id]._id,
 						path_curr: "",
 						acc_curr: accInfo[req.params.id].currency,
+						tr_curr: accInfo[req.params.id].currency,
 						rstate: "n",
 						deposit:"",
 						deposit_quantity: "",
@@ -278,6 +287,7 @@ module.exports = function account(webapp) {
 
 
 	var createTransactionFromData = function(data){
+		console.log(data);
 		var tr={};
 		if(data.id){
 			tr._id = data.id;
@@ -302,23 +312,23 @@ module.exports = function account(webapp) {
 		tr['splits'] = [];
 		if(data.splits) {
 			_.forEach(data.splits,function(spl){
-				var depositVal  = (spl.deposit && spl.deposit != "") ? evalNumericField(spl.deposit) : 0;
-				var depositQuantity  =  spl.deposit_quantity && spl.deposit_quantity != "" ? evalNumericField(spl.deposit_quantity) : 0;
-				var withdrawalVal  = spl.withdrawal != "" ? evalNumericField(spl.withdrawal) : 0;
-				var withdrawalQuantity  = spl.withdrawal_quantity && spl.withdrawal_quantity != "" ? evalNumericField(spl.withdrawal_quantity) : 0;
-				splitVal = depositVal - withdrawalVal;
-				splitQuantity = depositQuantity - withdrawalQuantity;
+				var depositQuantity  = (spl.deposit && spl.deposit != "") ? evalNumericField(spl.deposit) : null;
+				var depositVal  =  (spl.deposit_value && spl.deposit_value != "") ? evalNumericField(spl.deposit_value) : null;
+				var withdrawalQuantity  = (spl.withdrawal && spl.withdrawal != "") ? evalNumericField(spl.withdrawal) : null;
+				var withdrawalVal  = (spl.withdrawal_value && spl.withdrawal_value != "") ? evalNumericField(spl.withdrawal_value) : null;
+				splitVal = (depositVal!=null?depositVal:0) - (withdrawalVal!=null?withdrawalVal:0);
+				splitQuantity = (depositQuantity!=null?depositQuantity:0) - (withdrawalQuantity!=null?withdrawalQuantity:0);
 				var modifiedSplit = {
-					value: splitVal,
+					quantity: splitQuantity,
 					accountId: spl.accountId,
 					description: spl.description,
 					num:spl.num,
 					rstate:spl.rstate
 				};
-				if (spl.deposit_quantity != "" || spl.withdrawal_quantity != "")
-					modifiedSplit.quantity = splitQuantity;
-				if(spl.id && spl.id!=-1){
-					modifiedSplit._id = spl.id;
+				if (depositVal!=null || withdrawalVal!=null)
+					modifiedSplit.value = splitVal;
+				if(spl._id){
+					modifiedSplit._id = spl._id;
 				}
 				tr['splits'].push(modifiedSplit);
 			});
@@ -328,7 +338,7 @@ module.exports = function account(webapp) {
 	};
 
 	var evalNumericField = function(field){
-		return Math.round(eval(field.replace(/[^\d\+-/\*()\.,]+/g, '').toString())*10000)/10000;
+		return eval(field.replace(/[^\d\+-/\*()\.,]+/g, '').toString());
 	};
 	
 	var sanitizeNumericField = function(field){

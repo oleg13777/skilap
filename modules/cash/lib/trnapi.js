@@ -96,7 +96,8 @@ module.exports.updateTransactionExcangeRate = function (token, trId, newRate, cb
 };
 
 module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
-	var debug = false;
+	console.log(tr);
+	var debug = true;
 	if (debug) { console.log("Received"); console.log(arguments); console.log(arguments[1].splits); }
 	if (_.isFunction(leadAccId)) {
 		cb = leadAccId;
@@ -149,6 +150,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 						if (!oldSplit) return;
 						split.isNew = false;
 						// if both new values are defined and not the same as previous nothing to do
+						console.log(oldSplit.value, split.value, oldSplit.quantity, split.quantity);
 						if (!_.isUndefined(split.value) && split.value!= oldSplit.value && !_.isUndefined(split.quantity) && split.quantity != oldSplit.quantity)
 							return; // changed both split and quantity, nothing to do
 						if (!_.isUndefined(split.value) && split.value != oldSplit.value) {
@@ -196,13 +198,14 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 				// with lead account we can use conversion
 				self.getAccount(token,spl.accountId,safe.trap_sure(cb,function (splitAccount) {
 					// if split cmdty equals to transaction currency then both value
-					// and quantity should be the same, value takes preference
+					// and quantity should be the same, quantity takes preference
+					spl.cmdty = splitAccount.cmdty;
 					if (_(splitAccount.cmdty).isEqual(trn.currency)) {
 						var val = 0;
-						if (!_.isUndefined(spl.value))
-							val = spl.value;
-						else if (!_.isUndefined(spl.quantity))
+						if (!_.isUndefined(spl.quantity))
 							val = spl.quantity;
+						else if (!_.isUndefined(spl.value))
+							val = spl.value;
 						spl.value = spl.quantity = val;
 						return cb();
 					}
@@ -263,7 +266,7 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 				trn.splits.push({value:-1*value, quantity:-1*value, accountId:leadAcc._id, _id:new self._ctx.ObjectID(), description:""});
 				return cb();
 			}  // when we have two splits we can compensate thru non modified one
-			else if (trn.splits.length==2 && nonEditedSplit ) {
+			else if (trn.splits.length==2 && nonEditedSplit) {
 				var newVal = nonEditedSplit.value-value;
 				if (newVal==0) {
 					nonEditedSplit.value = leadSplit.quantity = 0;
@@ -275,7 +278,11 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 				}
 				cb();
 			} else {
-				if (value==0) return cb();
+				// TODO: currently we didn't ballance values less than 0.01
+				// bad exact minimal value must depend on currency settings
+				if (Math.abs(value)<0.01) return cb();
+				
+				// overwise just add disballance account
 				self.getSpecialAccount(token,"disballance",trn.currency, safe.sure_result(cb, function(acc) {
 					trn.splits.push({value:-1*value,quantity:-1*value,accountId:acc._id,_id:new self._ctx.ObjectID(),description:""});
 				}));
