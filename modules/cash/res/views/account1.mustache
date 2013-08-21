@@ -5,12 +5,12 @@
 			<thead>
 				<th class="value" width="70em">{{#i18n}}Date{{/i18n}}</th>
 				<th class="number" width="30em">{{#i18n}}Num{{/i18n}}</th>
-				<th class="description" width="400em" >{{#i18n}}Description{{/i18n}}</th>
-				<th class="account" width="400em" >{{#i18n}}Transfer{{/i18n}}<form name="splitModeForm"  class="pull-right" style="margin:0"><label><input class="splitMode" type="checkbox" style="margin:0;"></form> {{#i18n}}Split{{/i18n}}</label></th>
+				<th class="description" width="360em" >{{#i18n}}Description{{/i18n}}</th>
+				<th class="account" width="360em" >{{#i18n}}Transfer{{/i18n}}<form name="splitModeForm"  class="pull-right" style="margin:0"><label><input class="splitMode" type="checkbox" style="margin:0;"></form> {{#i18n}}Split{{/i18n}}</label></th>
 				<th class="rstate" width="10em" >R</th>
-				<th class="value" width="70em" halign="right">{{verbs.recv}}</th>
-				<th class="value" width="70em" halign="right">{{verbs.send}}</th>
-				<th class="value" width="70em" >{{#i18n}}Balance{{/i18n}}</th>
+				<th class="value" width="120em" halign="right">{{verbs.recv}}</th>
+				<th class="value" width="120em" halign="right">{{verbs.send}}</th>
+				<th class="value" width="120em" >{{#i18n}}Balance{{/i18n}}</th>
 				<th class="settings" width="40em" ></th>
 			</thead>
 			<tbody>
@@ -212,14 +212,12 @@ $(document).ready(function() {
 				var $self = $(this);
 				var $update = $container.find(".acc-item-record.selected");
 				var $update1 = $container.find(".acc-item-split.selected");
-				$container.block();
 				updateOldColumnSelected($update1, function(err, res) {
 					if (err) return;
 					updateRecord($update,true,function(err, result){
 						toggleSplitRows($container);
 						isRecordUpdated = true;
 						updateContainer();
-						$container.unblock();
 						
 						if ($update.data("id") == "blank")
 							setTimeout(function () {
@@ -242,6 +240,7 @@ $(document).ready(function() {
 	});
 
 	$(document).on("click",function(e){
+		if ($(".modal").length>0) return;
 		if($(e.target).closest('.acc-container').length == 0){
 			var $accItemSelected = $container.find(".acc-item-record.selected .acc-item.selected");
 			if($accItemSelected.length){
@@ -271,33 +270,6 @@ $(document).ready(function() {
 			}
 			$container.unblock();
 		});
-		return false;
-	});
-
-	$container.on("click",".acc-item .edit-rate",function(){
-		var recordId = $(this).closest(".acc-item-record").data("id");
-		$container.block();
-		safe.run(function (cb) {
-			require(['api','clitpl','safe','bootstrap'], function (api,tf,safe) {
-				tf.render('account1_edit_rate', {}, safe.sure(cb,function(text, ctx) {
-					$container.unblock();
-					$("body").append(text);
-					$modal = $("#"+ctx.uniq).modal();
-					$modal.on("frm-saved", function (e, val) {
-						api.call('cash.updateTransactionExcangeRate', recordId, val, safe.sure_result(cb, function (tr) {
-							$modal.modal('hide')
-							$container.find(".acc-scroll").scroll();
-						}))
-					})
-					$modal.on("frm-closed", function (e) {
-						cb();
-					})
-				}))
-			},cb)
-		}, function (err) {
-			$modal = null;
-			$container.unblock();
-		})	
 		return false;
 	});
 
@@ -416,6 +388,8 @@ $(document).ready(function() {
 						if(isRecordUpdated){
 							isRecordUpdated = false;
 						}
+						// mark that container is fresh again
+						$container.removeClass("container-dirty");
 						toggleSplitRows($container);
 						cb();
 					}));
@@ -452,7 +426,7 @@ $(document).ready(function() {
 		};
 
 		var data = {
-			date: $record.find(".acc-item[data-name=\"date\"]").text(),
+			date: $record.find(".acc-item[data-name=\"date\"]").data('val'),
 			num: $record.find(".acc-item[data-name=\"num\"]").text(),
 			description: $record.find(".acc-item[data-name=\"description\"]").text(),
 			splits:[]
@@ -546,6 +520,12 @@ $(document).ready(function() {
 			validatePathColumn($column,data, cb)
 		else if (columnName == "deposit" || columnName == "withdrawal") 
 			validateQuantityColumn($column,data, cb)
+		else if (columnName == "date") {
+			// simple case is just accept value from input
+			data.text = $column.find("input").val();
+			data.attr['data-val'] = $column.find("input").data('datepicker').getDate();
+			cb();
+		}
 		else {
 			// simple case is just accept value from input
 			data.attr['data-val'] = data.text = $column.find("input").val()
@@ -569,7 +549,7 @@ $(document).ready(function() {
 								$("body").append(text);
 								var $modal = $("#"+ctx.uniq).modal();
 								$modal.on("frm-saved", function (e) {
-									api.call('cash.ensureAccount', accountName, '{{accountId}}', safe.sure(cb, function (acc) {
+									api.call('cash.ensureAccount', path, '{{accountId}}', safe.sure(cb, function (acc) {
 										data.attr['data-accid'] = acc._id;
 										data.attr['data-currency'] = acc.cmdty.id;
 										data.attr['data-relaccid'] = acc._id;
@@ -621,14 +601,14 @@ $(document).ready(function() {
 		mainCurr=$record.data("currency")
 		
 		// lets update edited text in place (will revert it back later
-		var oldText = $column.find(".tdContent").text();
-		$column.find(".tdContent").text($column.find("input").val());
-		var mainQnt = (eval($esplit.find('[data-name="deposit"]').text())||0)-(eval($esplit.find('[data-name="withdrawal"]').text())||0);		
-		$column.find(".tdContent").text(oldText);
-		
-		console.log(mainCurr, editCurr);
+		var ival = $column.find("input").val();
 		
 		if(mainCurr && editCurr && mainCurr != editCurr){
+			var oldVal = $column.data('val');		
+			$column.data('val',ival);
+			var mainQnt = (eval($esplit.find('[data-name="deposit"]').data('val'))||0)-(eval($esplit.find('[data-name="withdrawal"]').data('val'))||0);		
+			$column.data('val',oldVal);
+			
 			$container.block();
 			safe.run(function (cb) {
 				var buyDir = mainQnt>=0?0:1; mainQnt = Math.abs(mainQnt);
@@ -661,7 +641,8 @@ $(document).ready(function() {
 								m[0][0][idx]=idx?sval:bval; m[0][1][idx]=idx?sval:bval; m[0][2][(idx+1)%2]=idx?bval:sval;
 								m[1][0][idx]=idx?sval:bval; m[1][1][idx]=idx?sval:bval; m[1][2][(idx+1)%2]=idx?sval:bval;
 								
-								data.multicur = m;
+								data.multicur = {m:m,rate:rval,saveRate:bsave};
+
 								cb();
 							})
 							$modal.on("frm-closed", function (e) {
@@ -675,7 +656,17 @@ $(document).ready(function() {
 				$container.unblock();
 				cb(err);
 			})	
-		} else cb()
+		} else {
+			require(["clitpl"],function(tf){
+				ival = eval(ival)||null;
+				tf.render("grid_currency_field",{val:ival,cur:mainCurr},safe.sure(cb,function(text,ctx){			
+					data.text = text.trim();
+					data.attr['data-val'] = ival;
+					data.attr['data-value'] = ival;
+					cb()
+				}))
+			},cb)
+		}
 	}
 
 	
@@ -712,9 +703,11 @@ $(document).ready(function() {
 
 	function updateOldColumnSelectedHelper($column, data, cb) {
 		console.log(data);
+		$container.addClass("container-dirty");
 		var columnName = $column.data("name");			
 		// check if we edited something in master row
 		var $record = $column.closest(".acc-item-record")
+		var basicUpdate = true;
 		if($record.length > 0){
 			var relaccid = $column.data("relaccid");
 			// if field has relaccid, then it means we have will need update related split
@@ -728,29 +721,30 @@ $(document).ready(function() {
 					// main split should be updated as well
 					basicColumnUpdate($mainSplit, {attr:{'data-accid':data.attr['data-accid'],'data-currency':data.attr['data-currency']}})
 				}
-
+				
 				// for simple (2 split) transaction we'll might need to modify other split values as well 
 				// to keep them ballanced
 				if($record.data("multisplit") != 1 && (columnName == "deposit" || columnName == "withdrawal")){
+					basicUpdate = false;
 					var secondcol = {"deposit":"withdrawal","withdrawal":"deposit"};
 					if (!data.multicur) 
 						basicColumnUpdate($slaveSplit.find("[data-name=\""+secondcol[columnName]+"\"]"),data);
 					else {
+						if (data.multicur.saveRate)
+							$record.data("saveRate",true);
 						// with multicurrency transaction there is much more things to update
 						var $e = [];
 						$e.push([$record.find('[data-name="deposit"]'),$record.find('[data-name="withdrawal"]')]);
 						$e.push([$mainSplit.find('[data-name="deposit"]'),$mainSplit.find('[data-name="withdrawal"]')]);
 						$e.push([$slaveSplit.find('[data-name="deposit"]'),$slaveSplit.find('[data-name="withdrawal"]')]);												
 				
-						var m = data.multicur;
+						var m = data.multicur.m;
 						
 						for (var i=0; i<3; i++ ) {	for (var j=0; j<2; j++) { 
 							basicColumnUpdate($e[i][j],{text:m[0][i][j],attr:{'data-val':m[0][i][j],'data-value':m[1][i][j]}})
 						}}
 					}
 				} else {
-					// update column itself
-					basicColumnUpdate($column,data);			
 					// related column
 					basicColumnUpdate($mainSplit.find("[data-name=\""+columnName+"\"]"),data);
 				}
@@ -764,8 +758,7 @@ $(document).ready(function() {
 				var $e = [];
 				$e.push([$record.find('[data-name="deposit"]'),$record.find('[data-name="withdrawal"]')]);
 		
-				var m = data.multicur;
-				console.log(m);
+				var m = data.multicur.m;
 				
 				basicColumnUpdate($e[0][0],{text:m[1][2][1],attr:{'data-val':m[1][2][1],'data-value':m[0][2][1]}})
 				basicColumnUpdate($e[0][1],{text:m[1][2][0],attr:{'data-val':m[1][2][0],'data-value':m[0][2][0]}})
@@ -800,9 +793,15 @@ $(document).ready(function() {
 				});
 			}
 		}
+
+		// if it still make sense lets do trivial update
+		if (basicColumnUpdate)
+			basicColumnUpdate($column,data);	
 		
+		// when reconcile value modified lets update it right away, but only in non split mode
 		if (!$container.find(".splitMode").is(":checked") && $column.data("edittype") == "switch") {
-			updateRecord($column.parent(),false,safe.sure(cb,function(result){
+			updateRecord($column.parent(),false,safe.sure(cb,function(result) {
+				$container.removeClass("container-dirty");
 				cb();
 			}));
 		} else
@@ -820,7 +819,7 @@ $(document).ready(function() {
 		var name = $column.data("name");
 
 		require(["clitpl"],function(tf){
-			tf.render("grid_editable_"+editable,{val:$column.find(".tdContent").text()},safe.sure(cb,function(text,ctx){
+			tf.render("grid_editable_"+editable,{val:$column.data("val")},safe.sure(cb,function(text,ctx){
 				$column.find(".tdContent").hide();
 				$column.find(".tdContentEditable").html(text).show();
 				var $elem = $("#"+ctx.uniq);
@@ -878,8 +877,10 @@ $(document).ready(function() {
 					//$elem.click();
 				}
 				else if(edittype == "datepicker"){
-					$elem.datepicker();
+					var options = {language: _user.language.charAt(0)+_user.language.charAt(1),'format':"{{i18n_date 'format'}}"};
+					$elem.datepicker(options);
 					$elem.data("datepicker").show();
+					$elem.data("datepicker").setDate(new Date($column.data('val')));
 				}
 				$column.addClass("selected");
 

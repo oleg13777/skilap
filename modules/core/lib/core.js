@@ -125,7 +125,7 @@ function Skilap(config_) {
 						Handlebars.registerHelper('i18n_date', function (d,options) {
 							var f = "L";
 							if (d=="format")
-								return moment.langData().longDateFormat(f).toLowerCase();							
+								return moment.langData(res.locals.user.language.substr(0,2)).longDateFormat(f).toLowerCase();							
 							var r = d.toString();
 							try {
 								var lm = moment(d);
@@ -582,6 +582,7 @@ function Skilap(config_) {
 	}
 	
 	this.i18n_cytext = function(langtoken, curId, value) {
+		console.log(value);
 		var cur = i18n.currency(curId);
 		var res = cur.format(value);
 		var m = res.match(/([^0123456789., ]*)([0123456789., ]*)([^0123456789., ]*)/);

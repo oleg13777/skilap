@@ -99,6 +99,7 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 						}
 						
 						handlebars.registerHelper('i18n_currency',function(iso, value, options) {
+							if (value==null) return "";
 							return i18n_cytext(iso,value);
 						})
 						cb();

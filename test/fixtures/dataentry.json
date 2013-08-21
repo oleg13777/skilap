@@ -58,7 +58,9 @@
 			"path":"Life::Food",
 			"deposite":"2*10 + 100 - 5*4",
 			"deposit":"100.00",
+			"deposit_cur":"$ 100.00",
 			"total":"100.00",
+			"total_cur":"$ 100.00",
 			"name1":"Life",
 			"name2":"Food"
 		},
@@ -71,6 +73,8 @@
 			"path":"Credit Cards::My card",
 			"deposit":"123.45",
 			"total":"123.45",
+			"total_cur":"$ 123.45",
+			"deposit_cur":"$ 123.45",
 			"name1":"Credit Cards",
 			"name2":"My card"
 		},
@@ -90,7 +94,7 @@
 		{
 			"name": "My wallet",
 			"parent": "Cash",
-			"date": "06/06/2013",
+			"date": "05/06/2013",
 			"num":"test1",
 			"description":"test1",
 			"path":"MyTest1::MyTest2",

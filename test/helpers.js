@@ -68,6 +68,14 @@ module.exports.waitUnblock = function () {
 	});
 };
 
+module.exports.waitGridUpdate = function () {
+	var self = this;
+	self.browser.wait(function () {
+		return self.browser.isElementPresent(By.css(".container-dirty")).then(function (isPresent)
+				 { return !isPresent; } );
+	});
+};
+
 module.exports.waitElement = function (element) {
 	var self = this;
 	self.browser.wait(function () {

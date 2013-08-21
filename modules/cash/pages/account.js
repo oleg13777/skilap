@@ -1,5 +1,3 @@
-var DateFormat = require('dateformatjs').DateFormat;
-var df = new DateFormat("MM/dd/yyyy");
 var _ = require('underscore');
 var async = require('async');
 var safe = require('safe');
@@ -181,10 +179,10 @@ module.exports = function account(webapp) {
 						split.recordid = tr._id;
 						split.path = accInfo[split.accountId].path;
 						split.currency = accInfo[split.accountId].currency;
-						split.deposit = split.quantity>0 ? split.quantity:'';
-						split.withdrawal = split.quantity<=0?split.quantity*-1:'';
-						split.deposit_value = split.value>0 ? split.value:'';
-						split.withdrawal_value = split.value<=0?split.value*-1:'';						
+						split.deposit = split.quantity>0 ? split.quantity:null;
+						split.withdrawal = split.quantity<=0?split.quantity*-1:null;
+						split.deposit_value = split.value>0 ? split.value:null;
+						split.withdrawal_value = split.value<=0?split.value*-1:null;						
 						splitsInfo.push(split);
 					});
 					var path = "",multisplit = null,recv_accid="",send_accid = send.accountId;
@@ -203,7 +201,7 @@ module.exports = function account(webapp) {
 					}
 					data.aaData.push({
 						id:tr._id,
-						date:df.format(dp),
+						date:dp,
 						num:tr.num ? tr.num : '',
 						description:tr.description,
 						path:path,
@@ -214,10 +212,10 @@ module.exports = function account(webapp) {
 						acc_curr: accInfo[req.params.id].currency,
 						tr_curr: tr.currency.id,
 						rstate: (send.rstate ? send.rstate:"n"),
-						deposit:(send.quantity>0?send.quantity:''),
-						deposit_value: (recv.length == 1 && recv[0].value<=0?recv[0].value*-1:''),
-						withdrawal:(send.quantity<=0?send.quantity*-1:''),
-						withdrawal_value: (recv.length == 1 && recv[0].value>0?recv[0].value:''),
+						deposit:(send.quantity>0?send.quantity:null),
+						deposit_value: (recv.length == 1 && recv[0].value<=0?recv[0].value*-1:null),
+						withdrawal:(send.quantity<=0?send.quantity*-1:null),
+						withdrawal_value: (recv.length == 1 && recv[0].value>0?recv[0].value:null),
 						total:trs.ballance,
 						splits:splitsInfo,
 						multicurr:multicurr,
@@ -234,7 +232,7 @@ module.exports = function account(webapp) {
 					};
 					data.aaData.push({
 						id:"blank",
-						date:df.format(new Date()),
+						date:new Date(),
 						num:'',
 						description:"",
 						path:"",
@@ -245,11 +243,11 @@ module.exports = function account(webapp) {
 						acc_curr: accInfo[req.params.id].currency,
 						tr_curr: accInfo[req.params.id].currency,
 						rstate: "n",
-						deposit:"",
-						deposit_quantity: "",
-						withdrawal:"",
-						withdrawal_quantity: "",
-						total:"",
+						deposit:null,
+						deposit_quantity: null,
+						withdrawal:null,
+						withdrawal_quantity: null,
+						total:null,
 						splits:[
 							{
 								_id: "new",
@@ -276,7 +274,7 @@ module.exports = function account(webapp) {
 				}
 				data.iTotalRecords = count+1;
 				data.iTotalDisplayRecords = count+1;
-				data.currentDate = df.format(new Date());
+				data.currentDate = new Date();
 				data.currentAccount = {id:req.params.id,path:currentAccountPath,currency:accInfo[req.params.id].currency};
 				res.send(data);
 			})
@@ -292,11 +290,10 @@ module.exports = function account(webapp) {
 		if(data.id){
 			tr._id = data.id;
 		}
-		var dateFormat = new DateFormat(DateFormat.W3C);
-		var dateEntered = dateFormat.format(new Date());
+		var dateEntered = new Date();
 		tr['dateEntered'] = dateEntered;
 		if(data.date){
-			var datePosted = dateFormat.format(new Date(data.date));
+			var datePosted = new Date(data.date);
 			tr['datePosted'] = datePosted;
 		}
 		if(data.num){

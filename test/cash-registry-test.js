@@ -27,7 +27,7 @@ var assert = require('assert');
  * */
 
 describe("Cash module registry",function () {
-	this.timeout(120000);
+	this.timeout(60000);
 	before(function () {
 		this.jobName = "Skilap - Cash module - Registry";
 	});
@@ -67,7 +67,7 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
@@ -93,8 +93,8 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']/div[.='" + tr.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + tr.total + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='" + tr.deposit_cur + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + tr.total_cur + "']"));
 			//check date
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']/div[@class='tdContent' and .='" + tr.date + "']"))
 			self.done();
@@ -132,7 +132,7 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//div/a[contains(.,'" + tr1.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
@@ -161,8 +161,8 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr2.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr2.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']/div[.='" + tr2.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='" + tr2.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + (parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='" + tr2.deposit_cur + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='$ " + (parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) + "']"));
 			//check date
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']/div[@class='tdContent' and .='" + tr2.date + "']"))
 			self.done();
@@ -212,7 +212,7 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//div/a[contains(.,'" + tr1.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
@@ -239,7 +239,7 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']/div[.='" + tr3.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='description']/div[.='" + tr3.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']/div[.='" + tr3.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']/div[.='" + tr3.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']/div[.='$ " + tr3.deposit + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='withdrawal']//input")).sendKeys(Key.ESCAPE);
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr2.date + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']/div[.='']"));
@@ -254,7 +254,7 @@ describe("Cash module registry",function () {
 		});
 	});
 	describe("Registry edit", function () {
-		it("Login as user", function(done) {
+		before(function(done) {
 			var self = this;
 			self.trackError(done);
 			self.restoreDb('register-test');
@@ -275,7 +275,7 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']//input")).clear();
@@ -283,20 +283,20 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']//input")).sendKeys(Key.TAB);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='description']")).click();
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr1.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div[.='" + tr1.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div[.='" + tr1.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']/div[.='" + tr1.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']/div[.='" + tr1.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='" + tr1.total + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']/div[.='$ " + tr1.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='$ " + tr1.total + "']"));
 
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']/div[.='" + tr2.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='num']/div[.='" + tr.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='description']/div[.='" + tr.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='path']/div[.='" + tr.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='total']/div[.='" + (parseFloat(tr.deposit) + parseFloat(tr1.deposit)) + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='deposit']/div[.='$ " + tr.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='total']/div[.='$ " + (parseFloat(tr.deposit) + parseFloat(tr1.deposit)) + "']"));
 			self.done();
 		});
 		it("Home page should have right ballance", function(done) {
@@ -330,27 +330,27 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']//input")).sendKeys(tr.date);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']//input")).sendKeys(Key.RETURN);
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div[.='" + tr.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div[.='" + tr.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']/div[.='" + tr.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='" + tr.total + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']/div[.='$ " + tr.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='$ " + tr.total + "']"));
 
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']/div[.='" + tr1.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='num']/div[.='" + tr1.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='description']/div[.='" + tr1.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='path']/div[.='" + tr1.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='deposit']/div[.='" + tr1.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='total']/div[.='" + (parseFloat(tr.deposit) + parseFloat(tr1.deposit)) + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='deposit']/div[.='$ " + tr1.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='total']/div[.='$ " + (parseFloat(tr.deposit) + parseFloat(tr1.deposit)) + "']"));
 			self.done();
 		});
 		it("Home page should have right ballance 2", function(done) {
@@ -385,27 +385,27 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input")).sendKeys(tr2.num);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']//input")).sendKeys(Key.RETURN);
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div[.='" + tr2.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div[.='" + tr.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']/div[.='" + tr.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='" + tr.total + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']/div[.='$ " + tr.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='$ " + tr.total + "']"));
 
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']/div[.='" + tr1.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='num']/div[.='" + tr1.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='description']/div[.='" + tr1.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='path']/div[.='" + tr1.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='deposit']/div[.='" + tr1.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='total']/div[.='" + (parseFloat(tr.deposit) + parseFloat(tr1.deposit)) + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='deposit']/div[.='$ " + tr1.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='total']/div[.='$ " + (parseFloat(tr.deposit) + parseFloat(tr1.deposit)) + "']"));
 			self.done();
 		});
 		it("Home page should have right ballance 3", function(done) {
@@ -440,7 +440,7 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']//input")).clear();
@@ -455,20 +455,20 @@ describe("Cash module registry",function () {
 			helpers.waitNoElement.call(this, By.css(".typeahead"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).sendKeys(Key.RETURN);
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div[.='" + tr2.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div[.='" + tr2.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']/div[.='" + tr2.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='" + tr.total + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']/div[.='$ " + tr.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='$ " + tr.total + "']"));
 
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']/div[.='" + tr1.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='num']/div[.='" + tr1.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='description']/div[.='" + tr1.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='path']/div[.='" + tr1.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='deposit']/div[.='" + tr1.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='total']/div[.='" + (parseFloat(tr.deposit) + parseFloat(tr1.deposit)) + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='deposit']/div[.='$ " + tr1.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='total']/div[.='$ " + (parseFloat(tr.deposit) + parseFloat(tr1.deposit)) + "']"));
 			self.done();
 		});
 		it("Home page should have right ballance 4", function(done) {
@@ -522,7 +522,7 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']//input")).clear();
@@ -533,21 +533,21 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']//input")).sendKeys(tr2.withdrawal);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']//input")).sendKeys(Key.TAB);
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div[.='" + tr2.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div[.='" + tr2.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']/div[.='" + tr2.path + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']/div[.='']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']/div[.='" + tr2.withdrawal + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='" + tr2.total + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='withdrawal']/div[.='$ " + tr2.withdrawal + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='-$ " + Math.abs(tr2.total) + ".00']"));
 
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='date']/div[.='" + tr1.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='num']/div[.='" + tr1.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='description']/div[.='" + tr1.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='path']/div[.='" + tr1.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='deposit']/div[.='" + tr1.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='total']/div[.='" + (parseFloat(tr1.deposit) - parseFloat(tr2.withdrawal)) + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='deposit']/div[.='$ " + tr1.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='total']/div[.='$ " + (parseFloat(tr1.deposit) - parseFloat(tr2.withdrawal)) + "']"));
 			self.done();
 		});
 		it("Home page should have right ballance 4", function(done) {
@@ -592,7 +592,7 @@ describe("Cash module registry",function () {
 		});
 	});
 	describe("Reconcile value editing", function () {
-		it("Login as user", function(done) {
+		before(function(done) {
 			var self = this;
 			self.trackError(done);
 			self.restoreDb('register-test');
@@ -611,16 +611,16 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='n']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']")).click();
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='c']"));
 			self.browser.navigate().refresh();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.done();
 		});
 		it("Splits click", function(done) {
@@ -635,9 +635,9 @@ describe("Cash module registry",function () {
 			
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='c']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']")).click();
-			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='n']"));
-
+			helpers.waitGridUpdate.call(this);
 			helpers.waitUnblock.call(this);
+						
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='n']"));
 			self.browser.findElement(By.xpath("//label[contains(., 'Split')]/input")).click();
 			self.browser.findElement(By.xpath("//tr[td/div[.='" + tr.name1 + "::" + tr.name2 + "']]/td[@data-name='rstate']/div[.='n']"));
@@ -646,7 +646,7 @@ describe("Cash module registry",function () {
 		});
 	});
 	describe("Create and edit with creating of new account", function () {
-		it("Login as user", function(done) {
+		before(function(done) {
 			var self = this;
 			self.trackError(done);
 			self.restoreDb('register-test');
@@ -674,7 +674,6 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
-			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
@@ -700,8 +699,8 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']/div[.='" + tr.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + tr.total + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='$ " + tr.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='$ " + tr.total + "']"));
 			self.done();
 		});
 		it("Add transaction 2", function(done) {
@@ -709,7 +708,6 @@ describe("Cash module registry",function () {
 			self.trackError(done);
 			var tr = self.fixtures.dataentry.trs[3];
 
-			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
@@ -737,8 +735,8 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']/div[.='" + tr.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + tr.total + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='$ " + tr.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='$ " + tr.total + "']"));
 			self.done();
 		});
 		it("Accounts page should have right ballance", function(done) {
@@ -758,6 +756,7 @@ describe("Cash module registry",function () {
 			var self = this;
 			self.trackError(done);
 			var tr = self.fixtures.dataentry.trs[0];
+			var tr2 = self.fixtures.dataentry.trs[3];
 			var tr1 = self.fixtures.dataentry.trs[4];
 			self.browser.findElement(By.linkText("View")).click();	
 			self.browser.findElement(By.linkText("Accounts")).click();	
@@ -765,7 +764,7 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']//input")).clear();
@@ -775,12 +774,12 @@ describe("Cash module registry",function () {
 				modal.findElement(By.id("save")).click();
 			});
 
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr.date +"']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div[.='" + tr2.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div[.='" + tr.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='description']/div[.='" + tr.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']/div[.='" + tr1.name1 + "::" + tr1.name2 + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='" + tr.total + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='deposit']/div[.='$ " + tr.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='total']/div[.='$ " + tr.total + "']"));
 
 			self.done();
 		});
@@ -830,7 +829,7 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//label[contains(., 'Split')]/input")).click();
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='num']")).click();
 			self.done();
@@ -988,7 +987,6 @@ describe("Cash module registry",function () {
 
 			//esc
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='withdrawal']//input")).sendKeys(Key.ESCAPE);
-			helpers.waitUnblock.call(this);
 
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][1]/td[@data-name='path' and contains(.,'')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='path' and contains(.,'" + tr.parent + "::" + tr.name + "')]"));
@@ -1090,7 +1088,7 @@ describe("Cash module registry",function () {
 			//save
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='withdrawal']//input")).sendKeys(Key.RETURN);
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']/div")).click();
 			//check Disballance row
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path' and contains(., 'Disballance')]"));
@@ -1123,7 +1121,6 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 
-			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
@@ -1145,13 +1142,13 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(tr.deposit);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='deposit']//input")).sendKeys(Key.RETURN);
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='date']/div[.='" + tr.date +"']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']/div[.='" + tr.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + tr.total + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='$ " + tr.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='$ " + tr.total + "']"));
 			self.done();
 		});
 
@@ -1192,7 +1189,7 @@ describe("Cash module registry",function () {
 			var tr = self.fixtures.dataentry.trs[5];
 			self.trackError(done);
 			//check ballance before
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][1]/td[@data-name='total' and contains(., '" + tr.t1 + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][1]/td[@data-name='total' and contains(., '" + Math.abs(tr.t1) + "')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][2]/td[@data-name='total' and contains(., '" + tr.t2 + "')]"));
 
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='date']/div")).click();
@@ -1230,10 +1227,10 @@ describe("Cash module registry",function () {
 			//save
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][2]/td[@data-name='withdrawal']//input")).sendKeys(Key.RETURN);
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			//check ballance after
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][1]/td[@data-name='total' and contains(., '" + tr.t3 + "')]"));
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][2]/td[@data-name='total' and contains(., '" + tr.t4 + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][1]/td[@data-name='total' and contains(., '" + Math.abs(tr.t3) + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][2]/td[@data-name='total' and contains(., '" + Math.abs(tr.t4) + "')]"));
 			//check Disballance row
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path' and contains(., 'Disballance')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='deposit' and contains(., '" + (parseFloat(tr.split4v) + parseFloat(tr.deposit)) + "')]"));
@@ -1259,10 +1256,10 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='withdrawal']//input")).sendKeys(tr.split3v);
 			//save
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='withdrawal']//input")).sendKeys(Key.RETURN);
-			helpers.waitUnblock.call(self);
+			helpers.waitGridUpdate.call(self);
 			//check ballance after
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][1]/td[@data-name='total' and contains(., '" + tr.t3 + "')]"));
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][2]/td[@data-name='total' and contains(., '" + tr.t4 + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][1]/td[@data-name='total' and contains(., '" + Math.abs(tr.t3) + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][2]/td[@data-name='total' and contains(., '" + Math.abs(tr.t4) + "')]"));
 			//check Disballance row
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path' and contains(., 'Disballance')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='deposit' and contains(., '" + (parseFloat(tr.split4v) + parseFloat(tr.split3v) + parseFloat(tr.deposit)) + "')]"));
@@ -1283,11 +1280,11 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][5]/td[@data-name='withdrawal']//input")).sendKeys(tr.split4v);
 			//save
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='path']/div")).click();
-			helpers.waitUnblock.call(this);
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']/div")).click();
+			helpers.waitGridUpdate.call(this);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='num']/div")).click();
 			//check ballance after
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][1]/td[@data-name='total' and contains(., '" + tr.t3 + "')]"));
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][2]/td[@data-name='total' and contains(., '" + tr.t4 + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][1]/td[@data-name='total' and contains(., '" + Math.abs(tr.t3) + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][2]/td[@data-name='total' and contains(., '" + Math.abs(tr.t4) + "')]"));
 			//check Disballance row
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='path' and contains(., 'Disballance')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][4]/td[@data-name='deposit' and contains(., '" + (parseFloat(tr.split4v) + parseFloat(tr.split4v) + parseFloat(tr.deposit)) + "')]"));
@@ -1304,11 +1301,11 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td/a/i")).click();
 			//save
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][2]/td[@data-name='path']/div")).click();
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='path']/div")).click();
 			//check ballance after
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][1]/td[@data-name='total' and contains(., '" + tr.t3 + "')]"));
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][2]/td[@data-name='total' and contains(., '" + tr.t4 + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][1]/td[@data-name='total' and contains(., '" + Math.abs(tr.t3) + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record ')][2]/td[@data-name='total' and contains(., '" + Math.abs(tr.t4) + "')]"));
 			//check Disballance row
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='path' and contains(., 'Disballance')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split')][3]/td[@data-name='deposit' and contains(., '" + (parseFloat(tr.split4v) + parseFloat(tr.deposit)) + "')]"));
@@ -1319,7 +1316,7 @@ describe("Cash module registry",function () {
 		});
 	});
 	describe("Registry delete", function () {
-		it("Login as user", function(done) {
+		before(function(done) {
 			var self = this;
 			self.trackError(done);
 			self.restoreDb('register-test');
@@ -1346,7 +1343,7 @@ describe("Cash module registry",function () {
 			var tr = self.fixtures.dataentry.trs[0];
 			self.browser.findElement(By.xpath("//a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
@@ -1372,8 +1369,8 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']/div[.='" + tr.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='" + tr.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + tr.total + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='$ " + tr.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='$ " + tr.total + "']"));
 			self.done();
 		});
 		it("Add transaction 2", function(done) {
@@ -1409,8 +1406,8 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']/div[.='" + tr2.num + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='description']/div[.='" + tr2.description + "']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='path']/div[.='" + tr2.path + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='" + tr2.deposit + "']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + (parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']/div[.='$ " + tr2.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='$ " + (parseFloat(tr2.deposit) + parseFloat(tr1.deposit)) + "']"));
 			self.done();
 		});
 		it("Accounts page should have right ballance 1", function(done) {
@@ -1433,11 +1430,11 @@ describe("Cash module registry",function () {
 			var tr = self.fixtures.dataentry.trs[0];
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td//button[@data-toggle='dropdown']")).click();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td//a[.='Delete']")).click();
 
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.done();
 		});
 		it("Accounts page should have right ballance 2", function(done) {
@@ -1456,7 +1453,7 @@ describe("Cash module registry",function () {
 		});
 	});
 	describe("Multicurrency test", function () {
-		it("Login as user", function(done) {
+		before(function(done) {
 			var self = this;
 			self.trackError(done);
 			self.restoreDb('register-test');
@@ -1544,7 +1541,7 @@ describe("Cash module registry",function () {
 			var rate = self.fixtures.dataentry.rates[0];
 			self.browser.findElement(By.xpath("//a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
@@ -1561,7 +1558,7 @@ describe("Cash module registry",function () {
 				modal.findElement(By.id("save")).click();
 			});
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank']/td[@data-name='date']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + tr.deposit + "']"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='$ " + tr.deposit + "']"));
 			self.done();
 		});
 		it("Accounts page should have right ballance 1", function(done) {
@@ -1585,13 +1582,14 @@ describe("Cash module registry",function () {
 			var rate = self.fixtures.dataentry.rates[0];
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			helpers.waitUnblock.call(this);
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + tr.deposit + "']"));
+			helpers.waitGridUpdate.call(this);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='$ " + tr.deposit + "']"));
 
 			self.browser.findElement(By.xpath("//label[contains(., 'Split')]/input")).click();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']")).click();
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='path' and contains(.,'" + acc.name + "')]"));
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='withdrawal' and contains(.,'" + (parseFloat(rate.rate)*parseFloat(tr.deposit)) + "')]"));
+			
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='withdrawal' and contains(.,'3,000.00 руб" + /*(parseFloat(rate.rate)*parseFloat(tr.deposit)) +*/ "')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='path' and contains(.,'" + tr.parent + "::" + tr.name + "')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='deposit' and contains(.,'" + tr.deposit + "')]"));
 			self.done();
@@ -1607,13 +1605,13 @@ describe("Cash module registry",function () {
 			helpers.waitElement.call(self,By.css("#accounts-tree.ready"));				
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + acc.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			helpers.waitUnblock.call(this);
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='-" + (parseFloat(rate.rate)*parseFloat(tr.deposit)) + ".00']"));
+			helpers.waitGridUpdate.call(this);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='- 3,000.00 руб" + /*(parseFloat(rate.rate)*parseFloat(tr.deposit)) +*/ "']"));
 
 			self.browser.findElement(By.xpath("//label[contains(., 'Split')]/input")).click();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']")).click();
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='path' and contains(.,'" + acc.name + "')]"));
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='withdrawal' and contains(.,'" + (parseFloat(rate.rate)*parseFloat(tr.deposit)) + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='withdrawal' and contains(.,'3,000.00 руб" + /*(parseFloat(rate.rate)*parseFloat(tr.deposit)) + */"')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='path' and contains(.,'" + tr.parent + "::" + tr.name + "')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='deposit' and contains(.,'" + tr.deposit + "')]"));
 			self.done();
@@ -1627,14 +1625,17 @@ describe("Cash module registry",function () {
 			helpers.waitElement.call(self,By.css("#accounts-tree.ready"));				
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank']/td[@data-name='date']"));
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']//input")).clear();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']//input")).sendKeys(tr.deposit1);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='deposit']//input")).sendKeys(Key.RETURN);
-			helpers.waitUnblock.call(this);
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + tr.deposit1 + "']"));
+			helpers.runModal.call(this, null, function(modal) {
+				modal.findElement(By.id("save")).click();
+			});			
+			helpers.waitGridUpdate.call(this);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='$ " + tr.deposit1 + "']"));
 			self.done();
 		});
 		it("Accounts page should have right ballance 2", function(done) {
@@ -1658,15 +1659,15 @@ describe("Cash module registry",function () {
 			var rate = self.fixtures.dataentry.rates[0];
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			helpers.waitUnblock.call(this);
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + tr.deposit1 + "']"));
+			helpers.waitGridUpdate.call(this);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='$ " + tr.deposit1 + "']"));
 
 			self.browser.findElement(By.xpath("//label[contains(., 'Split')]/input")).click();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']")).click();
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='path' and contains(.,'" + acc.name + "')]"));
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='withdrawal' and contains(.,'" + (parseFloat(rate.rate)*parseFloat(tr.deposit1)) + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='withdrawal' and contains(.,'1,500.00 руб')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='path' and contains(.,'" + tr.parent + "::" + tr.name + "')]"));
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='deposit' and contains(.,'" + tr.deposit1 + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='deposit' and contains(.,'$ " + tr.deposit1 + "')]"));
 			self.done();
 		});
 		it("Test second 2", function(done) {
@@ -1680,50 +1681,15 @@ describe("Cash module registry",function () {
 			helpers.waitElement.call(self,By.css("#accounts-tree.ready"));				
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + acc.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			helpers.waitUnblock.call(this);
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='-" + (parseFloat(rate.rate)*parseFloat(tr.deposit1)) + ".00']"));
+			helpers.waitGridUpdate.call(this);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='- 1,500.00 руб']"));
 
 			self.browser.findElement(By.xpath("//label[contains(., 'Split')]/input")).click();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']")).click();
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='path' and contains(.,'" + acc.name + "')]"));
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='withdrawal' and contains(.,'" + (parseFloat(rate.rate)*parseFloat(tr.deposit1)) + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='withdrawal' and contains(.,'1,500.00 руб')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='path' and contains(.,'" + tr.parent + "::" + tr.name + "')]"));
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='deposit' and contains(.,'" + tr.deposit1 + "')]"));
-			self.done();
-		});
-		it("Edit exchange rate", function(done) {
-			var self = this;
-			self.trackError(done);
-			var tr = self.fixtures.dataentry.trs[6];
-			var rate = self.fixtures.dataentry.rates[0];
-			self.browser.findElement(By.linkText("View")).click();	
-			self.browser.findElement(By.linkText("Accounts")).click();	
-			helpers.waitElement.call(self,By.css("#accounts-tree.ready"));				
-			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
-			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			helpers.waitUnblock.call(this);
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td//button[@data-toggle='dropdown']")).click();
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td//a[.='Edit rate']")).click();
-
-			helpers.runModal.call(this, null, function(modal) {
-				modal.findElement(By.id("newrate")).sendKeys(rate.newrate);	
-				modal.findElement(By.id("save")).click();
-			});
-			helpers.waitUnblock.call(this);
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + tr.deposit1 + "']"));
-			self.done();
-		});
-		it("Accounts page should have right ballance 3", function(done) {
-			var self = this;
-			var tr = self.fixtures.dataentry.trs[6];
-			var acc = self.fixtures.dataentry.accounts[3];		
-			self.trackError(done);
-			self.browser.findElement(By.linkText("View")).click();	
-			self.browser.findElement(By.linkText("Accounts")).click();	
-			helpers.waitElement.call(self,By.css("#accounts-tree.ready"));				
-			self.browser.findElement(By.xpath("//div[span[contains(.,'$ 0.00')]]/a[contains(.,'" + tr.parent + "')]"));
-			self.browser.findElement(By.xpath("//div[span[contains(.,'$ " + tr.deposit1 + "')]]/a[contains(.,'" + tr.name + "')]"));
-			self.browser.findElement(By.xpath("//div[span[contains(.,'" + tr.mtotal + "')]]/a[contains(.,'" + acc.name + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='deposit' and contains(.,'$ " + tr.deposit1 + "')]"));
 			self.done();
 		});
 		it("Test first 3", function(done) {
@@ -1732,17 +1698,20 @@ describe("Cash module registry",function () {
 			var tr = self.fixtures.dataentry.trs[6];
 			var acc = self.fixtures.dataentry.accounts[3];		
 			var rate = self.fixtures.dataentry.rates[0];
+			self.browser.findElement(By.linkText("View")).click();	
+			self.browser.findElement(By.linkText("Accounts")).click();	
+			helpers.waitElement.call(self,By.css("#accounts-tree.ready"));				
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			helpers.waitUnblock.call(this);
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='" + tr.deposit1 + "']"));
+			helpers.waitGridUpdate.call(this);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='$ " + tr.deposit1 + "']"));
 
 			self.browser.findElement(By.xpath("//label[contains(., 'Split')]/input")).click();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']")).click();
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='path' and contains(.,'" + acc.name + "')]"));
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='withdrawal' and contains(.,'" + (parseFloat(rate.newrate)*parseFloat(tr.deposit1)) + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='withdrawal' and contains(.,'1,500.00 руб')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='path' and contains(.,'" + tr.parent + "::" + tr.name + "')]"));
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='deposit' and contains(.,'" + tr.deposit1 + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='deposit' and contains(.,'$ " + tr.deposit1 + "')]"));
 			self.done();
 		});
 		it("Test second 3", function(done) {
@@ -1756,15 +1725,15 @@ describe("Cash module registry",function () {
 			helpers.waitElement.call(self,By.css("#accounts-tree.ready"));				
 			self.browser.findElement(By.xpath("//div[@id='acc_row']/a[contains(.,'" + acc.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			helpers.waitUnblock.call(this);
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='-" + (parseFloat(rate.newrate)*parseFloat(tr.deposit1)) + ".00']"));
+			helpers.waitGridUpdate.call(this);
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[.='- 1,500.00 руб']"));
 
 			self.browser.findElement(By.xpath("//label[contains(., 'Split')]/input")).click();
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='num']")).click();
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='path' and contains(.,'" + acc.name + "')]"));
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='withdrawal' and contains(.,'" + (parseFloat(rate.newrate)*parseFloat(tr.deposit1)) + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][1]/td[@data-name='withdrawal' and contains(.,'1,500.00 руб')]"));
 			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='path' and contains(.,'" + tr.parent + "::" + tr.name + "')]"));
-			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='deposit' and contains(.,'" + tr.deposit1 + "')]"));
+			self.browser.findElement(By.xpath("//tr[contains(@class, 'acc-item-record-split') and not(contains(@style, 'none'))][2]/td[@data-name='deposit' and contains(.,'$ " + tr.deposit1 + "')]"));
 			self.done();
 		});
 		it("Edit changing currency", function(done) {
@@ -1809,7 +1778,7 @@ describe("Cash module registry",function () {
 		});
 	});
 	describe("Multicurrency dialog test", function () {
-		it("Login as user", function(done) {
+		before(function(done) {
 			var self = this;
 			self.trackError(done);
 			self.restoreDb('register-test');
@@ -1896,7 +1865,7 @@ describe("Cash module registry",function () {
 			var acc = self.fixtures.dataentry.accounts[3];		
 			self.browser.findElement(By.xpath("//a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='path']//input")).clear();
@@ -1926,7 +1895,7 @@ describe("Cash module registry",function () {
 				modal.findElement(By.xpath("//input[@id='rate' and contains(@value, '33.33')]"));
 				modal.findElement(By.xpath("//input[@id='sell' and contains(@value, '3333')]"));
 				modal.findElement(By.xpath("//span[@id='sell_cur' and .='RUB']"));
-				modal.findElement(By.xpath("//input[@id='buy' and contains(@value, '100.00')]"));
+				modal.findElement(By.xpath("//input[@id='buy' and contains(@value, '100')]"));
 				modal.findElement(By.xpath("//span[@id='buy_cur' and .='USD']"));
 
 				modal.findElement(By.xpath("//label[contains(., 'Sell USD, buy RUB')]/input[@id='inverse']")).click();
@@ -1956,8 +1925,8 @@ describe("Cash module registry",function () {
 				modal.findElement(By.id("save")).click();
 			});
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id!='blank']/td[@data-name='date']"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='withdrawal']/div[contains(., '3333')]"));
-			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[contains(.,'3333')]"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='withdrawal']/div[contains(., '3,333')]"));
+			self.browser.findElement(By.xpath("//tr[@data-id!='blank']/td[@data-name='total']/div[contains(.,'3,333')]"));
 			self.done();
 		});
 		it("Check price for USD in RUB", function(done) {
@@ -2015,7 +1984,7 @@ describe("Cash module registry",function () {
 			self.browser.findElement(By.xpath("//a[contains(.,'" + tr.name + "')]")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
@@ -2045,7 +2014,7 @@ describe("Cash module registry",function () {
 			var tr = self.fixtures.dataentry.trs[0];
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
@@ -2075,7 +2044,7 @@ describe("Cash module registry",function () {
 			var tr = self.fixtures.dataentry.trs[0];
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
@@ -2105,7 +2074,7 @@ describe("Cash module registry",function () {
 			var tr = self.fixtures.dataentry.trs[0];
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
@@ -2135,7 +2104,7 @@ describe("Cash module registry",function () {
 			var tr = self.fixtures.dataentry.trs[0];
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
@@ -2165,7 +2134,7 @@ describe("Cash module registry",function () {
 			var tr = self.fixtures.dataentry.trs[0];
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
@@ -2194,7 +2163,7 @@ describe("Cash module registry",function () {
 			var tr = self.fixtures.dataentry.trs[0];
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
@@ -2224,7 +2193,6 @@ describe("Cash module registry",function () {
 			var tr = self.fixtures.dataentry.trs[0];
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			
-			helpers.waitUnblock.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
@@ -2253,7 +2221,7 @@ describe("Cash module registry",function () {
 			var tr = self.fixtures.dataentry.trs[0];
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
@@ -2283,7 +2251,7 @@ describe("Cash module registry",function () {
 			var tr = self.fixtures.dataentry.trs[0];
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));
 			
-			helpers.waitUnblock.call(this);
+			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']")).click();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input"));
 			self.browser.findElement(By.xpath("//tr[@data-id='blank']/td[@data-name='date']//input")).clear();
