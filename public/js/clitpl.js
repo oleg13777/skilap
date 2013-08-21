@@ -179,7 +179,7 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 				opts.ctx.i18n_currency = opts.ctx.i18n_currency || scan.tf.indexOf("helpers.i18n_currency")!=-1;				
 				opts.ctx.i18n_cost = opts.ctx.i18n_cost || scan.tf.indexOf("helpers.i18n_cost")!=-1;								
 				opts.ctx.i18n_cmdtytext = opts.ctx.i18n_cmdtytext || scan.tf.indexOf("helpers.i18n_cmdtytext")!=-1;								
-				opts.ctx.i18n_date = opts.ctx.i18n_cmdtytext || scan.tf.indexOf("helpers.i18n_date")!=-1;	
+				opts.ctx.i18n_date = opts.ctx.i18n_date || scan.tf.indexOf("helpers.i18n_date")!=-1;	
 			})
 			this.compile(scans,opts, function (err, templates) {
 				if (err) return cb(err);
