@@ -614,8 +614,9 @@ describe("Cash module registry",function () {
 			helpers.waitGridUpdate.call(this);
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='n']"));
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']")).click();
-
 			helpers.waitGridUpdate.call(this);
+			helpers.waitUnblock.call(this);
+						
 			self.browser.findElement(By.xpath("//tr[@data-id!='blank'][1]/td[@data-name='rstate']/div[.='c']"));
 			self.browser.navigate().refresh();
 			helpers.waitElement.call(this, By.xpath("//tr[@data-id='blank']/td[@data-name='date']"));

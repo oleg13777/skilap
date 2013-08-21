@@ -77,14 +77,12 @@ $(document).ready(function() {
 							var $accItem = $container.find(".acc-item.selected");
 							if($accItem.length == 0)
 								$accItem = $container.find(".acc-item-split.selected");
-							console.log("accItem",$accItem);
 							updateOldColumnSelected($accItem, function(err, res){
 								if (err) return cb(err, res);
 								updateRecord($container.find(".acc-item-record.selected"),false,safe.sure(cb1,function(result){
 									$container.find(".acc-item-record").removeClass("selected");
 									$record.addClass("selected");
 									selectedRowId = $record.data("id");
-									console.log(selectedRowId);
 									toggleSplitRows($container);
 									if(result && result.tr){
 										isRecordUpdated = true;
@@ -477,7 +475,7 @@ $(document).ready(function() {
 				origData.splits.push(origspl);
 			}
 		});
-		console.log(origData,data);
+
 		if(!force && _.isEqual(data,origData)) {
 			return cb();
 		}
@@ -674,12 +672,19 @@ $(document).ready(function() {
 		if(!$column || $column.length == 0 || !$column.data("editable"))
 			return cb();
 		var data = {text:"",attr:{}};
+		// remember if container already modified
+		var dirty = $container.hasClass("container-dirty")
+		// mark container dirty
+		$container.addClass("container-dirty");
 		validateEditedColumn($column, data, function (err) {
 			$column.find(".tdContentEditable").html("").hide();
 			$column.find(".tdContent").show();
 			$column.removeClass("selected");
 			
 			if (err) {
+				// if we refuse to update unset dirty flag
+				if (!dirty)
+					$container.removeClass("container-dirty")
 				if (err.message == "cancel")
 					cb()
 				else
@@ -702,7 +707,6 @@ $(document).ready(function() {
 	}
 
 	function updateOldColumnSelectedHelper($column, data, cb) {
-		console.log(data);
 		$container.addClass("container-dirty");
 		var columnName = $column.data("name");			
 		// check if we edited something in master row
