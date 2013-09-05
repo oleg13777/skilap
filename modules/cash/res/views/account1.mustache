@@ -1,6 +1,6 @@
 <div id="accounts">
 <div class="row-fluid acc-container">
-	<div class="span11">
+	<div class="span11" style="width:94%">
 		<table class="table acc-table table-bordered" data-currency="{{currency}}">
 			<thead>
 				<th class="value" width="70em">{{#i18n}}Date{{/i18n}}</th>
@@ -18,7 +18,7 @@
 			</tbody>
 		</table>
 	</div>
-	<div class="span1">
+	<div class="span1" style="width:3%">
 		<div class="acc-scroll">
 			<div class="acc-scroll-inner"></div>
 		</div>
@@ -33,7 +33,7 @@ $(document).ready(function() {
 	var rowHeight = 31,
 		rowsLimit = 20,
 		iTotalRecords = {{accountSize}},
-		windowBottomOffset = 260,
+		windowBottomOffset = 130,
 		selectedRowId = null,
 		isRecordAdded = false,
 		isRecordUpdated = false,
@@ -255,7 +255,7 @@ $(document).ready(function() {
 		$container.block();
 		safe.run(function(cb){
 			require(["api"],function(api){
-				api.call("cash.clearTransactions",[recordId],safe.sure(cb,function(){
+				api.call("cash.clearTransactions",recordId,safe.sure(cb,function(){
 					iTotalRecords--;
 					updateContainer();
 					//$container.find(".acc-scroll").scroll();

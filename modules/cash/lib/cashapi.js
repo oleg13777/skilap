@@ -594,7 +594,7 @@ CashApi.prototype._calcStatsPartial = function (accIds, minDate, cb) {
 			async.forEachSeries(accIds, function (accId, cb) {
 				if (!toDelete[accId] || _.isEmpty(toDelete[accId])) return cb();
 				var accStats = getAccStats(accId);
-				accStats.count -= toDelete[accId].length;
+				accStats.count -= _.size(toDelete[accId]);
 				self._cash_register.remove({_id: {$in: _.keys(toDelete[accId])}}, {w: 1}, cb);
 			}, cb);
 		}],

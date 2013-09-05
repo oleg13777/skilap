@@ -417,20 +417,26 @@ module.exports.getTransactionsInDateRange = function (token, range, cb) {
 
 module.exports.clearTransactions = function (token, ids, cb) {
 	var self = this;
-	async.series ([
-	   			function (cb) { self._coreapi.checkPerm(token,["cash.edit"],cb); },
-	   			function (cb) {	
-	   				if (ids == null)
-	   					self._cash_transactions.remove(cb);
-	   				else
-	   					self._cash_transactions.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, cb);
-	   			}
-	   		], safe.sure(cb, function () {
-	   			if (ids != null && !_.isEmpty(ids))
-	   				self._calcStats(cb);
-	   			else
-	   				cb();
-	   		}));
+	self._coreapi.checkPerm(token,["cash.edit"],safe.trap_sure(cb, function () {
+		if (ids == null) {
+			self._cash_transactions.remove(safe.sure(cb, function () {
+				self._calcStats(cb);
+			}))
+		} else if (_.isArray(ids)) {
+			self._cash_transactions.remove({'_id': {$in: _.map(ids, function(id) { return new self._ctx.ObjectID(id); })}}, safe.sure(cb, function () {
+				self._calcStats(cb);
+			}))
+		} else { // now assuming single id
+			self._cash_transactions.findAndRemove({'_id': new self._ctx.ObjectID(ids)},{_id:1}, safe.sure(cb, function (trn) {
+				if (!trn) return cb(); // nothing deleted, nothing todo
+				var accIds = {};
+				_.each(trn.splits, function (split) {
+					accIds[split.accountId] = split.accountId;
+				});
+				self._calcStatsPartial(_.values(accIds), trn.datePosted, cb);
+			}))
+		}
+	}))
 };
 
 module.exports.importTransactions = function (token, transactions, cb) {
