@@ -299,8 +299,9 @@ $(document).ready(function() {
 	var scrollTimer = null;
 	function attachScrollEvent($container){
 		$container.find(".acc-scroll").scroll(function(){
-			// don't update ourselves when we blocked or modal active
-			if ($container.data("blockUI.isBlocked") || $(".modal").length>0 ) return;
+			// don't update ourselves while we are "dirty"
+			// i.e. unsaved or unprocessed data are exist
+			if ($container.hasClass("container-dirty")) return;
 			if (scrollTimer)
 				clearTimeout(scrollTimer);
 			var $this = $(this);
