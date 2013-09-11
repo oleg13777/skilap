@@ -64,12 +64,14 @@ module.exports.exchangeRate = function () {
 	        		pairs[key] = {'cmdty': cmdtys[j], 'currency': cmdtys[i]} ;
 				}
 			async.eachSeries(_.values(pairs), function(pair, cb) {
-				self._cash_prices.findOne(pair, {sort: {date: -1}}, safe.sure_result(cb, function(price) {
-	        		var key = pair.cmdty.id.toString() + pair.currency.id.toString();
-	        		if (price)
-	        			pairs[key].date = price.date;
-	        		else
-	        			pairs[key].date = new Date(0);
+				var query = {"cmdty.id":pair.cmdty.id,"cmdty.space":pair.cmdty.space,
+					"currency.id":pair.currency.id, "currency.space":pair.currency.space};
+				self._cash_prices.findOne(query, {sort: {date: -1}}, safe.sure_result(cb, function(price) {
+					var key = pair.cmdty.id.toString() + pair.currency.id.toString();
+					if (price)
+						pairs[key].date = price.date;
+					else
+						pairs[key].date = new Date(0);
 				}));
 			}, cb);
 		},
