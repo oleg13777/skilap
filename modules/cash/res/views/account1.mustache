@@ -885,7 +885,7 @@ $(document).ready(function() {
 					var options = {autoclose:true,language: _user.language.charAt(0)+_user.language.charAt(1),'format':"{{i18n_date 'format'}}"};
 					$elem.datepicker(options);
 					var date = new Date($column.data('val'));
-					$elem.datepicker("update",date);					
+					$elem.datepicker("setDate",date);					
 					$elem.datepicker("show");
 				}
 				$column.addClass("selected");
