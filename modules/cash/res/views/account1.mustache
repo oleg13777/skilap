@@ -10,7 +10,7 @@
 				<th class="rstate" width="10em" >R</th>
 				<th class="value" width="120em" halign="right">{{verbs.recv}}</th>
 				<th class="value" width="120em" halign="right">{{verbs.send}}</th>
-				<th class="value" width="120em" >{{#i18n}}Balance{{/i18n}}</th>
+				<th class="value" width="140em" >{{#i18n}}Balance{{/i18n}}</th>
 				<th class="settings" width="40em" ></th>
 			</thead>
 			<tbody>
@@ -882,10 +882,11 @@ $(document).ready(function() {
 					//$elem.click();
 				}
 				else if(edittype == "datepicker"){
-					var options = {language: _user.language.charAt(0)+_user.language.charAt(1),'format':"{{i18n_date 'format'}}"};
+					var options = {autoclose:true,language: _user.language.charAt(0)+_user.language.charAt(1),'format':"{{i18n_date 'format'}}"};
 					$elem.datepicker(options);
-					$elem.data("datepicker").show();
-					$elem.data("datepicker").setDate(new Date($column.data('val')));
+					var date = new Date($column.data('val'));
+					$elem.datepicker("update",date);					
+					$elem.datepicker("show");
 				}
 				$column.addClass("selected");
 
