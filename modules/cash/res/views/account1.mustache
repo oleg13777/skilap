@@ -535,8 +535,24 @@ $(document).ready(function() {
 	// we can type path to non existent account, if so, we need to ask 
 	// confirmation for its creation and create it
 	function validatePathColumn($column, data, cb) {
-		var path = $column.find("input").val();
-		data.attr['data-val']=data.text = path;
+		var $elem = $column.find("input");
+		var path = $elem.val();
+		data.attr['data-val'] = data.text = path;
+				
+		// not modifications, no validations
+		if (path == $column.data("origval"))
+			return cb();
+		
+		// check if value is obtained using autocomplete and unchanged
+		if ($elem.data("accpath")==path) {
+			// if so we not need to check server for details
+			data.attr['data-accid'] = $elem.data("accid");
+			data.attr['data-currency'] = $elem.data("currency");
+			data.attr['data-relaccid'] = $elem.data("accid");
+			return cb();
+		}
+
+		// more heavy checks
 		$container.block();
 		safe.run(function (cb) {
 			require(['api'], function (api) {
@@ -856,6 +872,7 @@ $(document).ready(function() {
 						typeaheadOptions.updater = function(item) {
 							$elem.data('accid', suggestions[item]['id']);
 							$elem.data('currency', suggestions[item]['currency']);
+							$elem.data("accpath", item);
 							$column.data('currency', suggestions[item]['currency']);
 							return item;
 						}
