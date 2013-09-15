@@ -806,6 +806,9 @@ $(document).ready(function() {
 						tf.render("grid_item_split_blank",{id:$record.data("recordid")},safe.sure(cb,function(text,ctx){
 							$record.after(text);
 							$record.next(".acc-item-record-split").show();
+							console.log("here");
+							var $mainrow = $record.prevAll(".acc-item-record").first();
+							hideNonSplitRows($mainrow,1);
 							cb();
 						}));
 					},cb);
@@ -921,23 +924,46 @@ $(document).ready(function() {
 			}));
 		},cb);
 	}
+	
+	function hideNonSplitRows($selectedRow, splits) {
+		var $all = $container.find("tr").filter(":visible");
+		splits = splits - Math.max(0,rowsLimit-$all.length);
+		var $next = $selectedRow.nextAll(".acc-item-record").filter(":visible");
+		var $prev = $selectedRow.prevAll(".acc-item-record").filter(":visible");
+		while (splits>0 && ($next.length>0 || $prev.length>0)) {
+			var $rows = $next.length>$prev.length?$next:$prev;
+			$rows.last().hide();
+			$rows = $rows.slice(0,-1);
+			if ($next.length>$prev.length)
+				$next = $rows;
+			else
+				$prev = $rows;
+			splits--;
+		}
+	}
 
 	function toggleSplitRows($container){
 		var $checkbox = $container.find(".splitMode");
 		var $selectedRow = $container.find(".acc-item-record.selected");
 		if($selectedRow){
 			var $splits = $container.find(".acc-item-record-split[data-recordid=\""+$selectedRow.data("id")+"\"]");
+			var splits = $splits.length;
 			$container.find(".acc-item[data-splitblock=\"1\"] .tdContent").show();
 			if($checkbox.is(":checked")){
 				updateOldColumnSelected($selectedRow.find(".acc-item.selected"), function(){
 					$container.find(".acc-item-record-split").hide();
 					$selectedRow.find(".acc-item[data-splitblock=\"1\"] .tdContent").hide();
 					$splits.show();
+					// now hide some non splits rows to compensate
+					// amount of displayed split rows
+					$container.find(".acc-item-record").show();					
+					hideNonSplitRows($selectedRow,splits);
 				});
 			}
 			else{
 				$splits.hide();
 				$selectedRow.find(".acc-item[data-splitblock=\"1\"] .tdContent").show();
+				$container.find(".acc-item-record").show();
 			}
 		}
 	}
