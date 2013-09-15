@@ -5,14 +5,9 @@ var SkilapError = require("skilap-utils").SkilapError;
 
 module.exports.getAccount = function (token, id, cb) {
 	var self = this;
-	async.series ([
-		function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
-		function get(cb) {
-			self._cash_accounts.findOne({'_id': new self._ctx.ObjectID(id.toString())}, cb);
-		}], safe.sure_result(cb, function (result) {
-			return result[1];
-		})
-	);
+	self._coreapi.checkPerm(token,["cash.view"],safe.trap_sure(cb, function () {
+		self._cash_accounts.findOne({'_id': new self._ctx.ObjectID(id.toString())}, cb);
+	}))
 };
 
 module.exports.getAllAccounts = function (token, cb) {

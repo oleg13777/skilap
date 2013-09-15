@@ -48,7 +48,6 @@ module.exports = function account(webapp) {
 
 	app.post(webapp.prefix+'/account/:id/updaterow', function(req, res, next) {
 		var tr = createTransactionFromData(req.body);
-		console.log(tr);
 		cashapi.saveTransaction(req.session.apiToken, tr, req.params.id, function(err,trn){
 			if(err){
 				return res.send({error:err.message});

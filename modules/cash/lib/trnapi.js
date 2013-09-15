@@ -191,6 +191,20 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 			trn.currency=_(leadAcc.cmdty).clone();
 			cb();
 		},
+		// ensure that all splits have valid account ids
+		function (cb) {
+			if (debug) { console.log("Before account ids verififcation"); console.log(trn); }
+			var splits = trn.splits;
+			trn.splits = [];
+			async.forEachSeries(splits,function(spl,cb) {
+				// with lead account we can use conversion
+				self.getAccount(token,spl.accountId,function (err, splitAccount) {
+					if (!err && splitAccount) 
+						trn.splits.push(spl)
+					cb();
+				})
+			},cb)
+		},
 		// ensure that slits has valid quantity and values
 		function (cb) {
 			if (debug) { console.log("Before value quantity restore"); console.log(trn); }
