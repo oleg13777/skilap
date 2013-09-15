@@ -773,6 +773,11 @@ $(document).ready(function() {
 		}
 		else if($column.closest(".acc-item-record-split").length > 0){
 			var $record = $column.closest(".acc-item-record-split");
+
+			// sometime we need to update row itself
+			if (columnName=="path") {
+				basicColumnUpdate($record, {attr:{'data-accid':data.attr['data-accid'],'data-currency':data.attr['data-currency']}})
+			}
 			
 			if (data.multicur) {
 				// with multicurrency transaction there is much more things to update
