@@ -96,8 +96,7 @@ module.exports.updateTransactionExcangeRate = function (token, trId, newRate, cb
 };
 
 module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
-	console.log(tr);
-	var debug = true;
+	var debug = false;
 	if (debug) { console.log("Received"); console.log(arguments); console.log(arguments[1].splits); }
 	if (_.isFunction(leadAccId)) {
 		cb = leadAccId;

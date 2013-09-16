@@ -619,7 +619,9 @@ $(document).ready(function() {
 		var ival = $column.find("input").val();
 		
 		if(mainCurr && editCurr && mainCurr != editCurr){
-			var oldVal = $column.data('val');		
+			var oldVal = $column.data('val');	
+			if (ival==oldVal)	
+				return cb(new Error("cancel"));
 			$column.data('val',ival);
 			var mainQnt = (eval($esplit.find('[data-name="deposit"]').data('val'))||0)-(eval($esplit.find('[data-name="withdrawal"]').data('val'))||0);		
 			$column.data('val',oldVal);
@@ -755,15 +757,34 @@ $(document).ready(function() {
 							$record.data("saveRate",true);
 						// with multicurrency transaction there is much more things to update
 						var $e = [];
-						$e.push([$record.find('[data-name="deposit"]'),$record.find('[data-name="withdrawal"]')]);
-						$e.push([$mainSplit.find('[data-name="deposit"]'),$mainSplit.find('[data-name="withdrawal"]')]);
-						$e.push([$slaveSplit.find('[data-name="deposit"]'),$slaveSplit.find('[data-name="withdrawal"]')]);												
+						$e.push([$record.find('[data-name="deposit"]'),$record.find('[data-name="withdrawal"]'),$record]);
+						$e.push([$mainSplit.find('[data-name="deposit"]'),$mainSplit.find('[data-name="withdrawal"]'),$mainSplit]);
+						$e.push([$slaveSplit.find('[data-name="deposit"]'),$slaveSplit.find('[data-name="withdrawal"]'),$slaveSplit]);												
 				
 						var m = data.multicur.m;
 						
+						var text = [];
 						for (var i=0; i<3; i++ ) {	for (var j=0; j<2; j++) { 
-							basicColumnUpdate($e[i][j],{text:m[0][i][j],attr:{'data-val':m[0][i][j],'data-value':m[1][i][j]}})
+							basicColumnUpdate($e[i][j],{text:m[0][i][j],attr:{'data-val':m[0][i][j],'data-value':m[1][i][j]}})							
+							text.push({v:m[0][i][j],c:$e[i][2].data("currency")})
 						}}
+						
+						// update values to user readable format 
+						safe.run(function (cb) {
+							require(["clitpl","async"],function(tf,async){					
+								async.forEach(text, function (v,cb) {
+									tf.render("grid_currency_field",{val:v.v!=''?v.v:null,cur:v.c},safe.sure(cb,function(text,ctx){			
+										v.t = text.trim();
+										cb()
+									}))
+								},cb)
+							},cb)						
+						}, function () {						
+							var k=0;
+							for (var i=0; i<3; i++ ) {	for (var j=0; j<2; j++) { 
+								basicColumnUpdate($e[i][j],{text:text[k++].t})
+							}}
+						})
 					}
 				} else {
 					// related column
@@ -780,15 +801,31 @@ $(document).ready(function() {
 			}
 			
 			if (data.multicur) {
+				basicUpdate = false;
 				// with multicurrency transaction there is much more things to update
 				var $e = [];
 				$e.push([$record.find('[data-name="deposit"]'),$record.find('[data-name="withdrawal"]')]);
 		
 				var m = data.multicur.m;
 				
-				basicColumnUpdate($e[0][0],{text:m[1][2][1],attr:{'data-val':m[1][2][1],'data-value':m[0][2][1]}})
-				basicColumnUpdate($e[0][1],{text:m[1][2][0],attr:{'data-val':m[1][2][0],'data-value':m[0][2][0]}})
+				var text = [{v:m[1][2][1],c:$record.data('currency')},{v:m[1][2][0],c:$record.data('currency')}];
 				
+				basicColumnUpdate($e[0][0],{text:text[0].t,attr:{'data-val':m[1][2][1],'data-value':m[0][2][1]}})
+				basicColumnUpdate($e[0][1],{text:text[1].t,attr:{'data-val':m[1][2][0],'data-value':m[0][2][0]}})
+				
+				safe.run(function (cb) {
+					require(["clitpl","async"],function(tf,async){					
+						async.forEach(text, function (v,cb) {
+							tf.render("grid_currency_field",{val:v.v!=''?v.v:null,cur:v.c},safe.sure(cb,function(text,ctx){			
+								v.t = text.trim();
+								cb()
+							}))
+						},cb)
+					},cb)						
+				}, function () {
+					basicColumnUpdate($e[0][0],{text:text[0].t})
+					basicColumnUpdate($e[0][1],{text:text[1].t})
+				})
 			}
 
 			/* parent row update, not sure this is required....
@@ -811,7 +848,6 @@ $(document).ready(function() {
 						tf.render("grid_item_split_blank",{id:$record.data("recordid")},safe.sure(cb,function(text,ctx){
 							$record.after(text);
 							$record.next(".acc-item-record-split").show();
-							console.log("here");
 							var $mainrow = $record.prevAll(".acc-item-record").first();
 							hideNonSplitRows($mainrow,1);
 							cb();
@@ -824,7 +860,7 @@ $(document).ready(function() {
 		}
 
 		// if it still make sense lets do trivial update
-		if (basicColumnUpdate)
+		if (basicUpdate)
 			basicColumnUpdate($column,data);	
 		
 		// when reconcile value modified lets update it right away, but only in non split mode
