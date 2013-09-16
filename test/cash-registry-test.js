@@ -40,7 +40,7 @@ describe("Cash module registry",function () {
 	afterEach(tutils.afterEach);
 
 	describe("Registry input", function () {
-		it("Login as user", function(done) {
+		before(function(done) {
 			var self = this;
 			self.trackError(done);
 			this.restoreDb('core-users');	

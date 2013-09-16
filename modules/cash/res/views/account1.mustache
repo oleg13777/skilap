@@ -748,11 +748,11 @@ $(document).ready(function() {
 				// for simple (2 split) transaction we'll might need to modify other split values as well 
 				// to keep them ballanced
 				if($record.data("multisplit") != 1 && (columnName == "deposit" || columnName == "withdrawal")){
-					basicUpdate = false;
 					var secondcol = {"deposit":"withdrawal","withdrawal":"deposit"};
 					if (!data.multicur) 
 						basicColumnUpdate($slaveSplit.find("[data-name=\""+secondcol[columnName]+"\"]"),data);
 					else {
+						basicUpdate = false;						
 						if (data.multicur.saveRate)
 							$record.data("saveRate",true);
 						// with multicurrency transaction there is much more things to update
