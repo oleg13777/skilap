@@ -284,7 +284,6 @@ module.exports = function account(webapp) {
 
 
 	var createTransactionFromData = function(data){
-		console.log(data);
 		var tr={};
 		if(data.id){
 			tr._id = data.id;

@@ -149,7 +149,6 @@ module.exports.saveTransaction = function (token,tr,leadAccId,cb) {
 						if (!oldSplit) return;
 						split.isNew = false;
 						// if both new values are defined and not the same as previous nothing to do
-						console.log(oldSplit.value, split.value, oldSplit.quantity, split.quantity);
 						if (!_.isUndefined(split.value) && split.value!= oldSplit.value && !_.isUndefined(split.quantity) && split.quantity != oldSplit.quantity)
 							return; // changed both split and quantity, nothing to do
 						if (!_.isUndefined(split.value) && split.value != oldSplit.value) {

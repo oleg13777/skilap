@@ -28,8 +28,7 @@ function Skilap(config_) {
 	var _adb = null;
 	var tmodules = [
 		{name:"core", require:"./coreapi"},
-		{name:"cash", require:"skilap-cash"},
-		{name:"tasks", require:"skilap-tasks"}
+		{name:"cash", require:"skilap-cash"}
 		];
 	var self = this;
 	var modules = {};
@@ -582,7 +581,6 @@ function Skilap(config_) {
 	}
 	
 	this.i18n_cytext = function(langtoken, curId, value) {
-		console.log(value);
 		var cur = i18n.currency(curId);
 		var res = cur.format(value);
 		var m = res.match(/([^0123456789., ]*)([0123456789., ]*)([^0123456789., ]*)/);

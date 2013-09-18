@@ -343,7 +343,6 @@ module.exports.init = function (ctx,cb) {
 				require("../pages/restoredefaults.js")(self);
 				require("../pages/export.js")(self);
 				require("../pages/priceeditor.js")(self);
-				require("../pages/settings.js")(self);	
 				cb();
 			}				
 

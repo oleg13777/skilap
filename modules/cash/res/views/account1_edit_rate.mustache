@@ -34,7 +34,6 @@ require(["jquery","jquery-block"],function($){
 		$form.find("#save").on("click", function (event) {
 			save = true;
 			event.preventDefault();
-			console.log("test");
 			$form.trigger("frm-saved", [$form.find("input[name='rate']").val()]);
 		})
 	})
