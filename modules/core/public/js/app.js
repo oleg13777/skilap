@@ -3,9 +3,7 @@ require.config({
 	paths: {		
 		"hbs": _prefix+"/hbs",
 		"admin": _prefix+"/js",
-		"jquery": "jquery-1.9.0.min",		
-		"jquery-form": "/common/js/jquery.form",		
-		"jquery-ui": "/common/js/jquery-ui-1.9.2.custom.min",	
+		"jquery": "jquery",		
 		"jquery-block": "/common/js/jquery.blockUI",			
 		"bootstrap": "/common/js/bootstrap.min",
 	},
@@ -19,12 +17,6 @@ require.config({
 		"bootstrap": {
 			deps:["jquery"]
 		},		
-		"jquery-form": {
-			deps:["jquery"]
-		},		
-		"jquery-ui": {
-			deps:["jquery"]
-		},
 		"jquery-block": {
 			deps:["jquery"]
 		},		
