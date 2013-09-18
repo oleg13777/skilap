@@ -146,9 +146,9 @@ describe("Cash module",function () {
 		});
 	});
 	describe("Export and import", function () {
+		this.timeout(60000);			
 		var sum = '';
 		before(function(done) {
-			this.timeout(60000);			
 			var self = this;
 			self.trackError(done);
 			self.restoreDb('core-users');				
@@ -156,9 +156,6 @@ describe("Cash module",function () {
 			self.browser.findElement(By.linkText("Cash module")).click();			
 			self.done();
 		});		
-		after(function(done) {
-			this.timeout(10000);			
-		})
 		it("Import sample gnucash file", function(done) {
 			var self = this;
 			self.trackError(done);
@@ -246,7 +243,7 @@ describe("Cash module",function () {
 			});
 		});
 	});
-	describe.only("Manage accounts", function () {
+	describe("Manage accounts", function () {
 		before(function(done) {
 			var self = this;
 			self.trackError(done);
@@ -330,6 +327,8 @@ describe("Cash module",function () {
 		});
 	});
 	describe("Manage accounts (delete)", function () {
+		this.timeout(60000);			
+		
 		var all = '';
 		it("Login as user", function(done) {
 			var self = this;
