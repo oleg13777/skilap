@@ -27,7 +27,7 @@ var assert = require('assert');
  * */
 
 describe("Cash module report",function () {
-	this.timeout(120000);
+	this.timeout(10000);
 	before(function () {
 		this.jobName = "Skilap - Cash module - Reports";
 	});

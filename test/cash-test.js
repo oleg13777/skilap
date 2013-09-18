@@ -27,7 +27,7 @@ var assert = require('assert');
  * */
 
 describe("Cash module",function () {
-	this.timeout(120000);
+	this.timeout(10000);
 	before(function () {
 		this.jobName = "Skilap - Cash module";
 	});
@@ -148,6 +148,7 @@ describe("Cash module",function () {
 	describe("Export and import", function () {
 		var sum = '';
 		before(function(done) {
+			this.timeout(60000);			
 			var self = this;
 			self.trackError(done);
 			self.restoreDb('core-users');				
@@ -155,6 +156,9 @@ describe("Cash module",function () {
 			self.browser.findElement(By.linkText("Cash module")).click();			
 			self.done();
 		});		
+		after(function(done) {
+			this.timeout(10000);			
+		})
 		it("Import sample gnucash file", function(done) {
 			var self = this;
 			self.trackError(done);
