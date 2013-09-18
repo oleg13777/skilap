@@ -246,7 +246,7 @@ describe("Cash module",function () {
 			});
 		});
 	});
-	describe("Manage accounts", function () {
+	describe.only("Manage accounts", function () {
 		before(function(done) {
 			var self = this;
 			self.trackError(done);
