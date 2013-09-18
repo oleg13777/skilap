@@ -4,6 +4,7 @@ var dfW3C = new DateFormat(DateFormat.W3C);
 var async = require("async");
 var _ = require('underscore');
 var repCmdty = {space:"ISO4217",id:"RUB"};
+var safe = require('safe');
 
 module.exports = function account(webapp) {
 	var app = webapp.web;
@@ -100,17 +101,18 @@ module.exports = function account(webapp) {
 				}, {});		
 				cashapi.getTransactionsInDateRange(token,[params.startDate,params.endDate,true,false],cb1);
 			},
-			function(trns,cb1){							
-				_.forEach(trns, function (tr) {
+			function(trns,cb1){			
+				(function (cb) {				
+				async.forEach(trns, function (tr,cb) {
 					cashapi.getCmdtyPrice(token,tr.currency,{space:"ISO4217",id:params.reportCurrency},null,'safe',function(err,rate){
 						if(err && !(err.skilap && err.skilap.subject == "UnknownRate"))
-							return cb1(err);
+							return cb(err);
 						if (!err && rate!=0)
 							var irate = rate;
 						_.forEach(tr.splits, function(split) {
 							var acs = accKeys[split.accountId];
 							if (acs) {
-								var val = split.quantity*irate;
+								var val = split.value*irate;
 								if (params.accType!=acs.type){
 									acs.summ  = 0;
 									val = 0;
@@ -128,9 +130,10 @@ module.exports = function account(webapp) {
 								}
 							}
 						});
+						cb();
 					})
-				});
-
+				},cb);
+			})(safe.sure(cb1, function () {
 				//collapse accounts to accLevel
 				if(params.accLevel != 'All'){
 					async.series([
@@ -206,6 +209,7 @@ module.exports = function account(webapp) {
 					}, {});		
 					cb1();
 				}
+				}))
 			},
 			function(cb1){				
 				var total = 0;
@@ -276,8 +280,8 @@ module.exports = function account(webapp) {
 
 	function getDefaultSettings(reportName) {
 		var defaultSettings = {
-				startDate:dfW3C.format(new Date(new Date().getFullYear()-2, 0, 1)),
-				endDate:dfW3C.format(new Date(new Date().getFullYear()-2, 11, 31)),
+				startDate:dfW3C.format(new Date(new Date().getFullYear(), 0, 1)),
+				endDate:dfW3C.format(new Date(new Date().getFullYear(), 11, 31)),
 				accIsVisible:1,
 				accType:"EXPENSE",
 				maxAcc:10,

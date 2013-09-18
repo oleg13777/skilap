@@ -40,7 +40,7 @@ describe("Cash module report",function () {
 	afterEach(tutils.afterEach);
 
 	describe("Reports", function () {
-		it("Login as user", function(done) {
+		before(function(done) {
 			var self = this;
 			self.trackError(done);
 			self.restoreDb('cash-gnucash');	
@@ -49,13 +49,26 @@ describe("Cash module report",function () {
 			helpers.waitElement.call(this,By.css("#index.ready"));				
 			self.done();
 		});	
-		it ("Check barchart", function(done){
+		it ("Open barchart", function(done){
 			var self = this;
 			self.trackError(done);
 			self.browser.findElement(By.linkText("Report")).click();	
 			self.browser.findElement(By.linkText("Spend/receive bar chart")).click();
-			helpers.waitElement.call(this, By.id("highcharts-0"));
-			self.done();
+			helpers.waitElement.call(this, By.id("highcharts-0"));			
+			
+			self.browser.findElement(By.xpath("//ul[@id='page_menu']/li/a")).click();	
+			self.browser.wait(function () {
+				return self.browser.findElement(By.xpath("//ul[@id='page_menu']//a[@id='settings']")).isDisplayed();
+			});
+			self.browser.findElement(By.xpath("//ul[@id='page_menu']//a[@id='settings']")).click();
+			helpers.runModal.call(self, null, function(modal) {	
+				modal.findElement(By.linkText("General")).click();
+				helpers.fillInput.call(modal, modal.findElement(By.name("startDate")), "01/01/2011");
+				helpers.fillInput.call(modal, modal.findElement(By.name("endDate")), "31/12/2011");						
+				modal.findElement(By.id("save")).click();
+			});			
+			helpers.waitElement.call(self, By.id("highcharts-0"));
+			self.done();			
 		});
 		it ("Check Accounts selection", function(done){
 			var self = this;
