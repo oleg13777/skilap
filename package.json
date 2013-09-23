@@ -16,7 +16,7 @@
     , "cookies": ""
     , "jsorm-i18n": ""
     , "underscore": ""
-    , "safe": ">= 0.1.3"
+    , "safe": ">= 0.1.4"
     , "sax": ""
     , "async": ""
     , "sprintf" : ""
