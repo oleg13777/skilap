@@ -30,7 +30,7 @@ CashWeb.prototype._init = function (cb) {
 			}));
 		},
 		function (cb) {
-			self.ctx.getDB(safe.sure(function (adb) {
+			self.ctx.getDB(safe.sure(cb,function (adb) {
 				async.parallel({
 					_cash_userviews:function (cb) {
 						adb.collection('cash_userviews',cb);

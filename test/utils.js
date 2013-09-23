@@ -56,12 +56,12 @@ module.exports.getApp = function (opts,cb) {
 			"app":{engine:"tingodb",port:8080},
 			"tingo":{"path":__dirname+"/snapshots/__tingodb"}
 		}
-		safe.trap(cb, function () {
+		safe.run(function () {
 			wrench.mkdirSyncRecursive(acfg.tingo.path)
-			wrench.rmdirSyncRecursive(acfg.tingo.path);
+			wrench.rmdirSyncRecursive(acfg.tingo.path)
 			wrench.mkdirSyncRecursive(acfg.tingo.path)
 			cb();
-		})()
+		},cb)
 	}
 	(function (cb) {
 		if (cfg.db=="mongodb")
@@ -172,10 +172,10 @@ module.exports.makeDbSnapshot = function (snapname, cb) {
 	if (cfg.db=="mongodb") 
 		mutils.dumpDatabase("tcp://localhost:27017/skilapqa",__dirname+"/snapshots/mongo-"+snapname,cb);
 	else {
-		safe.trap(cb, function () {
+		safe.run(function () {
 			wrench.copyDirSyncRecursive(__dirname+"/snapshots/__tingodb",__dirname+"/snapshots/tingo-"+snapname,{forceDelete:true,preserveFiles:true});
 			cb();
-		})()
+		},cb)
 	}
 }
 
@@ -184,10 +184,10 @@ module.exports.restoreDbSnapshot = function (snapname, cb) {
 		if (cfg.db=="mongodb") 	
 			mutils.restoreDatabase("tcp://localhost:27017/skilapqa",__dirname+"/snapshots/mongo-"+snapname,cb);
 		else {
-			safe.trap(cb, function () {
+			safe.run(function () {
 				wrench.copyDirSyncRecursive(__dirname+"/snapshots/tingo-"+snapname,__dirname+"/snapshots/__tingodb",{forceDelete:true,preserveFiles:true});
 				cb();
-			})()
+			},cb)
 		}
 	})(function () {
 		if (appProcess)
