@@ -1,3 +1,8 @@
+{{#if user.loggedin}}
+<h2>{{#i18n}}Access denied.{{/i18n}}</h2>
+<p>{{#i18n}}Please contact site owner for resolution.{{/i18n}}</p>
+{{else}}
 <h2>{{#i18n}}Hi Stranger, this is protected area.{{/i18n}}</h2>
 <p>{{#i18n}}Please contact site owner for account if you need it.{{/i18n}}</p>
 <p><a href="/login?success={{url}}">{{#i18n}}Login{{/i18n}}</a> {{#i18n}}if you have it already{{/i18n}}.</p>
+{{/if}}

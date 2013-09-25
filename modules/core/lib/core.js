@@ -174,7 +174,7 @@ function Skilap(config_) {
 								console.log('Log-in should be secure');
 								res.redirect('https://'+req.headers.host+req.url);
 							} else {  */
-								res.render(__dirname+'/../res/views/accessDenied', {layout:"layout"}, safe.sure(next, function (text) {
+								res.render(__dirname+'/../res/views/accessDenied', {layout:"layout",url:req.url}, safe.sure(next, function (text) {
 									res.send(403,text);
 								}))
 /*							} */
@@ -205,7 +205,8 @@ function Skilap(config_) {
 						console.log('Log-in should be secure');
 						res.redirect('https://'+req.headers.host+req.url);
 					} else { */
-						res.render(__dirname+'/../res/views/login', {prefix:'/core',layout:"layout",success:req.params.success || '/'});
+						res.render(__dirname+'/../res/views/login', {prefix:'/core',layout:"layout",success:req.query.success || '/',
+							failure:"/login?success="+(req.query.success || '/'),error:req.query.error});
 /*					} 	*/
 				})
 
@@ -214,10 +215,9 @@ function Skilap(config_) {
 						function (cb) { modules['core'].api.loginByPass(req.session.apiToken, req.body.name, req.body.password, cb); }
 					], function (err, user) {
 						if (err) {
-							console.log(err);
-							res.redirect(req.body.success);
+							res.redirect((req.body.failure || '/?')+"&error="+encodeURIComponent(err.message));
 						} else
-							res.redirect(req.body.success);
+							res.redirect(req.body.success || '/');
 					});
 				});
 
