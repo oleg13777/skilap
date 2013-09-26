@@ -1,8 +1,8 @@
 /**
- * Create a new currency object. 
- * 
- * @class A currency-formatting library. Each object represents a currency. It is responsible for converting an absolute amount, e.g. 67.85, 
- * into a formatted string that is appropriate for the given currency. One first creates a currency object by passing it the 
+ * Create a new currency object.
+ *
+ * @class A currency-formatting library. Each object represents a currency. It is responsible for converting an absolute amount, e.g. 67.85,
+ * into a formatted string that is appropriate for the given currency. One first creates a currency object by passing it the
  * international standard three-letter abbreviation. One can then use that object to format any amount of funds.
  * <p/>
  * Example usage is as follows:
@@ -12,12 +12,12 @@
  * <li>Get information about the currency abbreviation (e.g. USD), name (e.g. Dollars), and country (e.g. United States of America)
  *   using <code>cur.getAbbreviation(); cur.getName(); cur.getCountry();</code></li>
  * </ol>
- * 
+ *
  * @param {string} abbr The three-letter ISO standard abbreviation for a currency. If the given standard is not found, the defaultCurrency
  *   will be used.
  * @constructor
  */
-(function() {
+;(function() {
 	/**
 	 * Currency configurators. They are shown as follows;
 	 * dec - decimal separator e.g. between dollars and cents
@@ -26,7 +26,7 @@
 	 * after - whether to put the currency symbol after the value or before e.g. $2.00 vs 4.00 NIS
 	 * currency
 	 * country
-	 * 
+	 *
 	 * @private
 	 */
 	var currencies = {
@@ -156,19 +156,20 @@
 		VEB : {dec : '.', symbol : 'Bs', group : ',', after : false, currency : 'Bolivares', country : 'Venezuela', significantFigures: 2},
 		VND : {dec : '.', symbol : '\u20ab', group : ',', after : false, currency : 'Dong', country : 'Vietnam', significantFigures: 2},
 		YER : {dec : '.', symbol : '\ufdfc', group : ',', after : false, currency : 'Rials', country : 'Yemen', significantFigures: 2},
-		ZWD : {dec : '.', symbol : 'Z$', group : ',', after : false, currency : 'Zimbabwe Dollars', country : 'Zimbabwe', significantFigures: 2}
-    , BTC : {dec : '.', symbol : '', group: ',', after : false, currency: 'Bitcoins', country : 'N/A', significantFigures: 8}
+		ZWD : {dec : '.', symbol : 'Z$', group : ',', after : false, currency : 'Zimbabwe Dollars', country : 'Zimbabwe', significantFigures: 2},
+		BTC : {dec : '.', symbol : '', group: ',', after : false, currency: 'Bitcoins', country : 'N/A', significantFigures: 8}
 	};
 
 	var currency = function(a) {
-		var abbr = currencies[a] ? a : 'USD', data = currencies[abbr], doMoney, padString;
-		padString = function(str, n) {
+		var abbr = currencies[a] ? a : 'USD';
+		var data = currencies[abbr], doMoney, padString;
+		var padString = function(str, n) {
 			var lenString = str.length, paddingLen = n - lenString, padding = (new Array(paddingLen+1)).join('0');
 			return str+padding;
 		};
 		/**
 		 * Format a number as a currency.
-	     * 
+	     *
 	     * @param {float} value The numeric value to format
 	     * @param {String} sep The separator between whole currency and partial (e.g. dollars and cents)
 	     * @param {String} symbol The currency symbol
@@ -179,7 +180,7 @@
 	     * @return {String} The formatted currency string
 	     * @private
 	     */
-	    doMoney = function(v,dec,symbol,group,after,significantFigures){
+	    var doMoney = function(v,dec,symbol,group,after,significantFigures){
 			var ps, whole, sub, r, roundingFactor = Math.pow(10, significantFigures);
 	        v = (Math.round(v*roundingFactor))/roundingFactor;
 	        v = String(v);
@@ -207,16 +208,16 @@
 		            v = '-' +symbol+ v.substr(1);
 		        } else {
 					v = symbol + v;
-				}			
+				}
 			}
 			return(v);
 	    };
 
 		return {
 			/**
-			 * Format a value of funds in a the given currency. This will correctly handle place separators, currency symbols, decimal separators, 
+			 * Format a value of funds in a the given currency. This will correctly handle place separators, currency symbols, decimal separators,
 			 * and location of symbol (before vs. after the amount).
-			 * 
+			 *
 			 * @param {float} value The amount to format
 			 * @return {String} The formatted value
 			 */
@@ -231,15 +232,15 @@
 			/**
 			 * Get the abbreviation for the currency. This is normally the amount passed to the constructor. However, if that amount was not
 			 * found, the default currency was used and will be returned.
-			 * 
+			 *
 			 * @return {String} Three-letter ISO standard for the currency represented by this object
 			 */
 			getAbbreviation : function() {
 				return(abbr);
 			},
 			/**
-			 * Get the name of this currency. 
-			 * 
+			 * Get the name of this currency.
+			 *
 			 * @return {String} Name of the currency
 			 */
 			getName : function() {
@@ -247,32 +248,34 @@
 			},
 			/**
 			 * Get the name of the country where this currency is used.
-			 * 
+			 *
 			 * @return {String} The country name
 			 */
 			getCountry : function() {
 				return(data.country);
 			},
-			
+
 			getCurrencies : function() {
 				var list = [], i;
 				for (i in currencies) {
-					if (currencies.hasOwnProperty(i) && typeof(currencies[i]) !== "function") {list.push(i);}
+					if (currencies.hasOwnProperty(i) && typeof(currencies[i]) !== "function"){
+						list.push(i);
+					}
 				}
 				return(list);
 			}
 		};
 	};
-	if (typeof module !== 'undefined' && module.exports)
+	if (typeof module !== 'undefined' && module.exports) {
 		// commonjs module
 		module.exports = currency;
-	else if (typeof define !== 'undefined' && define.amd )
+	} else if (typeof define !== 'undefined' && define.amd ) {
 		// AMD module
 		define([],function () {
 			return currency;
 		})
-	else
-		// finally old school 
-		this.safe =safe;
-
+	} else {
+		// finally old school
+		this.safe = safe;
+	}
 })();

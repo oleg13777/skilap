@@ -3,11 +3,11 @@
 <head>
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>{{title}}</title>	
-	 <!-- Le styles -->	
-	<link href="/core/css/bootstrap.css" rel="stylesheet"> 	
+	<title>{{title}}</title>
+	 <!-- Le styles -->
+	<link href="/core/css/bootstrap.css" rel="stylesheet">
 	<link href="/core/css/responsive.css" rel="stylesheet">
-	<link href="/core/css/main.css" rel="stylesheet">	
+	<link href="/core/css/main.css" rel="stylesheet">
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -18,7 +18,7 @@
 		var _user = {_id:'{{user._id}}',language:"{{user.language}}"};
 		var _prefix = '{{prefix}}';
 	</script>
-    <script type="text/javascript" src="{{prefix}}/js/app.js"></script>    
+    <script type="text/javascript" src="{{prefix}}/js/app{{relisets}}.js"></script>
 </head>
 <body>
 	<div class="navbar navbar-fixed-top navbar-inverse">
@@ -30,7 +30,7 @@
             <span class="icon-bar"></span>
           </a>
           <a href='/' id="logoNew"></a>
-		  <a class="brand" href="#">{{#i18n}}Core{{/i18n}}</a>          
+		  <a class="brand" href="#">{{#i18n}}Core{{/i18n}}</a>
           <div class="nav-collapse">
           {{#if user.loggedin}}
             <ul class="nav nav-pills">
@@ -53,10 +53,10 @@
       </div>
     </div>
     <div class="container context">
-		{{> content}}	
-    </div> 
+		{{> content}}
+    </div>
 	<footer class="footer">
-    <div class="container">	
+    <div class="container">
 		<br><br><br><br>
 		<p class="well-small well">&copy; {{#i18n}}Copyright by PushOk Software{{/i18n}} 2011-2013</p>
 	</div>

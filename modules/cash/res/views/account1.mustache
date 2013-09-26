@@ -216,7 +216,7 @@ $(document).ready(function() {
 						toggleSplitRows($container);
 						isRecordUpdated = true;
 						updateContainer();
-						
+
 						if ($update.data("id") == "blank")
 							setTimeout(function () {
 								var $selected = $container.find(".acc-item-record.selected");
@@ -311,12 +311,12 @@ $(document).ready(function() {
 				if(isRecordAdded || isRecordUpdated){
 					$container.block();
 				}
-				
+
 				loadGrid($container,offset,rowsLimit,function(){$container.unblock();});
 			},100)
 		});
 	}
-	
+
 	function updateContainer() {
 		if (scrollTimer)
 			clearTimeout(scrollTimer);
@@ -371,7 +371,7 @@ $(document).ready(function() {
 			 selectedRowId = srowId;
 		safe.run(function(cb1){
 			getData(offset,limit,safe.sure(cb1,function(data){
-				if (lastModData) 
+				if (lastModData)
 					data.aaData[data.aaData.length - 1].date = lastModData;
 				require(["clitpl"],function(tf){
 					tf.render("account_items",{items:data.aaData,oddeven:0,splitMode:$container.find(".splitMode").is(":checked")},safe.sure(cb1,function(text,ctx){
@@ -414,9 +414,9 @@ $(document).ready(function() {
 
 
 	function updateRecord($record,force,cb){
-		if(!$record || $record.length == 0) 
+		if(!$record || $record.length == 0)
 			return cb();
-			
+
 		var origData = {
 			date: $record.find(".acc-item[data-name=\"date\"]").data("origval"),
 			num: $record.find(".acc-item[data-name=\"num\"]").data("origval").toString(),
@@ -466,7 +466,7 @@ $(document).ready(function() {
 				deposit_value = $(item).find(".acc-item-split[data-name=\"deposit\"]").data("origvalue");
 				withdrawal_value = $(item).find(".acc-item-split[data-name=\"withdrawal\"]").data("origvalue");
 				if (deposit_value) origspl.deposit_value = deposit_value;
-				if (withdrawal_value) origspl.withdrawal_value = withdrawal_value;				
+				if (withdrawal_value) origspl.withdrawal_value = withdrawal_value;
 				var splId = $(item).data("_id");
 				if(splId != "" && splId != "new"){
 					spl._id = splId;
@@ -512,12 +512,12 @@ $(document).ready(function() {
 			cb(error);
 		});
 	}
-	
+
 	function validateEditedColumn($column, data, cb) {
-		var columnName = $column.data("name");	
-		if(columnName == "path") 
+		var columnName = $column.data("name");
+		if(columnName == "path")
 			validatePathColumn($column,data, cb)
-		else if (columnName == "deposit" || columnName == "withdrawal") 
+		else if (columnName == "deposit" || columnName == "withdrawal")
 			validateQuantityColumn($column,data, cb)
 		else if (columnName == "date") {
 			// simple case is just accept value from input
@@ -531,18 +531,18 @@ $(document).ready(function() {
 			cb();
 		}
 	}
-		
-	// we can type path to non existent account, if so, we need to ask 
+
+	// we can type path to non existent account, if so, we need to ask
 	// confirmation for its creation and create it
 	function validatePathColumn($column, data, cb) {
 		var $elem = $column.find("input");
 		var path = $elem.val();
 		data.attr['data-val'] = data.text = path;
-				
+
 		// not modifications, no validations
 		if (path == $column.data("origval"))
 			return cb();
-		
+
 		// check if value is obtained using autocomplete and unchanged
 		if ($elem.data("accpath")==path) {
 			// if so we not need to check server for details
@@ -557,7 +557,7 @@ $(document).ready(function() {
 		safe.run(function (cb) {
 			require(['api'], function (api) {
 				api.call('cash.getAccountByPath',path,function (err, acc) {
-					if (err) {// meaning no such account 
+					if (err) {// meaning no such account
 						require(['clitpl','safe','bootstrap'], function (tf,safe) {
 							tf.render('account1_create', {}, safe.sure(cb,function(text, ctx) {
 								$container.unblock();
@@ -581,7 +581,7 @@ $(document).ready(function() {
 					} else {
 						data.attr['data-accid'] = acc._id;
 						data.attr['data-currency'] = acc.cmdty.id;
-						data.attr['data-relaccid'] = acc._id;						
+						data.attr['data-relaccid'] = acc._id;
 						cb();
 					}
 				})
@@ -591,7 +591,7 @@ $(document).ready(function() {
 			cb(err);
 		})
 	}
-	
+
 	// validate editing of value column (depist, withdrawal)
 	function validateQuantityColumn($column, data, cb) {
 		var $record = $column.closest(".acc-item-record");
@@ -614,29 +614,29 @@ $(document).ready(function() {
 			$esplit = $record;
 		}
 		mainCurr=$record.data("currency")
-		
+
 		// lets update edited text in place (will revert it back later
 		var ival = $column.find("input").val();
-		
+
 		if(mainCurr && editCurr && mainCurr != editCurr){
-			var oldVal = $column.data('val');	
-			if (ival==oldVal)	
+			var oldVal = $column.data('val');
+			if (ival==oldVal)
 				return cb(new Error("cancel"));
 			$column.data('val',ival);
-			var mainQnt = (eval($esplit.find('[data-name="deposit"]').data('val'))||0)-(eval($esplit.find('[data-name="withdrawal"]').data('val'))||0);		
+			var mainQnt = (eval($esplit.find('[data-name="deposit"]').data('val'))||0)-(eval($esplit.find('[data-name="withdrawal"]').data('val'))||0);
 			$column.data('val',oldVal);
-			
+
 			$container.block();
 			safe.run(function (cb) {
 				var buyDir = mainQnt>=0?0:1; mainQnt = Math.abs(mainQnt);
 				var showOther = (editCurr==$split.data("currency"))?0:1;
 				buyDir = (buyDir+showOther)%2;
-				
+
 				require(['api','clitpl','safe','bootstrap'], function (api,tf,safe) {
 					api.call('cash.getCmdtyPrice', {id: buyDir?editCurr:mainCurr}, {id: buyDir?mainCurr:editCurr}, new Date(), 'safe', safe.sure(cb, function (price) {
 						var _data = {
-							val: ((showOther+buyDir)%2)?mainQnt:mainQnt*price, 
-							rate: price, 
+							val: ((showOther+buyDir)%2)?mainQnt:mainQnt*price,
+							rate: price,
 							curr1: buyDir?editCurr:mainCurr,
 							curr2: buyDir?mainCurr:editCurr,
 							quantity: ((showOther+buyDir)%2)?mainQnt*price:mainQnt,
@@ -652,12 +652,12 @@ $(document).ready(function() {
 								bchange = bchange?1:0;
 								var idx = (showOther+buyDir + bchange)%2;
 								$modal.modal('hide')
-								
+
 								var m = [[['',''],['',''],['','']],[['',''],['',''],['','']]];
-								
+
 								m[0][0][idx]=idx?sval:bval; m[0][1][idx]=idx?sval:bval; m[0][2][(idx+1)%2]=idx?bval:sval;
 								m[1][0][idx]=idx?sval:bval; m[1][1][idx]=idx?sval:bval; m[1][2][(idx+1)%2]=idx?sval:bval;
-								
+
 								data.multicur = {m:m,rate:rval,saveRate:bsave};
 
 								cb();
@@ -672,11 +672,11 @@ $(document).ready(function() {
 			}, function (err) {
 				$container.unblock();
 				cb(err);
-			})	
+			})
 		} else {
 			require(["clitpl"],function(tf){
 				ival = eval(ival)||null;
-				tf.render("grid_currency_field",{val:ival,cur:mainCurr},safe.sure(cb,function(text,ctx){			
+				tf.render("grid_currency_field",{val:ival,cur:mainCurr},safe.sure(cb,function(text,ctx){
 					data.text = text.trim();
 					data.attr['data-val'] = ival;
 					data.attr['data-value'] = ival;
@@ -686,7 +686,7 @@ $(document).ready(function() {
 		}
 	}
 
-	
+
 	function updateOldColumnSelected($column, cb){
 		if(!$column || $column.length == 0 || !$column.data("editable"))
 			return cb();
@@ -699,7 +699,7 @@ $(document).ready(function() {
 			$column.find(".tdContentEditable").html("").hide();
 			$column.find(".tdContent").show();
 			$column.removeClass("selected");
-			
+
 			if (err) {
 				// if we refuse to update unset dirty flag
 				if (!dirty)
@@ -713,21 +713,21 @@ $(document).ready(function() {
 				updateOldColumnSelectedHelper($column, data, cb);
 		})
 	}
-	
+
 	function basicColumnUpdate($column, data) {
-		if (data.text!=null) 
+		if (data.text!=null)
 			$column.find(".tdContent").text(data.text);
 		_.each(data.attr,function(v,k){
 			var dm = k.match(/data-(.*)/);
 			if (dm.length)
 				$column.data(dm[1],v);
 			$column.attr(k,v);
-		});		
+		});
 	}
 
 	function updateOldColumnSelectedHelper($column, data, cb) {
 		$container.addClass("container-dirty");
-		var columnName = $column.data("name");			
+		var columnName = $column.data("name");
 		// check if we edited something in master row
 		var $record = $column.closest(".acc-item-record")
 		var basicUpdate = true;
@@ -736,52 +736,52 @@ $(document).ready(function() {
 			// if field has relaccid, then it means we have will need update related split
 			if(relaccid) {
 				var recordid = $record.data("id");
-				var $mainSplit =$record.parent().find(".acc-item-record-split[data-recordid=\""+recordid+"\"][data-accid=\""+relaccid+"\"]");				
-				var $slaveSplit = $mainSplit.next().attr("name")=="blank"?$mainSplit.prev():$mainSplit.next();									
-				
+				var $mainSplit =$record.parent().find(".acc-item-record-split[data-recordid=\""+recordid+"\"][data-accid=\""+relaccid+"\"]");
+				var $slaveSplit = $mainSplit.next().attr("name")=="blank"?$mainSplit.prev():$mainSplit.next();
+
 				// sometime we need to update row itself
 				if (columnName=="path") {
 					// main split should be updated as well
 					basicColumnUpdate($mainSplit, {attr:{'data-accid':data.attr['data-accid'],'data-currency':data.attr['data-currency']}})
 				}
-				
-				// for simple (2 split) transaction we'll might need to modify other split values as well 
+
+				// for simple (2 split) transaction we'll might need to modify other split values as well
 				// to keep them ballanced
 				if($record.data("multisplit") != 1 && (columnName == "deposit" || columnName == "withdrawal")){
 					var secondcol = {"deposit":"withdrawal","withdrawal":"deposit"};
-					if (!data.multicur) 
+					if (!data.multicur)
 						basicColumnUpdate($slaveSplit.find("[data-name=\""+secondcol[columnName]+"\"]"),data);
 					else {
-						basicUpdate = false;						
+						basicUpdate = false;
 						if (data.multicur.saveRate)
 							$record.data("saveRate",true);
 						// with multicurrency transaction there is much more things to update
 						var $e = [];
 						$e.push([$record.find('[data-name="deposit"]'),$record.find('[data-name="withdrawal"]'),$record]);
 						$e.push([$mainSplit.find('[data-name="deposit"]'),$mainSplit.find('[data-name="withdrawal"]'),$mainSplit]);
-						$e.push([$slaveSplit.find('[data-name="deposit"]'),$slaveSplit.find('[data-name="withdrawal"]'),$slaveSplit]);												
-				
+						$e.push([$slaveSplit.find('[data-name="deposit"]'),$slaveSplit.find('[data-name="withdrawal"]'),$slaveSplit]);
+
 						var m = data.multicur.m;
-						
+
 						var text = [];
-						for (var i=0; i<3; i++ ) {	for (var j=0; j<2; j++) { 
-							basicColumnUpdate($e[i][j],{text:m[0][i][j],attr:{'data-val':m[0][i][j],'data-value':m[1][i][j]}})							
+						for (var i=0; i<3; i++ ) {	for (var j=0; j<2; j++) {
+							basicColumnUpdate($e[i][j],{text:m[0][i][j],attr:{'data-val':m[0][i][j],'data-value':m[1][i][j]}})
 							text.push({v:m[0][i][j],c:$e[i][2].data("currency")})
 						}}
-						
-						// update values to user readable format 
+
+						// update values to user readable format
 						safe.run(function (cb) {
-							require(["clitpl","async"],function(tf,async){					
+							require(["clitpl","async"],function(tf,async){
 								async.forEach(text, function (v,cb) {
-									tf.render("grid_currency_field",{val:v.v!=''?v.v:null,cur:v.c},safe.sure(cb,function(text,ctx){			
+									tf.render("grid_currency_field",{val:v.v!=''?v.v:null,cur:v.c},safe.sure(cb,function(text,ctx){
 										v.t = text.trim();
 										cb()
 									}))
 								},cb)
-							},cb)						
-						}, function () {						
+							},cb)
+						}, function () {
 							var k=0;
-							for (var i=0; i<3; i++ ) {	for (var j=0; j<2; j++) { 
+							for (var i=0; i<3; i++ ) {	for (var j=0; j<2; j++) {
 								basicColumnUpdate($e[i][j],{text:text[k++].t})
 							}}
 						})
@@ -799,29 +799,29 @@ $(document).ready(function() {
 			if (columnName=="path") {
 				basicColumnUpdate($record, {attr:{'data-accid':data.attr['data-accid'],'data-currency':data.attr['data-currency']}})
 			}
-			
+
 			if (data.multicur) {
 				basicUpdate = false;
 				// with multicurrency transaction there is much more things to update
 				var $e = [];
 				$e.push([$record.find('[data-name="deposit"]'),$record.find('[data-name="withdrawal"]')]);
-		
+
 				var m = data.multicur.m;
-				
+
 				var text = [{v:m[1][2][1],c:$record.data('currency')},{v:m[1][2][0],c:$record.data('currency')}];
-				
+
 				basicColumnUpdate($e[0][0],{text:text[0].t,attr:{'data-val':m[1][2][1],'data-value':m[0][2][1]}})
 				basicColumnUpdate($e[0][1],{text:text[1].t,attr:{'data-val':m[1][2][0],'data-value':m[0][2][0]}})
-				
+
 				safe.run(function (cb) {
-					require(["clitpl","async"],function(tf,async){					
+					require(["clitpl","async"],function(tf,async){
 						async.forEach(text, function (v,cb) {
-							tf.render("grid_currency_field",{val:v.v!=''?v.v:null,cur:v.c},safe.sure(cb,function(text,ctx){			
+							tf.render("grid_currency_field",{val:v.v!=''?v.v:null,cur:v.c},safe.sure(cb,function(text,ctx){
 								v.t = text.trim();
 								cb()
 							}))
 						},cb)
-					},cb)						
+					},cb)
 				}, function () {
 					basicColumnUpdate($e[0][0],{text:text[0].t})
 					basicColumnUpdate($e[0][1],{text:text[1].t})
@@ -837,7 +837,7 @@ $(document).ready(function() {
 					$mainColumnTarget.data(k,v);
 				});
 			}*/
-			
+
 			// create next input row when required
 			if($record.next(".acc-item-record-split").length == 0){
 				var $record = $column.closest(".acc-item-record-split");
@@ -861,8 +861,8 @@ $(document).ready(function() {
 
 		// if it still make sense lets do trivial update
 		if (basicUpdate)
-			basicColumnUpdate($column,data);	
-		
+			basicColumnUpdate($column,data);
+
 		// when reconcile value modified lets update it right away, but only in non split mode
 		if (!$container.find(".splitMode").is(":checked") && $column.data("edittype") == "switch") {
 			updateRecord($column.parent(),false,safe.sure(cb,function(result) {
@@ -872,7 +872,7 @@ $(document).ready(function() {
 		} else
 			cb();
 	}
-	
+
 	function handleColumnClick($column,cb){
 		var editable = $column.data("editable");
 		if(!editable)
@@ -907,7 +907,7 @@ $(document).ready(function() {
 							});
 							jqXHR.done(function(data){
 								if ($elem.is(":visible") && idl==thid) {
-									suggestions = data;									
+									suggestions = data;
 									process(_.sortBy(_.keys(data), function(name) { return name; }));
 								}
 							});
@@ -923,14 +923,14 @@ $(document).ready(function() {
 					}
 					else if(name == "description"){
 						typeaheadOptions.source = function(text,process){
-							var idl = ++thid;							
+							var idl = ++thid;
 							var jqXHR = $.ajax({
 								"url": "{{prefix}}/account/{{accountId}}/getdesc",
 								"dataType": "json",
 								"cache": true
 							});
 							jqXHR.done(function(data){
-								if ($elem.is(":visible") && idl==thid)								
+								if ($elem.is(":visible") && idl==thid)
 									process(data);
 							});
 
@@ -959,13 +959,13 @@ $(document).ready(function() {
 						$elem.val("c");
 
 					$column.parent().find("td[data-name='total']").click();
-					
+
 				}
 				cb();
 			}));
 		},cb);
 	}
-	
+
 	function hideNonSplitRows($selectedRow, splits) {
 		var $all = $container.find("tr").filter(":visible");
 		splits = splits - Math.max(0,rowsLimit-$all.length);
@@ -997,7 +997,7 @@ $(document).ready(function() {
 					$splits.show();
 					// now hide some non splits rows to compensate
 					// amount of displayed split rows
-					$container.find(".acc-item-record").show();					
+					$container.find(".acc-item-record").show();
 					hideNonSplitRows($selectedRow,splits);
 				});
 			}
@@ -1020,7 +1020,7 @@ $(document).ready(function() {
 					if(result && result.isNew){
 						/*
 						isRecordAdded = true;
-						if (rowsLimit > iTotalRecords) 
+						if (rowsLimit > iTotalRecords)
 							loadGrid($container,0,rowsLimit,function(){$container.unblock();});
 						else
 							$container.find(".acc-scroll").scrollTop($container.find(".acc-scroll").scrollTop()+rowHeight);

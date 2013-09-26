@@ -4,15 +4,15 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 			throw new Error("Handlerbars Helper 'compare' needs 3 parameters");
 
 		var result = false;
-		
+
 		try {
 			result = eval(JSON.stringify(lvalue)+op+JSON.stringify(rvalue));
 		} catch (err) {
 		}
 
 		return result?options.fn(this):options.inverse(this);
-	});						
-	
+	});
+
 	return {
 		compile:function(scans,opts, cb) {
 			if (typeof cb !== "function") {
@@ -50,7 +50,7 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 					require(deps, function (moment) {
 						moment.lang(lc);
 						handlebars.registerHelper('i18n_date',function(d, options) {
-							var f = "L";							
+							var f = "L";
 							if (d=="format")
 								return moment.langData().longDateFormat(f).toLowerCase();
 							var f = "L";
@@ -82,7 +82,7 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 							return _gt.gettext(options.fn(this));
 						})
 						cb();
-					});
+					}, cb);
 				})
 			}
 			if (opts.ctx.i18n_currency) {
@@ -97,7 +97,7 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 							else
 								return res.trim();
 						}
-						
+
 						handlebars.registerHelper('i18n_currency',function(iso, value, options) {
 							if (value==null) return "";
 							return i18n_cytext(iso,value);
@@ -105,7 +105,7 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 						cb();
 					}, cb)
 				})
-			}			
+			}
 			if (opts.ctx.i18n_cost || opts.ctx.i18n_cmdtytext) {
 				tasks.push(function (cb) {
 					require(["currency","api"], function (currency,api) {
@@ -135,7 +135,7 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 									var key = (cmdtySrc.space+cmdtySrc.id+cmdtyDst.space+cmdtyDst.id);
 									var price = prices[key] || 1;
 									return (price!=1?"( "+i18n_cytext(cmdtySrc.id, value) + ")":"")
-										+" "+i18n_cytext(cmdtyDst.id, price*value);	
+										+" "+i18n_cytext(cmdtyDst.id, price*value);
 								})
 								cb();
 							}))
@@ -143,7 +143,7 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 							cb();
 					},cb)
 				})
-			}		
+			}
 
 			if (opts.ctx.user) {
 				tasks.push(function (cb) {
@@ -155,10 +155,10 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 								user[user.language]=1;
 								ctx.user = user;
 								cb();
-							}, failure:cb});
-						})
-					}
-				)
+							}, failure:cb
+						});
+					}, cb)
+				})
 			}
 			async.parallel(tasks,function (err) {
 				if (err) return cb(err);
@@ -177,10 +177,10 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 				if (scan.v) return;
 				opts.ctx.i18n = opts.ctx.i18n || scan.tf.indexOf("helpers.i18n")!=-1;
 				opts.ctx.user = opts.ctx.user || scan.tf.indexOf("depth0.user")!=-1;
-				opts.ctx.i18n_currency = opts.ctx.i18n_currency || scan.tf.indexOf("helpers.i18n_currency")!=-1;				
-				opts.ctx.i18n_cost = opts.ctx.i18n_cost || scan.tf.indexOf("helpers.i18n_cost")!=-1;								
-				opts.ctx.i18n_cmdtytext = opts.ctx.i18n_cmdtytext || scan.tf.indexOf("helpers.i18n_cmdtytext")!=-1;								
-				opts.ctx.i18n_date = opts.ctx.i18n_date || scan.tf.indexOf("helpers.i18n_date")!=-1;	
+				opts.ctx.i18n_currency = opts.ctx.i18n_currency || scan.tf.indexOf("helpers.i18n_currency")!=-1;
+				opts.ctx.i18n_cost = opts.ctx.i18n_cost || scan.tf.indexOf("helpers.i18n_cost")!=-1;
+				opts.ctx.i18n_cmdtytext = opts.ctx.i18n_cmdtytext || scan.tf.indexOf("helpers.i18n_cmdtytext")!=-1;
+				opts.ctx.i18n_date = opts.ctx.i18n_date || scan.tf.indexOf("helpers.i18n_date")!=-1;
 			})
 			this.compile(scans,opts, function (err, templates) {
 				if (err) return cb(err);
@@ -195,7 +195,7 @@ define(["handlebars.runtime","lodash","async","safe","module"], function (handle
 			if (typeof cb !== "function") {
 				cb = opts;
 				opts = {ctx:{}};
-			}			
+			}
 			require(["json!hbs/"+tname+".js"], function (scans) {
 				self.make(scans,ctx,opts,safe.sure(cb, function (tpl,ctx) {
 					cb(null,tpl[tname](ctx),ctx);
