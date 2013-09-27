@@ -1,7 +1,10 @@
 #! /bin/sh
 npm install
 
-BUILD_FOLDER="build_$(date +%m%d_%H%M)"
+#BUILD_FOLDER="build_$(date +%m%d_%H%M)"
+BUILD_FOLDER="build"
+
+rm -rf #BUILD_FOLDER
 
 mkdir $BUILD_FOLDER
 
@@ -31,7 +34,7 @@ cd $BUILD_FOLDER
 
 mv grun.js Gruntfile.js
 
-grunt
+../node_modules/.bin/grunt
 
 rm Gruntfile.js
 rm compile.sh

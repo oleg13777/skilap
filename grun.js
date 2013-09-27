@@ -238,5 +238,5 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-smushit');
 	grunt.loadNpmTasks('grunt-pngmin');
 
-	grunt.registerTask('default', ['requirejs','buildapp','uglify','cutmustache','htmlcompressor','smushit', 'pngmin']);
+	grunt.registerTask('default', ['requirejs','buildapp','uglify','cutmustache','htmlcompressor','smushit']);
 }

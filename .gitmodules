@@ -1,3 +1,0 @@
-[submodule "node_modules/alfred"]
-	path = node_modules/alfred
-	url = git://github.com/sergeyksv/alfred.git

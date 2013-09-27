@@ -11,3 +11,4 @@ screenshot_err.png
 snapshots
 chromedriver.log
 sauce_connect.log*
+build*

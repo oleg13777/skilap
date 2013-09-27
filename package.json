@@ -54,6 +54,7 @@
     , "grunt-smushit" : "0.4.x"
     }
     , "scripts": {
-       "test":"node test"
+       "test":"./test.sh",
+       "build":"./compile.sh"
      }
 }
