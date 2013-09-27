@@ -7,8 +7,8 @@
 			/* cutstart */
 			, "jquery": "/common/js/jquery"
 			, "jquery-block": "/common/js/jquery.blockUI"
-			, "bootstrap": "/common/js/bootstrap.min"
-			, "moment": "/common/js/moment/min/moment.min"
+			, "bootstrap": "/common/js/bootstrap"
+			, "moment": "/common/js/moment/moment"
 			/* cutend */
 			, "moment_ru": "/common/js/moment/lang/ru"
 		},

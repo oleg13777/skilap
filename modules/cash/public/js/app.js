@@ -8,10 +8,10 @@
 			, "jquery": "/common/js/jquery"
 			, "jquery-block": "/common/js/jquery.blockUI"
 			, "jquery-mousewheel": "/common/js/jquery.mousewheel"
-			, "bootstrap": "/common/js/bootstrap.min"
+			, "bootstrap": "/common/js/bootstrap"
 			, "bootstrap-typeahead": "/common/js/bootstrap-typeahead"
 			, "bootstrap-datepicker-core": "/common/js/bootstrap-datepicker"
-			, "moment": "/common/js/moment/min/moment.min"
+			, "moment": "/common/js/moment/moment"
 			, "eventemitter2": "/common/js/eventemitter2"
 			/* cutend */
 			, "moment_ru": "/common/js/moment/lang/ru"
