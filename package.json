@@ -47,6 +47,7 @@
     , "mongodb" : ""
     , "mongo-utils" : ""
     , "grunt" : "0.4.x"
+    , "grunt-cli" : "0.1.x"
     , "grunt-contrib-requirejs" : "0.4.x"
     , "grunt-contrib-uglify" : "0.2.x"
     , "grunt-htmlcompressor" : "0.1.x"
