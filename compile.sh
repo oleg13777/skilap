@@ -4,7 +4,7 @@ npm install
 #BUILD_FOLDER="build_$(date +%m%d_%H%M)"
 BUILD_FOLDER="build"
 
-rm -rf #BUILD_FOLDER
+rm -rf $BUILD_FOLDER
 
 mkdir $BUILD_FOLDER
 
