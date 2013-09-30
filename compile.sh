@@ -9,13 +9,13 @@ rm -rf $BUILD_FOLDER
 mkdir $BUILD_FOLDER
 
 mkdir $BUILD_FOLDER/modules
-cp -r -L modules/* $BUILD_FOLDER/modules
+cp -r modules/* $BUILD_FOLDER/modules
 
 mkdir $BUILD_FOLDER/data
 cp -r -L data/* $BUILD_FOLDER/data
 
 mkdir $BUILD_FOLDER/node_modules
-cp -r -L node_modules/* $BUILD_FOLDER/node_modules
+cp -r node_modules/* $BUILD_FOLDER/node_modules
 
 mkdir $BUILD_FOLDER/public
 cp -r -L public/* $BUILD_FOLDER/public

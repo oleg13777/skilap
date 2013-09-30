@@ -142,13 +142,17 @@ module.exports = function(grunt) {
 				options: {
 					preserveComments: false,
 					beautify: {
-						ascii_only: true
+						ascii_only: false,
+						quote_keys: true
 					},
 					compress: {
-						hoist_funs: false,
-						join_vars: false,
-						loops: false,
-						unused: false
+						hoist_funs: true,
+						join_vars: true,
+						loops: true,
+						conditionals: true,
+						if_return: true,
+						unused: true,
+						comparisons: true
 					},
 					report: "min",
 					mangle: {
