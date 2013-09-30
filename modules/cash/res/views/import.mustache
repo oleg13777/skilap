@@ -7,13 +7,13 @@
 {{/SkilapCash}}
 <div class="alert">{{#i18n}}Attention! Your existing data will be overwritten upon complete.{{/i18n}}</div>
 {{#upload}}
-<h3>{{#i18n}}Select file for import{{/i18n}}</h3>	
-<form class="well form-inline" action="?step=1" enctype="multipart/form-data" method="post">					
+<h3>{{#i18n}}Select file for import{{/i18n}}</h3>
+<form class="well form-inline" action="?step=1" enctype="multipart/form-data" method="post">
 	<input class="fakeUploadInput input-xlarge" >
-	<button class="fakeUploadBrowse btn" type="button" >{{#i18n}}Browse{{/i18n}}</button>		
+	<button class="fakeUploadBrowse btn" type="button" >{{#i18n}}Browse{{/i18n}}</button>
 	<button class="btn btn-primary" type="submit">{{#i18n}}Next{{/i18n}} »</button>
 	<input id="upload-file" type="file" name="upload"  style="visibility:hidden;" />
-</form>	
+</form>
 {{/upload}}
 
 {{#step1}}
@@ -34,22 +34,22 @@
 {{#error}}
 <div class="alert alert-error">
 {{#i18n}}Wrong data. Please try again.{{/i18n}}
-</div>	
-{{/error}}	
-</div>	
+</div>
+{{/error}}
+</div>
 
-<script type="text/javascript">
-	require(["jquery"],function ($) {
-		$(document).ready(function() {
-			var $page = $("#import");		
-			$page.addClass("ready");
-			$(".fakeUploadBrowse").click(function(){
-				$("#upload-file").click();
-			});
-			$("#upload-file").change(function(){
-				var filename = $(this).val().split('\\').pop();
-				$(".fakeUploadInput").val(filename);
-			});
+<script>
+require(["jquery"],function ($) {
+	$(function() {
+		var $page = $("#import");
+		$page.addClass("ready");
+		$(".fakeUploadBrowse").click(function(){
+			$("#upload-file").click();
 		});
-	})
+		$("#upload-file").change(function(){
+			var filename = $(this).val().split('\\').pop();
+			$(".fakeUploadInput").val(filename);
+		});
+	});
+}, appError)
 </script>

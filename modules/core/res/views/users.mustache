@@ -1,7 +1,7 @@
 <div id="users">
 <div class="row">
-	<div class="span4">		
-		<button class="btn" name="addNewUser" >{{#i18n}}Add new user{{/i18n}}</button>		
+	<div class="span4">
+		<button class="btn" name="addNewUser" >{{#i18n}}Add new user{{/i18n}}</button>
 	</div>
 	<br><br><br>
 </div>
@@ -26,121 +26,121 @@
 	</div>
 </div>
 </div>
-<script type="text/javascript">
+<script>
 require(["jquery","jquery-block","bootstrap"], function ($) {
-$(document).ready(function() {
-	$page = $("#users");
-	$page.addClass("ready");
-	$page.on('click', "a[name=\"editUser\"]", function(evt){
-		evt.preventDefault();		
-		$this = $(this);
-        var uid = $this.attr('uid');  		
-		var $me = $(this).closest(".users_row");
-		$me.block();
-		(function (cb) {
-			require(['api','clitpl','safe'], function (api,tf,safe) {
-				api.call('core.getUserById', uid, safe.sure(cb, function (user) {
-					tf.render('user_prefs_edit', {luser:user}, safe.sure(cb,function(text, ctx) {
-						$me.unblock();														
-						$("body").append(text);
-						var $modal = $("#"+ctx.uniq).modal();
-						$modal.on("frm-saved", function (evt, user) {
-							api.call('core.getUserById', uid, safe.sure(cb, function (user) {							
-								tf.render('users_row',user, safe.sure(cb, function(text) {
-									$me.before(text)
-									$me.remove()
-									$modal.modal('hide')
-									cb();									
-								}))
-							}))
-						})
-					}))
-				}))
-			},cb)
-		})(function (err) {
-			if (err) appError(err);
-			$me.unblock();
-		})
-		return false;
-	});
-	$page.on("click", "a[name=\"editPerm\"]",function(evt){
-		evt.preventDefault();		
-		$this = $(this);
-        var uid = $this.attr('uid');  		
-		var $me = $(this).closest(".users_row");
-		$me.block();
-		(function (cb) {
-			require(['api','clitpl','safe'], function (api,tf,safe) {
-				api.call('core.getUserById', uid, safe.sure(cb, function (user) {
-					api.call('core.getUserPermissions', user, safe.sure(cb, function (permissions) {
-						tf.render('user_perm_edit', {permissions: permissions, luser: user}, safe.sure(cb,function(text, ctx) {
-							$me.unblock();														
+	$(function() {
+		$page = $("#users");
+		$page.addClass("ready");
+		$page.on('click', "a[name=\"editUser\"]", function(evt){
+			evt.preventDefault();
+			$this = $(this);
+			var uid = $this.attr('uid');
+			var $me = $(this).closest(".users_row");
+			$me.block();
+			(function (cb) {
+				require(['api','clitpl','safe'], function (api,tf,safe) {
+					api.call('core.getUserById', uid, safe.sure(cb, function (user) {
+						tf.render('user_prefs_edit', {luser:user}, safe.sure(cb,function(text, ctx) {
+							$me.unblock();
 							$("body").append(text);
 							var $modal = $("#"+ctx.uniq).modal();
 							$modal.on("frm-saved", function (evt, user) {
-								api.call('core.getUserById', uid, safe.sure(cb, function (user) {							
+								api.call('core.getUserById', uid, safe.sure(cb, function (user) {
 									tf.render('users_row',user, safe.sure(cb, function(text) {
 										$me.before(text)
 										$me.remove()
 										$modal.modal('hide')
-										cb();									
+										cb();
 									}))
 								}))
 							})
 						}))
 					}))
-				}))
-			},cb)
-		})(function (err) {
-			if (err) appError(err);
-			$me.unblock();
-		})
-		return false;
-	})
-	$page.on("click", "a[name=\"deleteUser\"]",function(evt) {
-		evt.preventDefault();
-		if (!confirm("{{#i18n}}Are you sure?{{/i18n}}"))
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$me.unblock();
+			})
 			return false;
-		var uid = $(this).attr('uid');		
-		var $me = $(this).closest(".users_row");
-		$me.block();
-		(function (cb) {
-			require(['api','safe'], function (api,safe) {
-				api.call('core.deleteUser', uid, safe.sure(cb, function () {
-					$me.remove();
-				}))
-			},cb)
-		})(function (err) {
-			if (err) appError(err);
-			$me.unblock();
-		})	
-	});
-	$page.on("click", "button[name=\"addNewUser\"]",function(evt){
-		evt.preventDefault();		
-		$this = $(this);
-		var $me = $page;
-		$me.block();
-		(function (cb) {
-			require(['api','clitpl','safe'], function (api,tf,safe) {
-				tf.render('user_prefs_edit', {luser:{}}, safe.sure(cb,function(text, ctx) {
-					$me.unblock();														
-					$("body").append(text);
-					var $modal = $("#"+ctx.uniq).modal();
-					$modal.on("frm-saved", function (evt, user) {
-						tf.render('users_row',user, safe.sure(cb, function(text) {
-							$page.find("tbody").prepend(text)
-							$modal.modal('hide')
-							cb();									
+		});
+		$page.on("click", "a[name=\"editPerm\"]",function(evt){
+			evt.preventDefault();
+			$this = $(this);
+			var uid = $this.attr('uid');
+			var $me = $(this).closest(".users_row");
+			$me.block();
+			(function (cb) {
+				require(['api','clitpl','safe'], function (api,tf,safe) {
+					api.call('core.getUserById', uid, safe.sure(cb, function (user) {
+						api.call('core.getUserPermissions', user, safe.sure(cb, function (permissions) {
+							tf.render('user_perm_edit', {permissions: permissions, luser: user}, safe.sure(cb,function(text, ctx) {
+								$me.unblock();
+								$("body").append(text);
+								var $modal = $("#"+ctx.uniq).modal();
+								$modal.on("frm-saved", function (evt, user) {
+									api.call('core.getUserById', uid, safe.sure(cb, function (user) {
+										tf.render('users_row',user, safe.sure(cb, function(text) {
+											$me.before(text)
+											$me.remove()
+											$modal.modal('hide')
+											cb();
+										}))
+									}))
+								})
+							}))
 						}))
-					})
-				}))
-			},cb)
-		})(function (err) {
-			if (err) appError(err);
-			$me.unblock();
+					}))
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$me.unblock();
+			})
+			return false;
 		})
-		return false;		
-	});	
-});
-})
+		$page.on("click", "a[name=\"deleteUser\"]",function(evt) {
+			evt.preventDefault();
+			if (!confirm("{{#i18n}}Are you sure?{{/i18n}}"))
+				return false;
+			var uid = $(this).attr('uid');
+			var $me = $(this).closest(".users_row");
+			$me.block();
+			(function (cb) {
+				require(['api','safe'], function (api,safe) {
+					api.call('core.deleteUser', uid, safe.sure(cb, function () {
+						$me.remove();
+					}))
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$me.unblock();
+			})
+		});
+		$page.on("click", "button[name=\"addNewUser\"]",function(evt){
+			evt.preventDefault();
+			$this = $(this);
+			var $me = $page;
+			$me.block();
+			(function (cb) {
+				require(['api','clitpl','safe'], function (api,tf,safe) {
+					tf.render('user_prefs_edit', {luser:{}}, safe.sure(cb,function(text, ctx) {
+						$me.unblock();
+						$("body").append(text);
+						var $modal = $("#"+ctx.uniq).modal();
+						$modal.on("frm-saved", function (evt, user) {
+							tf.render('users_row',user, safe.sure(cb, function(text) {
+								$page.find("tbody").prepend(text)
+								$modal.modal('hide')
+								cb();
+							}))
+						})
+					}))
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$me.unblock();
+			})
+			return false;
+		});
+	});
+}, appError)
 </script>

@@ -1,9 +1,9 @@
-<script type="text/javascript">	
+<script>
 require(["jquery","highcharts"], function ($) {
-$(document).ready(function() {
-	$page = $("#priceeditor");
-	$page.addClass("ready");
-	
+	$(function() {
+		var $page = $("#priceeditor");
+		$page.addClass("ready");
+
 		var graphOptions = {
             chart: {
                 renderTo: 'graphContainer',
@@ -28,8 +28,8 @@ $(document).ready(function() {
             yAxis: {
                 title: {
                     text: '{{#i18n}}Exchange rate{{/i18n}}'
-                },                
-                startOnTick: false,                                
+                },
+                startOnTick: false,
                 showFirstLabel: false
             },
             tooltip: {
@@ -65,14 +65,14 @@ $(document).ready(function() {
                     }
                 }
             },
-    
+
             series: [{
                 type: 'area',
-                name: '',                 
+                name: '',
                 data: []
             }]
         };
-		
+
 		var redrawPriceGraph = function(){
 			var from =$("#currencySelectorForm").find('#firstCurrency option:selected').val();
 			var to = $("#currencySelectorForm").find('#secondCurrency option:selected').val();
@@ -81,21 +81,21 @@ $(document).ready(function() {
 				data:{redrawGraph:1,from:from,to:to},
 				dataType:"json"
 			});
-			jqXHR.done(function(res){	
+			jqXHR.done(function(res){
 				graphOptions.title.text = from+' {{#i18n}}to{{/i18n}} '+to+' {{#i18n}}exchange rate{{/i18n}}';
-				graphOptions.series[0].name = from+' to '+to;	
-				graphOptions.yAxis.max = res.max.value;			
+				graphOptions.series[0].name = from+' to '+to;
+				graphOptions.yAxis.max = res.max.value;
 				graphOptions.series[0].data = res.data;
-				var chart = new Highcharts.Chart(graphOptions);				
+				var chart = new Highcharts.Chart(graphOptions);
 			});
 		};
-		
+
 		var selectList = $("#currencySelectorForm select");
 		$($(selectList[0]).find('option')[0]).attr('selected','selected');
 		$($(selectList[0]).find('option')[1]).attr('disabled','disabled');
 		$($(selectList[1]).find('option')[0]).attr('disabled','disabled');
 		$($(selectList[1]).find('option')[1]).attr('selected','selected');
-		
+
 		$(".rateCtrlBtn").attr('disabled','disabled');
 		/* on change currency */
 		$page.on('change', "#currencySelectorForm select",function(){
@@ -111,18 +111,18 @@ $(document).ready(function() {
 				$targetOption.removeAttr('selected');
 			}
 			$targetOption.attr('disabled','disabled');
-			
+
 			$(".rateEditorContainer").html('');
 			$("#graphContainer").html('');
 			$(".rateCtrlBtn").attr('disabled','disabled');
 		});
-		
-		var oldFrom,oldTo;				
+
+		var oldFrom,oldTo;
 		$page.on("submit", "#currencySelectorForm", function(){
 			var $self = $(this);
 			var from = $self.find('#firstCurrency option:selected').val();
 			var to = $self.find('#secondCurrency option:selected').val();
-			
+
 			var jqXHR = $.ajax({
 				url:"{{prefix}}/priceeditor",
 				data:$self.serialize(),
@@ -133,10 +133,10 @@ $(document).ready(function() {
 				$pagination = $(".rateEditorContainer .pagination")
 				$pagination.remove();
 				$page.find("#pagination").html($pagination);
-				
+
 				$(".rateCtrlBtn").attr('disabled','disabled');
-				$(".add.rateCtrlBtn").removeAttr('disabled');				
-				if(oldFrom != from || oldTo != to){				
+				$(".add.rateCtrlBtn").removeAttr('disabled');
+				if(oldFrom != from || oldTo != to){
 					oldFrom = from;
 					oldTo = to;
 					redrawPriceGraph();
@@ -147,28 +147,28 @@ $(document).ready(function() {
 			$page.find("#rightcol").prepend($self);
 			return false;
 		});
-		
+
 		$page.on('click',".pagination .pageNum",function(){
 			if($(this).parent().hasClass("active"))
 				return false;
 			$("#currencySelectorForm input[name=\"offset\"]").val($(this).data("offset"));
 			$("#currencySelectorForm").submit();
-		});		
-		
+		});
+
 		$page.on('click',"#rateTable tbody tr",function(){
 			$("#rateTable tbody tr").removeClass('success');
 			$(this).addClass('success');
 			$(".edit.rateCtrlBtn,.delete.rateCtrlBtn").removeAttr('disabled');
 		});
-		
+
 		$(".add.rateCtrlBtn,.edit.rateCtrlBtn").click(function(){
 			var title, mode, currentDate, rate;
 			var id = 0;
 			if($(this).hasClass('add')){
 				title = '{{#i18n}}Add Rate Currency{{/i18n}}';
-				var mode = 'add';	
+				var mode = 'add';
 				rate = "";
-				currentDate = "";			
+				currentDate = "";
 			}
 			else if($(this).hasClass('edit')){
 				title = '{{#i18n}}Edit Rate Currency{{/i18n}}';
@@ -184,7 +184,7 @@ $(document).ready(function() {
 			$me.block();
 			(function (cb) {
 				require(['api','clitpl','safe','bootstrap'], function (api,tf,safe) {
-					tf.render('priceeditor_edit', {title:title, id:id, mode:mode, 
+					tf.render('priceeditor_edit', {title:title, id:id, mode:mode,
 							currentDate:currentDate, lastRate:rate,
 							firstCurr:from, secondCurr:to}, safe.sure(cb,function(text, ctx) {
 						$me.unblock();
@@ -192,7 +192,7 @@ $(document).ready(function() {
 						var $modal = $("#"+ctx.uniq).modal();
 						$modal.on("frm-saved", function (e, pricen) {
 							tf.render('priceeditor_tr', pricen, safe.sure(cb, function(text) {
-								if(id != 0){								
+								if(id != 0){
 									$("#rateTable tr.success[data-id='"+id+"']").replaceWith(text);
 								}
 								else{
@@ -200,7 +200,7 @@ $(document).ready(function() {
 								}
 								redrawPriceGraph();
 								$modal.modal('hide')
-								cb();		
+								cb();
 							}))
 						})
 					}))
@@ -232,30 +232,30 @@ $(document).ready(function() {
 				if (err) appError(err);
 				$me.unblock();
 			})
-		});		
+		});
 	});
-});
+}, appError);
 </script>
 <div id="priceeditor">
 <div class=row>
 <div class="span6">
 <h2>{{#i18n}}Select pair of currencies to edit{{/i18n}}</h2>
-<form id="currencySelectorForm" class="well form-inline">	
+<form id="currencySelectorForm" class="well form-inline">
 	<input type="hidden" name="offset" value="0" />
 	<select id="firstCurrency" name="firstCurr">
-		{{>currencies_list}}		
-	</select>	
-	
+		{{>currencies_list}}
+	</select>
+
 	<select id="secondCurrency" name="secondCurr">
-		{{>currencies_list}}	
-	</select>	
+		{{>currencies_list}}
+	</select>
 	<button type="submit" class="btn btn-primary">{{#i18n}}Apply{{/i18n}}</button>
 </form>
 	<div class="btn-group">
 		<button class="btn add rateCtrlBtn" disabled="disabled" >{{#i18n}}Add{{/i18n}}</button>
 		<button class="btn edit rateCtrlBtn" disabled="disabled" >{{#i18n}}Edit{{/i18n}}</button>
 		<button class="btn delete rateCtrlBtn" disabled="disabled" >{{#i18n}}Delete{{/i18n}}</button>
-    </div>	
+    </div>
     <br><br>
 	<div class="rateEditorContainer">
 
@@ -264,7 +264,7 @@ $(document).ready(function() {
 </div>
 <div id="rightcol" class="span6">
 	<div id="graphContainer"></div>
-</div>	
+</div>
 </div>
 <div class="row">
 <div id="pagination"></div>

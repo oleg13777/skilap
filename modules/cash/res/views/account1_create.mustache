@@ -11,22 +11,23 @@
 	<div class="modal-footer">
 		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
 		<button class="btn btn-primary" id="save">Create</button>
-	</div>			
+	</div>
 </div>
 <script>
-require(["jquery","jquery-block"],function($){
+require(["jquery","jquery-block"], function($){
 	var save = false;
 	$(function(e) {
-		$form = $("#{{uniq}}");
+		var $form = $("#{{uniq}}");
 		$form.on('hidden',function () {
 			if (!save)
 				$form.trigger("frm-closed");
 			$form.remove();
-		});		
+		});
 		$form.find("#save").on("click", function (event) {
 			save = true;
 			event.preventDefault();
 			$form.trigger("frm-saved");
 		})
 	})
-})
+},appError);
+</script>

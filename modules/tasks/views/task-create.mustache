@@ -1,5 +1,5 @@
-<script type="text/javascript">
-$(function() {	
+<script>
+$(function() {
 	$("#dialog").dialog({
 		position: ["left","top"],
 		buttons: {
@@ -19,25 +19,25 @@ $(function() {
 					"url": "{{prefix}}/update"
 				});
 				jqXHR.done(function(data){
-					window.parent.$("body").trigger('taskUpdatedSuccess',[data]);					
+					window.parent.$("body").trigger('taskUpdatedSuccess',[data]);
 				});
 				jqXHR.fail(function(data){
 					window.parent.$("body").trigger('taskUpdatedFailed');
 				});
 				//$(this).dialog("close");
 				window.parent.$("body .iframeContainer").trigger('closeDialog');
-			},			
+			},
 			"{{#i18n}}Close{{/i18n}}": function() {
 				//$(this).dialog("close");
 				window.parent.$("body .iframeContainer").trigger('closeDialog');
 			}
 		},
-		open:function(e,ui){			
+		open:function(e,ui){
 			var w = $(this).parent().width();
 			var h = $(this).parent().height();
 			var p = $(this).parent().position();
 			$(this).parent().css({"top":0,"left":0,"padding":0,"border":0});
-			window.parent.$("body .iframeContainer-ski_createTask").trigger('openDialog',[w,h,p]);						
+			window.parent.$("body .iframeContainer-ski_createTask").trigger('openDialog',[w,h,p]);
 		},
 		close:function(e,ui){
 			window.parent.$("body .iframeContainer").trigger('closeDialog');
@@ -48,19 +48,19 @@ $(function() {
 		width: 400,
 		modal: true,
 		dragable: true
-	});	
-	
-	function displayMessage(event){	
-		if (event.origin === "https://{{host}}") {		
+	});
+
+	function displayMessage(event){
+		if (event.origin === "https://{{host}}") {
 			if(event.data.name == 'setTaskDialogData'){
 				var task = event.data.data[0];
-				if(task._id){			
+				if(task._id){
 					$('#task_id').val(task._id);
 				}
 				if(task.dt){
 					$('#task_dt').val(task.dt);
 				}
-				if(task.status){			
+				if(task.status){
 					$('#task_status').find('option[value=\''+ task.status + '\']').attr('selected', true);
 				}
 				if(task.name){
@@ -76,12 +76,12 @@ $(function() {
 			else if(event.data.name == 'resetTaskDialogData'){
 				$("#dialog form[name='properties']").get(0).reset();
 			}
-			else if(event.data.name == 'showDialog') {		
+			else if(event.data.name == 'showDialog') {
 				$("#dialog").dialog('open');
-			}			
-		}		
+			}
+		}
 	}
-	
+
 	if (window.addEventListener) {
 		window.addEventListener("message", displayMessage, false);
 	}

@@ -11,138 +11,138 @@
 </div>
 <br><p> * - {{#i18n}}denotes hidden accounts{{/i18n}}</p>
 </div>
-<script type="text/javascript">
+<script>
 require(["jquery","jquery-block","bootstrap"], function ($) {
-$(document).ready(function() {
-	$page = $("#accounts-tree");
-	$page.addClass("ready");
-	$page.on("click", "#add_new",function(evt){
-		evt.preventDefault();		
-		$this = $(this);
-		var $me = $page;
-		$me.block();
-		(function (cb) {
-			require(['cash/edit-account-modal','safe','clitpl'], function (Modal,safe,tf) {
-				var modal = new Modal();
-				modal.show();
-				modal.once('shown', function () { $me.unblock(); })
-				modal.once('result', function (type, acc) {
-					if (type!='saved') return;
-					modal.getAccount(acc._id, ["value"], safe.sure(cb, function (acc) {
-						tf.render('accounts-tree_item', acc, safe.sure(cb, function(text) {
-							if (acc.parentId)
-								$page.find("#tree_root #"+acc.parentId + " ul:first").prepend(text);
-							else
-								$page.find("#tree_root ul:first").prepend(text);
-							modal.hide()
-							cb();									
-						}))
-					}))
-				})
-			},cb)
-		})(function (err) {
-			if (err) appError(err);
-			$me.unblock();
-		})
-		return false;		
-	});	
-	$page.on("click", ".editAcc",function(evt){
-		evt.preventDefault();		
-		$this = $(this);
-		var $me = $page;
-		var aid = $this.data('aid');
-		$me.block();
-		(function (cb) {
-			require(['cash/edit-account-modal','cash/delete-account-modal','safe','clitpl'], function (Modal,Del,safe,tf) {
-				var modal = new Modal();
-				var del = new Del();
-				modal.show(aid);
-				modal.once('shown', function () { $me.unblock(); })
-				modal.once('result', function (type, acc) {
-					if (type!='saved') return;
-					if (acc.parentId) {
-						del.getAccount(acc.parentId, ["value","path"], safe.sure(cb, function (acc) {
-							tf.render('accounts-tree_item',acc.accounts[0], safe.sure(cb, function(text) {
-								$page.find("#tree_root #"+aid + " #acc_row").remove()
-								$page.find("#tree_root #"+acc.accounts[0]._id).replaceWith(text);
+	$(function() {
+		var $page = $("#accounts-tree");
+		$page.addClass("ready");
+		$page.on("click", "#add_new",function(evt){
+			evt.preventDefault();
+			$this = $(this);
+			var $me = $page;
+			$me.block();
+			(function (cb) {
+				require(['cash/edit-account-modal','safe','clitpl'], function (Modal,safe,tf) {
+					var modal = new Modal();
+					modal.show();
+					modal.once('shown', function () { $me.unblock(); })
+					modal.once('result', function (type, acc) {
+						if (type!='saved') return;
+						modal.getAccount(acc._id, ["value"], safe.sure(cb, function (acc) {
+							tf.render('accounts-tree_item', acc, safe.sure(cb, function(text) {
+								if (acc.parentId)
+									$page.find("#tree_root #"+acc.parentId + " ul:first").prepend(text);
+								else
+									$page.find("#tree_root ul:first").prepend(text);
 								modal.hide()
-								cb();									
+								cb();
 							}))
 						}))
-					} else {
-						del.getAccount(acc._id, ["value","path"], safe.sure(cb, function (acc) {
-							tf.render('accounts-tree_item',acc.accounts[0], safe.sure(cb, function(text) {
-								$page.find("#tree_root #"+aid + " #acc_row").remove()
-								$page.find("#tree_root ul:first").prepend(text);
-								modal.hide()
-								cb();									
-							}))
-						}))
-					}
-				})
-			},cb)
-		})(function (err) {
-			if (err) appError(err);
-			$me.unblock();
-		})
-		return false;		
-	});	
-	$page.on("click", ".deleteAcc",function(evt){
-		evt.preventDefault();		
-		$this = $(this);
-		var $me = $page;
-		var aid = $this.data('aid');
-		$me.block();
-		(function (cb) {
-			require(['cash/delete-account-modal','safe','clitpl'], function (Modal,safe,tf) {
-				var modal = new Modal();
-				modal.show(aid);
-				modal.once('shown', function () { $me.unblock(); })
-				modal.once('result', function (type, options, accId) {
-					if (type!='deleted') return;
-					if (options.newSubParent) {
-						modal.getAccount(options.newSubParent, ["value","path"], safe.sure(cb, function (acc) {
-							tf.render('accounts-tree_item',acc.accounts[0], safe.sure(cb, function(text) {
-								$page.find("#tree_root #"+acc.accounts[0]._id).replaceWith(text);
-								$page.find("#tree_root #"+aid).remove();
-								if (options.newSubAccTrnParent) {
-									modal.getAccount(options.newSubAccTrnParent, ["value","path"], safe.sure(cb, function (acc) {
-										tf.render('accounts-tree_item',acc.accounts[0], safe.sure(cb, function(text) {
-											$page.find("#tree_root #"+acc.accounts[0]._id).replaceWith(text);
-											modal.hide()
-											cb();									
-										}))
-									}))
-								} else {
-									modal.hide()
-									cb();									
-								}
-							}))
-						}))
-					} else {
-						$page.find("#tree_root #"+aid).remove();
-						if (options.newSubAccTrnParent) {
-							modal.getAccount(options.newSubAccTrnParent, ["value","path"], safe.sure(cb, function (acc) {
+					})
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$me.unblock();
+			})
+			return false;
+		});
+		$page.on("click", ".editAcc",function(evt){
+			evt.preventDefault();
+			$this = $(this);
+			var $me = $page;
+			var aid = $this.data('aid');
+			$me.block();
+			(function (cb) {
+				require(['cash/edit-account-modal','cash/delete-account-modal','safe','clitpl'], function (Modal,Del,safe,tf) {
+					var modal = new Modal();
+					var del = new Del();
+					modal.show(aid);
+					modal.once('shown', function () { $me.unblock(); })
+					modal.once('result', function (type, acc) {
+						if (type!='saved') return;
+						if (acc.parentId) {
+							del.getAccount(acc.parentId, ["value","path"], safe.sure(cb, function (acc) {
 								tf.render('accounts-tree_item',acc.accounts[0], safe.sure(cb, function(text) {
+									$page.find("#tree_root #"+aid + " #acc_row").remove()
 									$page.find("#tree_root #"+acc.accounts[0]._id).replaceWith(text);
 									modal.hide()
-									cb();									
+									cb();
 								}))
 							}))
 						} else {
-							modal.hide()
-							cb();									
+							del.getAccount(acc._id, ["value","path"], safe.sure(cb, function (acc) {
+								tf.render('accounts-tree_item',acc.accounts[0], safe.sure(cb, function(text) {
+									$page.find("#tree_root #"+aid + " #acc_row").remove()
+									$page.find("#tree_root ul:first").prepend(text);
+									modal.hide()
+									cb();
+								}))
+							}))
 						}
-					}
-				})
-			},cb)
-		})(function (err) {
-			if (err) appError(err);
-			$me.unblock();
-		})
-		return false;		
-	});		
-});
-})
+					})
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$me.unblock();
+			})
+			return false;
+		});
+		$page.on("click", ".deleteAcc",function(evt){
+			evt.preventDefault();
+			$this = $(this);
+			var $me = $page;
+			var aid = $this.data('aid');
+			$me.block();
+			(function (cb) {
+				require(['cash/delete-account-modal','safe','clitpl'], function (Modal,safe,tf) {
+					var modal = new Modal();
+					modal.show(aid);
+					modal.once('shown', function () { $me.unblock(); })
+					modal.once('result', function (type, options, accId) {
+						if (type!='deleted') return;
+						if (options.newSubParent) {
+							modal.getAccount(options.newSubParent, ["value","path"], safe.sure(cb, function (acc) {
+								tf.render('accounts-tree_item',acc.accounts[0], safe.sure(cb, function(text) {
+									$page.find("#tree_root #"+acc.accounts[0]._id).replaceWith(text);
+									$page.find("#tree_root #"+aid).remove();
+									if (options.newSubAccTrnParent) {
+										modal.getAccount(options.newSubAccTrnParent, ["value","path"], safe.sure(cb, function (acc) {
+											tf.render('accounts-tree_item',acc.accounts[0], safe.sure(cb, function(text) {
+												$page.find("#tree_root #"+acc.accounts[0]._id).replaceWith(text);
+												modal.hide()
+												cb();
+											}))
+										}))
+									} else {
+										modal.hide()
+										cb();
+									}
+								}))
+							}))
+						} else {
+							$page.find("#tree_root #"+aid).remove();
+							if (options.newSubAccTrnParent) {
+								modal.getAccount(options.newSubAccTrnParent, ["value","path"], safe.sure(cb, function (acc) {
+									tf.render('accounts-tree_item',acc.accounts[0], safe.sure(cb, function(text) {
+										$page.find("#tree_root #"+acc.accounts[0]._id).replaceWith(text);
+										modal.hide()
+										cb();
+									}))
+								}))
+							} else {
+								modal.hide()
+								cb();
+							}
+						}
+					})
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$me.unblock();
+			})
+			return false;
+		});
+	});
+}, appError)
 </script>
 

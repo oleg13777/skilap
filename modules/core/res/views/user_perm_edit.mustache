@@ -19,7 +19,7 @@
 	<div class="modal-footer">
 		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
 		<button class="btn btn-primary" id="save">Save</button>
-	</div>			
+	</div>
 </div>
 <script>
 require(["jquery","jquery-block"],function($){
@@ -27,20 +27,20 @@ require(["jquery","jquery-block"],function($){
 		$form = $("#{{uniq}}");
 		$form.on('hidden',function () {
 			$form.remove();
-		});		
+		});
 		$form.find("#save").on("click", function (event) {
 			event.preventDefault();
 			$form.block();
 			(function(cb) {
 				require(["api","safe"], function (api,safe) {
-					var user = { 
+					var user = {
 						_id: "{{luser._id}}",
-						permissions: [] 
+						permissions: []
 					};
 					$('.perm').filter(":checkbox:checked").each(function(index, checkbox) {
 						user.permissions.push($(checkbox).attr("value"));
 					});
-					
+
 					if ('{{type}}' == 'guest') {
 						api.call('core.saveSystemSettings', 'guest', user, safe.sure(cb, function (user) {
 							$form.trigger("frm-saved",user);
@@ -57,4 +57,5 @@ require(["jquery","jquery-block"],function($){
 			})
 		})
 	})
-})
+}, appError)
+</script>

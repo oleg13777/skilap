@@ -20,37 +20,37 @@
 	<a href="#" data-toggle="dropdown" class="dropdown-toggle">{{#i18n}}Report{{/i18n}} <b class="caret"></b></a>
 	<ul class="dropdown-menu">
 	  <li><a href="/cash/reports/barflow">{{#i18n}}Spend/receive bar chart{{/i18n}}</a></li>
-	  <li><a href="/cash/reports/pieflow">{{#i18n}}Spend/receive pie chart{{/i18n}}</a></li>	 
+	  <li><a href="/cash/reports/pieflow">{{#i18n}}Spend/receive pie chart{{/i18n}}</a></li>
 	</ul>
-  </li>  
- 
-<script type="text/javascript">
+  </li>
+
+<script>
 require(["jquery","jquery-block","bootstrap"], function ($) {
-$(document).ready(function() {	
-	var $page = $("body");	
-	$(document).on("click", "#editSettings",function(evt){		
-		evt.preventDefault();		
-		$this = $(this);
-		var $me = $page;
-		$me.block();
-		(function (cb) {
-			require(['cash/settings-modal'], function (Modal) {
-				var modal = new Modal();
-				modal.show();
-				modal.once('shown', function () { $me.unblock(); })
-				modal.once('result', function (type, acc) {
-					if (type=='saved') 
-						location.reload();										
-					modal.hide()
-					cb();				
-				})
-			},cb)
-		})(function (err) {
-			if (err) appError(err);
-			$me.unblock();
-		})
-		return false;		
+	$(function() {
+		var $page = $("body");
+		$(document).on("click", "#editSettings",function(evt){
+			evt.preventDefault();
+			$this = $(this);
+			var $me = $page;
+			$me.block();
+			(function (cb) {
+				require(['cash/settings-modal'], function (Modal) {
+					var modal = new Modal();
+					modal.show();
+					modal.once('shown', function () { $me.unblock(); })
+					modal.once('result', function (type, acc) {
+						if (type=='saved')
+							location.reload();
+						modal.hide()
+						cb();
+					})
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$me.unblock();
+			})
+			return false;
+		});
 	});
-});
-})
+},appError)
 </script>

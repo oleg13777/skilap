@@ -19,7 +19,7 @@
 					<label class="control-label" for="rate">Rate currency</label>
 					<div class="controls">
 						<input type="text" name="rate" id="newrate" data-value="{{lastRate}}" value="{{lastRate}}" class="text ui-widget-content ui-corner-all" />
-						<span>1 {{firstCurr}} = x {{secondCurr}}</span>			
+						<span>1 {{firstCurr}} = x {{secondCurr}}</span>
 					</div>
 				</div>
 			</fieldset>
@@ -28,16 +28,16 @@
 	<div class="modal-footer">
 		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
 		<button class="btn btn-primary" id="save">Save</button>
-	</div>			
+	</div>
 </div>
 <script>
 require(["jquery","bootstrap-datepicker","jquery-block"],function($){
 	$(function(e) {
 		$form = $("#{{uniq}}");
-		$form.find("#datepicker").datepicker({language: _user.language.charAt(0)+_user.language.charAt(1)});		
+		$form.find("#datepicker").datepicker({language: _user.language.charAt(0)+_user.language.charAt(1)});
 		$form.on('hidden',function () {
 			$form.remove();
-		});		
+		});
 		$form.find("#save").on("click", function (event) {
 			event.preventDefault();
 			$form.block();
@@ -45,7 +45,7 @@ require(["jquery","bootstrap-datepicker","jquery-block"],function($){
 				require(["api","safe"], function (api,safe) {
 					var date = $("#datepicker").data("datepicker").getDate();
 					var cmdty = {space:"ISO4217",id:"{{firstCurr}}"};
-					var currency = {space:"ISO4217",id:"{{secondCurr}}"};	
+					var currency = {space:"ISO4217",id:"{{secondCurr}}"};
 					var rate = $("#newrate").val();
 					price = {cmdty:cmdty,
 						currency:currency,
@@ -64,4 +64,5 @@ require(["jquery","bootstrap-datepicker","jquery-block"],function($){
 			})
 		})
 	})
-})
+}, appError)
+</script>

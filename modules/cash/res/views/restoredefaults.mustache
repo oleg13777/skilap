@@ -1,11 +1,13 @@
 <script>
-	require(["jquery"], function ($) { $(function() {
+require(["jquery"], function ($) {
+	$(function() {
 		$(".confirm").click(function () {
 			$("#props").submit();
 			return false;
 		})
-		$('#acc_curency option[value="{{#i18n}}USD{{/i18n}}"]').attr('selected', 'selected');			
-	})});
+		$('#acc_curency option[value="{{#i18n}}USD{{/i18n}}"]').attr('selected', 'selected');
+	})
+}, appError);
 </script>
 <h2>{{#i18n}}Create new cash register{{/i18n}}</h2>
 <div class="alert">{{#i18n}}Attention! Your existing data will be overwritten upon complete.{{/i18n}}</div>
@@ -30,11 +32,11 @@
 					<option value="empty">{{#i18n}}Empty{{/i18n}}</option>
 				</select>
 			</td>
-		</tr>			
+		</tr>
 	</table>
 	<div class="form-actions">
-		<input type="submit" class="btn btn-primary" value="{{#i18n}}Confirm{{/i18n}}"></input>	
+		<input type="submit" class="btn btn-primary" value="{{#i18n}}Confirm{{/i18n}}"></input>
 		<a class="btn" href="{{prefix}}/new/register?confirm=false">{{#i18n}}Cancel{{/i18n}}</a>
 	</div>
-</form>	
+</form>
 

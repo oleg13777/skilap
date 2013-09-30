@@ -11,13 +11,13 @@
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <script type="text/javascript" src="/common/js/require.js"></script>
-	<script type="text/javascript">
+    <script src="/common/js/require.js"></script>
+	<script>
 		var _apiToken = '{{apiToken}}';
 		var _user = {_id:'{{user._id}}',language:"{{user.language}}"};
 		var _prefix = '{{prefix}}';
 	</script>
-    <script type="text/javascript" src="{{prefix}}/js/app{{relisets}}.js"></script>
+    <script src="{{prefix}}/js/app{{relisets}}.js"></script>
 </head>
 <body>
 	<div class="navbar navbar-fixed-top navbar-inverse">
@@ -84,28 +84,30 @@
 		</footer>
     </div>
 <script>
-require(['jquery',"bootstrap"], function ($) { $(function () {
-	$(".closeTab").on("click", function(e){
-		e.preventDefault();
-		var self = $(this);
-		(function (cb) {
-			require(['api','safe'], function (api, safe) {
-				api.call('cash.web_removeTabs',self.data('pid'),safe.sure(cb, function () {
-					if (self.parents("li").hasClass("active")){
-						$prev = $(self.parents("li")).prev();
-						if (!$prev[0])
-							location.href="{{prefix}}";
-						else
-							$prev.find('a')[0].click();
-						self.parents("li").remove();
-					} else {
-						self.parents("li").remove();
-					}
-				}))
-			}, cb)
-		})(appError)
-	});
-})})
+require(['jquery',"bootstrap"], function ($) {
+	$(function () {
+		$(".closeTab").on("click", function(e){
+			e.preventDefault();
+			var self = $(this);
+			(function (cb) {
+				require(['api','safe'], function (api, safe) {
+					api.call('cash.web_removeTabs',self.data('pid'),safe.sure(cb, function () {
+						if (self.parents("li").hasClass("active")){
+							$prev = $(self.parents("li")).prev();
+							if (!$prev[0])
+								location.href="{{prefix}}";
+							else
+								$prev.find('a')[0].click();
+							self.parents("li").remove();
+						} else {
+							self.parents("li").remove();
+						}
+					}))
+				}, cb)
+			})(appError)
+		});
+	})
+}, appError)
 </script>
 </body>
 </html>

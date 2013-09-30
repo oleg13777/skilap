@@ -2,25 +2,25 @@
 	<div class="modal-header">
 		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 		<h3 id="myModalLabel">{{#i18n}}Report settings{{/i18n}}</h3>
-	</div>	
+	</div>
 	<div class="modal-body">
 		<div class='localctx'></div>
 		<form class="form-horizontal settingsForm" id="{{_id}}" method="POST">
 			<ul class="nav nav-tabs" id="myTab">
 			  <li class="active"><a href="#sub_tr">Accounts tree</a></li>
 			  <li><a href="#general">General</a></li>
-			  <li><a href="#currency">Currency</a></li>			  
+			  <li><a href="#currency">Currency</a></li>
 			</ul>
-			<div class="tab-content">				
-				<div class="tab-pane active" id="sub_tr">					
-					<div class = "control-group">					
+			<div class="tab-content">
+				<div class="tab-pane active" id="sub_tr">
+					<div class = "control-group">
 						<ul class="accountsTree span3">
 							{{#accounts}}
 								{{>accountTreeItem}}
 							{{/accounts}}
 							<button class="btn" type = "button" id="s_all">Select All</button>
 							<button class="btn btn-primary" type = "button" id="clear">Clear All</button>
-						</ul>						
+						</ul>
 					</div>
 					</br>
 					<div class="control-group">
@@ -34,7 +34,7 @@
 						</div>
 					</div>
 				</div>
-				<div id="general" class = "tab-pane">					
+				<div id="general" class = "tab-pane">
 					<div class="control-group">
 						<label class = "control-label">{{#i18n}}Report name{{/i18n}}:</label>
 						<div class="controls">
@@ -58,62 +58,62 @@
 						<div class="controls">
 							<input class="span2" type="text" id="maxAcc" name="maxAcc" value="{{settings.maxAcc}}">
 						</div>
-					</div>					
+					</div>
 					<div class="control-group">
-						<label class = "control-label">{{#i18n}}Account type{{/i18n}}:</label>	
-						<div class="controls">					
+						<label class = "control-label">{{#i18n}}Account type{{/i18n}}:</label>
+						<div class="controls">
 							<select class="span2" name="accType" id="accType">
 								{{#accTypes}}
 								<option value="{{value}}" {{#if isSelected}}selected{{/if}} >{{name}}</option>
 								{{/accTypes}}
 							</select>
-						</div>						
-					</div>					
-				</div>				
+						</div>
+					</div>
+				</div>
 				<div class="control-group tab-pane" id="currency">
-					<div  class="control-group">	
+					<div  class="control-group">
 						<label class= "control-label">{{#i18n}}Report's currency{{/i18n}}:</label>
-						<div class="controls">					
-							<select name="reportCurrency" class="span2" id="tr_parent" class="new_parent">								
+						<div class="controls">
+							<select name="reportCurrency" class="span2" id="tr_parent" class="new_parent">
 								{{#currencies.used}}
 									<option value="{{iso}}"{{#if isSelected}}selected{{/if}}>{{iso}} - {{country}}</option>
 								{{/currencies.used}}
 									<option class="separator" disabled="disabled"></option>
 								{{#currencies.unused}}
 									<option value="{{iso}}"{{#if isSelected}}selected{{/if}}>{{iso}} - {{country}}</option>
-								{{/currencies.unused}}						
+								{{/currencies.unused}}
 							</select>
 						</div>
-					</div>					
-				</div>	
-			</div>					
-		</form>			
-	</div>	
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
 	<div class="modal-footer">
 		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
 		<button class="btn btn-primary" id="save">Save</button>
-	</div>			
+	</div>
 </div>
 <script>
-$(document).ready(function() {	
-	require(["jquery","jquery-block","bootstrap-datepicker"],function($){$(function() {		
-		$form = $("#{{uniq}}");	
+require(["jquery","jquery-block","bootstrap-datepicker"],function($){
+	$(function() {
+		$form = $("#{{uniq}}");
 		$form.find('#startDate, #endDate').datepicker();
 		$form.on('hidden',function () {
 			$form.remove();
-		});		
+		});
 
 		$form.find("#btn-cancel").click(function (e) {
 			$form.trigger("frm-cancel");
 			return false;
-		})	
+		})
 		$(".accountTreeItem .tree-ico").click(function(){
 			if ($(this).parent().find("ul").children().length)
 				$(this).parent().toggleClass('collapsed');
 		});
 
-		$(".accountTreeItem .name").click(function(){			
-			$(this).toggleClass('selected');			
+		$(".accountTreeItem .name").click(function(){
+			$(this).toggleClass('selected');
 		});
 
 		$("#s_all").click(function(){
@@ -123,12 +123,12 @@ $(document).ready(function() {
 		$("#clear").click(function(){
 			$(".accountTreeItem .name").removeClass("selected");
 		});
-		
-		$('#myTab a:first').tab('show');		
+
+		$('#myTab a:first').tab('show');
 		$('#myTab a').click(function (e) {
 			e.preventDefault();
 			$(this).tab('show');
-		})			
+		})
 		$form.on('click', "#save", function (event) {
 			event.preventDefault();
 			$form.block();
@@ -142,13 +142,13 @@ $(document).ready(function() {
 				_.forEach(tparams, function(elem){
 					params[elem.name] = elem.value;
 				})
-				params.accIds = accIds;	
-				var loc = location.href.split("?");	
+				params.accIds = accIds;
+				var loc = location.href.split("?");
 				var type = _.last(loc[0].split("/"))
-				params.oldName = decodeURIComponent(location.search.split("=")[1]);				
+				params.oldName = decodeURIComponent(location.search.split("=")[1]);
 				require(["api","safe"], function (api,safe) {
-					api.call('cash.web_saveParams', params, type, safe.sure(cb, function (ret) {						
-						location.href = ret;						
+					api.call('cash.web_saveParams', params, type, safe.sure(cb, function (ret) {
+						location.href = ret;
 					}))
 				},cb)
 			})(function (err) {
@@ -156,6 +156,6 @@ $(document).ready(function() {
 				$form.unblock();
 			})
 		})
-	})})
-})
+	})
+}, appError)
 </script>

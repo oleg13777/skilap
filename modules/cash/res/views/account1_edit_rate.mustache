@@ -19,7 +19,7 @@
 	<div class="modal-footer">
 		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
 		<button class="btn btn-primary" id="save">Save</button>
-	</div>			
+	</div>
 </div>
 <script>
 require(["jquery","jquery-block"],function($){
@@ -30,11 +30,12 @@ require(["jquery","jquery-block"],function($){
 			if (!save)
 				$form.trigger("frm-closed");
 			$form.remove();
-		});		
+		});
 		$form.find("#save").on("click", function (event) {
 			save = true;
 			event.preventDefault();
 			$form.trigger("frm-saved", [$form.find("input[name='rate']").val()]);
 		})
 	})
-})
+},appError)
+</script>

@@ -43,42 +43,42 @@ module.exports = function(grunt) {
 		});
 	})(coremustache);
 
+	var req_jslibs = {
+		"jquery":						"./public/js/jquery"
+		, "jquery-block": 				"./public/js/jquery.blockUI"
+		, "jquery-mousewheel": 			"./public/js/jquery.mousewheel"
+		, "bootstrap": 					"./public/js/bootstrap"
+		, "bootstrap-typeahead": 		"./public/js/bootstrap-typeahead"
+		, "bootstrap-datepicker-core": 	"./public/js/bootstrap-datepicker"
+		, "moment": 					"./public/js/moment/moment"
+		, "handlebars.runtime":			"./public/js/handlebars.runtime"
+		, "lodash":						"./public/js/lodash"
+		, "async":						"./public/js/async"
+		, "safe":						"./public/js/safe"
+		, "jsonrpc":					"./public/js/jsonrpc"
+		, "text":						"./public/js/text"
+		, "json":						"./public/js/json"
+		, "clitpl":						"./public/js/clitpl"
+		, "currency": 					"./public/js/currency"
+		, "eventemitter2":				"./public/js/eventemitter2"
+		, "edit-account-modal":			"./modules/cash/public/js/edit-account-modal"
+		, "delete-account-modal":		"./modules/cash/public/js/delete-account-modal"
+		, "pagesettings":				"./modules/cash/public/js/pagesettings"
+		, "reportsettings":				"./modules/cash/public/js/reportsettings"
+		, "settings-modal":				"./modules/cash/public/js/settings-modal"
+	};
+
 	grunt.initConfig({
 		requirejs: {
 			/* share */
 			options: {
-				paths:{
-					"jquery":						"./public/js/jquery"
-					, "jquery-block": 				"./public/js/jquery.blockUI"
-					, "jquery-mousewheel": 			"./public/js/jquery.mousewheel"
-					, "bootstrap": 					"./public/js/bootstrap"
-					, "bootstrap-typeahead": 		"./public/js/bootstrap-typeahead"
-					, "bootstrap-datepicker-core": 	"./public/js/bootstrap-datepicker"
-					, "moment": 					"./public/js/moment/moment"
-					, "handlebars.runtime":			"./public/js/handlebars.runtime"
-					, "lodash":						"./public/js/lodash"
-					, "async":						"./public/js/async"
-					, "safe":						"./public/js/safe"
-					, "jsonrpc":					"./public/js/jsonrpc"
-					, "text":						"./public/js/text"
-					, "json":						"./public/js/json"
-					, "clitpl":						"./public/js/clitpl"
-					, "currency": 					"./public/js/currency"
-					, "eventemitter2":				"./public/js/eventemitter2"
-					, "edit-account-modal":			"./modules/cash/public/js/edit-account-modal"
-					, "delete-account-modal":		"./modules/cash/public/js/delete-account-modal"
-					, "pagesettings":				"./modules/cash/public/js/pagesettings"
-					, "reportsettings":				"./modules/cash/public/js/reportsettings"
-					, "settings-modal":				"./modules/cash/public/js/settings-modal"
-				},
+				paths:req_jslibs,
 				shim:{
-					shim:{
-						"bootstrap": { deps:["jquery"] },
-						"bootstrap-datepicker-core": { deps:["bootstrap"] },
-						"bootstrap-typeahead": { deps:["bootstrap","lodash"] },
-						"jquery-block": { deps:["jquery"] },
-						"jquery-mousewheel": { deps:["jquery"] }
-					}
+					"bootstrap": { deps:["jquery"] },
+					"bootstrap-datepicker-core": { deps:["bootstrap"] },
+					"bootstrap-typeahead": { deps:["bootstrap","lodash"] },
+					"jquery-block": { deps:["jquery"] },
+					"jquery-mousewheel": { deps:["jquery"] }
 				},
 				optimize: "none"
 			},
@@ -168,7 +168,10 @@ module.exports = function(grunt) {
 				removeLinkAttr: true,
 				removeScriptAttr: true,
 				removeSurroundingSpaces: "all",
-				removeIntertagSpaces: true
+				removeIntertagSpaces: true,
+				compressJs: true,
+				jsCompressor: "closure",
+				closureOptLevel: "whitespace"
 			},
 			core: {
 				files: coremustache

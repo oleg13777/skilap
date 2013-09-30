@@ -8,47 +8,49 @@
 		<form class="form-horizontal" id="{{_id}}" method="POST">
 			<div class="control-group" id="sub_tr">
 				<label class='control-label'>{{#i18n}}Currency{{/i18n}}:</label>
-				<div class="controls">					
+				<div class="controls">
 					<select id="tr_parent" class="new_parent">
-						{{#currencies}}							
-							<option {{#when ../currency.id '==' iso}}selected{{/when}} value="{{iso}}">{{iso}} - {{country}}</option>							
+						{{#currencies}}
+							<option {{#when ../currency.id '==' iso}}selected{{/when}} value="{{iso}}">{{iso}} - {{country}}</option>
 						{{/currencies}}
 					</select>
 				</div>
-			</div>				
+			</div>
 			<div class="control-group">
 				<label class='control-label'>{{#i18n}}Run update currency rate scheduler{{/i18n}}:</label>
 				<div class="controls">
 					<input id="updateRate" type="checkbox" {{#if checkRate}}checked{{/if}}>
 				</div>
-			</div>	
-		</form>			
+			</div>
+		</form>
 	</div>
 	<div class="modal-footer">
 		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
 		<button class="btn btn-primary" id="save">Save</button>
-	</div>			
+	</div>
 </div>
 <script>
-require(["jquery","jquery-block"],function($){$(function() {
-	$form = $("#{{uniq}}");		
-	$form.on('click', "#save", function (event) {
-		event.preventDefault();
-		$form.block();
-		(function(cb) {
-			var params = {space:"ISO4217",id:$('#tr_parent option:selected').val()};			
-			require(["api","safe"], function (api,safe) {
-				var options = {};							
-				api.call('cash.saveSettings', "currency", params ,safe.sure(cb, function () {
-					api.call('cash.saveSettings', "checkRate", $form.find('#updateRate:checked').length>0 ,safe.sure(cb, function () {
-						$form.trigger("frm-saved",options);
+require(["jquery","jquery-block"],function($){
+	$(function() {
+		var $form = $("#{{uniq}}");
+		$form.on('click', "#save", function (event) {
+			event.preventDefault();
+			$form.block();
+			(function(cb) {
+				var params = {space:"ISO4217",id:$('#tr_parent option:selected').val()};
+				require(["api","safe"], function (api,safe) {
+					var options = {};
+					api.call('cash.saveSettings', "currency", params ,safe.sure(cb, function () {
+						api.call('cash.saveSettings', "checkRate", $form.find('#updateRate:checked').length>0 ,safe.sure(cb, function () {
+							$form.trigger("frm-saved",options);
+						}))
 					}))
-				}))
-			},cb)
-		})(function (err) {
-			if (err) appError(err);
-			$form.unblock();
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$form.unblock();
+			})
 		})
 	})
-})})
+}, appError)
 </script>

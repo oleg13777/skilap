@@ -8,46 +8,48 @@
 		<form class="form-horizontal" id="{{_id}}" method="POST">
 			<div class="control-group" id="sub_tr">
 				<label class='control-label'>{{#i18n}}Currency{{/i18n}}:</label>
-				<div class="controls">					
+				<div class="controls">
 					<select id="tr_parent" class="new_parent">
-						{{#currencies}}													
+						{{#currencies}}
 							{{#used}}
 								<option value="{{iso}}">{{iso}} - {{country}}</option>
 							{{/used}}
 								<option class="separator" disabled="disabled"></option>
 							{{#unused}}
 								<option value="{{iso}}">{{iso}} - {{country}}</option>
-							{{/unused}}						
+							{{/unused}}
 						{{/currencies}}
 					</select>
 				</div>
-			</div>				
-		</form>			
+			</div>
+		</form>
 	</div>
 	<div class="modal-footer">
 		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
 		<button class="btn btn-primary" id="save">Save</button>
-	</div>			
+	</div>
 </div>
-<script>	
-require(["jquery","jquery-block"],function($){$(function() {
-	$form = $("#{{uniq}}");		
-	$form.on('click', "#save", function (event) {
-		event.preventDefault();
-		$form.block();
-		(function(cb) {
-			var cmdty = {space:"ISO4217",id:$('#tr_parent option:selected').val()}				
-			var pid = $(".active button").attr("data-pid");		
-			require(["api","safe"], function (api,safe) {
-				var options = {};							
-				api.call('cash.web_saveTabSettings', pid, {cmdty:cmdty} ,safe.sure(cb, function () {
-					$form.trigger("frm-saved",options);
-				}))
-			},cb)
-		})(function (err) {
-			if (err) appError(err);
-			$form.unblock();
+<script>
+require(["jquery","jquery-block"],function($){
+	$(function() {
+		var $form = $("#{{uniq}}");
+		$form.on('click', "#save", function (event) {
+			event.preventDefault();
+			$form.block();
+			(function(cb) {
+				var cmdty = {space:"ISO4217",id:$('#tr_parent option:selected').val()}
+				var pid = $(".active button").attr("data-pid");
+				require(["api","safe"], function (api,safe) {
+					var options = {};
+					api.call('cash.web_saveTabSettings', pid, {cmdty:cmdty} ,safe.sure(cb, function () {
+						$form.trigger("frm-saved",options);
+					}))
+				},cb)
+			})(function (err) {
+				if (err) appError(err);
+				$form.unblock();
+			})
 		})
 	})
-})})
+}, appError)
 </script>
