@@ -7,12 +7,15 @@ module.exports.getAccountRegister = function (token, accId, offset, limit, cb ) 
 	async.waterfall ([
 		function (cb) { self._coreapi.checkPerm(token,["cash.view"],cb); },
 		function (cb) {
-			var cursor = self._cash_register.find({'accId': new self._ctx.ObjectID(accId)}).sort( { 'order': 1 } );
+			var order = (limit < 0)?-1:1;
+			var cursor = self._cash_register.find({'accId': new self._ctx.ObjectID(accId)}).sort( { 'order': order } );
 			if (offset)
 				cursor.skip(offset);
 			if (limit)
 				cursor.limit(limit);
 			cursor.toArray(safe.sure_result(cb, function(data) {
+				if (data && limit < 0)
+					data.reverse();
 				return _.map(data, function(d) { d._id = d.trId; return d;});
 			}));
 		},
