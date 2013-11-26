@@ -161,17 +161,14 @@ module.exports = function(grunt) {
 				}
 			}
 		},
-		htmlcompressor: {
+		/*htmlcompressor: {
 			options: {
 				type: 'html',
 				removeStyleAttr: true,
 				removeLinkAttr: true,
 				removeScriptAttr: true,
 				removeSurroundingSpaces: "all",
-				removeIntertagSpaces: true,
-				compressJs: true,
-				jsCompressor: "closure",
-				closureOptLevel: "whitespace"
+				removeIntertagSpaces: true
 			},
 			core: {
 				files: coremustache
@@ -179,7 +176,7 @@ module.exports = function(grunt) {
 			cash: {
 				files: cashmustache
 			}
-		},
+		},*/
 		pngmin: {
 			compile: {
 				files: [
@@ -229,7 +226,7 @@ module.exports = function(grunt) {
 				_.each(fs.readdirSync("./modules/" + folder + "/res/views"), function(file) {
 					file = "./modules/" + folder + "/res/views/" + file;
 					var contents = grunt.file.read(file);
-					contents = contents.replace("{{relisets}}","-" + relisets).replace(/^\s+/gmi,"").replace(/>\s+</gmi,"><").replace(/\t+/gmi," ");
+					contents = contents.replace("{{relisets}}","-" + relisets).replace(/>\s+</gmi,">\n<").replace(/^\s+/gmi,"").replace(/\t+/gmi," ");
 					grunt.file.write(file, contents);
 				});
 				grunt.log.writeln('✔ '.green + "./modules/" + folder + "/res/views/*");
@@ -241,9 +238,9 @@ module.exports = function(grunt) {
 
 	grunt.loadNpmTasks('grunt-contrib-requirejs');
 	grunt.loadNpmTasks("grunt-contrib-uglify");
-	grunt.loadNpmTasks('grunt-htmlcompressor');
+	//grunt.loadNpmTasks('grunt-htmlcompressor');
 	grunt.loadNpmTasks('grunt-smushit');
 	grunt.loadNpmTasks('grunt-pngmin');
 
-	grunt.registerTask('default', ['requirejs','buildapp','uglify','cutmustache','htmlcompressor','smushit']);
+	grunt.registerTask('default', ['requirejs','buildapp','uglify','cutmustache'/*,'htmlcompressor'*/,'smushit']);
 }
